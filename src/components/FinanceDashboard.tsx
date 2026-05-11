@@ -64,7 +64,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
     });
 
     const fetchGlobalStats = async () => {
-      const stats = await firestoreService.getDocument('stats', 'global');
+      const stats = await firestoreService.getDocument('stats', 'global') as any;
       if (stats && stats.totalFunded) {
         setTotalFunded(stats.totalFunded);
       }
@@ -79,7 +79,13 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
 
   // Form states
   const [allocAmount, setAllocAmount] = useState('');
-  const [selectedTeam, setSelectedTeam] = useState(teams[0].name);
+  const [selectedTeam, setSelectedTeam] = useState('');
+
+  useEffect(() => {
+    if (teams.length > 0 && !selectedTeam) {
+      setSelectedTeam(teams[0].name);
+    }
+  }, [teams, selectedTeam]);
   const [fundAmount, setFundAmount] = useState('');
 
   // --- CÁLCULOS TÉCNICOS (REATIVOS) ---

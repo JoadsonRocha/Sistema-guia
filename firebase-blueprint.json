@@ -60,9 +60,25 @@
         "totalFunded": { "type": "number" },
         "totalAllocated": { "type": "number" }
       }
+    },
+    "Profile": {
+      "title": "Profile",
+      "description": "User profile with role details",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["coordenador", "lider"] },
+        "name": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["email", "role"]
     }
   },
   "firestore": {
+    "/users/{userId}": {
+      "schema": "Profile",
+      "description": "Registered user profiles"
+    },
     "/teams/{teamId}": {
       "schema": "Team",
       "description": "Regional teams overview"

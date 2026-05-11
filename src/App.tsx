@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, 
   Fuel, 
@@ -51,17 +51,28 @@ function CoordinatorDashboard() {
     if (!user) return;
 
     // Subs para dados reais
-    const unsubTeams = firestoreService.subscribeToCollection('teams', setTeams);
-    const unsubUrgencies = firestoreService.subscribeToCollection('urgencies', setUrgencies);
+    const unsubTeams = firestoreService.subscribeToCollection('teams', (data) => {
+      setTeams(data);
+    });
+    
+    const unsubUrgencies = firestoreService.subscribeToCollection('urgencies', (data) => {
+      setUrgencies(data);
+    });
+
+    const unsubStats = onSnapshot(doc(db, 'stats', 'global'), (snapshot) => {
+      if (snapshot.exists()) {
+        setStatsData(snapshot.data());
+      }
+    });
     
     // Fallback for empty collections
     const checkAndSeed = async () => {
       const existingTeams = await firestoreService.getCollection('teams');
       if (existingTeams.length === 0) {
         const seedTeams = [
-          { name: 'EQUIPE NORTE', leader: 'Capitão Silva', location: 'Pacaraima', status: 'OK', contacts: 45, fuel: 80, demands: 3 },
-          { name: 'EQUIPE LESTE', leader: 'Major Rocha', location: 'Bonfim', status: 'ALERTA', contacts: 22, fuel: 15, demands: 8 },
-          { name: 'EQUIPE SUL', leader: 'Tenente Lima', location: 'Rorainópolis', status: 'OK', contacts: 38, fuel: 55, demands: 0 },
+          { name: 'EQUIPE NORTE', leader: 'Capitão Silva', location: 'Pacaraima', status: 'OK', contacts: 45, fuel: 80, demands: 3, allocated: 5000, spent: 1200 },
+          { name: 'EQUIPE LESTE', leader: 'Major Rocha', location: 'Bonfim', status: 'ALERTA', contacts: 22, fuel: 15, demands: 8, allocated: 3000, spent: 2500 },
+          { name: 'EQUIPE SUL', leader: 'Tenente Lima', location: 'Rorainópolis', status: 'OK', contacts: 38, fuel: 55, demands: 0, allocated: 4000, spent: 500 },
         ];
         for (const t of seedTeams) {
           await firestoreService.setDocument('teams', t.name.replace(/\s/g, '_'), t);
@@ -77,7 +88,8 @@ function CoordinatorDashboard() {
           contatosMeta: 200,
           alertasAtivos: 3,
           alertasCriticos: 1,
-          regionaisOnline: '05/05'
+          regionaisOnline: '05/05',
+          totalFunded: 500000
         });
       }
     };
@@ -86,6 +98,7 @@ function CoordinatorDashboard() {
     return () => {
       unsubTeams();
       unsubUrgencies();
+      unsubStats();
     };
   }, [user]);
 
@@ -721,7 +734,13 @@ function CaboDashboard() {
 
 export default function App() {
   const [view, setView] = useState<'coord' | 'cabo'>('coord');
-  const { user, login, loading } = useAuth();
+  const { user, login, loginWithEmail, signupWithEmail, loading } = useAuth();
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [userRole, setUserRole] = useState<'coordenador' | 'lider'>('lider');
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [authError, setAuthError] = useState('');
 
   if (loading) {
     return (
@@ -732,32 +751,122 @@ export default function App() {
     );
   }
 
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    try {
+      if (isRegistering) {
+        await signupWithEmail(email, password, userRole);
+      } else {
+        await loginWithEmail(email, password);
+      }
+    } catch (err: any) {
+      setAuthError(err.message || 'Erro na autenticação');
+    }
+  };
+
   if (!user) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-8 text-center">
+      <div className="min-h-screen bg-zinc-900 flex flex-col items-center justify-center p-4 md:p-8 text-center selection:bg-yellow-500 selection:text-zinc-950">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }} 
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-2xl border-4 border-yellow-500"
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md w-full bg-zinc-950 p-8 md:p-10 rounded-[2.5rem] shadow-2xl border border-zinc-800 relative overflow-hidden"
         >
-          <ShieldCheck className="w-20 h-20 text-zinc-950 mx-auto mb-6" />
-          <h1 className="text-3xl font-black text-zinc-950 tracking-tighter uppercase leading-none mb-2">Acesso Restrito</h1>
-          <p className="text-sm font-bold text-zinc-500 uppercase tracking-tight mb-8">Coordenação Geral • Roraima 2026</p>
+          {/* Decorative Background */}
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl"></div>
+
+          <ShieldCheck className="w-16 h-16 text-yellow-500 mx-auto mb-4 relative z-10" />
+          <h1 className="text-2xl font-black text-white tracking-tighter uppercase leading-none mb-1 relative z-10">SISTEMA ÁGUIA</h1>
+          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-8 relative z-10">Coordenação Estratégica 2026</p>
           
+          <form onSubmit={handleEmailAuth} className="space-y-4 text-left relative z-10">
+            {isRegistering && (
+              <div className="flex gap-2 p-1 bg-zinc-900 rounded-2xl border border-zinc-800 mb-4">
+                <button 
+                  type="button"
+                  onClick={() => setUserRole('coordenador')}
+                  className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${userRole === 'coordenador' ? 'bg-yellow-500 text-zinc-950 shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Coordenador
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setUserRole('lider')}
+                  className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${userRole === 'lider' ? 'bg-yellow-500 text-zinc-950 shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Líder Equipe
+                </button>
+              </div>
+            )}
+            <div>
+              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 mb-1 block">E-mail Corporativo</label>
+              <input 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full bg-zinc-900 border border-zinc-800 text-white p-4 rounded-2xl focus:outline-none focus:border-yellow-500 transition-all font-medium placeholder:text-zinc-700"
+                placeholder="exemplo@aguia.com"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 mb-1 block">Senha de Acesso</label>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full bg-zinc-900 border border-zinc-800 text-white p-4 rounded-2xl focus:outline-none focus:border-yellow-500 transition-all font-medium placeholder:text-zinc-700"
+                placeholder="••••••••"
+              />
+            </div>
+
+            {authError && (
+              <p className="text-red-500 text-[10px] font-black uppercase text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">
+                {authError}
+              </p>
+            )}
+
+            <button 
+              type="submit"
+              className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover:bg-yellow-400 transition-all active:scale-95"
+            >
+              {isRegistering ? 'Criar Nova Credencial' : 'Autenticar Acesso'}
+            </button>
+          </form>
+
+          <div className="relative my-8 z-10">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-zinc-800"></div></div>
+            <div className="relative flex justify-center text-[8px] uppercase font-black text-zinc-600 bg-zinc-950 px-4 tracking-[0.3em]">OU ACESSAR VIA SOCIAL</div>
+          </div>
+
           <button 
             onClick={login}
-            className="w-full bg-zinc-950 text-white py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 shadow-xl hover:bg-zinc-800 transition-all border-b-4 border-zinc-700"
+            className="w-full bg-zinc-900 text-zinc-300 py-4 rounded-2xl font-bold text-xs flex items-center justify-center gap-3 border border-zinc-800 hover:bg-zinc-800 transition-all relative z-10"
           >
-            <LogIn className="w-6 h-6 text-yellow-500" /> ENTRAR COM GOOGLE
+            <svg className="w-4 h-4" viewBox="0 0 24 24">
+               <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+               <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+               <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
+               <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+            </svg>
+            GOOGLE AUTH
           </button>
-          
-          <div className="mt-8 pt-8 border-t border-zinc-100 flex items-center justify-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Servidor Roraima Online</span>
-          </div>
+
+          <button 
+            onClick={() => setIsRegistering(!isRegistering)}
+            className="mt-6 text-[10px] font-black text-zinc-500 hover:text-yellow-500 uppercase tracking-widest transition-colors z-10 relative"
+          >
+            {isRegistering ? 'Já possui acesso? Fazer Login' : 'Solicitar Nova Credencial'}
+          </button>
         </motion.div>
         
-        <p className="mt-10 text-white/30 text-[10px] font-black uppercase tracking-[0.2em]">SISTEMA ÁGUIA • BLINDAGEM DE DADOS ATIVA</p>
+        <div className="mt-8 flex items-center gap-2 opacity-30">
+          <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+          <span className="text-[8px] font-black text-white uppercase tracking-[0.3em]">Criptografia Militar de 256 bits Ativa</span>
+        </div>
       </div>
     );
   }

@@ -19,7 +19,8 @@ service cloud.firestore {
     function isAdmin() {
       return isEmailVerified() && (
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-        request.auth.token.email == "SERGIOSILVABEZERRA@gmail.com"
+        request.auth.token.email == "SERGIOSILVABEZERRA@gmail.com" ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "coordenador")
       );
     }
 
@@ -33,6 +34,20 @@ service cloud.firestore {
 
     function existing() {
       return resource.data;
+    }
+
+    // Helper for users
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'role']) &&
+             data.role in ['coordenador', 'lider'] &&
+             data.email is string;
+    }
+
+    // 0.1 Users Collection
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == userId && isValidUser(incoming());
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin()) && isValidUser(incoming());
     }
 
     // Helper for teams
