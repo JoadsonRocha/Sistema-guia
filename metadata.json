@@ -1,0 +1,6 @@
+{
+  "name": "Sistema Águia",
+  "description": "Sistema de gestão de campanha eleitoral estadual (Roraima). Foco em resiliência offline, anti-fraude, logística de combustível e inteligência regionalizada.",
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": ["offline-first", "bi-analytics", "ai-integration"]
+}

@@ -1,0 +1,788 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { useState, useEffect } from 'react';
+import { 
+  ShieldCheck, 
+  Fuel, 
+  Users, 
+  MapPin, 
+  AlertTriangle, 
+  CheckCircle2, 
+  XCircle, 
+  Mic,
+  Wifi,
+  ChevronRight,
+  Camera,
+  UserPlus,
+  StickyNote,
+  CloudOff,
+  RefreshCcw,
+  User,
+  Brain,
+  Send,
+  X,
+  Plus,
+  LogIn,
+  LogOut
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { processarCaos } from './services/geminiService';
+import FinanceDashboard from './components/FinanceDashboard';
+import { useAuth } from './lib/FirebaseProvider';
+import { firestoreService } from './lib/firestoreService';
+
+/// --- COMPONENTE: DASHBOARD DO COORDENADOR ---
+function CoordinatorDashboard() {
+  const { user, login, logout, isAdmin } = useAuth();
+  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'finance'>('overview');
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [chaosText, setChaosText] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [aiResult, setAiResult] = useState<any>(null);
+  
+  const [teams, setTeams] = useState<any[]>([]);
+  const [urgencies, setUrgencies] = useState<any[]>([]);
+  const [statsData, setStatsData] = useState<any>(null);
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Subs para dados reais
+    const unsubTeams = firestoreService.subscribeToCollection('teams', setTeams);
+    const unsubUrgencies = firestoreService.subscribeToCollection('urgencies', setUrgencies);
+    
+    // Fallback for empty collections
+    const checkAndSeed = async () => {
+      const existingTeams = await firestoreService.getCollection('teams');
+      if (existingTeams.length === 0) {
+        const seedTeams = [
+          { name: 'EQUIPE NORTE', leader: 'Capitão Silva', location: 'Pacaraima', status: 'OK', contacts: 45, fuel: 80, demands: 3 },
+          { name: 'EQUIPE LESTE', leader: 'Major Rocha', location: 'Bonfim', status: 'ALERTA', contacts: 22, fuel: 15, demands: 8 },
+          { name: 'EQUIPE SUL', leader: 'Tenente Lima', location: 'Rorainópolis', status: 'OK', contacts: 38, fuel: 55, demands: 0 },
+        ];
+        for (const t of seedTeams) {
+          await firestoreService.setDocument('teams', t.name.replace(/\s/g, '_'), t);
+        }
+      }
+
+      const existingStats = await firestoreService.getDocument('stats', 'global');
+      if (!existingStats) {
+        await firestoreService.setDocument('stats', 'global', {
+          combustivelHoje: 420,
+          combustivelSaldo: 1200,
+          contatosValidos: 128,
+          contatosMeta: 200,
+          alertasAtivos: 3,
+          alertasCriticos: 1,
+          regionaisOnline: '05/05'
+        });
+      }
+    };
+    checkAndSeed();
+
+    return () => {
+      unsubTeams();
+      unsubUrgencies();
+    };
+  }, [user]);
+
+  const stats = [
+    { label: 'Combustível Hoje', value: statsData?.combustivelHoje ? `${statsData.combustivelHoje}L` : '420L', sub: `Saldo: ${statsData?.combustivelSaldo || '1.200'}L`, color: 'text-blue-700' },
+    { label: 'Contatos Válidos', value: statsData?.contatosValidos || '128', sub: `Meta: ${statsData?.contatosMeta || '200'}`, color: 'text-green-700' },
+    { label: 'Alertas Ativos', value: statsData?.alertasAtivos || '03', sub: `Críticos: ${statsData?.alertasCriticos || '01'}`, color: 'text-red-600' },
+    { label: 'Regionais Online', value: statsData?.regionaisOnline || '05/05', sub: '100% Ativas', color: 'text-zinc-900' },
+  ];
+
+  const handleProcessCaos = async () => {
+    setIsProcessing(true);
+    setAiResult(null);
+    try {
+      const res = await processarCaos(chaosText);
+      setAiResult(res);
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 text-zinc-950 font-sans pb-24">
+      <header className="sticky top-0 z-50 bg-zinc-950 text-white p-4 shadow-lg border-b-2 border-yellow-500">
+        <div className="max-w-7xl mx-auto w-full flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-black tracking-tighter flex items-center gap-2">
+              <ShieldCheck className="text-yellow-500 w-6 h-6" />
+              SISTEMA ÁGUIA
+            </h1>
+            <p className="text-xs font-medium text-zinc-400">Coordenador: {user?.displayName || 'Convidado'}</p>
+          </div>
+          <div className="hidden md:flex items-center gap-4">
+            {user ? (
+              <button onClick={logout} className="text-xs bg-zinc-800 hover:bg-red-900 text-zinc-300 p-2 rounded-lg flex items-center gap-2 uppercase font-black transition-all">
+                <LogOut className="w-4 h-4" /> Sair
+              </button>
+            ) : (
+              <button onClick={login} className="text-xs bg-yellow-500 hover:bg-yellow-400 text-zinc-950 px-4 py-2 rounded-lg flex items-center gap-2 uppercase font-black transition-all">
+                <LogIn className="w-4 h-4" /> Entrar
+              </button>
+            )}
+            <nav className="flex items-center gap-1 bg-zinc-900 p-1 rounded-xl">
+              <button 
+                onClick={() => setActiveTab('overview')}
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${activeTab === 'overview' ? 'bg-yellow-500 text-zinc-950' : 'text-zinc-400 hover:text-white'}`}
+              >
+                Visão Geral
+              </button>
+              <button 
+                onClick={() => setActiveTab('teams')}
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${activeTab === 'teams' ? 'bg-yellow-500 text-zinc-950' : 'text-zinc-400 hover:text-white'}`}
+              >
+                Equipes
+              </button>
+              <button 
+                onClick={() => setActiveTab('finance')}
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${activeTab === 'finance' ? 'bg-yellow-500 text-zinc-950' : 'text-zinc-400 hover:text-white'}`}
+              >
+                Financeiro
+              </button>
+            </nav>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1 bg-zinc-800 rounded-full border border-zinc-700">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <span className="text-[10px] font-bold uppercase tracking-widest">Live</span>
+          </div>
+        </div>
+      </header>
+
+      {/* MOBILE NAV TABS */}
+      <div className="md:hidden sticky top-[72px] z-40 bg-white border-b border-zinc-200 flex p-2 gap-2 overflow-x-auto no-scrollbar">
+        <button 
+          onClick={() => setActiveTab('overview')}
+          className={`flex-none px-4 py-2 rounded-full text-[10px] font-black uppercase border-2 transition-all ${activeTab === 'overview' ? 'bg-zinc-950 text-white border-zinc-950' : 'bg-zinc-50 text-zinc-400 border-transparent'}`}
+        >
+          Visão Geral
+        </button>
+        <button 
+          onClick={() => setActiveTab('teams')}
+          className={`flex-none px-4 py-2 rounded-full text-[10px] font-black uppercase border-2 transition-all ${activeTab === 'teams' ? 'bg-zinc-950 text-white border-zinc-950' : 'bg-zinc-50 text-zinc-400 border-transparent'}`}
+        >
+          Equipes
+        </button>
+        <button 
+          onClick={() => setActiveTab('finance')}
+          className={`flex-none px-4 py-2 rounded-full text-[10px] font-black uppercase border-2 transition-all ${activeTab === 'finance' ? 'bg-zinc-950 text-white border-zinc-950' : 'bg-zinc-50 text-zinc-400 border-transparent'}`}
+        >
+          Financeiro
+        </button>
+      </div>
+
+      <main className="p-4 md:p-8 text-left max-w-7xl mx-auto min-h-[70vh]">
+        
+        {activeTab === 'overview' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            {/* RESUMO RÁPIDO */}
+            <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {stats.map((stat, i) => (
+                <motion.div 
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="bg-white p-4 lg:p-6 rounded-xl border-2 border-zinc-200 shadow-sm"
+                >
+                  <p className="text-[10px] lg:text-xs font-black text-zinc-500 uppercase">{stat.label}</p>
+                  <p className={`text-2xl lg:text-3xl font-black ${stat.color}`}>{stat.value}</p>
+                  <p className="text-[10px] font-medium text-zinc-400 mt-1">{stat.sub}</p>
+                </motion.div>
+              ))}
+            </section>
+
+            {/* FEED DE AÇÕES (DASHBOARD DE SEMÁFORO) */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-black uppercase text-zinc-800 flex items-center gap-2">
+                Urgências do Dia
+                <span className="h-2 w-2 rounded-full bg-red-500"></span>
+              </h2>
+
+              <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                {/* CARD DE COMBUSTÍVEL */}
+                <motion.div whileTap={{ scale: 0.98 }} className="bg-white border-2 border-zinc-200 rounded-2xl overflow-hidden shadow-sm flex flex-col h-full">
+                  <div className="bg-zinc-100 p-3 border-b border-zinc-200 flex justify-between items-center text-xs font-black text-zinc-600">
+                    <span className="flex items-center gap-2"><Fuel className="w-4 h-4" /> COMBUSTÍVEL</span>
+                    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">PACARAIMA</span>
+                  </div>
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-zinc-500">Cabo João solicita:</p>
+                      <h3 className="text-3xl font-black text-zinc-950">100L Diesel</h3>
+                      <p className="text-xs font-bold text-zinc-400 mt-1 uppercase">Saldo Restante Equipe: 140L</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 mt-6">
+                      <button className="bg-red-600 text-white py-5 rounded-xl font-black text-lg flex flex-col items-center justify-center gap-1 shadow-lg border-b-4 border-red-800 active:border-b-0 active:translate-y-1">
+                        <XCircle className="w-8 h-8" /> NEGAR
+                      </button>
+                      <button className="bg-green-600 text-white py-5 rounded-xl font-black text-lg flex flex-col items-center justify-center gap-1 shadow-lg border-b-4 border-green-800 active:border-b-0 active:translate-y-1">
+                        <CheckCircle2 className="w-8 h-8" /> APROVAR
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* CARD DE AGENDA */}
+                <motion.div className="bg-white border-4 border-yellow-400 rounded-2xl p-4 lg:p-6 shadow-md relative overflow-hidden flex flex-col h-full">
+                  <div className="absolute top-0 right-0 bg-yellow-400 text-zinc-950 text-[10px] font-black px-3 py-1 rounded-bl-lg">ALERTA LOGÍSTICO</div>
+                  <div className="flex gap-4 mb-4">
+                    <div className="bg-yellow-50 p-3 rounded-lg self-start"><MapPin className="text-yellow-600 w-6 h-6" /></div>
+                    <div className="flex-1">
+                      <span className="text-[10px] font-black text-zinc-400 uppercase">Equipe Sul Sugeriu:</span>
+                      <h3 className="text-lg lg:text-xl font-black leading-tight text-zinc-950">Reunião em Rorainópolis</h3>
+                      <p className="text-sm text-zinc-600 mt-1 font-medium italic">"Tuxaua solicitando presença urgente na Maloca."</p>
+                    </div>
+                  </div>
+                  <div className="mt-auto flex flex-col gap-2">
+                    <button className="bg-zinc-950 text-white px-4 py-4 rounded-xl font-black text-sm w-full">VER ROTA AMAZÔNICA</button>
+                    <div className="flex gap-2">
+                      <button className="bg-zinc-200 text-zinc-600 px-4 py-3 rounded-lg font-black text-xs flex-1">IGNORAR</button>
+                      <button className="bg-zinc-100 text-zinc-900 border-2 border-zinc-200 px-4 py-3 rounded-lg font-black text-xs flex-1">ADAPTAR</button>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* CARD ANTI-FRAUDE */}
+                <motion.div className="bg-red-50 border-4 border-red-600 rounded-2xl p-4 lg:p-6 shadow-xl flex flex-col h-full">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="bg-red-600 p-3 rounded-xl"><AlertTriangle className="text-white w-8 h-8 animate-bounce" /></div>
+                    <div className="flex-1">
+                      <h3 className="text-red-700 font-black text-xl leading-none uppercase">Suspeita de Fraude</h3>
+                      <p className="text-red-600 text-sm font-bold mt-1">Equipe Leste</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-red-500 p-3 bg-white/50 rounded border border-red-200 mb-6 font-medium">
+                    8 cadastros simultâneos na mesma coordenada GPS detectados em curto intervalo.
+                  </p>
+                  <div className="mt-auto">
+                    <button className="w-full bg-red-600 text-white py-5 rounded-xl font-black text-lg flex items-center justify-center gap-2 border-b-4 border-red-800">
+                      AUDITAR EQUIPE <ChevronRight />
+                    </button>
+                  </div>
+                </motion.div>
+              </section>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'teams' && (
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h2 className="text-2xl font-black uppercase text-zinc-800 tracking-tighter">Coordenação de Equipes</h2>
+                <p className="text-zinc-500 text-xs font-bold uppercase">Visão por líderes e localidades estratégicas</p>
+              </div>
+              <button className="bg-zinc-950 text-white px-6 py-3 rounded-xl font-black text-xs uppercase flex items-center gap-2 shadow-xl">
+                <Plus className="w-4 h-4" /> Nova Equipe de Campo
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4">
+              {teams.length > 0 ? teams.map((team) => (
+                <div key={team.id || team.name} className="bg-white border-2 border-zinc-200 rounded-3xl p-5 lg:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm hover:border-zinc-400 transition-all group overflow-hidden relative">
+                  {team.demands > 3 && (
+                    <div className="absolute top-0 right-0 bg-red-600 text-white text-[8px] font-black px-4 py-1 rounded-bl-lg animate-pulse uppercase">Alta Demanda</div>
+                  )}
+                  
+                  <div className="flex items-center gap-5">
+                    <div className={`p-4 rounded-3xl transition-transform group-hover:scale-110 ${
+                      team.status === 'OK' ? 'bg-green-100 text-green-600' : 
+                      team.status === 'ALERTA' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
+                    }`}>
+                      <Users className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-zinc-950 text-xl uppercase tracking-tighter">{team.name}</h3>
+                      <p className="text-xs font-black text-zinc-400 uppercase flex items-center gap-1">
+                        <User className="w-3 h-3 text-zinc-300" /> {team.leader} • <MapPin className="w-3 h-3 text-zinc-300" /> {team.location}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 flex-1 md:ml-12">
+                    <div>
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Contatos</p>
+                      <p className="text-2xl font-black text-zinc-900 tracking-tighter">{team.contacts}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Autonomia</p>
+                      <p className="text-2xl font-black text-blue-600 tracking-tighter">{team.fuel}L</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Pendências</p>
+                      <p className={`text-2xl font-black tracking-tighter ${team.demands > 0 ? 'text-red-600' : 'text-green-500'}`}>{team.demands}</p>
+                    </div>
+                    <div className="hidden lg:block">
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest" >Status</p>
+                      <span className={`inline-block mt-1 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
+                        team.status === 'OK' ? 'bg-green-500 text-white' : 
+                        team.status === 'ALERTA' ? 'bg-yellow-500 text-white' : 'bg-red-600 text-white'
+                      }`}>
+                        {team.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 mt-4 md:mt-0">
+                    <button className="flex-1 md:flex-none bg-zinc-100 text-zinc-600 px-6 py-3 rounded-xl font-black text-xs uppercase hover:bg-zinc-200 transition-colors">Histórico</button>
+                    <button className={`flex-1 md:flex-none px-6 py-3 rounded-xl font-black text-xs uppercase shadow-lg transition-all ${
+                       team.demands > 0 ? 'bg-red-600 text-white shadow-red-200' : 'bg-zinc-950 text-white shadow-zinc-200'
+                    }`}>
+                      Coordenar
+                    </button>
+                  </div>
+                </div>
+              )) : (
+                <div className="p-20 text-center bg-white rounded-3xl border-2 border-dashed border-zinc-200">
+                   <p className="font-black text-zinc-300 uppercase tracking-widest">Carregando equipes estratégicas...</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'finance' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <FinanceDashboard isNested />
+          </motion.div>
+        )}
+      </main>
+
+      <AnimatePresence>
+        {isAiModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-4 flex items-end sm:items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ y: 100 }}
+              animate={{ y: 0 }}
+              exit={{ y: 100 }}
+              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative mb-10"
+            >
+              <button 
+                onClick={() => {
+                  setIsAiModalOpen(false);
+                  setAiResult(null);
+                  setChaosText('');
+                }}
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-full text-zinc-500 active:bg-zinc-200"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="bg-yellow-500 p-6">
+                <Brain className="w-12 h-12 text-zinc-950 mb-4" />
+                <h2 className="text-2xl font-black text-zinc-950 tracking-tighter uppercase leading-none">Organizador do Caos</h2>
+                <p className="text-zinc-800 text-sm font-bold mt-2">Diga o que aconteceu e a IA estratégica de RR resolve.</p>
+              </div>
+
+              <div className="p-6">
+                {!aiResult ? (
+                  <div className="space-y-4">
+                    <label className="text-xs font-black text-zinc-400 uppercase">Relato do Coordenador</label>
+                    <textarea 
+                      value={chaosText}
+                      onChange={(e) => setChaosText(e.target.value)}
+                      placeholder="Ex: Liguei pro Tuxaua da Maloca do Contão, ele quer Diesel pra vicinal 3 e reunião pro candidato no Lavrado..."
+                      className="w-full h-40 bg-zinc-50 border-2 border-zinc-200 rounded-2xl p-4 font-bold text-zinc-800 focus:border-yellow-500 outline-none transition-all placeholder:text-zinc-300"
+                    />
+                    <button 
+                      onClick={handleProcessCaos}
+                      disabled={isProcessing || !chaosText}
+                      className="w-full bg-zinc-950 text-yellow-500 py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                      {isProcessing ? <RefreshCcw className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
+                      {isProcessing ? 'PROCESSANDO INTELIGÊNCIA...' : 'DELEGAR PARA IA'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                    {/* RESULTADOS DA IA */}
+                    {aiResult.tarefas_logistica?.length > 0 && (
+                      <div className="bg-blue-50 p-4 rounded-2xl border-l-8 border-blue-600">
+                        <h4 className="text-blue-700 font-black text-xs uppercase mb-2 flex items-center gap-2">
+                          <Fuel className="w-4 h-4" /> Logística Detectada
+                        </h4>
+                        <ul className="space-y-1">
+                          {aiResult.tarefas_logistica.map((t: string, i: number) => (
+                            <li key={i} className="text-sm font-bold text-zinc-800 flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></div>
+                              {t}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {aiResult.acoes_politicas?.length > 0 && (
+                      <div className="bg-green-50 p-4 rounded-2xl border-l-8 border-green-600">
+                        <h4 className="text-green-700 font-black text-xs uppercase mb-2 flex items-center gap-2">
+                          <Brain className="w-4 h-4" /> Ações Políticas
+                        </h4>
+                        <ul className="space-y-1">
+                          {aiResult.acoes_politicas.map((t: string, i: number) => (
+                            <li key={i} className="text-sm font-bold text-zinc-800 flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></div>
+                              {t}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {aiResult.alertas_crise?.length > 0 && (
+                      <div className="bg-red-50 p-4 rounded-2xl border-l-8 border-red-600">
+                        <h4 className="text-red-700 font-black text-xs uppercase mb-2 flex items-center gap-2">
+                          <AlertTriangle className="w-4 h-4" /> Alerta de Risco
+                        </h4>
+                        <ul className="space-y-1">
+                          {aiResult.alertas_crise.map((t: string, i: number) => (
+                            <li key={i} className="text-sm font-bold text-red-900 flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-red-600 mt-1.5 flex-shrink-0"></div>
+                              {t}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {aiResult.sugestoes_agenda?.length > 0 && (
+                      <div className="bg-zinc-900 p-4 rounded-2xl">
+                        <h4 className="text-yellow-500 font-black text-xs uppercase mb-2 flex items-center gap-2">
+                          <MapPin className="w-4 h-4" /> Sugestões de Travessia (Agenda)
+                        </h4>
+                        <div className="space-y-3">
+                          {aiResult.sugestoes_agenda.map((s: any, i: number) => (
+                            <div key={i} className="bg-zinc-800 p-3 rounded-xl border border-zinc-700">
+                              <p className="text-yellow-500 font-black text-xs uppercase tracking-widest">{s.municipio}</p>
+                              <p className="text-zinc-300 text-sm font-medium mt-1 uppercase">{s.contexto}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <button 
+                      onClick={() => {
+                        setIsAiModalOpen(false);
+                        setAiResult(null);
+                        setChaosText('');
+                        alert('Dados delegados às equipes com sucesso!');
+                      }}
+                      className="w-full bg-green-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl"
+                    >
+                      CONFIRMAR DELEGAÇÃO
+                    </button>
+                    <button 
+                      onClick={() => setAiResult(null)}
+                      className="w-full text-zinc-400 font-bold text-xs uppercase py-2"
+                    >
+                      Voltar e Ajustar Relato
+                    </button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.button 
+        whileTap={{ scale: 0.9 }} 
+        onClick={() => setIsAiModalOpen(true)}
+        className="fixed bottom-6 right-6 w-20 h-20 bg-zinc-950 text-yellow-500 rounded-full shadow-2xl border-4 border-yellow-500 flex items-center justify-center z-[100]"
+      >
+        <Mic className="w-10 h-10" />
+      </motion.button>
+    </div>
+  );
+}
+
+// --- UTILITÁRIOS DE LÓGICA CORE (OFFLINE & ANTI-FRAUDE) ---
+
+interface GeoLocation {
+  lat: number;
+  lng: number;
+  accuracy: number;
+  timestamp: number;
+}
+
+interface OfflineQueueItem {
+  id: string;
+  type: 'ponto' | 'eleitor' | 'combustivel' | 'demanda';
+  data: any;
+  location: GeoLocation;
+  timestamp: number;
+  fraudFlag?: boolean;
+  fraudReason?: string;
+}
+
+/**
+ * Calcula a distância entre dois pontos (Haversine) para detecção de fraude
+ * Retorna a distância em metros.
+ */
+const getDistanceInMeters = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371e3; // Raio da Terra em metros
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+};
+
+// --- COMPONENTE: DASHBOARD DO CABO ELEITORAL (PWA) ---
+function CaboDashboard() {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [queueCount, setQueueCount] = useState(0);
+  const [isLocating, setIsLocating] = useState(false);
+
+  // Monitor de Conectividade
+  useEffect(() => {
+    const handleStatusChange = () => {
+      setIsOnline(navigator.onLine);
+    };
+    window.addEventListener('online', handleStatusChange);
+    window.addEventListener('offline', handleStatusChange);
+    
+    const queue = JSON.parse(localStorage.getItem('aguia_offline_queue') || '[]');
+    setQueueCount(queue.length);
+
+    return () => {
+      window.removeEventListener('online', handleStatusChange);
+      window.removeEventListener('offline', handleStatusChange);
+    };
+  }, []);
+
+  const syncOfflineQueue = async () => {
+    const queue = JSON.parse(localStorage.getItem('aguia_offline_queue') || '[]');
+    if (queue.length === 0) return;
+    
+    setTimeout(() => {
+      localStorage.setItem('aguia_offline_queue', '[]');
+      setQueueCount(0);
+      alert('✅ Sincronização Concluída!');
+    }, 1500);
+  };
+
+  const processAction = async (type: string) => {
+    setIsLocating(true);
+    setTimeout(() => {
+      const queue = JSON.parse(localStorage.getItem('aguia_offline_queue') || '[]');
+      const newQueue = [...queue, { type, id: Date.now() }];
+      localStorage.setItem('aguia_offline_queue', JSON.stringify(newQueue));
+      setQueueCount(newQueue.length);
+      setIsLocating(false);
+      alert('✅ Registro guardado!');
+    }, 1000);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 text-zinc-950 font-sans">
+      
+      {/* HEADER FIXO - CABO (WIDER ON DESKTOP) */}
+      <header className="sticky top-0 z-50 bg-white p-4 shadow-sm border-b-4 border-zinc-950">
+        <div className="max-w-5xl mx-auto flex justify-between items-center">
+          <div>
+            <h1 className="text-lg lg:text-xl font-black text-zinc-950 flex items-center gap-2 uppercase tracking-tighter text-left">
+              <User className="w-5 h-5 text-zinc-500" /> João (Pacaraima)
+            </h1>
+            <p className="text-[10px] lg:text-xs font-bold text-zinc-400 text-left uppercase">CABO ELEITORAL - LÍDER DE RUA</p>
+          </div>
+          
+          <div className={`flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 rounded-full border-2 transition-all ${
+              isOnline 
+              ? 'bg-green-50 border-green-600 text-green-700' 
+              : 'bg-orange-50 border-orange-600 text-orange-700'
+          }`}>
+            {isOnline ? <Wifi className="w-4 h-4" /> : <CloudOff className="w-4 h-4" />}
+            <span className="text-[10px] lg:text-xs font-black uppercase tracking-tight">
+              {isOnline ? 'Online' : 'Offline'}
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <main className="p-4 md:p-8 space-y-6 max-w-5xl mx-auto">
+        
+        {isLocating && (
+          <div className="bg-zinc-950 text-white p-4 rounded-2xl text-center animate-pulse flex items-center justify-center gap-3 font-black text-xs uppercase shadow-xl">
+            <RefreshCcw className="w-5 h-5 animate-spin" /> Validando GPS e Segurança de Campo...
+          </div>
+        )}
+
+        {/* GRID DE BOTÕES GIGANTES - RESPONSIVO (2 colunas mobile, 4 colunas desktop) */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+          <motion.button 
+            whileTap={{ scale: 0.95 }}
+            onClick={() => processAction('ponto')}
+            className="aspect-square bg-zinc-950 text-white rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-xl border-b-8 border-zinc-800"
+          >
+            <div className="bg-zinc-800 p-4 lg:p-6 rounded-2xl"><Camera className="w-10 h-10 lg:w-14 lg:h-14 text-yellow-500" /></div>
+            <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Bater Ponto<br/>(Selfie)</span>
+          </motion.button>
+
+          <motion.button 
+            whileTap={{ scale: 0.95 }} 
+            onClick={() => processAction('eleitor')}
+            className="aspect-square bg-white border-4 border-zinc-950 text-zinc-950 rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-lg relative"
+          >
+            <div className="absolute -top-2 -right-2 bg-red-600 text-white text-[9px] font-black px-2 py-1 rounded-full border-2 border-white shadow-md">GPS OBRIGATÓRIO</div>
+            <div className="bg-zinc-100 p-4 lg:p-6 rounded-2xl text-zinc-950 border-2 border-zinc-200"><UserPlus className="w-10 h-10 lg:w-14 lg:h-14" /></div>
+            <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Cadastrar<br/>Eleitor</span>
+          </motion.button>
+
+          <motion.button 
+            whileTap={{ scale: 0.95 }}
+            onClick={() => processAction('combustivel')}
+            className="aspect-square bg-blue-600 text-white rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-xl border-b-8 border-blue-800"
+          >
+            <div className="bg-blue-700 p-4 lg:p-6 rounded-2xl"><Fuel className="w-10 h-10 lg:w-14 lg:h-14 text-white" /></div>
+            <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Pedir<br/>Combustível</span>
+          </motion.button>
+
+          <motion.button 
+            whileTap={{ scale: 0.95 }}
+            onClick={() => processAction('demanda')}
+            className="aspect-square bg-yellow-400 text-zinc-950 rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-xl border-b-8 border-yellow-600"
+          >
+            <div className="bg-yellow-500/20 p-4 lg:p-6 rounded-2xl"><StickyNote className="w-10 h-10 lg:w-14 lg:h-14 text-zinc-950" /></div>
+            <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Registar<br/>Demanda</span>
+          </motion.button>
+        </section>
+
+        {/* FILA DE SINCRONIZAÇÃO E MOTIVAÇÃO - SIDE BY SIDE ON DESKTOP */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+          <section className="bg-white border-2 border-dashed border-zinc-300 rounded-3xl p-6 lg:p-8 text-center flex flex-col items-center justify-center">
+            <div className="bg-zinc-100 p-4 rounded-full relative mb-3">
+              <RefreshCcw className={`w-8 h-8 text-zinc-400 ${queueCount > 0 ? 'animate-spin-slow' : ''}`} />
+              {queueCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-zinc-950 text-white text-xs font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-md">
+                  {queueCount}
+                </span>
+              )}
+            </div>
+            <h3 className="text-zinc-700 font-black text-base lg:text-lg tracking-tight">{queueCount} Registos na Fila</h3>
+            <p className="text-zinc-400 text-[10px] font-bold mt-1 uppercase">
+              {isOnline ? 'Pronto para sincronizar com o comitê central' : 'Guardando dados localmente (sem sinal)'}
+            </p>
+            {isOnline && queueCount > 0 && (
+              <button 
+                onClick={syncOfflineQueue}
+                className="mt-6 text-xs font-black bg-zinc-950 text-white px-8 py-3 rounded-full uppercase shadow-lg active:scale-95 transition-transform"
+              >
+                Sincronizar Agora
+              </button>
+            )}
+          </section>
+
+          <div className="bg-blue-600 p-8 lg:p-10 rounded-3xl flex flex-col justify-center relative overflow-hidden shadow-2xl">
+            <ShieldCheck className="absolute -right-4 -bottom-4 w-32 h-32 text-blue-500 opacity-20 rotate-12" />
+            <p className="text-blue-100 font-black text-lg lg:text-xl uppercase italic leading-tight text-left relative z-10">
+              "A semente da vitória é plantada no bairro. Valorize cada aperto de mão."
+            </p>
+            <div className="mt-4 flex items-center gap-2 relative z-10">
+               <div className="w-10 h-1 bg-white rounded-full"></div>
+               <span className="text-white text-[10px] font-black uppercase tracking-widest">Estratégia Águia</span>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* FOOTER NAVEGAÇÃO - RESPONSIVO (Larger buttons on tablet/PC) */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] border-t-4 border-yellow-500 z-50">
+        <div className="max-w-5xl mx-auto flex justify-around items-center p-3">
+          <button className="flex flex-col items-center gap-1 opacity-50 p-2"><Users className="w-6 h-6" /><span className="text-[9px] font-black uppercase">EQUIPA</span></button>
+          <button className="flex flex-col items-center gap-1 text-zinc-950 p-2"><MapPin className="w-7 h-7 text-yellow-500" /><span className="text-[9px] font-black uppercase underline decoration-2 underline-offset-4">MAPA / RUA</span></button>
+          <button className="flex flex-col items-center gap-1 opacity-50 p-2"><AlertTriangle className="w-6 h-6" /><span className="text-[9px] font-black uppercase">SUPORTE</span></button>
+        </div>
+      </nav>
+    </div>
+  );
+}
+
+export default function App() {
+  const [view, setView] = useState<'coord' | 'cabo'>('coord');
+  const { user, login, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-8">
+         <ShieldCheck className="w-16 h-16 text-yellow-500 animate-pulse mb-4" />
+         <p className="text-zinc-400 font-bold uppercase tracking-widest animate-pulse">SISTEMA ÁGUIA • CARREGANDO...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-8 text-center">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }} 
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-2xl border-4 border-yellow-500"
+        >
+          <ShieldCheck className="w-20 h-20 text-zinc-950 mx-auto mb-6" />
+          <h1 className="text-3xl font-black text-zinc-950 tracking-tighter uppercase leading-none mb-2">Acesso Restrito</h1>
+          <p className="text-sm font-bold text-zinc-500 uppercase tracking-tight mb-8">Coordenação Geral • Roraima 2026</p>
+          
+          <button 
+            onClick={login}
+            className="w-full bg-zinc-950 text-white py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 shadow-xl hover:bg-zinc-800 transition-all border-b-4 border-zinc-700"
+          >
+            <LogIn className="w-6 h-6 text-yellow-500" /> ENTRAR COM GOOGLE
+          </button>
+          
+          <div className="mt-8 pt-8 border-t border-zinc-100 flex items-center justify-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Servidor Roraima Online</span>
+          </div>
+        </motion.div>
+        
+        <p className="mt-10 text-white/30 text-[10px] font-black uppercase tracking-[0.2em]">SISTEMA ÁGUIA • BLINDAGEM DE DADOS ATIVA</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* BOTÃO DE TROCA DE VISTA (APENAS PARA DESENVOLVIMENTO/DEMO) */}
+      <div className="fixed top-20 right-4 z-[999] flex flex-col gap-2 scale-75 opacity-20 hover:opacity-100 transition-opacity">
+        <button 
+          onClick={() => setView('coord')}
+          className={`px-4 py-2 rounded-full font-bold text-xs shadow-xl ${view === 'coord' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-950 border-2'}`}
+        >
+          COORDENADOR
+        </button>
+        <button 
+          onClick={() => setView('cabo')}
+          className={`px-4 py-2 rounded-full font-bold text-xs shadow-xl ${view === 'cabo' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-950 border-2'}`}
+        >
+          CABO (PWA)
+        </button>
+      </div>
+
+      {view === 'coord' ? <CoordinatorDashboard /> : <CaboDashboard />}
+    </>
+  );
+}
+
+

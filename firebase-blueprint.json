@@ -1,0 +1,83 @@
+{
+  "entities": {
+    "Team": {
+      "title": "Team",
+      "description": "Information about a regional team",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "leader": { "type": "string" },
+        "location": { "type": "string" },
+        "status": { "type": "string", "enum": ["OK", "ALERTA", "CRISE"] },
+        "contacts": { "type": "number" },
+        "fuel": { "type": "number" },
+        "demands": { "type": "number" },
+        "allocated": { "type": "number" },
+        "spent": { "type": "number" }
+      },
+      "required": ["name", "leader", "location", "status"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial transaction record",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["entrada", "alocacao", "gasto"] },
+        "amount": { "type": "number" },
+        "description": { "type": "string" },
+        "team": { "type": "string" },
+        "date": { "type": "number" }
+      },
+      "required": ["type", "amount", "description", "date"]
+    },
+    "Urgency": {
+      "title": "Urgency",
+      "description": "Daily urgencies and alerts",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["combustivel", "agenda", "fraude"] },
+        "team": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["pendente", "aprovado", "negado"] },
+        "value": { "type": "number" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["type", "team", "title", "status", "createdAt"]
+    },
+    "GlobalStats": {
+      "title": "GlobalStats",
+      "description": "Overall campaign statistics",
+      "type": "object",
+      "properties": {
+        "combustivelHoje": { "type": "number" },
+        "combustivelSaldo": { "type": "number" },
+        "contatosValidos": { "type": "number" },
+        "contatosMeta": { "type": "number" },
+        "alertasAtivos": { "type": "number" },
+        "alertasCriticos": { "type": "number" },
+        "regionaisOnline": { "type": "string" },
+        "totalFunded": { "type": "number" },
+        "totalAllocated": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "/teams/{teamId}": {
+      "schema": "Team",
+      "description": "Regional teams overview"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Campaign financial history"
+    },
+    "/urgencies/{urgencyId}": {
+      "schema": "Urgency",
+      "description": "Real-time alerts and demands"
+    },
+    "/stats/global": {
+      "schema": "GlobalStats",
+      "description": "Campaign level statistics"
+    }
+  }
+}
