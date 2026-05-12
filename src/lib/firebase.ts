@@ -3,20 +3,24 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, User,
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId);
+// Safety check for empty or missing config
+const safeConfig = firebaseConfig || {};
+
+const app = initializeApp(safeConfig);
+export const db = getFirestore(app, (safeConfig as any).firestoreDatabaseId);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Validate Connection
+// Validate Connection (Safe attempt)
 async function testConnection() {
+  if (!safeConfig.apiKey) {
+    console.error("Firebase API Key is missing. Check your configuration.");
+    return;
+  }
   try {
-    // Attempting a simple read to check connectivity
     await getDocFromServer(doc(db, 'system', 'connection_test'));
   } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Please check your Firebase configuration.");
-    }
+    console.warn("Initial connection test failed, but app may still work:", error);
   }
 }
 testConnection();

@@ -133,7 +133,12 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ user, role, loading, login, loginWithEmail, signupWithEmail, logout, isAdmin }}>
-      {children}
+      {(!loading || user) ? children : (
+        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-8">
+           <div className="w-16 h-16 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+           <p className="text-zinc-400 font-bold uppercase tracking-widest">Iniciando Segurança Águia...</p>
+        </div>
+      )}
     </AuthContext.Provider>
   );
 }

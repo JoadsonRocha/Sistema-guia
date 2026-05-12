@@ -55,6 +55,13 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
     path
   }
   console.error('Erro no Firestore: ', JSON.stringify(errInfo));
+  
+  // No caso de LIST (assinaturas) ou GET (leituras iniciais), não jogamos erro para não dar tela branca
+  if (operationType !== OperationType.WRITE && operationType !== OperationType.UPDATE && operationType !== OperationType.DELETE) {
+    console.warn("Falha silenciosa em leitura para evitar crash.");
+    return;
+  }
+
   throw new Error(errorMessage);
 }
 

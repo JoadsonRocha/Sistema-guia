@@ -5,7 +5,16 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Use a safe wrapper for the API key to avoid crashing the whole app if process is not defined
+const getApiKey = () => {
+    try {
+        return process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY || "";
+    } catch {
+        return "";
+    }
+};
+
+const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
 /**
  * Módulo "Organizador do Caos" (Bloco 4.3)
