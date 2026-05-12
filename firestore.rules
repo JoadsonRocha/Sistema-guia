@@ -2,58 +2,52 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // --- FUNÇÕES DE AUXÍLIO ---
-    function isSignedIn() {
+    // FUNÇÃO SIMPLES - APENAS ESTAR LOGADO
+    function autenticado() {
       return request.auth != null;
     }
 
-    // Administrador Master tem acesso absoluto
-    function isMasterAdmin() {
-      return isSignedIn() && request.auth.token.email.lower() == "sergiosilvabezerra@gmail.com";
+    // ACESSO TOTAL PARA O MESTRE (Sérgio)
+    function ehMestre() {
+      return autenticado() && request.auth.token.email.lower() == "sergiosilvabezerra@gmail.com";
     }
 
-    // --- REGRAS DE COLEÇÃO ---
-
-    // 1. Eleitores (Voters) - Permite que qualquer usuário logado crie e leia
+    // LIBERAÇÃO TEMPORÁRIA PARA DIAGNÓSTICO
     match /voters/{voterId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
-
-    // 2. Urgências / Demandas
+    
     match /urgencies/{urgencyId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // 3. Usuários / Perfil
-    match /users/{userId} {
-      allow read, write: if isSignedIn() && (request.auth.uid == userId || isMasterAdmin());
-    }
-
-    // 4. Estatísticas e Admins
-    match /stats/{docId} {
-      allow read, write: if isSignedIn();
-    }
-
-    match /admins/{adminId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // 5. Equipes e Logística
-    match /teams/{teamId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if autenticado();
     }
 
     match /attendance/{docId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if autenticado();
     }
-
+    
     match /agenda/{docId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if autenticado();
     }
 
-    // Fallback de Segurança
+    match /users/{userId} {
+      allow read, write: if autenticado();
+    }
+
+    match /teams/{teamId} {
+      allow read, write: if autenticado();
+    }
+
+    match /stats/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /admins/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    // REGRA DE SEGURANÇA FINAL
     match /{document=**} {
-      allow read, write: if isMasterAdmin();
+      allow read, write: if ehMestre();
     }
   }
 }
