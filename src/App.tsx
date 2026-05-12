@@ -782,14 +782,24 @@ function CaboDashboard() {
   // Sincronizar Perfil com Firestore
   useEffect(() => {
     if (user) {
+      console.log("Iniciando escuta do perfil para:", user.uid);
       const unsubProfile = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
+          console.log("Dados do perfil recebidos:", data);
           setProfileData({
-            name: data.name || '',
+            name: data.name || user.displayName || '',
             zone: data.zone || data.team || ''
           });
+        } else {
+          console.log("Perfil não encontrado no Firestore, usando dados do Auth");
+          setProfileData(prev => ({
+            ...prev,
+            name: prev.name || user.displayName || ''
+          }));
         }
+      }, (error) => {
+        console.error("Erro ao escutar perfil:", error);
       });
       return () => unsubProfile();
     }
@@ -861,10 +871,11 @@ function CaboDashboard() {
       leaderId: user.uid,
       leaderName: profileData.name || user.displayName || 'Líder',
       team: profileData.zone || 'Base',
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      registeredBy: user.email || user.uid
     };
 
-    console.log("Tentando cadastrar eleitor com payload:", payload);
+    console.log("Iniciando gravação no Firestore - Path: voters, Payload:", payload);
 
     try {
       await firestoreService.setDocument('voters', `voter_${Date.now()}`, payload);

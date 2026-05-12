@@ -36,15 +36,16 @@ interface FirestoreErrorInfo {
 }
 
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  let errorMessage = error instanceof FirestoreError ? error.code + ': ' + error.message : String(error);
+  let rawError = error instanceof FirestoreError ? `${error.code}: ${error.message}` : String(error);
+  let errorMessage = rawError;
   
   // Tradução amigável
-  if (errorMessage.includes('permission-denied') || errorMessage.includes('Missing or insufficient permissions')) {
-    errorMessage = "Acesso Negado: Você não tem permissão para realizar esta ação ou visualizar estes dados.";
+  if (rawError.includes('permission-denied') || rawError.includes('insufficient permissions')) {
+    errorMessage = `Acesso Negado: Entre em contato com Sérgio. (Operação: ${operationType}, Path: ${path})`;
   }
 
   const errInfo: FirestoreErrorInfo = {
-    error: errorMessage,
+    error: rawError,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,
@@ -54,7 +55,7 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
     operationType,
     path
   }
-  console.error('Erro no Firestore: ', JSON.stringify(errInfo));
+  console.error('Erro detalhado no Firestore: ', JSON.stringify(errInfo));
   
   // No caso de LIST (assinaturas) ou GET (leituras iniciais), não jogamos erro para não dar tela branca
   if (operationType !== OperationType.WRITE && operationType !== OperationType.UPDATE && operationType !== OperationType.DELETE) {
