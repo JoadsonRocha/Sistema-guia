@@ -34,8 +34,12 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     let unsubProfile: (() => void) | null = null;
 
     const handleFirestoreError = (error: any, operationType: string, path: string) => {
+      let errorMessage = error.message;
+      if (errorMessage.includes('permission-denied') || errorMessage.includes('Missing or insufficient permissions')) {
+        errorMessage = "Acesso Negado: Sem permissão para ler perfil.";
+      }
       const errInfo = {
-        error: error.message,
+        error: errorMessage,
         operationType,
         path,
         authInfo: {
@@ -45,7 +49,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
           isAnonymous: auth.currentUser?.isAnonymous,
         }
       };
-      console.error("Firestore Error:", JSON.stringify(errInfo));
+      console.error("Erro no Firestore:", JSON.stringify(errInfo));
     };
 
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {

@@ -36,8 +36,15 @@ interface FirestoreErrorInfo {
 }
 
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  let errorMessage = error instanceof FirestoreError ? error.code + ': ' + error.message : String(error);
+  
+  // Tradução amigável
+  if (errorMessage.includes('permission-denied') || errorMessage.includes('Missing or insufficient permissions')) {
+    errorMessage = "Acesso Negado: Você não tem permissão para realizar esta ação ou visualizar estes dados.";
+  }
+
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof FirestoreError ? error.code + ': ' + error.message : String(error),
+    error: errorMessage,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,
@@ -47,8 +54,8 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
     operationType,
     path
   }
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+  console.error('Erro no Firestore: ', JSON.stringify(errInfo));
+  throw new Error(errorMessage);
 }
 
 export const firestoreService = {

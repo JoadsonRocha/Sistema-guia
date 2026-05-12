@@ -55,10 +55,14 @@ function CoordinatorDashboard() {
     // Subs para dados reais
     const unsubTeams = firestoreService.subscribeToCollection('teams', (data) => {
       setTeams(data);
+    }, (err) => {
+      console.error("Erro ao sincronizar equipes:", err);
     });
     
     const unsubUrgencies = firestoreService.subscribeToCollection('urgencies', (data) => {
       setUrgencies(data);
+    }, (err) => {
+      console.error("Erro ao sincronizar urgências:", err);
     });
 
     const unsubStats = onSnapshot(doc(db, 'stats', 'global'), (snapshot) => {
@@ -414,8 +418,8 @@ function CoordinatorDashboard() {
 
               <div className="bg-yellow-500 p-6">
                 <Brain className="w-12 h-12 text-zinc-950 mb-4" />
-                <h2 className="text-2xl font-black text-zinc-950 tracking-tighter uppercase leading-none">Organizador do Caos</h2>
-                <p className="text-zinc-800 text-sm font-bold mt-2">Diga o que aconteceu e a IA estratégica de RR resolve.</p>
+                <h2 className="text-2xl font-black text-zinc-950 tracking-tighter uppercase leading-none">Organizador de Demandas</h2>
+                <p className="text-zinc-800 text-sm font-bold mt-2">Diga o que aconteceu e a IA estratégica organiza os próximos passos.</p>
               </div>
 
               <div className="p-6">
@@ -425,7 +429,7 @@ function CoordinatorDashboard() {
                     <textarea 
                       value={chaosText}
                       onChange={(e) => setChaosText(e.target.value)}
-                      placeholder="Ex: Liguei pro Tuxaua da Maloca do Contão, ele quer Diesel pra vicinal 3 e reunião pro candidato no Lavrado..."
+                      placeholder="Ex: Falei com a liderança da comunidade X, eles precisam de suporte logístico para a reunião de amanhã..."
                       className="w-full h-40 bg-zinc-50 border-2 border-zinc-200 rounded-2xl p-4 font-bold text-zinc-800 focus:border-yellow-500 outline-none transition-all placeholder:text-zinc-300"
                     />
                     <button 
@@ -434,7 +438,7 @@ function CoordinatorDashboard() {
                       className="w-full bg-zinc-950 text-yellow-500 py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 disabled:opacity-50"
                     >
                       {isProcessing ? <RefreshCcw className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
-                      {isProcessing ? 'PROCESSANDO INTELIGÊNCIA...' : 'DELEGAR PARA IA'}
+                      {isProcessing ? 'PROCESSANDO...' : 'ENVIAR PARA IA'}
                     </button>
                   </div>
                 ) : (
@@ -459,7 +463,7 @@ function CoordinatorDashboard() {
                     {aiResult.acoes_politicas?.length > 0 && (
                       <div className="bg-green-50 p-4 rounded-2xl border-l-8 border-green-600">
                         <h4 className="text-green-700 font-black text-xs uppercase mb-2 flex items-center gap-2">
-                          <Brain className="w-4 h-4" /> Ações Políticas
+                          <Brain className="w-4 h-4" /> Ações Planejadas
                         </h4>
                         <ul className="space-y-1">
                           {aiResult.acoes_politicas.map((t: string, i: number) => (
@@ -475,7 +479,7 @@ function CoordinatorDashboard() {
                     {aiResult.alertas_crise?.length > 0 && (
                       <div className="bg-red-50 p-4 rounded-2xl border-l-8 border-red-600">
                         <h4 className="text-red-700 font-black text-xs uppercase mb-2 flex items-center gap-2">
-                          <AlertTriangle className="w-4 h-4" /> Alerta de Risco
+                          <AlertTriangle className="w-4 h-4" /> Alertas de Risco
                         </h4>
                         <ul className="space-y-1">
                           {aiResult.alertas_crise.map((t: string, i: number) => (
@@ -488,28 +492,12 @@ function CoordinatorDashboard() {
                       </div>
                     )}
 
-                    {aiResult.sugestoes_agenda?.length > 0 && (
-                      <div className="bg-zinc-900 p-4 rounded-2xl">
-                        <h4 className="text-yellow-500 font-black text-xs uppercase mb-2 flex items-center gap-2">
-                          <MapPin className="w-4 h-4" /> Sugestões de Travessia (Agenda)
-                        </h4>
-                        <div className="space-y-3">
-                          {aiResult.sugestoes_agenda.map((s: any, i: number) => (
-                            <div key={i} className="bg-zinc-800 p-3 rounded-xl border border-zinc-700">
-                              <p className="text-yellow-500 font-black text-xs uppercase tracking-widest">{s.municipio}</p>
-                              <p className="text-zinc-300 text-sm font-medium mt-1 uppercase">{s.contexto}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
                     <button 
                       onClick={() => {
                         setIsAiModalOpen(false);
                         setAiResult(null);
                         setChaosText('');
-                        alert('Dados delegados às equipes com sucesso!');
+                        alert('Demandas delegadas com sucesso!');
                       }}
                       className="w-full bg-green-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl"
                     >
@@ -740,8 +728,8 @@ function CaboDashboard() {
       <nav className="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] border-t-4 border-yellow-500 z-50">
         <div className="max-w-5xl mx-auto flex justify-around items-center p-3">
           <button className="flex flex-col items-center gap-1 opacity-50 p-2"><Users className="w-6 h-6" /><span className="text-[9px] font-black uppercase">EQUIPE</span></button>
-          <button className="flex flex-col items-center gap-1 text-zinc-950 p-2"><MapPin className="w-7 h-7 text-yellow-500" /><span className="text-[9px] font-black uppercase underline decoration-2 underline-offset-4">MAPA / RUA</span></button>
-          <button className="flex flex-col items-center gap-1 opacity-50 p-2"><AlertTriangle className="w-6 h-6" /><span className="text-[9px] font-black uppercase">SUPORTE</span></button>
+          <button className="flex flex-col items-center gap-1 text-zinc-950 p-2"><MapPin className="w-7 h-7 text-yellow-500" /><span className="text-[9px] font-black uppercase underline decoration-2 underline-offset-4">LOGÍSTICA</span></button>
+          <button className="flex flex-col items-center gap-1 opacity-50 p-2"><AlertTriangle className="w-6 h-6" /><span className="text-[9px] font-black uppercase">OUVIDORIA</span></button>
         </div>
       </nav>
     </div>
