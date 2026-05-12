@@ -840,7 +840,7 @@ function CaboDashboard() {
       await firestoreService.setDocument('voters', `voter_${Date.now()}`, {
         ...voterForm,
         leaderId: user.uid,
-        leaderName: user.displayName,
+        leaderName: user.displayName || 'Líder',
         createdAt: Date.now()
       });
       setIsVoterModalOpen(false);
@@ -862,7 +862,7 @@ function CaboDashboard() {
         amount: fuelForm.amount,
         status: 'pendente',
         leaderId: user.uid,
-        leaderName: user.displayName,
+        leaderName: user.displayName || 'Líder',
         team: profileData.zone || 'Pacaraima',
         createdAt: Date.now()
       });
@@ -884,7 +884,7 @@ function CaboDashboard() {
         description: demandForm.description,
         status: 'pendente',
         leaderId: user.uid,
-        leaderName: user.displayName,
+        leaderName: user.displayName || 'Líder',
         team: profileData.zone || 'Pacaraima',
         createdAt: Date.now()
       });
