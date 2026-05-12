@@ -779,6 +779,23 @@ function CaboDashboard() {
     zone: ''
   });
 
+  // Sincronizar Perfil com Firestore
+  useEffect(() => {
+    if (user) {
+      const unsubProfile = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setProfileData(prev => ({
+            ...prev,
+            name: data.name || user.displayName || '',
+            zone: data.zone || data.team || ''
+          }));
+        }
+      });
+      return () => unsubProfile();
+    }
+  }, [user]);
+
   // Monitor de Conectividade
   useEffect(() => {
     const handleStatusChange = () => {
@@ -835,19 +852,28 @@ function CaboDashboard() {
 
   const handleVoterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      alert("Usuário não autenticado.");
+      return;
+    }
+    
+    const payload = {
+      ...voterForm,
+      leaderId: user.uid,
+      leaderName: profileData.name || user.displayName || 'Líder',
+      team: profileData.zone || 'Pacaraima',
+      createdAt: Date.now()
+    };
+
+    console.log("Tentando cadastrar eleitor com payload:", payload);
+
     try {
-      await firestoreService.setDocument('voters', `voter_${Date.now()}`, {
-        ...voterForm,
-        leaderId: user.uid,
-        leaderName: user.displayName || 'Líder',
-        team: profileData.zone || 'Pacaraima',
-        createdAt: Date.now()
-      });
+      await firestoreService.setDocument('voters', `voter_${Date.now()}`, payload);
       setIsVoterModalOpen(false);
       setVoterForm({ name: '', phone: '', address: '', observations: '' });
-      alert("Eleitor cadastrado com sucesso!");
+      alert("✅ Eleitor cadastrado com sucesso!");
     } catch (err: any) {
+      console.error("Erro detalhado no cadastro de eleitor:", err);
       alert("Erro ao cadastrar: " + err.message);
     }
   };
@@ -863,7 +889,7 @@ function CaboDashboard() {
         amount: fuelForm.amount,
         status: 'pendente',
         leaderId: user.uid,
-        leaderName: user.displayName || 'Líder',
+        leaderName: profileData.name || user.displayName || 'Líder',
         team: profileData.zone || 'Pacaraima',
         createdAt: Date.now()
       });
@@ -885,7 +911,7 @@ function CaboDashboard() {
         description: demandForm.description,
         status: 'pendente',
         leaderId: user.uid,
-        leaderName: user.displayName || 'Líder',
+        leaderName: profileData.name || user.displayName || 'Líder',
         team: profileData.zone || 'Pacaraima',
         createdAt: Date.now()
       });
@@ -912,7 +938,7 @@ function CaboDashboard() {
             </div>
             <div>
               <h1 className="text-lg lg:text-xl font-black text-zinc-950 flex items-center gap-2 uppercase tracking-tighter text-left">
-                 {user?.displayName || 'João (Pacaraima)'}
+                 {profileData.name || user?.displayName || 'LÍDER'} {profileData.zone ? `(${profileData.zone})` : ''}
               </h1>
               <p className="text-[10px] lg:text-xs font-bold text-zinc-400 text-left uppercase">CABO ELEITORAL - LÍDER DE RUA</p>
             </div>
@@ -1159,9 +1185,15 @@ function CaboDashboard() {
                 
                 <div className="flex gap-4">
                   <button 
-                    onClick={() => {
-                        setIsProfileModalOpen(false);
-                        alert("Perfil atualizado localmente!");
+                    onClick={async () => {
+                        if (!user) return;
+                        try {
+                          await firestoreService.setDocument('users', user.uid, profileData);
+                          setIsProfileModalOpen(false);
+                          alert("✅ Perfil estratégico atualizado!");
+                        } catch (err: any) {
+                          alert("Erro ao salvar perfil: " + err.message);
+                        }
                     }}
                     className="flex-1 bg-yellow-500 text-zinc-950 py-5 rounded-2xl font-black text-lg shadow-xl shadow-yellow-100 transition-all active:scale-95"
                   >
