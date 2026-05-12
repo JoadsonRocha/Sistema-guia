@@ -1,8 +1,19 @@
 {
   "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile with role and contact info",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["coordenador", "lider"] },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["email", "role"]
+    },
     "Team": {
-      "title": "Team",
-      "description": "Information about a regional team",
+      "title": "Regional Team",
+      "description": "Team data for a specific region",
       "type": "object",
       "properties": {
         "name": { "type": "string" },
@@ -14,12 +25,11 @@
         "demands": { "type": "number" },
         "allocated": { "type": "number" },
         "spent": { "type": "number" }
-      },
-      "required": ["name", "leader", "location", "status"]
+      }
     },
     "Transaction": {
-      "title": "Transaction",
-      "description": "Financial transaction record",
+      "title": "Financial Transaction",
+      "description": "Ledger entry for funds",
       "type": "object",
       "properties": {
         "type": { "type": "string", "enum": ["entrada", "alocacao", "gasto"] },
@@ -27,73 +37,60 @@
         "description": { "type": "string" },
         "team": { "type": "string" },
         "date": { "type": "number" }
-      },
-      "required": ["type", "amount", "description", "date"]
+      }
     },
     "Urgency": {
-      "title": "Urgency",
-      "description": "Daily urgencies and alerts",
+      "title": "Urgency Alert",
+      "description": "Critical alerts requiring coordinator action",
       "type": "object",
       "properties": {
         "type": { "type": "string", "enum": ["combustivel", "agenda", "fraude"] },
         "team": { "type": "string" },
         "title": { "type": "string" },
-        "description": { "type": "string" },
         "status": { "type": "string", "enum": ["pendente", "aprovado", "negado"] },
-        "value": { "type": "number" },
         "createdAt": { "type": "number" }
-      },
-      "required": ["type", "team", "title", "status", "createdAt"]
+      }
     },
-    "GlobalStats": {
-      "title": "GlobalStats",
-      "description": "Overall campaign statistics",
+    "Stats": {
+      "title": "Global Stats",
+      "description": "Global counters for the dashboard",
       "type": "object",
       "properties": {
+        "totalFunded": { "type": "number" },
         "combustivelHoje": { "type": "number" },
         "combustivelSaldo": { "type": "number" },
         "contatosValidos": { "type": "number" },
         "contatosMeta": { "type": "number" },
         "alertasAtivos": { "type": "number" },
         "alertasCriticos": { "type": "number" },
-        "regionaisOnline": { "type": "string" },
-        "totalFunded": { "type": "number" },
-        "totalAllocated": { "type": "number" }
+        "regionaisOnline": { "type": "string" }
       }
-    },
-    "Profile": {
-      "title": "Profile",
-      "description": "User profile with role details",
-      "type": "object",
-      "properties": {
-        "email": { "type": "string" },
-        "role": { "type": "string", "enum": ["coordenador", "lider"] },
-        "name": { "type": "string" },
-        "createdAt": { "type": "number" }
-      },
-      "required": ["email", "role"]
     }
   },
   "firestore": {
     "/users/{userId}": {
-      "schema": "Profile",
-      "description": "Registered user profiles"
+      "schema": "User",
+      "description": "User profiles"
     },
     "/teams/{teamId}": {
       "schema": "Team",
-      "description": "Regional teams overview"
+      "description": "Regional teams"
     },
     "/transactions/{transactionId}": {
       "schema": "Transaction",
-      "description": "Campaign financial history"
+      "description": "Financial records"
     },
     "/urgencies/{urgencyId}": {
       "schema": "Urgency",
-      "description": "Real-time alerts and demands"
+      "description": "Field alerts"
     },
-    "/stats/global": {
-      "schema": "GlobalStats",
-      "description": "Campaign level statistics"
+    "/stats/{docId}": {
+      "schema": "Stats",
+      "description": "Aggregated stats"
+    },
+    "/admins/{adminId}": {
+      "schema": { "type": "object", "properties": {} },
+      "description": "Admin list"
     }
   }
 }

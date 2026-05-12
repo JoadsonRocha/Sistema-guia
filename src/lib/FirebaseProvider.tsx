@@ -8,7 +8,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword
 } from './firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
 
 interface AuthContextType {
@@ -31,27 +31,57 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        // Fetch role from Firestore
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setRole(data.role);
-          setIsAdmin(data.role === 'coordenador' || currentUser.email === "SERGIOSILVABEZERRA@gmail.com");
-        } else if (currentUser.email === "SERGIOSILVABEZERRA@gmail.com") {
-          setIsAdmin(true);
-          setRole('coordenador');
+    let unsubProfile: (() => void) | null = null;
+
+    const handleFirestoreError = (error: any, operationType: string, path: string) => {
+      const errInfo = {
+        error: error.message,
+        operationType,
+        path,
+        authInfo: {
+          userId: auth.currentUser?.uid,
+          email: auth.currentUser?.email,
+          emailVerified: auth.currentUser?.emailVerified,
+          isAnonymous: auth.currentUser?.isAnonymous,
         }
+      };
+      console.error("Firestore Error:", JSON.stringify(errInfo));
+    };
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      
+      if (unsubProfile) {
+        unsubProfile();
+        unsubProfile = null;
+      }
+
+      if (currentUser) {
+        unsubProfile = onSnapshot(doc(db, 'users', currentUser.uid), (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.data();
+            setRole(data.role);
+            setIsAdmin(data.role === 'coordenador' || currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com");
+          } else if (currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com") {
+            setIsAdmin(true);
+            setRole('coordenador');
+          }
+          setLoading(false);
+        }, (err) => {
+          handleFirestoreError(err, 'get', `users/${currentUser.uid}`);
+          setLoading(false);
+        });
       } else {
         setRole(null);
         setIsAdmin(false);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+      if (unsubProfile) unsubProfile();
+    };
   }, []);
 
   const login = async () => {
@@ -98,7 +128,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithEmail, signupWithEmail, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, role, loading, login, loginWithEmail, signupWithEmail, logout, isAdmin }}>
       {!loading && children}
     </AuthContext.Provider>
   );

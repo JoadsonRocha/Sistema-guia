@@ -57,11 +57,14 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
        setTeams(data as TeamFinance[]);
     });
 
-    const unsubTransactions = firestoreService.subscribeToCollection('transactions', (data: any[]) => {
-      // Sort by date desc
-      const sorted = [...data].sort((a, b) => b.date - a.date);
-      setTransactions(sorted as Transaction[]);
-    });
+    let unsubTransactions = () => {};
+    if (isAdmin) {
+      unsubTransactions = firestoreService.subscribeToCollection('transactions', (data: any[]) => {
+        // Sort by date desc
+        const sorted = [...data].sort((a, b) => b.date - a.date);
+        setTransactions(sorted as Transaction[]);
+      });
+    }
 
     const fetchGlobalStats = async () => {
       const stats = await firestoreService.getDocument('stats', 'global') as any;
@@ -73,7 +76,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
 
     return () => {
       unsubTeams();
-      unsubTransactions();
+      if (unsubTransactions) unsubTransactions();
     };
   }, [user]);
 
@@ -117,7 +120,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
     setFundAmount('');
   };
 
-  const alocarParaEquipa = async () => {
+  const alocarParaEquipe = async () => {
     if (!isAdmin) return alert("Ação restrita a Administradores.");
     const val = parseFloat(allocAmount);
     if (isNaN(val) || val <= 0) return;
@@ -253,7 +256,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
                 </div>
                 <div className="flex items-end">
                   <button 
-                    onClick={alocarParaEquipa}
+                    onClick={alocarParaEquipe}
                     className="w-full bg-blue-600 text-white p-3 py-4 rounded-xl font-black text-xs uppercase shadow-lg border-b-4 border-blue-800 active:border-b-0 active:translate-y-1"
                   >
                     Transferir Cota

@@ -33,6 +33,8 @@ import { processarCaos } from './services/geminiService';
 import FinanceDashboard from './components/FinanceDashboard';
 import { useAuth } from './lib/FirebaseProvider';
 import { firestoreService } from './lib/firestoreService';
+import { onSnapshot, doc } from 'firebase/firestore';
+import { db } from './lib/firebase';
 
 /// --- COMPONENTE: DASHBOARD DO COORDENADOR ---
 function CoordinatorDashboard() {
@@ -63,34 +65,48 @@ function CoordinatorDashboard() {
       if (snapshot.exists()) {
         setStatsData(snapshot.data());
       }
+    }, (err) => {
+      const errInfo = {
+        error: err.message,
+        operationType: 'get',
+        path: 'stats/global',
+        authInfo: {
+          userId: auth.currentUser?.uid,
+          email: auth.currentUser?.email,
+          emailVerified: auth.currentUser?.emailVerified,
+        }
+      };
+      console.error("Stats sync error details:", JSON.stringify(errInfo));
     });
     
     // Fallback for empty collections
     const checkAndSeed = async () => {
-      const existingTeams = await firestoreService.getCollection('teams');
-      if (existingTeams.length === 0) {
-        const seedTeams = [
-          { name: 'EQUIPE NORTE', leader: 'Capitão Silva', location: 'Pacaraima', status: 'OK', contacts: 45, fuel: 80, demands: 3, allocated: 5000, spent: 1200 },
-          { name: 'EQUIPE LESTE', leader: 'Major Rocha', location: 'Bonfim', status: 'ALERTA', contacts: 22, fuel: 15, demands: 8, allocated: 3000, spent: 2500 },
-          { name: 'EQUIPE SUL', leader: 'Tenente Lima', location: 'Rorainópolis', status: 'OK', contacts: 38, fuel: 55, demands: 0, allocated: 4000, spent: 500 },
-        ];
-        for (const t of seedTeams) {
-          await firestoreService.setDocument('teams', t.name.replace(/\s/g, '_'), t);
+      if (isAdmin) {
+        const existingTeams = await firestoreService.getCollection('teams');
+        if (existingTeams.length === 0) {
+          const seedTeams = [
+            { name: 'EQUIPE NORTE', leader: 'Capitão Silva', location: 'Pacaraima', status: 'OK', contacts: 45, fuel: 80, demands: 3, allocated: 5000, spent: 1200 },
+            { name: 'EQUIPE LESTE', leader: 'Major Rocha', location: 'Bonfim', status: 'ALERTA', contacts: 22, fuel: 15, demands: 8, allocated: 3000, spent: 2500 },
+            { name: 'EQUIPE SUL', leader: 'Tenente Lima', location: 'Rorainópolis', status: 'OK', contacts: 38, fuel: 55, demands: 0, allocated: 4000, spent: 500 },
+          ];
+          for (const t of seedTeams) {
+            await firestoreService.setDocument('teams', t.name.replace(/\s/g, '_'), t);
+          }
         }
-      }
 
-      const existingStats = await firestoreService.getDocument('stats', 'global');
-      if (!existingStats) {
-        await firestoreService.setDocument('stats', 'global', {
-          combustivelHoje: 420,
-          combustivelSaldo: 1200,
-          contatosValidos: 128,
-          contatosMeta: 200,
-          alertasAtivos: 3,
-          alertasCriticos: 1,
-          regionaisOnline: '05/05',
-          totalFunded: 500000
-        });
+        const existingStats = await firestoreService.getDocument('stats', 'global');
+        if (!existingStats) {
+          await firestoreService.setDocument('stats', 'global', {
+            combustivelHoje: 420,
+            combustivelSaldo: 1200,
+            contatosValidos: 128,
+            contatosMeta: 200,
+            alertasAtivos: 3,
+            alertasCriticos: 1,
+            regionaisOnline: '05/05',
+            totalFunded: 500000
+          });
+        }
       }
     };
     checkAndSeed();
@@ -100,7 +116,7 @@ function CoordinatorDashboard() {
       unsubUrgencies();
       unsubStats();
     };
-  }, [user]);
+  }, [user, isAdmin]);
 
   const stats = [
     { label: 'Combustível Hoje', value: statsData?.combustivelHoje ? `${statsData.combustivelHoje}L` : '420L', sub: `Saldo: ${statsData?.combustivelSaldo || '1.200'}L`, color: 'text-blue-700' },
@@ -166,7 +182,7 @@ function CoordinatorDashboard() {
           </div>
           <div className="flex items-center gap-2 px-3 py-1 bg-zinc-800 rounded-full border border-zinc-700">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span className="text-[10px] font-bold uppercase tracking-widest">Live</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">Ao Vivo</span>
           </div>
         </div>
       </header>
@@ -678,7 +694,7 @@ function CaboDashboard() {
             className="aspect-square bg-yellow-400 text-zinc-950 rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-xl border-b-8 border-yellow-600"
           >
             <div className="bg-yellow-500/20 p-4 lg:p-6 rounded-2xl"><StickyNote className="w-10 h-10 lg:w-14 lg:h-14 text-zinc-950" /></div>
-            <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Registar<br/>Demanda</span>
+            <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Registrar<br/>Demanda</span>
           </motion.button>
         </section>
 
@@ -693,7 +709,7 @@ function CaboDashboard() {
                 </span>
               )}
             </div>
-            <h3 className="text-zinc-700 font-black text-base lg:text-lg tracking-tight">{queueCount} Registos na Fila</h3>
+            <h3 className="text-zinc-700 font-black text-base lg:text-lg tracking-tight">{queueCount} Registros na Fila</h3>
             <p className="text-zinc-400 text-[10px] font-bold mt-1 uppercase">
               {isOnline ? 'Pronto para sincronizar com o comitê central' : 'Guardando dados localmente (sem sinal)'}
             </p>
@@ -723,7 +739,7 @@ function CaboDashboard() {
       {/* FOOTER NAVEGAÇÃO - RESPONSIVO (Larger buttons on tablet/PC) */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] border-t-4 border-yellow-500 z-50">
         <div className="max-w-5xl mx-auto flex justify-around items-center p-3">
-          <button className="flex flex-col items-center gap-1 opacity-50 p-2"><Users className="w-6 h-6" /><span className="text-[9px] font-black uppercase">EQUIPA</span></button>
+          <button className="flex flex-col items-center gap-1 opacity-50 p-2"><Users className="w-6 h-6" /><span className="text-[9px] font-black uppercase">EQUIPE</span></button>
           <button className="flex flex-col items-center gap-1 text-zinc-950 p-2"><MapPin className="w-7 h-7 text-yellow-500" /><span className="text-[9px] font-black uppercase underline decoration-2 underline-offset-4">MAPA / RUA</span></button>
           <button className="flex flex-col items-center gap-1 opacity-50 p-2"><AlertTriangle className="w-6 h-6" /><span className="text-[9px] font-black uppercase">SUPORTE</span></button>
         </div>
@@ -733,9 +749,15 @@ function CaboDashboard() {
 }
 
 export default function App() {
-  const [view, setView] = useState<'coord' | 'cabo'>('coord');
-  const { user, login, loginWithEmail, signupWithEmail, loading } = useAuth();
+  const { user, login, loginWithEmail, signupWithEmail, loading, isAdmin } = useAuth();
+  const [view, setView] = useState<'coord' | 'cabo'>('cabo');
   
+  useEffect(() => {
+    if (user) {
+      setView(isAdmin ? 'coord' : 'cabo');
+    }
+  }, [user, isAdmin]);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userRole, setUserRole] = useState<'coordenador' | 'lider'>('lider');
