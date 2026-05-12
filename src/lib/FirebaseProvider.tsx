@@ -133,7 +133,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ user, role, loading, login, loginWithEmail, signupWithEmail, logout, isAdmin }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }

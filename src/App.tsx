@@ -34,7 +34,7 @@ import FinanceDashboard from './components/FinanceDashboard';
 import { useAuth } from './lib/FirebaseProvider';
 import { firestoreService } from './lib/firestoreService';
 import { onSnapshot, doc } from 'firebase/firestore';
-import { db } from './lib/firebase';
+import { db, auth } from './lib/firebase';
 
 /// --- COMPONENTE: DASHBOARD DO COORDENADOR ---
 function CoordinatorDashboard() {
@@ -55,14 +55,10 @@ function CoordinatorDashboard() {
     // Subs para dados reais
     const unsubTeams = firestoreService.subscribeToCollection('teams', (data) => {
       setTeams(data);
-    }, (err) => {
-      console.error("Erro ao sincronizar equipes:", err);
     });
     
     const unsubUrgencies = firestoreService.subscribeToCollection('urgencies', (data) => {
       setUrgencies(data);
-    }, (err) => {
-      console.error("Erro ao sincronizar urgências:", err);
     });
 
     const unsubStats = onSnapshot(doc(db, 'stats', 'global'), (snapshot) => {
