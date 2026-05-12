@@ -90,9 +90,9 @@ export const firestoreService = {
     }
   },
 
-  async setDocument(path: string, id: string, data: any) {
+  async setDocument(path: string, id: string, data: any, merge: boolean = true) {
     try {
-      await setDoc(doc(db, path, id), data);
+      await setDoc(doc(db, path, id), data, { merge });
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, `${path}/${id}`);
     }

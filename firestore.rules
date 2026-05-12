@@ -2,117 +2,51 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // --- GLOBAL HELPERS (Pilar 3) ---
+    // --- HELPERS ---
     function isSignedIn() {
       return request.auth != null;
     }
 
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.email == "sergiosilvabezerra@gmail.com" ||
+        request.auth.token.email.lower() == "sergiosilvabezerra@gmail.com" ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
     }
 
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
-    function incoming() {
-      return request.resource.data;
-    }
-
-    function existing() {
-      return resource.data;
-    }
-
-    // --- ENTITY VALIDATION HELPERS (Pilar 2) ---
-    
-    function isValidVoter(data) {
-      return data.keys().hasAll(['name', 'leaderId']) &&
-             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
-             (!('phone' in data) || (data.phone is string && data.phone.size() <= 100)) &&
-             (!('address' in data) || (data.address is string && data.address.size() <= 500)) &&
-             (!('observations' in data) || (data.observations is string && data.observations.size() <= 3000)) &&
-             (!('leaderName' in data) || (data.leaderName is string && data.leaderName.size() <= 150)) &&
-             (!('team' in data) || (data.team is string && data.team.size() <= 100)) &&
-             (!('createdAt' in data) || (data.createdAt is number));
-    }
-
-    function isValidUrgency(data) {
-      return data.keys().hasAll(['type', 'status', 'leaderId', 'title']) &&
-             data.type in ['combustivel', 'agenda', 'fraude', 'demanda'] &&
-             data.status in ['pendente', 'aprovado', 'negado'] &&
-             data.title is string && data.title.size() <= 150 &&
-             data.leaderId is string &&
-             (!('amount' in data) || (data.amount is string && data.amount.size() <= 30)) &&
-             (!('description' in data) || (data.description is string && data.description.size() <= 2000)) &&
-             (!('leaderName' in data) || (data.leaderName is string && data.leaderName.size() <= 100)) &&
-             (!('team' in data) || (data.team is string && data.team.size() <= 50)) &&
-             (!('createdAt' in data) || (data.createdAt is number)) &&
-             (!('updatedAt' in data) || (data.updatedAt is number)) &&
-             (!('observation' in data) || (data.observation is string && data.observation.size() <= 1000));
-    }
-
-    // --- COLLECTION MATCHES ---
+    // --- COLLECTIONS ---
 
     // 1. Usuários
     match /users/{userId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
     }
 
-    // 2. Equipes
-    match /teams/{teamId} {
-      allow read: if isSignedIn();
-      allow create, update, delete: if isAdmin();
-    }
-
-    // 3. Transações Financeiras
-    match /transactions/{transactionId} {
-      allow read: if isAdmin();
-      allow create: if isAdmin();
-      allow update, delete: if false;
-    }
-
-    // 4. Urgências / Demandas
-    match /urgencies/{urgencyId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && isValidUrgency(incoming()) && incoming().leaderId == request.auth.uid && incoming().status == 'pendente';
-      allow update: if isAdmin() || (
-        isSignedIn() && isValidUrgency(incoming()) && 
-        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'observation', 'updatedAt'])
-      );
-      allow delete: if isAdmin();
-    }
-
-    // 5. Eleitores (Voters)
+    // 2. Eleitores (Voters)
     match /voters/{voterId} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn();
+      allow read, write: if isSignedIn();
     }
 
-    // 6. Estatísticas Gerais
+    // 3. Urgências / Demandas
+    match /urgencies/{urgencyId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 4. Estatísticas e Admins
     match /stats/{docId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
-    // 7. Administradores (Lista de Controle)
     match /admins/{adminId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
-    // Teste de Conexão
-    match /system/connection_test {
-      allow read: if true;
+    match /teams/{teamId} {
+      allow read, write: if isSignedIn();
     }
 
-    // Bloqueio Global (Segurança Máxima)
+    // Segurança Águia: Permitir acesso total ao Admin master
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if isAdmin();
     }
   }
 }

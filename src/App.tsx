@@ -785,11 +785,10 @@ function CaboDashboard() {
       const unsubProfile = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setProfileData(prev => ({
-            ...prev,
-            name: data.name || user.displayName || '',
+          setProfileData({
+            name: data.name || '',
             zone: data.zone || data.team || ''
-          }));
+          });
         }
       });
       return () => unsubProfile();
@@ -861,7 +860,7 @@ function CaboDashboard() {
       ...voterForm,
       leaderId: user.uid,
       leaderName: profileData.name || user.displayName || 'Líder',
-      team: profileData.zone || 'Pacaraima',
+      team: profileData.zone || 'Base',
       createdAt: Date.now()
     };
 
