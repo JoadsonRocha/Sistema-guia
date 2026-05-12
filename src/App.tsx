@@ -26,7 +26,8 @@ import {
   X,
   Plus,
   LogIn,
-  LogOut
+  LogOut,
+  Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { processarCaos } from './services/geminiService';
@@ -678,9 +679,17 @@ const getDistanceInMeters = (lat1: number, lon1: number, lat2: number, lon2: num
 
 // --- COMPONENTE: DASHBOARD DO CABO ELEITORAL (PWA) ---
 function CaboDashboard() {
+  const { user, logout } = useAuth();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [queueCount, setQueueCount] = useState(0);
   const [isLocating, setIsLocating] = useState(false);
+  const [activeTab, setActiveTab] = useState<'equipe' | 'logistica' | 'ouvidoria'>('logistica');
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name: user?.displayName || '',
+    phone: '',
+    zone: ''
+  });
 
   // Monitor de Conectividade
   useEffect(() => {
@@ -728,118 +737,273 @@ function CaboDashboard() {
       {/* HEADER FIXO - CABO (WIDER ON DESKTOP) */}
       <header className="sticky top-0 z-50 bg-white p-4 shadow-sm border-b-4 border-zinc-950">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-lg lg:text-xl font-black text-zinc-950 flex items-center gap-2 uppercase tracking-tighter text-left">
-              <User className="w-5 h-5 text-zinc-500" /> João (Pacaraima)
-            </h1>
-            <p className="text-[10px] lg:text-xs font-bold text-zinc-400 text-left uppercase">CABO ELEITORAL - LÍDER DE RUA</p>
+          <div className="flex items-center gap-3">
+            <div 
+              onClick={() => setIsProfileModalOpen(true)}
+              className="bg-zinc-100 p-2 rounded-full cursor-pointer hover:bg-yellow-500 hover:text-white transition-all"
+            >
+              <User className="w-5 h-5 text-zinc-500" />
+            </div>
+            <div>
+              <h1 className="text-lg lg:text-xl font-black text-zinc-950 flex items-center gap-2 uppercase tracking-tighter text-left">
+                 {user?.displayName || 'João (Pacaraima)'}
+              </h1>
+              <p className="text-[10px] lg:text-xs font-bold text-zinc-400 text-left uppercase">CABO ELEITORAL - LÍDER DE RUA</p>
+            </div>
           </div>
           
-          <div className={`flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 rounded-full border-2 transition-all ${
-              isOnline 
-              ? 'bg-green-50 border-green-600 text-green-700' 
-              : 'bg-orange-50 border-orange-600 text-orange-700'
-          }`}>
-            {isOnline ? <Wifi className="w-4 h-4" /> : <CloudOff className="w-4 h-4" />}
-            <span className="text-[10px] lg:text-xs font-black uppercase tracking-tight">
-              {isOnline ? 'Online' : 'Offline'}
-            </span>
+          <div className="flex items-center gap-2">
+            <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 rounded-full border-2 transition-all ${
+                isOnline 
+                ? 'bg-green-50 border-green-600 text-green-700' 
+                : 'bg-orange-50 border-orange-600 text-orange-700'
+            }`}>
+              {isOnline ? <Wifi className="w-4 h-4" /> : <CloudOff className="w-4 h-4" />}
+              <span className="text-[10px] lg:text-xs font-black uppercase tracking-tight">
+                {isOnline ? 'Online' : 'Offline'}
+              </span>
+            </div>
+            
+            <button 
+              onClick={() => setIsProfileModalOpen(true)}
+              className="p-2 bg-zinc-100 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all"
+              title="Configurar Perfil"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+            
+            <button 
+              onClick={logout}
+              className="p-2 bg-zinc-100 rounded-lg text-zinc-500 hover:bg-red-600 hover:text-white transition-all"
+              title="Sair do Sistema"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </header>
 
       <main className="p-4 md:p-8 space-y-6 max-w-5xl mx-auto">
         
-        {isLocating && (
-          <div className="bg-zinc-950 text-white p-4 rounded-2xl text-center animate-pulse flex items-center justify-center gap-3 font-black text-xs uppercase shadow-xl">
-            <RefreshCcw className="w-5 h-5 animate-spin" /> Validando GPS e Segurança de Campo...
-          </div>
-        )}
-
-        {/* GRID DE BOTÕES GIGANTES - RESPONSIVO (2 colunas mobile, 4 colunas desktop) */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
-          <motion.button 
-            whileTap={{ scale: 0.95 }}
-            onClick={() => processAction('ponto')}
-            className="aspect-square bg-zinc-950 text-white rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-xl border-b-8 border-zinc-800"
-          >
-            <div className="bg-zinc-800 p-4 lg:p-6 rounded-2xl"><Camera className="w-10 h-10 lg:w-14 lg:h-14 text-yellow-500" /></div>
-            <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Bater Ponto<br/>(Selfie)</span>
-          </motion.button>
-
-          <motion.button 
-            whileTap={{ scale: 0.95 }} 
-            onClick={() => processAction('eleitor')}
-            className="aspect-square bg-white border-4 border-zinc-950 text-zinc-950 rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-lg relative"
-          >
-            <div className="absolute -top-2 -right-2 bg-red-600 text-white text-[9px] font-black px-2 py-1 rounded-full border-2 border-white shadow-md">GPS OBRIGATÓRIO</div>
-            <div className="bg-zinc-100 p-4 lg:p-6 rounded-2xl text-zinc-950 border-2 border-zinc-200"><UserPlus className="w-10 h-10 lg:w-14 lg:h-14" /></div>
-            <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Cadastrar<br/>Eleitor</span>
-          </motion.button>
-
-          <motion.button 
-            whileTap={{ scale: 0.95 }}
-            onClick={() => processAction('combustivel')}
-            className="aspect-square bg-blue-600 text-white rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-xl border-b-8 border-blue-800"
-          >
-            <div className="bg-blue-700 p-4 lg:p-6 rounded-2xl"><Fuel className="w-10 h-10 lg:w-14 lg:h-14 text-white" /></div>
-            <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Pedir<br/>Combustível</span>
-          </motion.button>
-
-          <motion.button 
-            whileTap={{ scale: 0.95 }}
-            onClick={() => processAction('demanda')}
-            className="aspect-square bg-yellow-400 text-zinc-950 rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-xl border-b-8 border-yellow-600"
-          >
-            <div className="bg-yellow-500/20 p-4 lg:p-6 rounded-2xl"><StickyNote className="w-10 h-10 lg:w-14 lg:h-14 text-zinc-950" /></div>
-            <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Registrar<br/>Demanda</span>
-          </motion.button>
-        </section>
-
-        {/* FILA DE SINCRONIZAÇÃO E MOTIVAÇÃO - SIDE BY SIDE ON DESKTOP */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-          <section className="bg-white border-2 border-dashed border-zinc-300 rounded-3xl p-6 lg:p-8 text-center flex flex-col items-center justify-center">
-            <div className="bg-zinc-100 p-4 rounded-full relative mb-3">
-              <RefreshCcw className={`w-8 h-8 text-zinc-400 ${queueCount > 0 ? 'animate-spin-slow' : ''}`} />
-              {queueCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-zinc-950 text-white text-xs font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-md">
-                  {queueCount}
-                </span>
-              )}
-            </div>
-            <h3 className="text-zinc-700 font-black text-base lg:text-lg tracking-tight">{queueCount} Registros na Fila</h3>
-            <p className="text-zinc-400 text-[10px] font-bold mt-1 uppercase">
-              {isOnline ? 'Pronto para sincronizar com o comitê central' : 'Guardando dados localmente (sem sinal)'}
-            </p>
-            {isOnline && queueCount > 0 && (
-              <button 
-                onClick={syncOfflineQueue}
-                className="mt-6 text-xs font-black bg-zinc-950 text-white px-8 py-3 rounded-full uppercase shadow-lg active:scale-95 transition-transform"
-              >
-                Sincronizar Agora
-              </button>
+        {activeTab === 'logistica' ? (
+          <>
+            {isLocating && (
+              <div className="bg-zinc-950 text-white p-4 rounded-2xl text-center animate-pulse flex items-center justify-center gap-3 font-black text-xs uppercase shadow-xl">
+                <RefreshCcw className="w-5 h-5 animate-spin" /> Validando GPS e Segurança de Campo...
+              </div>
             )}
-          </section>
 
-          <div className="bg-blue-600 p-8 lg:p-10 rounded-3xl flex flex-col justify-center relative overflow-hidden shadow-2xl">
-            <ShieldCheck className="absolute -right-4 -bottom-4 w-32 h-32 text-blue-500 opacity-20 rotate-12" />
-            <p className="text-blue-100 font-black text-lg lg:text-xl uppercase italic leading-tight text-left relative z-10">
-              "A semente da vitória é plantada no bairro. Valorize cada aperto de mão."
-            </p>
-            <div className="mt-4 flex items-center gap-2 relative z-10">
-               <div className="w-10 h-1 bg-white rounded-full"></div>
-               <span className="text-white text-[10px] font-black uppercase tracking-widest">Estratégia Águia</span>
+            {/* GRID DE BOTÕES GIGANTES - RESPONSIVO (2 colunas mobile, 4 colunas desktop) */}
+            <section className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+              <motion.button 
+                whileTap={{ scale: 0.95 }}
+                onClick={() => processAction('ponto')}
+                className="aspect-square bg-zinc-950 text-white rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-xl border-b-8 border-zinc-800"
+              >
+                <div className="bg-zinc-800 p-4 lg:p-6 rounded-2xl"><Camera className="w-10 h-10 lg:w-14 lg:h-14 text-yellow-500" /></div>
+                <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Bater Ponto<br/>(Selfie)</span>
+              </motion.button>
+
+              <motion.button 
+                whileTap={{ scale: 0.95 }} 
+                onClick={() => processAction('eleitor')}
+                className="aspect-square bg-white border-4 border-zinc-950 text-zinc-950 rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-lg relative"
+              >
+                <div className="absolute -top-2 -right-2 bg-red-600 text-white text-[9px] font-black px-2 py-1 rounded-full border-2 border-white shadow-md">GPS OBRIGATÓRIO</div>
+                <div className="bg-zinc-100 p-4 lg:p-6 rounded-2xl text-zinc-950 border-2 border-zinc-200"><UserPlus className="w-10 h-10 lg:w-14 lg:h-14" /></div>
+                <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Cadastrar<br/>Eleitor</span>
+              </motion.button>
+
+              <motion.button 
+                whileTap={{ scale: 0.95 }}
+                onClick={() => processAction('combustivel')}
+                className="aspect-square bg-blue-600 text-white rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-xl border-b-8 border-blue-800"
+              >
+                <div className="bg-blue-700 p-4 lg:p-6 rounded-2xl"><Fuel className="w-10 h-10 lg:w-14 lg:h-14 text-white" /></div>
+                <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Pedir<br/>Combustível</span>
+              </motion.button>
+
+              <motion.button 
+                whileTap={{ scale: 0.95 }}
+                onClick={() => processAction('demanda')}
+                className="aspect-square bg-yellow-400 text-zinc-950 rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-xl border-b-8 border-yellow-600"
+              >
+                <div className="bg-yellow-500/20 p-4 lg:p-6 rounded-2xl"><StickyNote className="w-10 h-10 lg:w-14 lg:h-14 text-zinc-950" /></div>
+                <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Registrar<br/>Demanda</span>
+              </motion.button>
+            </section>
+
+            {/* FILA DE SINCRONIZAÇÃO E MOTIVAÇÃO - SIDE BY SIDE ON DESKTOP */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+              <section className="bg-white border-2 border-dashed border-zinc-300 rounded-3xl p-6 lg:p-8 text-center flex flex-col items-center justify-center">
+                <div className="bg-zinc-100 p-4 rounded-full relative mb-3">
+                  <RefreshCcw className={`w-8 h-8 text-zinc-400 ${queueCount > 0 ? 'animate-spin-slow' : ''}`} />
+                  {queueCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-zinc-950 text-white text-xs font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-md">
+                      {queueCount}
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-zinc-700 font-black text-base lg:text-lg tracking-tight">{queueCount} Registros na Fila</h3>
+                <p className="text-zinc-400 text-[10px] font-bold mt-1 uppercase">
+                  {isOnline ? 'Pronto para sincronizar com o comitê central' : 'Guardando dados localmente (sem sinal)'}
+                </p>
+                {isOnline && queueCount > 0 && (
+                  <button 
+                    onClick={syncOfflineQueue}
+                    className="mt-6 text-xs font-black bg-zinc-950 text-white px-8 py-3 rounded-full uppercase shadow-lg active:scale-95 transition-transform"
+                  >
+                    Sincronizar Agora
+                  </button>
+                )}
+              </section>
+
+              <div className="bg-blue-600 p-8 lg:p-10 rounded-3xl flex flex-col justify-center relative overflow-hidden shadow-2xl">
+                <ShieldCheck className="absolute -right-4 -bottom-4 w-32 h-32 text-blue-500 opacity-20 rotate-12" />
+                <p className="text-blue-100 font-black text-lg lg:text-xl uppercase italic leading-tight text-left relative z-10">
+                  "A semente da vitória é plantada no bairro. Valorize cada aperto de mão."
+                </p>
+                <div className="mt-4 flex items-center gap-2 relative z-10">
+                   <div className="w-10 h-1 bg-white rounded-full"></div>
+                   <span className="text-white text-[10px] font-black uppercase tracking-widest">Estratégia Águia</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        ) : activeTab === 'equipe' ? (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+            <div className="bg-white p-8 rounded-[2.5rem] border-2 border-zinc-200 shadow-xl text-center">
+              <Users className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-black text-zinc-900 uppercase">Minha Equipe Regional</h2>
+              <p className="text-zinc-500 font-medium">Visualize o desempenho dos seus sub-cabos e colaboradores.</p>
+              
+              <div className="grid grid-cols-1 gap-4 mt-8">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="flex justify-between items-center p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-zinc-200 w-10 h-10 rounded-full flex items-center justify-center font-black">C{i}</div>
+                      <div className="text-left">
+                        <p className="font-black text-zinc-800 text-sm">Colaborador {i}</p>
+                        <p className="text-xs text-zinc-400 font-bold uppercase">Ativo • 12 Cadastros</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="text-zinc-300" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+            <div className="bg-white p-8 rounded-[2.5rem] border-2 border-zinc-200 shadow-xl text-center">
+              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-black text-zinc-900 uppercase">Canal de Ouvidoria</h2>
+              <p className="text-zinc-500 font-medium">Relate problemas, denúncias ou sugestões críticas.</p>
+              
+              <textarea 
+                placeholder="Descreva a ocorrência..."
+                className="w-full h-40 bg-zinc-50 border-2 border-zinc-100 rounded-3xl p-6 mt-6 outline-none focus:border-red-500 transition-all font-bold"
+              />
+              <button className="w-full bg-red-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl mt-4">
+                ENVIAR RELATO URGENTE
+              </button>
+            </div>
+          </motion.div>
+        )}
       </main>
+
+      <AnimatePresence>
+        {isProfileModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+            >
+              <button 
+                onClick={() => setIsProfileModalOpen(false)}
+                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="bg-zinc-950 p-8 border-b-4 border-yellow-500 text-left">
+                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">Minhas Credenciais</h2>
+                <p className="text-zinc-400 text-xs font-bold mt-2 uppercase tracking-widest">Ajuste seu perfil estratégico</p>
+              </div>
+
+              <div className="p-8 space-y-6 text-left">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
+                  <input 
+                    type="text" 
+                    value={profileData.name}
+                    onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Zona Eleitoral / Base</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: Pacaraima Centro"
+                    value={profileData.zone}
+                    onChange={(e) => setProfileData({...profileData, zone: e.target.value})}
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800"
+                  />
+                </div>
+                
+                <div className="flex gap-4">
+                  <button 
+                    onClick={() => {
+                        setIsProfileModalOpen(false);
+                        alert("Perfil atualizado localmente!");
+                    }}
+                    className="flex-1 bg-yellow-500 text-zinc-950 py-5 rounded-2xl font-black text-lg shadow-xl shadow-yellow-100 transition-all active:scale-95"
+                  >
+                    SALVAR AJUSTES
+                  </button>
+                  <button 
+                    onClick={logout}
+                    className="bg-red-600 text-white px-8 py-5 rounded-2xl font-black text-lg shadow-xl transition-all active:scale-95"
+                  >
+                    SAIR
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* FOOTER NAVEGAÇÃO - RESPONSIVO (Larger buttons on tablet/PC) */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] border-t-4 border-yellow-500 z-50">
         <div className="max-w-5xl mx-auto flex justify-around items-center p-3">
-          <button className="flex flex-col items-center gap-1 opacity-50 p-2"><Users className="w-6 h-6" /><span className="text-[9px] font-black uppercase">EQUIPE</span></button>
-          <button className="flex flex-col items-center gap-1 text-zinc-950 p-2"><MapPin className="w-7 h-7 text-yellow-500" /><span className="text-[9px] font-black uppercase underline decoration-2 underline-offset-4">LOGÍSTICA</span></button>
-          <button className="flex flex-col items-center gap-1 opacity-50 p-2"><AlertTriangle className="w-6 h-6" /><span className="text-[9px] font-black uppercase">OUVIDORIA</span></button>
+          <button 
+            onClick={() => setActiveTab('equipe')}
+            className={`flex flex-col items-center gap-1 p-2 transition-all ${activeTab === 'equipe' ? 'text-zinc-950 scale-110' : 'opacity-40'}`}
+          >
+            <Users className="w-6 h-6" />
+            <span className={`text-[9px] font-black uppercase ${activeTab === 'equipe' ? 'underline decoration-2 underline-offset-4' : ''}`}>EQUIPE</span>
+          </button>
+          
+          <button 
+            onClick={() => setActiveTab('logistica')}
+            className={`flex flex-col items-center gap-1 p-2 transition-all ${activeTab === 'logistica' ? 'text-zinc-950 scale-110' : 'opacity-40'}`}
+          >
+            <MapPin className={`w-7 h-7 ${activeTab === 'logistica' ? 'text-yellow-500' : 'text-zinc-400'}`} />
+            <span className={`text-[9px] font-black uppercase ${activeTab === 'logistica' ? 'underline decoration-2 underline-offset-4' : ''}`}>LOGÍSTICA</span>
+          </button>
+          
+          <button 
+            onClick={() => setActiveTab('ouvidoria')}
+            className={`flex flex-col items-center gap-1 p-2 transition-all ${activeTab === 'ouvidoria' ? 'text-zinc-950 scale-110' : 'opacity-40'}`}
+          >
+            <AlertTriangle className="w-6 h-6" />
+            <span className={`text-[9px] font-black uppercase ${activeTab === 'ouvidoria' ? 'underline decoration-2 underline-offset-4' : ''}`}>OUVIDORIA</span>
+          </button>
         </div>
       </nav>
     </div>
