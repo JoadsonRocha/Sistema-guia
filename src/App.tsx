@@ -46,6 +46,10 @@ function CoordinatorDashboard() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [aiResult, setAiResult] = useState<any>(null);
   
+  const [selectedUrgency, setSelectedUrgency] = useState<any>(null);
+  const [observation, setObservation] = useState('');
+  const [isUrgencyModalOpen, setIsUrgencyModalOpen] = useState(false);
+
   const [teams, setTeams] = useState<any[]>([]);
   const [urgencies, setUrgencies] = useState<any[]>([]);
   const [statsData, setStatsData] = useState<any>(null);
@@ -282,13 +286,14 @@ function CoordinatorDashboard() {
                    <motion.div 
                      key={urgency.id}
                      whileTap={{ scale: 0.98 }} 
-                     className={`bg-white border-4 ${urgency.type === 'fraude' ? 'border-red-600' : 'border-zinc-200'} rounded-2xl overflow-hidden shadow-sm flex flex-col h-full`}
+                     className={`bg-white border-4 ${urgency.type === 'fraude' ? 'border-red-600' : 'border-zinc-200'} rounded-2xl overflow-hidden shadow-sm flex flex-col h-full text-left`}
                    >
                      <div className={`${urgency.type === 'fraude' ? 'bg-red-600 text-white' : 'bg-zinc-100 text-zinc-600'} p-3 border-b border-zinc-200 flex justify-between items-center text-xs font-black`}>
                        <span className="flex items-center gap-2">
                          {urgency.type === 'combustivel' && <Fuel className="w-4 h-4" />}
                          {urgency.type === 'agenda' && <MapPin className="w-4 h-4" />}
                          {urgency.type === 'fraude' && <AlertTriangle className="w-4 h-4" />}
+                         {urgency.type === 'demanda' && <StickyNote className="w-4 h-4" />}
                          {urgency.type.toUpperCase()}
                        </span>
                        <span className={`${urgency.type === 'fraude' ? 'bg-white/20' : 'bg-blue-100 text-blue-700'} px-2 py-0.5 rounded`}>
@@ -299,24 +304,18 @@ function CoordinatorDashboard() {
                        <div>
                          <h3 className={`text-xl font-black ${urgency.type === 'fraude' ? 'text-red-700' : 'text-zinc-950'}`}>{urgency.title}</h3>
                          <p className="text-sm font-medium text-zinc-500 mt-2">{urgency.description || 'Nenhuma descrição detalhada.'}</p>
+                         {urgency.leaderName && <p className="text-[10px] font-black text-zinc-400 uppercase mt-2">SOLICITADO POR: {urgency.leaderName}</p>}
                        </div>
-                       <div className="grid grid-cols-2 gap-3 mt-6">
+                       <div className="grid grid-cols-1 gap-3 mt-6">
                          <button 
-                           onClick={async () => {
-                             await firestoreService.deleteDocument('urgencies', urgency.id);
+                           onClick={() => {
+                             setSelectedUrgency(urgency);
+                             setIsUrgencyModalOpen(true);
+                             setObservation('');
                            }}
-                           className="bg-red-600 text-white py-3 rounded-xl font-black text-sm flex flex-col items-center justify-center gap-1 shadow-lg border-b-4 border-red-800 active:border-b-0 active:translate-y-1"
+                           className="bg-zinc-950 text-white py-4 rounded-xl font-black text-sm flex items-center justify-center gap-2 shadow-lg hover:bg-zinc-800 transition-all"
                          >
-                           NEGAR
-                         </button>
-                         <button 
-                           onClick={async () => {
-                             // Lógica de aprovação específica se necessário
-                             await firestoreService.deleteDocument('urgencies', urgency.id);
-                           }}
-                           className="bg-green-600 text-white py-3 rounded-xl font-black text-sm flex flex-col items-center justify-center gap-1 shadow-lg border-b-4 border-green-800 active:border-b-0 active:translate-y-1"
-                         >
-                           RESOLVER
+                           ANALISAR SOLICITAÇÃO <ChevronRight className="w-4 h-4" />
                          </button>
                        </div>
                      </div>
@@ -543,6 +542,83 @@ function CoordinatorDashboard() {
         )}
       </AnimatePresence>
 
+      {/* MODAL: ANALISAR URGÊNCIA (APROVAÇÃO/NEGAÇÃO COM OBSERVAÇÃO) */}
+      <AnimatePresence>
+        {isUrgencyModalOpen && selectedUrgency && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative"
+            >
+              <button 
+                onClick={() => setIsUrgencyModalOpen(false)}
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-full text-zinc-500"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className={`p-6 border-b-4 ${selectedUrgency.type === 'combustivel' ? 'bg-blue-600 border-blue-800' : selectedUrgency.type === 'demanda' ? 'bg-yellow-500 border-yellow-700' : 'bg-red-600 border-red-800'}`}>
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">{selectedUrgency.title}</h2>
+                <p className="text-white/60 text-[10px] font-black mt-2 uppercase tracking-widest">SOLICITADO POR: {selectedUrgency.leaderName} ({selectedUrgency.team})</p>
+              </div>
+
+              <div className="p-6 space-y-6">
+                <div>
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block mb-2">Relato do Campo</label>
+                  <p className="p-4 bg-zinc-50 border border-zinc-100 rounded-2xl text-sm font-medium text-zinc-700 italic">
+                    "{selectedUrgency.description}"
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Sua Observação Estratégica (Feedback)</label>
+                  <textarea 
+                    value={observation}
+                    onChange={(e) => setObservation(e.target.value)}
+                    placeholder="Deixe uma orientação para o líder de campo..."
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-zinc-950 transition-all h-28"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <button 
+                    onClick={async () => {
+                      await firestoreService.updateDocument('urgencies', selectedUrgency.id, {
+                        status: 'negado',
+                        observation,
+                        updatedAt: Date.now()
+                      });
+                      setIsUrgencyModalOpen(false);
+                      alert("Solicitação Negada.");
+                    }}
+                    className="bg-red-600 text-white py-4 rounded-xl font-black text-xs shadow-lg uppercase border-b-4 border-red-800 active:border-b-0 active:translate-y-1"
+                  >
+                    Negar Solicitação
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      await firestoreService.updateDocument('urgencies', selectedUrgency.id, {
+                        status: 'aprovado',
+                        observation,
+                        updatedAt: Date.now()
+                      });
+                      setIsUrgencyModalOpen(false);
+                      alert("Solicitação Aprovada!");
+                    }}
+                    className="bg-green-600 text-white py-4 rounded-xl font-black text-xs shadow-lg uppercase border-b-4 border-green-800 active:border-b-0 active:translate-y-1"
+                  >
+                    Aprovar Agora
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* MODAL: NOVA EQUIPE */}
       <AnimatePresence>
         {isTeamModalOpen && (
@@ -685,6 +761,18 @@ function CaboDashboard() {
   const [isLocating, setIsLocating] = useState(false);
   const [activeTab, setActiveTab] = useState<'equipe' | 'logistica' | 'ouvidoria'>('logistica');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  
+  const [isVoterModalOpen, setIsVoterModalOpen] = useState(false);
+  const [voterForm, setVoterForm] = useState({ name: '', phone: '', address: '', observations: '' });
+
+  const [isFuelModalOpen, setIsFuelModalOpen] = useState(false);
+  const [fuelForm, setFuelForm] = useState({ amount: '', reason: '' });
+
+  const [isDemandModalOpen, setIsDemandModalOpen] = useState(false);
+  const [demandForm, setDemandForm] = useState({ title: '', description: '' });
+
+  const [myRequests, setMyRequests] = useState<any[]>([]);
+
   const [profileData, setProfileData] = useState({
     name: user?.displayName || '',
     phone: '',
@@ -701,6 +789,14 @@ function CaboDashboard() {
     
     const queue = JSON.parse(localStorage.getItem('aguia_offline_queue') || '[]');
     setQueueCount(queue.length);
+
+    if (user) {
+      const unsub = firestoreService.subscribeToCollection('urgencies', (data) => {
+        // Filter requests made by this leader
+        setMyRequests(data.filter((r: any) => r.leaderId === user.uid));
+      });
+      return () => unsub();
+    }
 
     return () => {
       window.removeEventListener('online', handleStatusChange);
@@ -720,15 +816,84 @@ function CaboDashboard() {
   };
 
   const processAction = async (type: string) => {
-    setIsLocating(true);
-    setTimeout(() => {
-      const queue = JSON.parse(localStorage.getItem('aguia_offline_queue') || '[]');
-      const newQueue = [...queue, { type, id: Date.now() }];
-      localStorage.setItem('aguia_offline_queue', JSON.stringify(newQueue));
-      setQueueCount(newQueue.length);
-      setIsLocating(false);
-      alert('✅ Registro guardado!');
-    }, 1000);
+    switch(type) {
+      case 'eleitor': setIsVoterModalOpen(true); break;
+      case 'combustivel': setIsFuelModalOpen(true); break;
+      case 'demanda': setIsDemandModalOpen(true); break;
+      default:
+        setIsLocating(true);
+        setTimeout(() => {
+          const queue = JSON.parse(localStorage.getItem('aguia_offline_queue') || '[]');
+          const newQueue = [...queue, { type, id: Date.now() }];
+          localStorage.setItem('aguia_offline_queue', JSON.stringify(newQueue));
+          setQueueCount(newQueue.length);
+          setIsLocating(false);
+          alert('✅ Registro guardado!');
+        }, 1000);
+    }
+  };
+
+  const handleVoterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      await firestoreService.setDocument('voters', `voter_${Date.now()}`, {
+        ...voterForm,
+        leaderId: user.uid,
+        leaderName: user.displayName,
+        createdAt: Date.now()
+      });
+      setIsVoterModalOpen(false);
+      setVoterForm({ name: '', phone: '', address: '', observations: '' });
+      alert("Eleitor cadastrado com sucesso!");
+    } catch (err: any) {
+      alert("Erro ao cadastrar: " + err.message);
+    }
+  };
+
+  const handleFuelSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      await firestoreService.setDocument('urgencies', `fuel_${Date.now()}`, {
+        type: 'combustivel',
+        title: `Solicitação de Combustível: ${fuelForm.amount}L`,
+        description: fuelForm.reason,
+        amount: fuelForm.amount,
+        status: 'pendente',
+        leaderId: user.uid,
+        leaderName: user.displayName,
+        team: profileData.zone || 'Pacaraima',
+        createdAt: Date.now()
+      });
+      setIsFuelModalOpen(false);
+      setFuelForm({ amount: '', reason: '' });
+      alert("Solicitação enviada ao coordenador!");
+    } catch (err: any) {
+      alert("Erro ao solicitar: " + err.message);
+    }
+  };
+
+  const handleDemandSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      await firestoreService.setDocument('urgencies', `demand_${Date.now()}`, {
+        type: 'demanda',
+        title: demandForm.title,
+        description: demandForm.description,
+        status: 'pendente',
+        leaderId: user.uid,
+        leaderName: user.displayName,
+        team: profileData.zone || 'Pacaraima',
+        createdAt: Date.now()
+      });
+      setIsDemandModalOpen(false);
+      setDemandForm({ title: '', description: '' });
+      alert("Demanda registrada e enviada!");
+    } catch (err: any) {
+      alert("Erro ao registrar: " + err.message);
+    }
   };
 
   return (
@@ -832,6 +997,42 @@ function CaboDashboard() {
                 <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Registrar<br/>Demanda</span>
               </motion.button>
             </section>
+
+            {/* HISTÓRICO DE SOLICITAÇÕES */}
+            {myRequests.length > 0 && (
+              <section className="bg-white border-2 border-zinc-200 rounded-[2rem] p-6 shadow-sm overflow-hidden">
+                <h3 className="text-zinc-500 font-black text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <RefreshCcw className="w-4 h-4" /> Minhas Solicitações Recentes
+                </h3>
+                <div className="space-y-3">
+                  {myRequests.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5).map(req => (
+                    <div key={req.id} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${
+                          req.type === 'combustivel' ? 'bg-blue-100 text-blue-600' : 
+                          req.type === 'demanda' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
+                        }`}>
+                          {req.type === 'combustivel' ? <Fuel className="w-4 h-4" /> : <StickyNote className="w-4 h-4" />}
+                        </div>
+                        <div className="text-left">
+                          <p className="font-black text-zinc-800 text-[10px] uppercase leading-none mb-1">{req.title}</p>
+                          <p className="text-[9px] text-zinc-400 font-bold uppercase">{new Date(req.createdAt).toLocaleDateString()}</p>
+                          {req.observation && (
+                            <p className="text-[10px] text-blue-600 font-black mt-1 italic">OBS: "{req.observation}"</p>
+                          )}
+                        </div>
+                      </div>
+                      <span className={`text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-tighter ${
+                        req.status === 'aprovado' ? 'bg-green-100 text-green-700' : 
+                        req.status === 'negado' ? 'bg-red-100 text-red-700' : 'bg-zinc-200 text-zinc-500'
+                      }`}>
+                        {req.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* FILA DE SINCRONIZAÇÃO E MOTIVAÇÃO - SIDE BY SIDE ON DESKTOP */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
@@ -973,6 +1174,110 @@ function CaboDashboard() {
                   </button>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL: CADASTRAR ELEITOR */}
+      <AnimatePresence>
+        {isVoterModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+            >
+              <button onClick={() => setIsVoterModalOpen(false)} className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500"><X className="w-6 h-6" /></button>
+              <div className="bg-zinc-950 p-8 border-b-4 border-yellow-500 text-left">
+                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">Novo Cadastro</h2>
+                <p className="text-zinc-400 text-xs font-bold mt-2 uppercase tracking-widest">Base de dados estratégica</p>
+              </div>
+              <form onSubmit={handleVoterSubmit} className="p-8 space-y-4 text-left">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
+                  <input required type="text" value={voterForm.name} onChange={e => setVoterForm({...voterForm, name: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="Digite o nome..." />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Telefone / WhatsApp</label>
+                  <input type="text" value={voterForm.phone} onChange={e => setVoterForm({...voterForm, phone: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="(00) 00000-0000" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Endereço / Referência</label>
+                  <input type="text" value={voterForm.address} onChange={e => setVoterForm({...voterForm, address: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="Rua, Número, Bairro..." />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Observações Privadas</label>
+                  <textarea value={voterForm.observations} onChange={e => setVoterForm({...voterForm, observations: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold h-24" placeholder="Detalhes importantes sobre este contato..." />
+                </div>
+                <button type="submit" className="w-full bg-zinc-950 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-zinc-200 border-b-4 border-zinc-800 active:border-b-0 active:translate-y-1 transition-all mt-4">CONFIRMAR CADASTRO</button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL: PEDIR COMBUSTÍVEL */}
+      <AnimatePresence>
+        {isFuelModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+            >
+              <button onClick={() => setIsFuelModalOpen(false)} className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500"><X className="w-6 h-6" /></button>
+              <div className="bg-blue-600 p-8 border-b-4 border-blue-800 text-left">
+                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">Vale Combustível</h2>
+                <p className="text-blue-200 text-xs font-bold mt-2 uppercase tracking-widest">Requisição oficial de suporte</p>
+              </div>
+              <form onSubmit={handleFuelSubmit} className="p-8 space-y-4 text-left">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Quantidade Solicitada (Litros)</label>
+                  <input required type="number" value={fuelForm.amount} onChange={e => setFuelForm({...fuelForm, amount: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-2xl" placeholder="0" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Motivo / Roteiro planejado</label>
+                  <textarea required value={fuelForm.reason} onChange={e => setFuelForm({...fuelForm, reason: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold h-32" placeholder="Ex: Atendimento na comunidade rural X..." />
+                </div>
+                <button type="submit" className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-blue-100 border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all mt-4">ENVIAR SOLICITAÇÃO</button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL: REGISTRAR DEMANDA */}
+      <AnimatePresence>
+        {isDemandModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+            >
+              <button onClick={() => setIsDemandModalOpen(false)} className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500"><X className="w-6 h-6" /></button>
+              <div className="bg-yellow-500 p-8 border-b-4 border-yellow-700 text-left">
+                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">Registrar Demanda</h2>
+                <p className="text-yellow-100 text-xs font-bold mt-2 uppercase tracking-widest">Demanda comunitária / social</p>
+              </div>
+              <form onSubmit={handleDemandSubmit} className="p-8 space-y-4 text-left">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Título da Demanda</label>
+                  <input required type="text" value={demandForm.title} onChange={e => setDemandForm({...demandForm, title: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="Ex: Problema na Iluminação Pública" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Descrição Detalhada</label>
+                  <textarea required value={demandForm.description} onChange={e => setDemandForm({...demandForm, description: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold h-40" placeholder="Descreva o que os eleitores estão solicitando..." />
+                </div>
+                <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-5 rounded-2xl font-black text-lg shadow-xl shadow-yellow-100 border-b-4 border-yellow-700 active:border-b-0 active:translate-y-1 transition-all mt-4">ENVIAR DEMANDA AO COORDENADOR</button>
+              </form>
             </motion.div>
           </motion.div>
         )}

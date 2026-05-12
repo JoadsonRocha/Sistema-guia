@@ -39,16 +39,38 @@
         "date": { "type": "number" }
       }
     },
+    "Voter": {
+      "title": "Voter Registration",
+      "description": "Voter data collected in the field",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "observations": { "type": "string" },
+        "leaderId": { "type": "string" },
+        "team": { "type": "string" },
+        "location": { "type": "object", "properties": { "lat": { "type": "number" }, "lng": { "type": "number" } } },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["name", "leaderId"]
+    },
     "Urgency": {
       "title": "Urgency Alert",
       "description": "Critical alerts requiring coordinator action",
       "type": "object",
       "properties": {
-        "type": { "type": "string", "enum": ["combustivel", "agenda", "fraude"] },
+        "type": { "type": "string", "enum": ["combustivel", "agenda", "fraude", "demanda"] },
         "team": { "type": "string" },
         "title": { "type": "string" },
+        "description": { "type": "string" },
         "status": { "type": "string", "enum": ["pendente", "aprovado", "negado"] },
-        "createdAt": { "type": "number" }
+        "observation": { "type": "string" },
+        "leaderId": { "type": "string" },
+        "leaderName": { "type": "string" },
+        "amount": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
       }
     },
     "Stats": {
@@ -83,6 +105,10 @@
     "/urgencies/{urgencyId}": {
       "schema": "Urgency",
       "description": "Field alerts"
+    },
+    "/voters/{voterId}": {
+      "schema": "Voter",
+      "description": "Voter records"
     },
     "/stats/{docId}": {
       "schema": "Stats",
