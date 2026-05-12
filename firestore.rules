@@ -1,53 +1,10 @@
 rules_version = '2';
+// DEPLOY_TIMESTAMP: 2026-05-12T16:44:00Z
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // FUNÇÃO SIMPLES - APENAS ESTAR LOGADO
-    function autenticado() {
-      return request.auth != null;
-    }
-
-    // ACESSO TOTAL PARA O MESTRE (Sérgio)
-    function ehMestre() {
-      return autenticado() && request.auth.token.email.lower() == "sergiosilvabezerra@gmail.com";
-    }
-
-    // LIBERAÇÃO TEMPORÁRIA PARA DIAGNÓSTICO
-    match /voters/{voterId} {
-      allow read, write: if true;
-    }
-    
-    match /urgencies/{urgencyId} {
-      allow read, write: if autenticado();
-    }
-
-    match /attendance/{docId} {
-      allow read, write: if autenticado();
-    }
-    
-    match /agenda/{docId} {
-      allow read, write: if autenticado();
-    }
-
-    match /users/{userId} {
-      allow read, write: if autenticado();
-    }
-
-    match /teams/{teamId} {
-      allow read, write: if autenticado();
-    }
-
-    match /stats/{docId} {
-      allow read, write: if autenticado();
-    }
-
-    match /admins/{docId} {
-      allow read, write: if autenticado();
-    }
-
-    // REGRA DE SEGURANÇA FINAL
+    // LIBERAÇÃO ABSOLUTA - TESTE DE EMERGÊNCIA
     match /{document=**} {
-      allow read, write: if ehMestre();
+      allow read, write: if true;
     }
   }
 }

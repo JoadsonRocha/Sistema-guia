@@ -39,6 +39,9 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   let rawError = error instanceof FirestoreError ? `${error.code}: ${error.message}` : String(error);
   let errorMessage = rawError;
   
+  const authStatus = auth.currentUser ? `LOGGED_IN (${auth.currentUser.email})` : 'NOT_LOGGED_IN';
+  console.error(`🦅 [Firestore Error Status] User: ${authStatus}, Op: ${operationType}, Path: ${path}`);
+
   // Tradução amigável
   if (rawError.includes('permission-denied') || rawError.includes('insufficient permissions')) {
     errorMessage = `Acesso Negado (Firebase: ${rawError}). Operação: ${operationType}, Path: ${path}.`;
@@ -93,8 +96,11 @@ export const firestoreService = {
 
   async setDocument(path: string, id: string, data: any, merge: boolean = true) {
     try {
+      console.log(`🦅 [FirestoreService] Gravando em ${path}/${id}`, data);
       await setDoc(doc(db, path, id), data, { merge });
+      console.log(`🦅 [FirestoreService] Sucesso em ${path}/${id}`);
     } catch (error) {
+      console.error(`🦅 [FirestoreService] Erro em ${path}/${id}:`, error);
       handleFirestoreError(error, OperationType.WRITE, `${path}/${id}`);
     }
   },

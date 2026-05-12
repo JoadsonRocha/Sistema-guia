@@ -7,19 +7,18 @@ import firebaseConfig from '../../firebase-applet-config.json';
 const safeConfig = firebaseConfig || {};
 
 const app = initializeApp(safeConfig);
-// Para o banco de dados padrão, muitas vezes é melhor não passar o ID se for "(default)"
-export const db = (safeConfig as any).firestoreDatabaseId && (safeConfig as any).firestoreDatabaseId !== "(default)"
-  ? getFirestore(app, (safeConfig as any).firestoreDatabaseId)
-  : getFirestore(app);
+console.log("🦅 [Firebase Initialized] Project:", safeConfig.projectId, "DB:", safeConfig.firestoreDatabaseId);
+
+export const db = getFirestore(app, safeConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Log de verificação (visível apenas no console do desenvolvedor)
+// Log de verificação
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    console.log("🦅 [Sistema Águia] Usuário Conectado:", user.email, "UID:", user.uid);
+    console.log("🦅 [Auth Change] Logged in as:", user.email, "UID:", user.uid);
   } else {
-    console.warn("🦅 [Sistema Águia] Nenhum usuário autenticado.");
+    console.log("🦅 [Auth Change] No user logged in.");
   }
 });
 

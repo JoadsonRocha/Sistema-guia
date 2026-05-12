@@ -1096,37 +1096,7 @@ function CaboDashboard() {
       return;
     }
 
-    // TAREFA 2: ANTIFRAUDE GPS (ISOLADO PARA NÃO TRAVAR O CADASTRO)
-    let fraudFlag = false;
-    let fraudReason = "";
-
     try {
-      const { latitude, longitude } = (await new Promise<GeolocationPosition>((res, rej) => 
-        navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000 })
-      )).coords;
-      
-      const votersRef = collection(db, 'voters');
-      const q = query(
-        votersRef, 
-        where('leaderId', '==', user.uid),
-        orderBy('createdAt', 'desc'),
-        limit(3)
-      );
-      const lastVotersSnap = await getDocs(q);
-      const recentVoters = lastVotersSnap.docs.map(d => d.data());
-      const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
-      const veryRecent = recentVoters.filter(v => v.createdAt > tenMinutesAgo);
-
-      if (veryRecent.length >= 1) {
-        const anySamePos = veryRecent.some(v => 
-          v.location?.lat === latitude && v.location?.lng === longitude
-        );
-        if (anySamePos) {
-          fraudFlag = true;
-          fraudReason = "Coordenada estática detectada";
-        }
-      }
-
       const payload = {
         ...voterForm,
         leaderId: user.uid,
@@ -1134,51 +1104,18 @@ function CaboDashboard() {
         team: profileData.zone || "Base",
         createdAt: Date.now(),
         registeredBy: user.email || user.uid,
-        location: { lat: latitude, lng: longitude },
-        alerta_fraude: fraudFlag,
-        motivo_fraude: fraudReason || null
+        location: null
       };
 
-      console.log("Tentando salvar eleitor com GPS...");
+      console.log("🦅 [Firestore Save] Início do salvamento...");
       await firestoreService.setDocument('voters', `voter_${Date.now()}`, payload);
       
-      // LOG DE FRAUDE (OPCIONAL)
-      if (fraudFlag) {
-        firestoreService.setDocument('urgencies', `alert_${Date.now()}`, {
-          type: 'fraude',
-          title: 'ALERTA DE GPS ESTÁTICO',
-          description: `O líder ${profileData.name} está no mesmo local do cadastro anterior.`,
-          leaderId: user.uid,
-          createdAt: Date.now()
-        }).catch(() => {});
-      }
-
       setIsVoterModalOpen(false);
       setVoterForm({ name: '', phone: '', address: '', observations: '' });
       alert("✅ CADASTRO REALIZADO COM SUCESSO!");
-
     } catch (err: any) {
-      console.warn("Falha no fluxo com GPS/Antifraude, tentando salvar modo seguro...", err);
-      // MODO SEGURO: Salva sem GPS se o GPS falhar ou der erro de índice
-      try {
-        const payloadSafe = {
-          ...voterForm,
-          leaderId: user.uid,
-          leaderName: profileData.name || user.displayName || "Líder",
-          team: profileData.zone || "Base",
-          createdAt: Date.now(),
-          registeredBy: user.email || user.uid,
-          location: null,
-          note: "Salvo sem GPS por falha técnica"
-        };
-        await firestoreService.setDocument('voters', `voter_${Date.now()}`, payloadSafe);
-        setIsVoterModalOpen(false);
-        setVoterForm({ name: '', phone: '', address: '', observations: '' });
-        alert("✅ CADASTRO REALIZADO (Sem GPS)");
-      } catch (innerErr: any) {
-        console.error("Erro crítico de Firebase:", innerErr);
-        alert("🚫 ERRO DE PERMISSÃO OU CONEXÃO: " + innerErr.message);
-      }
+      console.error("🦅 [Firestore Save] Erro fatal:", err);
+      alert("🚫 ERRO CRÍTICO NO BANDO DE DADOS: " + err.message);
     } finally {
       setIsLocating(false);
     }
