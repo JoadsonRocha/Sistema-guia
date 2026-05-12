@@ -41,7 +41,7 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   
   // Tradução amigável
   if (rawError.includes('permission-denied') || rawError.includes('insufficient permissions')) {
-    errorMessage = `Acesso Negado: Entre em contato com Sérgio. (Operação: ${operationType}, Path: ${path})`;
+    errorMessage = `Acesso Negado (Firebase: ${rawError}). Operação: ${operationType}, Path: ${path}.`;
   }
 
   const errInfo: FirestoreErrorInfo = {

@@ -2,49 +2,42 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // --- HELPERS ---
-    function isSignedIn() {
+    // --- BASIC AUTH ---
+    function isAuthed() {
       return request.auth != null;
     }
 
     function isAdmin() {
-      return isSignedIn() && (
-        request.auth.token.get('email', '').lower() == "sergiosilvabezerra@gmail.com" ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
-      );
+      return isAuthed() && request.auth.token.get('email', '').lower() == "sergiosilvabezerra@gmail.com";
     }
 
     // --- COLLECTIONS ---
-
-    // 1. Usuários
+    
     match /users/{userId} {
-      allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow read, write: if isAuthed() && (request.auth.uid == userId || isAdmin());
     }
 
-    // 2. Eleitores (Voters)
     match /voters/{voterId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if isAuthed();
     }
 
-    // 3. Urgências / Demandas
     match /urgencies/{urgencyId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if isAuthed();
     }
 
-    // 4. Estatísticas e Admins
     match /stats/{docId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if isAuthed();
     }
 
     match /admins/{adminId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if isAuthed();
     }
 
     match /teams/{teamId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if isAuthed();
     }
 
-    // Segurança Águia: Permitir acesso total ao Admin master
+    // Acesso total para o Sérgio
     match /{document=**} {
       allow read, write: if isAdmin();
     }
