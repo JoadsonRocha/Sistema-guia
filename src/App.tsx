@@ -841,6 +841,7 @@ function CaboDashboard() {
         ...voterForm,
         leaderId: user.uid,
         leaderName: user.displayName || 'Líder',
+        team: profileData.zone || 'Pacaraima',
         createdAt: Date.now()
       });
       setIsVoterModalOpen(false);

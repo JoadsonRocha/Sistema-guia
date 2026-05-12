@@ -30,14 +30,12 @@ service cloud.firestore {
     
     function isValidVoter(data) {
       return data.keys().hasAll(['name', 'leaderId']) &&
-             data.keys().size() <= 8 &&
              data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
-             data.leaderId == request.auth.uid &&
-             (!('phone' in data) || (data.phone is string && data.phone.size() <= 30)) &&
-             (!('address' in data) || (data.address is string && data.address.size() <= 300)) &&
-             (!('observations' in data) || (data.observations is string && data.observations.size() <= 2000)) &&
-             (!('leaderName' in data) || (data.leaderName is string && data.leaderName.size() <= 100)) &&
-             (!('team' in data) || (data.team is string && data.team.size() <= 50)) &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() <= 100)) &&
+             (!('address' in data) || (data.address is string && data.address.size() <= 500)) &&
+             (!('observations' in data) || (data.observations is string && data.observations.size() <= 3000)) &&
+             (!('leaderName' in data) || (data.leaderName is string && data.leaderName.size() <= 150)) &&
+             (!('team' in data) || (data.team is string && data.team.size() <= 100)) &&
              (!('createdAt' in data) || (data.createdAt is number));
     }
 
@@ -92,8 +90,8 @@ service cloud.firestore {
     // 5. Eleitores (Voters)
     match /voters/{voterId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn() && isValidVoter(incoming());
-      allow update: if isSignedIn() && isValidVoter(incoming()) && existing().leaderId == request.auth.uid;
+      allow create: if isSignedIn() && (isAdmin() || (isValidVoter(incoming()) && incoming().leaderId == request.auth.uid));
+      allow update: if isSignedIn() && (isAdmin() || (isValidVoter(incoming()) && existing().leaderId == request.auth.uid));
       allow delete: if isAdmin();
     }
 
