@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Funções de Apoio (Pilar 3)
+    // --- GLOBAL HELPERS (Pilar 3) ---
     function isSignedIn() {
       return request.auth != null;
     }
@@ -14,7 +14,6 @@ service cloud.firestore {
       );
     }
 
-    // Validação de Ids
     function isValidId(id) {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
@@ -23,11 +22,49 @@ service cloud.firestore {
       return request.resource.data;
     }
 
-    // --- COLEÇÕES ---
+    function existing() {
+      return resource.data;
+    }
 
-    // 1. Usuários (Perfis)
+    // --- ENTITY VALIDATION HELPERS (Pilar 2) ---
+    
+    function isValidVoter(data) {
+      let optionalCount = (data.get('phone', '') != '' ? 1 : 0) + 
+                          (data.get('address', '') != '' ? 1 : 0) + 
+                          (data.get('observations', '') != '' ? 1 : 0) + 
+                          (data.get('team', '') != '' ? 1 : 0) + 
+                          (data.get('leaderName', '') != '' ? 1 : 0) + 
+                          (data.get('createdAt', 0) != 0 ? 1 : 0);
+      return data.keys().hasAll(['name', 'leaderId']) &&
+             data.keys().size() <= (2 + 6) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.leaderId == request.auth.uid &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() <= 30)) &&
+             (!('address' in data) || (data.address is string && data.address.size() <= 300)) &&
+             (!('observations' in data) || (data.observations is string && data.observations.size() <= 2000)) &&
+             (!('leaderName' in data) || (data.leaderName is string && data.leaderName.size() <= 100)) &&
+             (!('createdAt' in data) || (data.createdAt is number));
+    }
+
+    function isValidUrgency(data) {
+      return data.keys().hasAll(['type', 'status', 'leaderId', 'title']) &&
+             data.type in ['combustivel', 'agenda', 'fraude', 'demanda'] &&
+             data.status in ['pendente', 'aprovado', 'negado'] &&
+             data.title is string && data.title.size() <= 150 &&
+             data.leaderId is string &&
+             (!('amount' in data) || (data.amount is string && data.amount.size() <= 30)) &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 2000)) &&
+             (!('leaderName' in data) || (data.leaderName is string && data.leaderName.size() <= 100)) &&
+             (!('team' in data) || (data.team is string && data.team.size() <= 50)) &&
+             (!('createdAt' in data) || (data.createdAt is number)) &&
+             (!('updatedAt' in data) || (data.updatedAt is number)) &&
+             (!('observation' in data) || (data.observation is string && data.observation.size() <= 1000));
+    }
+
+    // --- COLLECTION MATCHES ---
+
+    // 1. Usuários
     match /users/{userId} {
-      // Permitir leitura se estiver logado. Isso resolve o erro de loop de permissão.
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
@@ -49,17 +86,29 @@ service cloud.firestore {
     // 4. Urgências / Demandas
     match /urgencies/{urgencyId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update, delete: if isAdmin();
+      allow create: if isSignedIn() && isValidUrgency(incoming()) && incoming().leaderId == request.auth.uid && incoming().status == 'pendente';
+      allow update: if isAdmin() || (
+        isSignedIn() && isValidUrgency(incoming()) && 
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'observation', 'updatedAt'])
+      );
+      allow delete: if isAdmin();
     }
 
-    // 5. Estatísticas Gerais
+    // 5. Eleitores (Voters)
+    match /voters/{voterId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidVoter(incoming());
+      allow update: if isSignedIn() && isValidVoter(incoming()) && existing().leaderId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    // 6. Estatísticas Gerais
     match /stats/{docId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
-    // 6. Administradores (Lista de Controle)
+    // 7. Administradores (Lista de Controle)
     match /admins/{adminId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
