@@ -97,3 +97,39 @@ export async function processarCaos(textoBruto: string) {
     throw new Error("Sinal fraco. A IA não conseguiu processar o seu áudio agora. Tente em instantes.");
   }
 }
+
+/**
+ * Gera um briefing estratégico para o candidato baseado nas demandas locais.
+ */
+export async function gerarBriefingCandidato(municipio: string, demandas: any[]) {
+  if (!demandas || demandas.length === 0) {
+    throw new Error("Nenhuma demanda encontrada para este local.");
+  }
+
+  const demandasFormatadas = demandas.map(d => `- [${d.status}] ${d.title}: ${d.description}`).join("\n");
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `LOCAL: ${municipio}\nDEMANDAS COLETADAS:\n${demandasFormatadas}`,
+      config: {
+        systemInstruction: `
+          Você é um estrategista político sênior. Sua tarefa é criar um briefing objetivo para o candidato que vai visitar o município citado.
+          
+          ESTRUTURA DO BRIEFING:
+          1. O que falar (Pautas positivas e soluções esperadas).
+          2. Riscos (O que NÃO prometer ou evitar falar).
+          3. Tom de voz recomendado para este local específico.
+          
+          Use uma linguagem direta, estilo "tópicos de inteligência militar".
+        `,
+        responseMimeType: "text/plain",
+      }
+    });
+
+    return response.text || "Não foi possível gerar o briefing no momento.";
+  } catch (error) {
+    console.error("Erro ao gerar briefing:", error);
+    throw new Error("Erro na conexão com o Cérebro Águia.");
+  }
+}

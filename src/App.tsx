@@ -27,20 +27,25 @@ import {
   Plus,
   LogIn,
   LogOut,
-  Settings
+  Settings,
+  Calendar,
+  Clock,
+  FileText,
+  GanttChart
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { processarCaos } from './services/geminiService';
+import { processarCaos, gerarBriefingCandidato } from './services/geminiService';
 import FinanceDashboard from './components/FinanceDashboard';
 import { useAuth } from './lib/FirebaseProvider';
 import { firestoreService } from './lib/firestoreService';
-import { onSnapshot, doc } from 'firebase/firestore';
+import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
 import { db, auth } from './lib/firebase';
+import { validarSugestaoAgenda, AgendaItem } from './lib/agendaLogic';
 
 /// --- COMPONENTE: DASHBOARD DO COORDENADOR ---
 function CoordinatorDashboard() {
   const { user, login, logout, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'finance'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'finance' | 'agenda'>('overview');
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [chaosText, setChaosText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -53,6 +58,14 @@ function CoordinatorDashboard() {
   const [teams, setTeams] = useState<any[]>([]);
   const [urgencies, setUrgencies] = useState<any[]>([]);
   const [statsData, setStatsData] = useState<any>(null);
+  const [attendance, setAttendance] = useState<any[]>([]);
+  const [agendas, setAgendas] = useState<any[]>([]);
+  
+  // Briefing State
+  const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
+  const [briefingResult, setBriefingResult] = useState('');
+  const [briefingLoading, setBriefingLoading] = useState(false);
+  const [briefingLocation, setBriefingLocation] = useState('');
 
   // Modal State for New Team
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
@@ -97,6 +110,14 @@ function CoordinatorDashboard() {
       };
       console.error("Stats sync error details:", JSON.stringify(errInfo));
     });
+
+    const unsubAttendance = firestoreService.subscribeToCollection('attendance', (data) => {
+      setAttendance(data);
+    });
+
+    const unsubAgendas = firestoreService.subscribeToCollection('agenda', (data) => {
+      setAgendas(data);
+    });
     
     // Fallback for empty collections
     const checkAndSeed = async () => {
@@ -134,6 +155,8 @@ function CoordinatorDashboard() {
       unsubTeams();
       unsubUrgencies();
       unsubStats();
+      unsubAttendance();
+      unsubAgendas();
     };
   }, [user, isAdmin]);
 
@@ -182,6 +205,42 @@ function CoordinatorDashboard() {
     }
   };
 
+  const handleManualCheckin = async (leaderId: string, leaderName: string) => {
+    if (!isAdmin) return;
+    try {
+      await firestoreService.setDocument('attendance', `manual_${Date.now()}`, {
+        leaderId,
+        leaderName,
+        timestamp: Date.now(),
+        type: 'manual',
+        status: 'validado',
+        validatedBy: user?.email || user?.uid,
+        observation: 'Validado por exceção pelo coordenador'
+      });
+      alert(`Ponto manual validado para ${leaderName}`);
+    } catch (err: any) {
+      alert("Erro ao validar ponto: " + err.message);
+    }
+  };
+
+  const handleGenerateBriefing = async (location: string) => {
+    setBriefingLoading(true);
+    setBriefingLocation(location);
+    try {
+      // Buscar demandas desse município
+      const allUrgencies = await firestoreService.getCollection<any>('urgencies');
+      const localDemands = allUrgencies.filter(u => u.team === location && u.type === 'demanda');
+      
+      const res = await gerarBriefingCandidato(location, localDemands);
+      setBriefingResult(res);
+      setIsBriefingModalOpen(true);
+    } catch (err: any) {
+      alert("Erro ao gerar briefing: " + err.message);
+    } finally {
+      setBriefingLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-zinc-950 font-sans pb-24">
       <header className="sticky top-0 z-50 bg-zinc-950 text-white p-4 shadow-lg border-b-2 border-yellow-500">
@@ -217,6 +276,12 @@ function CoordinatorDashboard() {
                 Equipes
               </button>
               <button 
+                onClick={() => setActiveTab('agenda')}
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${activeTab === 'agenda' ? 'bg-yellow-500 text-zinc-950' : 'text-zinc-400 hover:text-white'}`}
+              >
+                Agenda
+              </button>
+              <button 
                 onClick={() => setActiveTab('finance')}
                 className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${activeTab === 'finance' ? 'bg-yellow-500 text-zinc-950' : 'text-zinc-400 hover:text-white'}`}
               >
@@ -244,6 +309,12 @@ function CoordinatorDashboard() {
           className={`flex-none px-4 py-2 rounded-full text-[10px] font-black uppercase border-2 transition-all ${activeTab === 'teams' ? 'bg-zinc-950 text-white border-zinc-950' : 'bg-zinc-50 text-zinc-400 border-transparent'}`}
         >
           Equipes
+        </button>
+        <button 
+          onClick={() => setActiveTab('agenda')}
+          className={`flex-none px-4 py-2 rounded-full text-[10px] font-black uppercase border-2 transition-all ${activeTab === 'agenda' ? 'bg-zinc-950 text-white border-zinc-950' : 'bg-zinc-50 text-zinc-400 border-transparent'}`}
+        >
+          Agenda
         </button>
         <button 
           onClick={() => setActiveTab('finance')}
@@ -347,8 +418,13 @@ function CoordinatorDashboard() {
             
             <div className="grid grid-cols-1 gap-4">
               {teams.length > 0 ? teams.map((team) => (
-                <div key={team.id || team.name} className="bg-white border-2 border-zinc-200 rounded-3xl p-5 lg:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm hover:border-zinc-400 transition-all group overflow-hidden relative">
-                  {team.demands > 3 && (
+                <div key={team.id || team.name} className={`bg-white border-4 ${team.fraudAlert ? 'border-red-600 animate-pulse' : 'border-zinc-200'} rounded-3xl p-5 lg:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm hover:border-zinc-400 transition-all group overflow-hidden relative`}>
+                  {team.fraudAlert && (
+                    <div className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black px-6 py-1 rounded-bl-xl uppercase flex items-center gap-2">
+                      <AlertTriangle className="w-3 h-3" /> ALERTA DE FRAUDE DETECTADO
+                    </div>
+                  )}
+                  {team.demands > 3 && !team.fraudAlert && (
                     <div className="absolute top-0 right-0 bg-red-600 text-white text-[8px] font-black px-4 py-1 rounded-bl-lg animate-pulse uppercase">Alta Demanda</div>
                   )}
                   
@@ -391,13 +467,31 @@ function CoordinatorDashboard() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2 mt-4 md:mt-0">
-                    <button className="flex-1 md:flex-none bg-zinc-100 text-zinc-600 px-6 py-3 rounded-xl font-black text-xs uppercase hover:bg-zinc-200 transition-colors">Histórico</button>
-                    <button className={`flex-1 md:flex-none px-6 py-3 rounded-xl font-black text-xs uppercase shadow-lg transition-all ${
-                       team.demands > 0 ? 'bg-red-600 text-white shadow-red-200' : 'bg-zinc-950 text-white shadow-zinc-200'
-                    }`}>
-                      Coordenar
-                    </button>
+                  <div className="flex flex-col gap-2 mt-4 md:mt-0">
+                    <div className="flex gap-2">
+                      <button className="flex-1 md:flex-none bg-zinc-100 text-zinc-600 px-6 py-3 rounded-xl font-black text-xs uppercase hover:bg-zinc-200 transition-colors">Histórico</button>
+                      <button 
+                        onClick={() => handleManualCheckin(team.id || team.name.toLowerCase(), team.leader)}
+                        className="flex-1 md:flex-none bg-yellow-100 text-yellow-700 px-6 py-3 rounded-xl font-black text-xs uppercase hover:bg-yellow-200 transition-colors flex items-center gap-2"
+                        title="Validar Ponto por Exceção"
+                      >
+                        <ShieldCheck className="w-4 h-4" /> Validar Ponto
+                      </button>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => handleGenerateBriefing(team.location)}
+                        disabled={briefingLoading && briefingLocation === team.location}
+                        className="flex-1 md:flex-none bg-blue-100 text-blue-700 px-6 py-3 rounded-xl font-black text-xs uppercase hover:bg-blue-200 transition-all flex items-center gap-2 border-2 border-blue-200"
+                      >
+                        {briefingLoading && briefingLocation === team.location ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />} Briefing IA
+                      </button>
+                      <button className={`flex-1 md:flex-none px-6 py-3 rounded-xl font-black text-xs uppercase shadow-lg transition-all ${
+                         team.demands > 0 ? 'bg-red-600 text-white shadow-red-200' : 'bg-zinc-950 text-white shadow-zinc-200'
+                      }`}>
+                        Coordenar
+                      </button>
+                    </div>
                   </div>
                 </div>
               )) : (
@@ -405,6 +499,76 @@ function CoordinatorDashboard() {
                    <p className="font-black text-zinc-300 uppercase tracking-widest">Carregando equipes estratégicas...</p>
                 </div>
               )}
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'agenda' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            <div className="bg-white rounded-3xl border-2 border-zinc-200 p-8">
+              <h2 className="text-2xl font-black uppercase text-zinc-800 tracking-tighter mb-6 flex items-center gap-3">
+                <Calendar className="w-8 h-8 text-yellow-500" /> Aprovação de Agenda Regional
+              </h2>
+              
+              <div className="space-y-4">
+                {agendas.filter(a => a.status === 'pendente').length > 0 ? agendas.filter(a => a.status === 'pendente').map((item) => (
+                  <div key={item.id} className="bg-zinc-50 border border-zinc-200 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex items-center gap-6">
+                      <div className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-100 flex flex-col items-center">
+                        <span className="text-[10px] font-black uppercase text-zinc-400">{new Date(item.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
+                        <span className="text-2xl font-black text-zinc-950">{new Date(item.data).getDate()}</span>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black uppercase tracking-tight text-zinc-950">{item.municipio}</h3>
+                        <div className="flex items-center gap-4 text-xs font-bold text-zinc-500 uppercase mt-1">
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {item.hora_inicio} - {item.hora_fim}</span>
+                          <span className="flex items-center gap-1"><User className="w-3 h-3" /> Sugerido por: {item.sugeridoPor}</span>
+                        </div>
+                        {item.motivo && <p className="text-[10px] text-zinc-400 font-bold uppercase mt-2">OBJETIVO: {item.motivo}</p>}
+                      </div>
+                    </div>
+                    <div className="flex gap-3 w-full md:w-auto">
+                      <button 
+                        onClick={async () => {
+                          await firestoreService.updateDocument('agenda', item.id, { status: 'negado' });
+                          alert("Agenda negada.");
+                        }}
+                        className="flex-1 md:flex-none px-6 py-3 bg-red-100 text-red-700 font-black text-xs uppercase rounded-xl hover:bg-red-200 transition-all"
+                      >
+                        Negar
+                      </button>
+                      <button 
+                        onClick={async () => {
+                          await firestoreService.updateDocument('agenda', item.id, { status: 'confirmado' });
+                          alert("Agenda confirmada com sucesso!");
+                        }}
+                        className="flex-1 md:flex-none px-6 py-3 bg-green-600 text-white font-black text-xs uppercase rounded-xl shadow-lg shadow-green-100 hover:bg-green-700 transition-all border-b-4 border-green-800 active:border-b-0 active:translate-y-1"
+                      >
+                        Confirmar Agenda
+                      </button>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="p-12 border-2 border-dashed border-zinc-200 rounded-3xl text-center">
+                    <p className="font-black text-zinc-300 uppercase tracking-widest text-sm">Nenhuma sugestão de agenda pendente.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-zinc-950 rounded-3xl p-8 text-white">
+              <h3 className="text-lg font-black uppercase tracking-tighter mb-4 flex items-center gap-2">
+                <GanttChart className="w-6 h-6 text-yellow-500" /> Próximos Compromissos Confirmados
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {agendas.filter(a => a.status === 'confirmado').sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime()).slice(0, 3).map(item => (
+                  <div key={item.id} className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl">
+                    <p className="text-[10px] font-black text-zinc-500 uppercase">{new Date(item.data).toLocaleDateString()}</p>
+                    <h4 className="text-sm font-black uppercase text-yellow-500 mt-1">{item.municipio}</h4>
+                    <p className="text-xs font-bold text-zinc-300">{item.hora_inicio} - {item.hora_fim}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
@@ -704,6 +868,48 @@ function CoordinatorDashboard() {
         )}
       </AnimatePresence>
 
+      {/* MODAL: BRIEFING IA */}
+      <AnimatePresence>
+        {isBriefingModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[250] bg-zinc-950/95 backdrop-blur-xl p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 50 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 50 }}
+              className="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+            >
+              <button 
+                onClick={() => setIsBriefingModalOpen(false)}
+                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <div className="bg-blue-600 p-8 text-white relative">
+                <Brain className="w-12 h-12 text-blue-200 mb-4" />
+                <h2 className="text-3xl font-black tracking-tighter uppercase leading-none">Briefing de Campo: {briefingLocation}</h2>
+                <p className="text-blue-100 text-sm font-bold mt-2 opacity-80 uppercase tracking-widest">Inteligência Estratégica Distrital</p>
+              </div>
+              <div className="p-8 max-h-[60vh] overflow-y-auto bg-zinc-50 text-left">
+                <div className="prose prose-zinc max-w-none">
+                  <div className="whitespace-pre-wrap font-bold text-zinc-800 leading-relaxed text-sm">
+                    {briefingResult}
+                  </div>
+                </div>
+              </div>
+              <div className="p-8 bg-white border-t border-zinc-100 flex gap-4">
+                <button 
+                  onClick={() => setIsBriefingModalOpen(false)}
+                  className="flex-1 bg-zinc-950 text-white py-5 rounded-2xl font-black text-lg shadow-xl"
+                >
+                  ENTENDIDO, COPIAR PARA O CANDIDATO
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.button 
         whileTap={{ scale: 0.9 }} 
         onClick={() => setIsAiModalOpen(true)}
@@ -770,6 +976,9 @@ function CaboDashboard() {
 
   const [isDemandModalOpen, setIsDemandModalOpen] = useState(false);
   const [demandForm, setDemandForm] = useState({ title: '', description: '' });
+
+  const [isAgendaModalOpen, setIsAgendaModalOpen] = useState(false);
+  const [agendaForm, setAgendaForm] = useState({ municipio: '', data: '', hora_inicio: '', hora_fim: '', motivo: '' });
 
   const [myRequests, setMyRequests] = useState<any[]>([]);
 
@@ -846,16 +1055,37 @@ function CaboDashboard() {
       case 'eleitor': setIsVoterModalOpen(true); break;
       case 'combustivel': setIsFuelModalOpen(true); break;
       case 'demanda': setIsDemandModalOpen(true); break;
+      case 'agenda': setIsAgendaModalOpen(true); break;
       default:
         setIsLocating(true);
-        setTimeout(() => {
+        // Capturar Localização para Ponto
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          const { latitude, longitude } = pos.coords;
+          const checkinData = {
+            leaderId: user?.uid,
+            leaderName: profileData.name || user?.displayName,
+            timestamp: Date.now(),
+            location: { lat: latitude, lng: longitude },
+            type: 'selfie',
+            status: 'pendente'
+          };
+          
           const queue = JSON.parse(localStorage.getItem('aguia_offline_queue') || '[]');
-          const newQueue = [...queue, { type, id: Date.now() }];
+          const newQueue = [...queue, { ...checkinData, id: Date.now() }];
           localStorage.setItem('aguia_offline_queue', JSON.stringify(newQueue));
           setQueueCount(newQueue.length);
+          
+          // Se online, já tenta salvar
+          if (navigator.onLine) {
+            await firestoreService.setDocument('attendance', `checkin_${Date.now()}`, checkinData);
+          }
+          
           setIsLocating(false);
-          alert('✅ Registro guardado!');
-        }, 1000);
+          alert('✅ Ponto registrado com sucesso!');
+        }, (err) => {
+          setIsLocating(false);
+          alert("Erro ao capturar GPS. Verifique as permissões.");
+        });
     }
   };
 
@@ -865,27 +1095,83 @@ function CaboDashboard() {
       alert("Usuário não autenticado.");
       return;
     }
+
+    setIsLocating(true);
     
-    const payload = {
-      ...voterForm,
-      leaderId: user.uid,
-      leaderName: profileData.name || user.displayName || 'Líder',
-      team: profileData.zone || 'Base',
-      createdAt: Date.now(),
-      registeredBy: user.email || user.uid
-    };
+    // TAREFA 2: ANTIFRAUDE GPS
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const { latitude, longitude } = pos.coords;
+      
+      let fraudFlag = false;
+      let fraudReason = "";
 
-    console.log("Iniciando gravação no Firestore - Path: voters, Payload:", payload);
+      try {
+        // Buscar os últimos 5 cadastros deste líder (nos últimos 10 min)
+        const q = query(
+          collection(db, 'voters'), 
+          where('leaderId', '==', user.uid),
+          orderBy('createdAt', 'desc'),
+          limit(5)
+        );
+        const lastVotersSnap = await getDocs(q);
+        const lastVoters = lastVotersSnap.docs.map(d => d.data());
+        
+        const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+        const recentVoters = lastVoters.filter(v => v.createdAt > tenMinutesAgo);
 
-    try {
-      await firestoreService.setDocument('voters', `voter_${Date.now()}`, payload);
-      setIsVoterModalOpen(false);
-      setVoterForm({ name: '', phone: '', address: '', observations: '' });
-      alert("✅ Eleitor cadastrado com sucesso!");
-    } catch (err: any) {
-      console.error("Erro detalhado no cadastro de eleitor:", err);
-      alert("Erro ao cadastrar: " + err.message);
-    }
+        if (recentVoters.length >= 2) {
+          const allSamePos = recentVoters.every(v => 
+            v.location?.lat === latitude && v.location?.lng === longitude
+          );
+          if (allSamePos) {
+            fraudFlag = true;
+            fraudReason = "Múltiplos cadastros na mesma coordenada estática";
+            // Notificar Coordenador via Urgency silenciada
+            await firestoreService.setDocument('urgencies', `fraud_${user.uid}_${Date.now()}`, {
+              type: 'fraude',
+              title: 'SUSPEITA DE FRAUDE GPS',
+              description: `O líder ${profileData.name} está realizando múltiplos cadastros na mesma posição exata: ${latitude}, ${longitude}`,
+              leaderId: user.uid,
+              leaderName: profileData.name || user.displayName,
+              team: profileData.zone,
+              createdAt: Date.now(),
+              status: 'pendente'
+            });
+            // Marcar a equipe como Alerta de Fraude
+            await firestoreService.updateDocument('teams', (profileData.zone || 'Base').toLowerCase().replace(/\s/g, '_'), {
+              fraudAlert: true
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("Verificação antifraude falhou ou sem sinal, prosseguindo...", err);
+      }
+
+      const payload = {
+        ...voterForm,
+        leaderId: user.uid,
+        leaderName: profileData.name || user.displayName || 'Líder',
+        team: profileData.zone || 'Base',
+        createdAt: Date.now(),
+        registeredBy: user.email || user.uid,
+        location: { lat: latitude, lng: longitude },
+        ...(fraudFlag ? { alerta_fraude: true, motivo: fraudReason } : {})
+      };
+
+      try {
+        await firestoreService.setDocument('voters', `voter_${Date.now()}`, payload);
+        setIsVoterModalOpen(false);
+        setVoterForm({ name: '', phone: '', address: '', observations: '' });
+        setIsLocating(false);
+        alert("✅ Eleitor cadastrado com sucesso!");
+      } catch (err: any) {
+        setIsLocating(false);
+        alert("Erro ao cadastrar: " + err.message);
+      }
+    }, (err) => {
+      setIsLocating(false);
+      alert("GPS obrigatório para cadastro de eleitor.");
+    });
   };
 
   const handleFuelSubmit = async (e: React.FormEvent) => {
@@ -930,6 +1216,40 @@ function CaboDashboard() {
       alert("Demanda registrada e enviada!");
     } catch (err: any) {
       alert("Erro ao registrar: " + err.message);
+    }
+  };
+
+  const handleAgendaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    try {
+      // TAREFA 3: VALIDAR CHOQUE LOGÍSTICO
+      const confirmedAgendas = await firestoreService.getCollection<any>('agenda');
+      const validation = validarSugestaoAgenda(
+        agendaForm as AgendaItem, 
+        confirmedAgendas.filter(a => a.status === 'confirmado')
+      );
+
+      if (!validation.aprovada) {
+        alert("⚠️ CHOQUE LOGÍSTICO: " + validation.motivo_recusa);
+        return;
+      }
+
+      await firestoreService.setDocument('agenda', `agenda_${Date.now()}`, {
+        ...agendaForm,
+        status: 'pendente',
+        sugeridoPorId: user.uid,
+        sugeridoPor: profileData.name || user.displayName,
+        createdAt: Date.now(),
+        team: profileData.zone
+      });
+
+      setIsAgendaModalOpen(false);
+      setAgendaForm({ municipio: '', data: '', hora_inicio: '', hora_fim: '', motivo: '' });
+      alert("Sugestão de agenda enviada para análise!");
+    } catch (err: any) {
+      alert("Erro ao sugerir agenda: " + err.message);
     }
   };
 
@@ -1014,6 +1334,15 @@ function CaboDashboard() {
                 <div className="absolute -top-2 -right-2 bg-red-600 text-white text-[9px] font-black px-2 py-1 rounded-full border-2 border-white shadow-md">GPS OBRIGATÓRIO</div>
                 <div className="bg-zinc-100 p-4 lg:p-6 rounded-2xl text-zinc-950 border-2 border-zinc-200"><UserPlus className="w-10 h-10 lg:w-14 lg:h-14" /></div>
                 <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Cadastrar<br/>Eleitor</span>
+              </motion.button>
+
+              <motion.button 
+                whileTap={{ scale: 0.95 }}
+                onClick={() => processAction('agenda')}
+                className="aspect-square bg-orange-500 text-white rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-xl border-b-8 border-orange-700"
+              >
+                <div className="bg-orange-600 p-4 lg:p-6 rounded-2xl"><Calendar className="w-10 h-10 lg:w-14 lg:h-14 text-white" /></div>
+                <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Sugerir<br/>Agenda</span>
               </motion.button>
 
               <motion.button 
@@ -1320,6 +1649,62 @@ function CaboDashboard() {
                   <textarea required value={demandForm.description} onChange={e => setDemandForm({...demandForm, description: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold h-40" placeholder="Descreva o que os eleitores estão solicitando..." />
                 </div>
                 <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-5 rounded-2xl font-black text-lg shadow-xl shadow-yellow-100 border-b-4 border-yellow-700 active:border-b-0 active:translate-y-1 transition-all mt-4">ENVIAR DEMANDA AO COORDENADOR</button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL: SUGERIR AGENDA */}
+      <AnimatePresence>
+        {isAgendaModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+            >
+              <button onClick={() => setIsAgendaModalOpen(false)} className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500"><X className="w-6 h-6" /></button>
+              <div className="bg-orange-500 p-8 border-b-4 border-orange-700 text-left">
+                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">Sugerir Agenda</h2>
+                <p className="text-orange-100 text-xs font-bold mt-2 uppercase tracking-widest">Roteirizador Amazônico</p>
+              </div>
+              <form onSubmit={handleAgendaSubmit} className="p-8 space-y-4 text-left">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Município / Local</label>
+                  <select 
+                    required 
+                    value={agendaForm.municipio} 
+                    onChange={e => setAgendaForm({...agendaForm, municipio: e.target.value})}
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold"
+                  >
+                    <option value="">Selecione o Município</option>
+                    {["Boa Vista", "Pacaraima", "Rorainópolis", "Uiramutã", "Cantá", "Alto Alegre", "Mucajaí", "Amajari", "Bonfim", "Normandia", "Caracaraí", "Iracema", "Bonfim", "São João da Baliza", "São Luiz", "Caroebe"].map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Data do Compromisso</label>
+                  <input required type="date" value={agendaForm.data} onChange={e => setAgendaForm({...agendaForm, data: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Hora Início</label>
+                    <input required type="time" value={agendaForm.hora_inicio} onChange={e => setAgendaForm({...agendaForm, hora_inicio: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Hora Fim</label>
+                    <input required type="time" value={agendaForm.hora_fim} onChange={e => setAgendaForm({...agendaForm, hora_fim: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Motivo / Objetivo</label>
+                  <textarea required value={agendaForm.motivo} onChange={e => setAgendaForm({...agendaForm, motivo: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold h-24" placeholder="Ex: Reunião com Tuxauas da região..." />
+                </div>
+                <button type="submit" className="w-full bg-orange-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-orange-100 border-b-4 border-orange-700 active:border-b-0 active:translate-y-1 transition-all mt-4">ENVIAR SUGESTÃO</button>
               </form>
             </motion.div>
           </motion.div>
