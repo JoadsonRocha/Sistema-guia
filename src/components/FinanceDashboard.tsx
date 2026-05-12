@@ -14,7 +14,8 @@ import {
   PiggyBank,
   Users,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { firestoreService } from '../lib/firestoreService';
@@ -91,6 +92,14 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
   }, [teams, selectedTeam]);
   const [fundAmount, setFundAmount] = useState('');
 
+  // Expense modal state
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [expenseData, setExpenseData] = useState({
+    amount: '',
+    description: '',
+    team: ''
+  });
+
   // --- CÁLCULOS TÉCNICOS (REATIVOS) ---
   const totalAllocated = useMemo(() => teams.reduce((acc, t) => acc + t.allocated, 0), [teams]);
   const freeBalance = totalFunded - totalAllocated;
@@ -148,27 +157,53 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
     setAllocAmount('');
   };
 
-  const registrarGastoSimulado = async (teamName: string) => {
+  const handleRegistrarGasto = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!isAdmin) return alert("Ação restrita a Administradores.");
-    const val = 500; // Simulação de gasto fixo (combustível)
-    const team = teams.find(t => t.name === teamName);
-    if (!team || (team.allocated - team.spent) < val) {
-      alert(`BLOQUEIO: Equipe ${teamName} atingiu o teto semanal. Vales travados.`);
+    
+    const val = parseFloat(expenseData.amount);
+    if (isNaN(val) || val <= 0) return;
+    
+    const team = teams.find(t => t.name === expenseData.team);
+    if (!team) return;
+    
+    const balance = team.allocated - team.spent;
+    if (balance < val) {
+      alert(`BLOQUEIO: Equipe ${expenseData.team} não tem saldo suficiente. Saldo: ${fmt.format(balance)}`);
       return;
     }
 
-    await firestoreService.updateDocument('teams', team.id || team.name.replace(/\s/g, '_'), {
-      spent: team.spent + val
-    });
+    try {
+      // Update team spent
+      await firestoreService.updateDocument('teams', team.id || team.name.replace(/\s/g, '_'), {
+        spent: team.spent + val
+      });
 
-    const txId = Math.random().toString(36).substr(2, 9);
-    await firestoreService.setDocument('transactions', txId, {
-      type: 'gasto',
-      amount: val,
-      team: teamName,
-      description: `Gasto: Combustível (Vale Digital)`,
-      date: Date.now()
-    });
+      // Update global stats (combustivelSaldo)
+      const globalStats = await firestoreService.getDocument('stats', 'global') as any;
+      if (globalStats) {
+        await firestoreService.updateDocument('stats', 'global', {
+          combustivelHoje: (globalStats.combustivelHoje || 0) + (val / 5), // Estimativa de litros por R$
+          combustivelSaldo: (globalStats.combustivelSaldo || 1200) - (val / 5)
+        });
+      }
+
+      // Create transaction
+      const txId = Math.random().toString(36).substr(2, 9);
+      await firestoreService.setDocument('transactions', txId, {
+        type: 'gasto',
+        amount: val,
+        team: expenseData.team,
+        description: expenseData.description,
+        date: Date.now()
+      });
+
+      setIsExpenseModalOpen(false);
+      setExpenseData({ amount: '', description: '', team: '' });
+      alert("Gasto registrado com sucesso!");
+    } catch (err: any) {
+      alert("Erro ao registrar gasto: " + err.message);
+    }
   };
 
   return (
@@ -288,10 +323,13 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
                       <div className="flex justify-between items-start mb-2">
                         <h3 className="font-black text-zinc-900 uppercase tracking-tight">{team.name}</h3>
                         <button 
-                          onClick={() => registrarGastoSimulado(team.name)}
+                          onClick={() => {
+                            setExpenseData({ ...expenseData, team: team.name });
+                            setIsExpenseModalOpen(true);
+                          }}
                           className="text-[9px] font-black bg-zinc-100 text-zinc-500 px-2 py-1 rounded hover:bg-zinc-200"
                         >
-                          SIMULAR GASTO
+                          REGISTRAR GASTO
                         </button>
                       </div>
                       
@@ -364,6 +402,70 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
         </div>
 
       </div>
+
+      {/* MODAL: NOVO GASTO */}
+      <AnimatePresence>
+        {isExpenseModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative"
+            >
+              <button 
+                onClick={() => setIsExpenseModalOpen(false)}
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="bg-red-600 p-6 border-b-4 border-red-800">
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">Registrar Gasto Real</h2>
+                <p className="text-white/60 text-xs font-bold mt-2 uppercase tracking-widest">Equipe: {expenseData.team}</p>
+              </div>
+
+              <form onSubmit={handleRegistrarGasto} className="p-6 space-y-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Descrição do Gasto</label>
+                  <input 
+                    required
+                    type="text" 
+                    value={expenseData.description}
+                    onChange={(e) => setExpenseData({...expenseData, description: e.target.value})}
+                    placeholder="Ex: Compra de 50L de Diesel S10"
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-red-500 transition-all"
+                  />
+                </div>
+                
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Valor (R$)</label>
+                  <input 
+                    required
+                    type="number" 
+                    value={expenseData.amount}
+                    onChange={(e) => setExpenseData({...expenseData, amount: e.target.value})}
+                    placeholder="0,00"
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-red-500 transition-all"
+                  />
+                </div>
+                
+                <button 
+                  type="submit"
+                  className="w-full bg-red-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-red-200 border-b-4 border-red-800 active:border-b-0 active:translate-y-1 transition-all mt-4"
+                >
+                  CONFIRMAR PAGAMENTO / SAÍDA
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-max px-4 py-3 bg-zinc-950 text-white rounded-full shadow-2xl border border-zinc-800 flex items-center gap-4 z-[100]">
          <div className="flex items-center gap-2 pr-4 border-r border-zinc-800">

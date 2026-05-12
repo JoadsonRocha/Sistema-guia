@@ -13,7 +13,7 @@ export const googleProvider = new GoogleAuthProvider();
 
 // Validate Connection (Safe attempt)
 async function testConnection() {
-  if (!safeConfig.apiKey) {
+  if (!(safeConfig as any).apiKey) {
     console.error("Firebase API Key is missing. Check your configuration.");
     return;
   }

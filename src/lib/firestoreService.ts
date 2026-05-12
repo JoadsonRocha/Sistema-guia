@@ -105,6 +105,14 @@ export const firestoreService = {
       handleFirestoreError(error, OperationType.UPDATE, `${path}/${id}`);
     }
   },
+  
+  async deleteDocument(path: string, id: string) {
+    try {
+      await deleteDoc(doc(db, path, id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `${path}/${id}`);
+    }
+  },
 
   subscribeToCollection<T>(path: string, callback: (data: T[]) => void) {
     const q = collection(db, path);

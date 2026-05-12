@@ -49,6 +49,20 @@ function CoordinatorDashboard() {
   const [urgencies, setUrgencies] = useState<any[]>([]);
   const [statsData, setStatsData] = useState<any>(null);
 
+  // Modal State for New Team
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+  const [newTeam, setNewTeam] = useState({
+    name: '',
+    leader: '',
+    location: '',
+    status: 'OK',
+    contacts: 0,
+    fuel: 0,
+    demands: 0,
+    allocated: 0,
+    spent: 0
+  });
+
   useEffect(() => {
     if (!user) return;
 
@@ -135,6 +149,31 @@ function CoordinatorDashboard() {
       alert(error.message);
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleCreateTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isAdmin) return alert("Apenas administradores podem criar equipes.");
+    
+    try {
+      const teamId = newTeam.name.replace(/\s/g, '_').toLowerCase();
+      await firestoreService.setDocument('teams', teamId, newTeam);
+      setIsTeamModalOpen(false);
+      setNewTeam({
+        name: '',
+        leader: '',
+        location: '',
+        status: 'OK',
+        contacts: 0,
+        fuel: 0,
+        demands: 0,
+        allocated: 0,
+        spent: 0
+      });
+      alert("Equipe criada com sucesso!");
+    } catch (err: any) {
+      alert("Erro ao criar equipe: " + err.message);
     }
   };
 
@@ -238,67 +277,54 @@ function CoordinatorDashboard() {
               </h2>
 
               <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-                {/* CARD DE COMBUSTÍVEL */}
-                <motion.div whileTap={{ scale: 0.98 }} className="bg-white border-2 border-zinc-200 rounded-2xl overflow-hidden shadow-sm flex flex-col h-full">
-                  <div className="bg-zinc-100 p-3 border-b border-zinc-200 flex justify-between items-center text-xs font-black text-zinc-600">
-                    <span className="flex items-center gap-2"><Fuel className="w-4 h-4" /> COMBUSTÍVEL</span>
-                    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">PACARAIMA</span>
+                {(urgencies && urgencies.length > 0) ? urgencies.map((urgency) => (
+                   <motion.div 
+                     key={urgency.id}
+                     whileTap={{ scale: 0.98 }} 
+                     className={`bg-white border-4 ${urgency.type === 'fraude' ? 'border-red-600' : 'border-zinc-200'} rounded-2xl overflow-hidden shadow-sm flex flex-col h-full`}
+                   >
+                     <div className={`${urgency.type === 'fraude' ? 'bg-red-600 text-white' : 'bg-zinc-100 text-zinc-600'} p-3 border-b border-zinc-200 flex justify-between items-center text-xs font-black`}>
+                       <span className="flex items-center gap-2">
+                         {urgency.type === 'combustivel' && <Fuel className="w-4 h-4" />}
+                         {urgency.type === 'agenda' && <MapPin className="w-4 h-4" />}
+                         {urgency.type === 'fraude' && <AlertTriangle className="w-4 h-4" />}
+                         {urgency.type.toUpperCase()}
+                       </span>
+                       <span className={`${urgency.type === 'fraude' ? 'bg-white/20' : 'bg-blue-100 text-blue-700'} px-2 py-0.5 rounded`}>
+                         {urgency.team}
+                       </span>
+                     </div>
+                     <div className="p-4 flex-1 flex flex-col justify-between">
+                       <div>
+                         <h3 className={`text-xl font-black ${urgency.type === 'fraude' ? 'text-red-700' : 'text-zinc-950'}`}>{urgency.title}</h3>
+                         <p className="text-sm font-medium text-zinc-500 mt-2">{urgency.description || 'Nenhuma descrição detalhada.'}</p>
+                       </div>
+                       <div className="grid grid-cols-2 gap-3 mt-6">
+                         <button 
+                           onClick={async () => {
+                             await firestoreService.deleteDocument('urgencies', urgency.id);
+                           }}
+                           className="bg-red-600 text-white py-3 rounded-xl font-black text-sm flex flex-col items-center justify-center gap-1 shadow-lg border-b-4 border-red-800 active:border-b-0 active:translate-y-1"
+                         >
+                           NEGAR
+                         </button>
+                         <button 
+                           onClick={async () => {
+                             // Lógica de aprovação específica se necessário
+                             await firestoreService.deleteDocument('urgencies', urgency.id);
+                           }}
+                           className="bg-green-600 text-white py-3 rounded-xl font-black text-sm flex flex-col items-center justify-center gap-1 shadow-lg border-b-4 border-green-800 active:border-b-0 active:translate-y-1"
+                         >
+                           RESOLVER
+                         </button>
+                       </div>
+                     </div>
+                   </motion.div>
+                )) : (
+                  <div className="bg-zinc-100 p-8 rounded-3xl border-2 border-dashed border-zinc-200 text-center col-span-full">
+                    <p className="font-black text-zinc-400 uppercase tracking-widest text-xs">Nenhuma urgência crítica detectada no momento.</p>
                   </div>
-                  <div className="p-4 flex-1 flex flex-col justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-zinc-500">Cabo João solicita:</p>
-                      <h3 className="text-3xl font-black text-zinc-950">100L Diesel</h3>
-                      <p className="text-xs font-bold text-zinc-400 mt-1 uppercase">Saldo Restante Equipe: 140L</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 mt-6">
-                      <button className="bg-red-600 text-white py-5 rounded-xl font-black text-lg flex flex-col items-center justify-center gap-1 shadow-lg border-b-4 border-red-800 active:border-b-0 active:translate-y-1">
-                        <XCircle className="w-8 h-8" /> NEGAR
-                      </button>
-                      <button className="bg-green-600 text-white py-5 rounded-xl font-black text-lg flex flex-col items-center justify-center gap-1 shadow-lg border-b-4 border-green-800 active:border-b-0 active:translate-y-1">
-                        <CheckCircle2 className="w-8 h-8" /> APROVAR
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* CARD DE AGENDA */}
-                <motion.div className="bg-white border-4 border-yellow-400 rounded-2xl p-4 lg:p-6 shadow-md relative overflow-hidden flex flex-col h-full">
-                  <div className="absolute top-0 right-0 bg-yellow-400 text-zinc-950 text-[10px] font-black px-3 py-1 rounded-bl-lg">ALERTA LOGÍSTICO</div>
-                  <div className="flex gap-4 mb-4">
-                    <div className="bg-yellow-50 p-3 rounded-lg self-start"><MapPin className="text-yellow-600 w-6 h-6" /></div>
-                    <div className="flex-1">
-                      <span className="text-[10px] font-black text-zinc-400 uppercase">Equipe Sul Sugeriu:</span>
-                      <h3 className="text-lg lg:text-xl font-black leading-tight text-zinc-950">Reunião em Rorainópolis</h3>
-                      <p className="text-sm text-zinc-600 mt-1 font-medium italic">"Tuxaua solicitando presença urgente na Maloca."</p>
-                    </div>
-                  </div>
-                  <div className="mt-auto flex flex-col gap-2">
-                    <button className="bg-zinc-950 text-white px-4 py-4 rounded-xl font-black text-sm w-full">VER ROTA AMAZÔNICA</button>
-                    <div className="flex gap-2">
-                      <button className="bg-zinc-200 text-zinc-600 px-4 py-3 rounded-lg font-black text-xs flex-1">IGNORAR</button>
-                      <button className="bg-zinc-100 text-zinc-900 border-2 border-zinc-200 px-4 py-3 rounded-lg font-black text-xs flex-1">ADAPTAR</button>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* CARD ANTI-FRAUDE */}
-                <motion.div className="bg-red-50 border-4 border-red-600 rounded-2xl p-4 lg:p-6 shadow-xl flex flex-col h-full">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="bg-red-600 p-3 rounded-xl"><AlertTriangle className="text-white w-8 h-8 animate-bounce" /></div>
-                    <div className="flex-1">
-                      <h3 className="text-red-700 font-black text-xl leading-none uppercase">Suspeita de Fraude</h3>
-                      <p className="text-red-600 text-sm font-bold mt-1">Equipe Leste</p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-red-500 p-3 bg-white/50 rounded border border-red-200 mb-6 font-medium">
-                    8 cadastros simultâneos na mesma coordenada GPS detectados em curto intervalo.
-                  </p>
-                  <div className="mt-auto">
-                    <button className="w-full bg-red-600 text-white py-5 rounded-xl font-black text-lg flex items-center justify-center gap-2 border-b-4 border-red-800">
-                      AUDITAR EQUIPE <ChevronRight />
-                    </button>
-                  </div>
-                </motion.div>
+                )}
               </section>
             </div>
           </motion.div>
@@ -311,7 +337,10 @@ function CoordinatorDashboard() {
                 <h2 className="text-2xl font-black uppercase text-zinc-800 tracking-tighter">Coordenação de Equipes</h2>
                 <p className="text-zinc-500 text-xs font-bold uppercase">Visão por líderes e localidades estratégicas</p>
               </div>
-              <button className="bg-zinc-950 text-white px-6 py-3 rounded-xl font-black text-xs uppercase flex items-center gap-2 shadow-xl">
+              <button 
+                onClick={() => setIsTeamModalOpen(true)}
+                className="bg-zinc-950 text-white px-6 py-3 rounded-xl font-black text-xs uppercase flex items-center gap-2 shadow-xl hover:bg-zinc-800 transition-all"
+              >
                 <Plus className="w-4 h-4" /> Nova Equipe de Campo
               </button>
             </div>
@@ -508,6 +537,91 @@ function CoordinatorDashboard() {
                   </div>
                 )}
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL: NOVA EQUIPE */}
+      <AnimatePresence>
+        {isTeamModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative"
+            >
+              <button 
+                onClick={() => setIsTeamModalOpen(false)}
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="bg-zinc-950 p-6 border-b-4 border-yellow-500">
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">Cadastrar Equipe Regional</h2>
+                <p className="text-zinc-400 text-xs font-bold mt-2 uppercase tracking-widest">Defina o líder e a base estratégica</p>
+              </div>
+
+              <form onSubmit={handleCreateTeam} className="p-6 space-y-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome da Equipe</label>
+                  <input 
+                    required
+                    type="text" 
+                    value={newTeam.name}
+                    onChange={(e) => setNewTeam({...newTeam, name: e.target.value})}
+                    placeholder="Ex: Equipe Central"
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Líder Regional</label>
+                    <input 
+                      required
+                      type="text" 
+                      value={newTeam.leader}
+                      onChange={(e) => setNewTeam({...newTeam, leader: e.target.value})}
+                      placeholder="Ex: Sargento Garcia"
+                      className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Localidade / Base</label>
+                    <input 
+                      required
+                      type="text" 
+                      value={newTeam.location}
+                      onChange={(e) => setNewTeam({...newTeam, location: e.target.value})}
+                      placeholder="Ex: Boa Vista"
+                      className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1 pt-2">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Cota Inicial de Combustível (L)</label>
+                  <input 
+                    type="number" 
+                    value={newTeam.fuel}
+                    onChange={(e) => setNewTeam({...newTeam, fuel: parseInt(e.target.value) || 0})}
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                  />
+                </div>
+                
+                <button 
+                  type="submit"
+                  className="w-full bg-zinc-950 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-zinc-200 border-b-4 border-zinc-800 active:border-b-0 active:translate-y-1 transition-all mt-4"
+                >
+                  SALVAR EQUIPE ESTRATÉGICA
+                </button>
+              </form>
             </motion.div>
           </motion.div>
         )}
@@ -879,22 +993,6 @@ export default function App() {
 
   return (
     <>
-      {/* BOTÃO DE TROCA DE VISTA (APENAS PARA DESENVOLVIMENTO/DEMO) */}
-      <div className="fixed top-20 right-4 z-[999] flex flex-col gap-2 scale-75 opacity-20 hover:opacity-100 transition-opacity">
-        <button 
-          onClick={() => setView('coord')}
-          className={`px-4 py-2 rounded-full font-bold text-xs shadow-xl ${view === 'coord' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-950 border-2'}`}
-        >
-          COORDENADOR
-        </button>
-        <button 
-          onClick={() => setView('cabo')}
-          className={`px-4 py-2 rounded-full font-bold text-xs shadow-xl ${view === 'cabo' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-950 border-2'}`}
-        >
-          CABO (PWA)
-        </button>
-      </div>
-
       {view === 'coord' ? <CoordinatorDashboard /> : <CaboDashboard />}
     </>
   );
