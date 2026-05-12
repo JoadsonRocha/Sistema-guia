@@ -2,52 +2,58 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // --- BASIC AUTH ---
-    function isAuthed() {
+    // --- FUNÇÕES DE AUXÍLIO ---
+    function isSignedIn() {
       return request.auth != null;
     }
 
-    function isAdmin() {
-      return isAuthed() && request.auth.token.get('email', '').lower() == "sergiosilvabezerra@gmail.com";
+    // Administrador Master tem acesso absoluto
+    function isMasterAdmin() {
+      return isSignedIn() && request.auth.token.email.lower() == "sergiosilvabezerra@gmail.com";
     }
 
-    // --- COLLECTIONS ---
-    
-    // Regra Universal para o Administrador Master (Sérgio)
-    match /{document=**} {
-      allow read, write: if isAuthed() && request.auth.token.email.lower() == "sergiosilvabezerra@gmail.com";
-    }
+    // --- REGRAS DE COLEÇÃO ---
 
-    match /users/{userId} {
-      allow read, write: if isAuthed() && (request.auth.uid == userId);
-    }
-
+    // 1. Eleitores (Voters) - Permite que qualquer usuário logado crie e leia
     match /voters/{voterId} {
-      allow read, write: if isAuthed();
+      allow read, write: if isSignedIn();
     }
 
+    // 2. Urgências / Demandas
     match /urgencies/{urgencyId} {
-      allow read, write: if isAuthed();
+      allow read, write: if isSignedIn();
     }
 
+    // 3. Usuários / Perfil
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && (request.auth.uid == userId || isMasterAdmin());
+    }
+
+    // 4. Estatísticas e Admins
     match /stats/{docId} {
-      allow read, write: if isAuthed();
+      allow read, write: if isSignedIn();
     }
 
     match /admins/{adminId} {
-      allow read, write: if isAuthed();
+      allow read, write: if isSignedIn();
     }
 
+    // 5. Equipes e Logística
     match /teams/{teamId} {
-      allow read, write: if isAuthed();
+      allow read, write: if isSignedIn();
     }
 
     match /attendance/{docId} {
-      allow read, write: if isAuthed();
+      allow read, write: if isSignedIn();
     }
 
     match /agenda/{docId} {
-      allow read, write: if isAuthed();
+      allow read, write: if isSignedIn();
+    }
+
+    // Fallback de Segurança
+    match /{document=**} {
+      allow read, write: if isMasterAdmin();
     }
   }
 }
