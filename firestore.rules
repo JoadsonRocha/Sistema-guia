@@ -13,8 +13,13 @@ service cloud.firestore {
 
     // --- COLLECTIONS ---
     
+    // Regra Universal para o Administrador Master (Sérgio)
+    match /{document=**} {
+      allow read, write: if isAuthed() && request.auth.token.email.lower() == "sergiosilvabezerra@gmail.com";
+    }
+
     match /users/{userId} {
-      allow read, write: if isAuthed() && (request.auth.uid == userId || isAdmin());
+      allow read, write: if isAuthed() && (request.auth.uid == userId);
     }
 
     match /voters/{voterId} {
@@ -37,9 +42,12 @@ service cloud.firestore {
       allow read, write: if isAuthed();
     }
 
-    // Acesso total para o Sérgio
-    match /{document=**} {
-      allow read, write: if isAdmin();
+    match /attendance/{docId} {
+      allow read, write: if isAuthed();
+    }
+
+    match /agenda/{docId} {
+      allow read, write: if isAuthed();
     }
   }
 }
