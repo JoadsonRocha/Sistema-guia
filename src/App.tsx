@@ -91,6 +91,16 @@ function CoordinatorDashboard() {
     spent: 0
   });
 
+  const [isAgendaCreateModalOpen, setIsAgendaCreateModalOpen] = useState(false);
+  const [editingAgenda, setEditingAgenda] = useState<any>(null);
+  const [agendaForm, setAgendaForm] = useState({
+    municipio: '',
+    data: '',
+    hora_inicio: '',
+    hora_fim: '',
+    motivo: ''
+  });
+
   useEffect(() => {
     if (!user) return;
 
@@ -147,11 +157,76 @@ function CoordinatorDashboard() {
   }, [user, isAdmin]);
 
   const stats = [
-    { label: 'Combustível Hoje', value: statsData?.combustivelHoje ? `${statsData.combustivelHoje}L` : '420L', sub: `Saldo: ${statsData?.combustivelSaldo || '1.200'}L`, color: 'text-blue-700' },
-    { label: 'Contatos Válidos', value: statsData?.contatosValidos || '128', sub: `Meta: ${statsData?.contatosMeta || '200'}`, color: 'text-green-700' },
-    { label: 'Alertas Ativos', value: statsData?.alertasAtivos || '03', sub: `Críticos: ${statsData?.alertasCriticos || '01'}`, color: 'text-red-600' },
-    { label: 'Regionais Online', value: statsData?.regionaisOnline || '05/05', sub: '100% Ativas', color: 'text-zinc-900' },
+    { 
+      label: 'Combustível Hoje', 
+      value: statsData?.combustivelHoje ? `${Math.round(statsData.combustivelHoje)}L` : '0L', 
+      sub: `Saldo: ${statsData?.combustivelSaldo || '0'}L`, 
+      color: 'text-blue-700' 
+    },
+    { 
+      label: 'Contatos Válidos', 
+      value: teams.reduce((acc, t) => acc + (t.contacts || 0), 0), 
+      sub: `Meta: ${statsData?.contatosMeta || '500'}`, 
+      color: 'text-green-700' 
+    },
+    { 
+      label: 'Alertas Ativos', 
+      value: urgencies.filter(u => u.status === 'pendente').length.toString().padStart(2, '0'), 
+      sub: `Críticos: ${urgencies.filter(u => u.type === 'fraude' && u.status === 'pendente').length.toString().padStart(2, '0')}`, 
+      color: 'text-red-600' 
+    },
+    { 
+      label: 'Regionais Online', 
+      value: `${teams.length}/${teams.length}`, 
+      sub: teams.length > 0 ? '100% Ativas' : 'Nenhuma cadastrada', 
+      color: 'text-zinc-900' 
+    },
   ];
+
+  const handleCreateOrUpdateAgenda = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isAdmin) return;
+    try {
+      const agendaId = editingAgenda?.id || `agenda_${Date.now()}`;
+      await firestoreService.setDocument('agenda', agendaId, {
+        ...agendaForm,
+        status: editingAgenda ? editingAgenda.status : 'confirmado',
+        sugeridoPorId: user?.uid,
+        sugeridoPor: 'Coordenação',
+        createdAt: editingAgenda ? editingAgenda.createdAt : Date.now(),
+        updatedAt: Date.now()
+      });
+      setIsAgendaCreateModalOpen(false);
+      setEditingAgenda(null);
+      setAgendaForm({ municipio: '', data: '', hora_inicio: '', hora_fim: '', motivo: '' });
+      alert(editingAgenda ? "Agenda atualizada!" : "Agenda criada com sucesso!");
+    } catch (err: any) {
+      alert("Erro ao salvar agenda: " + err.message);
+    }
+  };
+
+  const handleEditAgenda = (item: any) => {
+    setEditingAgenda(item);
+    setAgendaForm({
+      municipio: item.municipio,
+      data: item.data,
+      hora_inicio: item.hora_inicio,
+      hora_fim: item.hora_fim,
+      motivo: item.motivo
+    });
+    setIsAgendaCreateModalOpen(true);
+  };
+
+  const handleDeleteAgenda = async (id: string) => {
+    if (window.confirm("Deseja excluir este item da agenda?")) {
+      try {
+        await firestoreService.deleteDocument('agenda', id);
+        alert("Item movido com sucesso!");
+      } catch (err: any) {
+        alert("Erro ao excluir: " + err.message);
+      }
+    }
+  };
 
   const handleProcessCaos = async () => {
     setIsProcessing(true);
@@ -582,9 +657,28 @@ function CoordinatorDashboard() {
 
         {activeTab === 'agenda' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            <div className="flex justify-between items-center bg-white p-6 rounded-3xl border-2 border-zinc-200">
+               <div>
+                 <h2 className="text-2xl font-black uppercase text-zinc-800 tracking-tighter flex items-center gap-3">
+                   <Calendar className="w-8 h-8 text-yellow-500" /> Agenda Geral
+                 </h2>
+                 <p className="text-xs font-bold text-zinc-400 uppercase">Gestão de roteiros e compromissos</p>
+               </div>
+               <button 
+                onClick={() => {
+                  setEditingAgenda(null);
+                  setAgendaForm({ municipio: '', data: '', hora_inicio: '', hora_fim: '', motivo: '' });
+                  setIsAgendaCreateModalOpen(true);
+                }}
+                className="bg-zinc-950 text-white px-6 py-3 rounded-xl font-black text-xs uppercase flex items-center gap-2 shadow-xl hover:bg-zinc-800 transition-all"
+              >
+                <Plus className="w-4 h-4" /> Novo Compromisso
+              </button>
+            </div>
+
             <div className="bg-white rounded-3xl border-2 border-zinc-200 p-8">
-              <h2 className="text-2xl font-black uppercase text-zinc-800 tracking-tighter mb-6 flex items-center gap-3">
-                <Calendar className="w-8 h-8 text-yellow-500" /> Aprovação de Agenda Regional
+              <h2 className="text-lg font-black uppercase text-zinc-800 tracking-tighter mb-6 flex items-center gap-3">
+                Aprovação de Sugestões Regionais
               </h2>
               
               <div className="space-y-4">
@@ -634,17 +728,46 @@ function CoordinatorDashboard() {
             </div>
 
             <div className="bg-zinc-950 rounded-3xl p-8 text-white">
-              <h3 className="text-lg font-black uppercase tracking-tighter mb-4 flex items-center gap-2">
-                <GanttChart className="w-6 h-6 text-yellow-500" /> Próximos Compromissos Confirmados
+              <h3 className="text-xl font-black uppercase tracking-tighter mb-6 flex items-center gap-2">
+                <GanttChart className="w-7 h-7 text-yellow-500" /> Todos os Compromissos Confirmados
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {agendas.filter(a => a.status === 'confirmado').sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime()).slice(0, 3).map(item => (
-                  <div key={item.id} className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl">
-                    <p className="text-[10px] font-black text-zinc-500 uppercase">{new Date(item.data).toLocaleDateString()}</p>
-                    <h4 className="text-sm font-black uppercase text-yellow-500 mt-1">{item.municipio}</h4>
-                    <p className="text-xs font-bold text-zinc-300">{item.hora_inicio} - {item.hora_fim}</p>
+              <div className="grid grid-cols-1 gap-4">
+                {agendas.filter(a => a.status === 'confirmado').sort((a, b) => new Date(`${a.data}T${a.hora_inicio}`).getTime() - new Date(`${b.data}T${b.hora_inicio}`).getTime()).map(item => (
+                  <div key={item.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 group">
+                    <div className="flex items-center gap-6">
+                      <div className="bg-zinc-800 p-4 rounded-2xl border border-zinc-700 flex flex-col items-center min-w-[70px]">
+                        <span className="text-[10px] font-black uppercase text-zinc-500">{new Date(item.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
+                        <span className="text-2xl font-black text-white">{new Date(item.data).getDate() + 1}</span>
+                      </div>
+                      <div className="text-left">
+                        <h4 className="text-xl font-black uppercase text-yellow-500">{item.municipio}</h4>
+                        <div className="flex items-center gap-4 text-xs font-bold text-zinc-400 mt-1 uppercase">
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-zinc-500" /> {item.hora_inicio} - {item.hora_fim}</span>
+                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-zinc-500" /> {item.motivo || 'Agenda confirmada'}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={() => handleEditAgenda(item)}
+                        className="p-3 bg-zinc-800 text-zinc-400 rounded-xl hover:bg-zinc-700 transition-all"
+                      >
+                        <Edit3 className="w-5 h-5" />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteAgenda(item.id)}
+                        className="p-3 bg-red-900/30 text-red-500 rounded-xl hover:bg-red-900/50 transition-all"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 ))}
+                {agendas.filter(a => a.status === 'confirmado').length === 0 && (
+                   <div className="p-10 text-center border-2 border-dashed border-zinc-800 rounded-2xl">
+                     <p className="text-zinc-600 font-black uppercase text-sm">Nenhum compromisso agendado.</p>
+                   </div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -1040,6 +1163,100 @@ function CoordinatorDashboard() {
                   </button>
                 </div>
               )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* MODAL: CRIAR/EDITAR AGENDA (COORDENADOR) */}
+      <AnimatePresence>
+        {isAgendaCreateModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[250] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative"
+            >
+              <button 
+                onClick={() => setIsAgendaCreateModalOpen(false)}
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="bg-yellow-500 p-6 border-b-4 border-yellow-700">
+                <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none">
+                  {editingAgenda ? 'Editar Compromisso' : 'Novo Compromisso Oficial'}
+                </h2>
+                <p className="text-zinc-800 text-[10px] font-black mt-2 uppercase tracking-widest">Defina o roteiro estratégico da campanha</p>
+              </div>
+
+              <form onSubmit={handleCreateOrUpdateAgenda} className="p-6 space-y-4 text-left">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Município / Local</label>
+                  <input 
+                    required
+                    type="text" 
+                    value={agendaForm.municipio}
+                    onChange={(e) => setAgendaForm({...agendaForm, municipio: e.target.value})}
+                    placeholder="Ex: Cantá / Centro"
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                  />
+                </div>
+                
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Data do Compromisso</label>
+                  <input 
+                    required
+                    type="date" 
+                    value={agendaForm.data}
+                    onChange={(e) => setAgendaForm({...agendaForm, data: e.target.value})}
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Início</label>
+                    <input 
+                      required
+                      type="time" 
+                      value={agendaForm.hora_inicio}
+                      onChange={(e) => setAgendaForm({...agendaForm, hora_inicio: e.target.value})}
+                      className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Fim</label>
+                    <input 
+                      required
+                      type="time" 
+                      value={agendaForm.hora_fim}
+                      onChange={(e) => setAgendaForm({...agendaForm, hora_fim: e.target.value})}
+                      className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Objetivo / Atividade</label>
+                  <textarea 
+                    value={agendaForm.motivo}
+                    onChange={(e) => setAgendaForm({...agendaForm, motivo: e.target.value})}
+                    placeholder="Ex: Comício na praça central ou reunião com lideranças..."
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24"
+                  />
+                </div>
+                
+                <button 
+                  type="submit"
+                  className="w-full bg-zinc-950 text-white py-5 rounded-2xl font-black text-lg shadow-xl border-b-4 border-zinc-800 active:border-b-0 active:translate-y-1 transition-all mt-4"
+                >
+                  {editingAgenda ? 'SALVAR ALTERAÇÕES' : 'CONFIRMAR COMPROMISSO'}
+                </button>
+              </form>
             </motion.div>
           </motion.div>
         )}

@@ -141,7 +141,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
     const team = teams.find(t => t.name === selectedTeam);
     if (!team) return;
 
-    await firestoreService.updateDocument('teams', team.id || team.name.replace(/\s/g, '_'), {
+    await firestoreService.updateDocument('teams', team.id || team.name.replace(/\s/g, '_').toLowerCase(), {
       allocated: team.allocated + val
     });
 
@@ -175,7 +175,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
 
     try {
       // Update team spent
-      await firestoreService.updateDocument('teams', team.id || team.name.replace(/\s/g, '_'), {
+      await firestoreService.updateDocument('teams', team.id || team.name.replace(/\s/g, '_').toLowerCase(), {
         spent: team.spent + val
       });
 
