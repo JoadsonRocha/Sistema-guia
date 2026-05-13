@@ -39,7 +39,11 @@ import {
   LayoutDashboard,
   DollarSign,
   Briefcase,
-  Target
+  Target,
+  Wallet,
+  History,
+  TrendingUp,
+  Printer
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { processarCaos, gerarBriefingCandidato } from './services/geminiService';
@@ -1929,8 +1933,15 @@ function CaboDashboard() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [queueCount, setQueueCount] = useState(0);
   const [isLocating, setIsLocating] = useState(false);
-  const [activeTab, setActiveTab] = useState<'equipe' | 'logistica' | 'ouvidoria'>('logistica');
+  const [activeTab, setActiveTab] = useState<'equipe' | 'logistica' | 'ouvidoria' | 'financeiro'>('logistica');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  
+  // Finance State for Leader
+  const [teamTransactions, setTeamTransactions] = useState<any[]>([]);
+  const [isSignReceiptModalOpen, setIsSignReceiptModalOpen] = useState(false);
+  const [selectedTxToSign, setSelectedTxToSign] = useState<any>(null);
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [expenseForm, setExpenseForm] = useState({ amount: '', description: '', purpose: '' });
   
   const [isVoterModalOpen, setIsVoterModalOpen] = useState(false);
   const [voterForm, setVoterForm] = useState({ name: '', phone: '', address: '', observations: '' });
@@ -1997,6 +2008,24 @@ function CaboDashboard() {
       }, (err) => {
         console.error("Erro ao escutar agendas do líder:", err);
       });
+
+      // Subscribe to team transactions
+      if (profileData.zone || (user as any).team) {
+        const teamName = profileData.zone || (user as any).team;
+        const txQuery = query(collection(db, 'transactions'), where('team', '==', teamName));
+        const unsubTx = onSnapshot(txQuery, (snapshot) => {
+          const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setTeamTransactions(data.sort((a, b) => b.date - a.date));
+        }, (err) => {
+          console.error("Erro ao escutar transações da equipe:", err);
+        });
+        return () => {
+          unsubProfile();
+          unsubVoters();
+          unsubAgendas();
+          unsubTx();
+        };
+      }
 
       return () => {
         unsubProfile();
@@ -2207,6 +2236,64 @@ function CaboDashboard() {
       alert("Sugestão de agenda enviada para análise!");
     } catch (err: any) {
       alert("Erro ao sugerir agenda: " + err.message);
+    }
+  };
+
+  const handleExpenseSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !teamData) return;
+    
+    const val = parseFloat(expenseForm.amount);
+    if (isNaN(val) || val <= 0) return;
+
+    // Check balance
+    const currentBalance = (teamData.allocated || 0) - (teamData.spent || 0);
+    if (val > currentBalance) {
+      alert(`⚠️ SALDO INSUFICIENTE!\nSeu saldo atual é de R$ ${currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
+      return;
+    }
+
+    try {
+      // 1. Update Team Spent
+      await firestoreService.updateDocument('teams', teamData.id, {
+        spent: (teamData.spent || 0) + val
+      });
+
+      // 2. Create Transaction
+      const txId = `tx_spent_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      await firestoreService.setDocument('transactions', txId, {
+        id: txId,
+        type: 'gasto',
+        amount: val,
+        team: teamData.name,
+        description: expenseForm.description,
+        purpose: expenseForm.purpose,
+        date: Date.now()
+      });
+
+      setIsExpenseModalOpen(false);
+      setExpenseForm({ amount: '', description: '', purpose: '' });
+      alert("✅ GASTO REGISTRADO COM SUCESSO!");
+    } catch (err: any) {
+      alert("Erro ao registrar gasto: " + err.message);
+    }
+  };
+
+  const handleSignReceipt = async (tx: any) => {
+    if (!window.confirm("⚠️ CONFIRMAÇÃO DE RECEBIMENTO\nAo assinar, você confirma que recebeu integralmente este recurso e assume a responsabilidade pela prestação de contas.")) {
+      return;
+    }
+    
+    try {
+      await firestoreService.updateDocument('transactions', tx.id, {
+        receiptStatus: 'assinado',
+        signedAt: Date.now(),
+        signedBy: profileData.name || user?.displayName || user?.email
+      });
+      setIsSignReceiptModalOpen(false);
+      alert("✅ RECIBO ASSINADO DIGITALMENTE!");
+    } catch (err: any) {
+      alert("Erro ao assinar recibo: " + err.message);
     }
   };
 
@@ -2497,6 +2584,102 @@ function CaboDashboard() {
                   </div>
                 )}
               </div>
+            </div>
+          </motion.div>
+        ) : activeTab === 'financeiro' ? (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+            <div className="bg-zinc-950 p-8 rounded-[2.5rem] border-b-8 border-green-500 text-white relative overflow-hidden shadow-2xl">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <Wallet className="w-32 h-32" />
+              </div>
+              <div className="relative z-10">
+                <p className="text-[10px] font-black uppercase text-green-500 tracking-widest mb-1">Saldo em Caixa da Equipe</p>
+                <h2 className="text-5xl font-black tracking-tighter">
+                  R$ {((teamData?.allocated || 0) - (teamData?.spent || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </h2>
+                <div className="flex gap-8 mt-6">
+                   <div>
+                      <p className="text-[10px] font-black uppercase text-zinc-500">Recibido (Total)</p>
+                      <p className="text-lg font-black">{ (teamData?.allocated || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }</p>
+                   </div>
+                   <div>
+                      <p className="text-[10px] font-black uppercase text-zinc-500">Gasto Atual</p>
+                      <p className="text-lg font-black text-red-500">{ (teamData?.spent || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }</p>
+                   </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <section className="bg-white p-8 rounded-3xl border-2 border-zinc-100 shadow-sm">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xs font-black uppercase text-zinc-400 tracking-widest flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-green-500" /> Alocações do Coordenador
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  {teamTransactions.filter(t => t.type === 'alocacao').length > 0 ? teamTransactions.filter(t => t.type === 'alocacao').map(tx => (
+                    <div key={tx.id} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex justify-between items-center">
+                      <div className="text-left">
+                        <p className="font-black text-sm uppercase text-zinc-800">Recurso Recebido</p>
+                        <p className="text-[10px] text-zinc-500 font-bold italic">"{tx.purpose || 'Uso em campo'}"</p>
+                      </div>
+                      <div className="text-right flex items-center gap-4">
+                        <div>
+                          <p className="font-black text-blue-600 text-sm">+ R$ {tx.amount.toLocaleString()}</p>
+                          <p className="text-[9px] text-zinc-400 font-bold">{new Date(tx.date).toLocaleDateString()}</p>
+                        </div>
+                        {tx.receiptStatus !== 'assinado' ? (
+                          <button 
+                            onClick={() => {
+                              setSelectedTxToSign(tx);
+                              setIsSignReceiptModalOpen(true);
+                            }}
+                            className="bg-yellow-500 text-zinc-950 px-3 py-1.5 rounded-lg font-black text-[9px] uppercase shadow-lg shadow-yellow-100"
+                          >
+                            Assinar Recibo
+                          </button>
+                        ) : (
+                          <div className="bg-green-100 text-green-600 p-1.5 rounded-full" title="Recibo Assinado">
+                            <CheckCircle2 className="w-4 h-4" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )) : (
+                    <p className="text-center py-10 text-zinc-300 text-[10px] font-black uppercase italic">Nenhuma alocação registrada.</p>
+                  )}
+                </div>
+              </section>
+
+              <section className="bg-white p-8 rounded-3xl border-2 border-zinc-100 shadow-sm">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xs font-black uppercase text-zinc-400 tracking-widest flex items-center gap-2">
+                    <History className="w-4 h-4 text-red-500" /> Histórico de Gastos
+                  </h3>
+                  <button 
+                    onClick={() => setIsExpenseModalOpen(true)}
+                    className="bg-zinc-950 text-white px-4 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest active:scale-95 transition-all"
+                  >
+                    Adicionar Gasto
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {teamTransactions.filter(t => t.type === 'gasto').length > 0 ? teamTransactions.filter(t => t.type === 'gasto').map(tx => (
+                    <div key={tx.id} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex justify-between items-center">
+                      <div className="text-left">
+                        <p className="font-black text-sm uppercase text-zinc-800">{tx.description}</p>
+                        <p className="text-[10px] text-zinc-500 font-bold italic">{new Date(tx.date).toLocaleDateString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-black text-red-600 text-sm">- R$ {tx.amount.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  )) : (
+                    <p className="text-center py-10 text-zinc-300 text-[10px] font-black uppercase italic">Nenhum gasto registrado ainda.</p>
+                  )}
+                </div>
+              </section>
             </div>
           </motion.div>
         ) : (
@@ -2818,6 +3001,125 @@ function CaboDashboard() {
         )}
       </AnimatePresence>
 
+      {/* MODAL: ASSINAR RECIBO */}
+      <AnimatePresence>
+        {isSignReceiptModalOpen && selectedTxToSign && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-zinc-950/95 backdrop-blur-xl p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
+              className="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl relative p-12 text-zinc-950"
+            >
+              <button 
+                onClick={() => setIsSignReceiptModalOpen(false)}
+                className="absolute top-8 right-8 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 print:hidden"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="border-4 border-zinc-200 p-8 rounded-[2rem] space-y-8 relative">
+                <div className="flex justify-between items-start">
+                   <div className="flex items-center gap-3">
+                      <div className="bg-zinc-950 p-2 rounded-lg"><ShieldCheck className="text-yellow-500 w-6 h-6" /></div>
+                      <div>
+                        <h3 className="font-black text-xl leading-none">SISTEMA ÁGUIA</h3>
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comprovante de Transferência Digital</p>
+                      </div>
+                   </div>
+                   <div className="text-right">
+                      <p className="text-[10px] font-black text-zinc-400 uppercase">Nº Documento</p>
+                      <p className="font-mono text-sm font-bold">{selectedTxToSign.id.split('_').pop()?.toUpperCase()}</p>
+                   </div>
+                </div>
+
+                <div className="space-y-6">
+                   <div className="bg-zinc-50 p-6 rounded-2xl border-2 border-zinc-100">
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Beneficiário e Valor</p>
+                      <div className="flex justify-between items-end">
+                         <div>
+                            <p className="text-2xl font-black">{selectedTxToSign.team}</p>
+                            <p className="text-xs font-bold text-zinc-500 italic mt-1">Finalidade: {selectedTxToSign.purpose || 'Uso Operacional'}</p>
+                         </div>
+                         <div className="text-right">
+                            <p className="text-3xl font-black text-zinc-950">R$ {selectedTxToSign.amount.toLocaleString()}</p>
+                         </div>
+                      </div>
+                   </div>
+
+                   <p className="text-sm font-medium leading-relaxed text-zinc-600 text-justify">
+                      Eu, líder da equipe regional <strong>{selectedTxToSign.team}</strong>, declaro para os devidos fins que recebi nesta data ({new Date(selectedTxToSign.date).toLocaleDateString('pt-BR')}) a importância acima discriminada, comprometendo-me a realizar a prestação de contas conforme as diretrizes do Sistema Águia.
+                   </p>
+
+                   <div className="pt-12 grid grid-cols-2 gap-12">
+                      <div className="text-center border-t-2 border-zinc-200 pt-4">
+                         <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Origem / Coordenação</p>
+                         <p className="font-bold text-sm tracking-tighter">Assinado Eletronicamente</p>
+                      </div>
+                      <div className="text-center border-t-2 border-zinc-200 pt-4">
+                         <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Destinatário / Líder</p>
+                         <p className="text-zinc-300 font-bold text-sm italic tracking-tighter">Assinatura Pendente</p>
+                      </div>
+                   </div>
+                </div>
+              </div>
+
+              <div className="mt-8 flex justify-end gap-3 print:hidden">
+                 <button 
+                   onClick={() => window.print()}
+                   className="flex items-center gap-2 bg-zinc-100 text-zinc-600 px-6 py-3 rounded-xl font-black text-xs uppercase hover:bg-zinc-200 transition-all"
+                 >
+                   <Printer className="w-4 h-4" /> Imprimir Recibo
+                 </button>
+                 <button 
+                   onClick={() => handleSignReceipt(selectedTxToSign)}
+                   className="bg-green-600 text-white px-8 py-3 rounded-xl font-black text-xs uppercase hover:bg-green-500 transition-all shadow-xl shadow-green-100"
+                 >
+                   Confirmar Recebimento e Assinar
+                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL: ADICIONAR GASTO */}
+      <AnimatePresence>
+        {isExpenseModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+            >
+              <button onClick={() => setIsExpenseModalOpen(false)} className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500"><X className="w-6 h-6" /></button>
+              <div className="bg-red-600 p-8 border-b-4 border-red-800 text-left">
+                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">Registrar Gasto</h2>
+                <p className="text-red-100 text-xs font-bold mt-2 uppercase tracking-widest">Controle de Saídas da Equipe</p>
+              </div>
+              <form onSubmit={handleExpenseSubmit} className="p-8 space-y-4 text-left">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Descrição</label>
+                  <input required type="text" value={expenseForm.description} onChange={e => setExpenseForm({...expenseForm, description: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="O que foi pago?" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Finalidade / Categoria</label>
+                  <input required type="text" value={expenseForm.purpose} onChange={e => setExpenseForm({...expenseForm, purpose: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="Ex: Alimentação, Combustível Extra..." />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Valor (R$)</label>
+                  <input required type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-2xl" placeholder="0,00" />
+                </div>
+                <button type="submit" className="w-full bg-red-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-red-100 border-b-4 border-red-800 active:border-b-0 active:translate-y-1 transition-all mt-4">CONFIRMAR GASTO</button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* MODAL: SUGERIR AGENDA */}
       <AnimatePresence>
         {isAgendaModalOpen && (
@@ -2899,6 +3201,14 @@ function CaboDashboard() {
           >
             <AlertTriangle className="w-6 h-6" />
             <span className={`text-[9px] font-black uppercase ${activeTab === 'ouvidoria' ? 'underline decoration-2 underline-offset-4' : ''}`}>OUVIDORIA</span>
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('financeiro')}
+            className={`flex flex-col items-center gap-1 p-2 transition-all ${activeTab === 'financeiro' ? 'text-zinc-950 scale-110' : 'opacity-40'}`}
+          >
+            <Wallet className={`w-6 h-6 ${activeTab === 'financeiro' ? 'text-green-600' : 'text-zinc-400'}`} />
+            <span className={`text-[9px] font-black uppercase ${activeTab === 'financeiro' ? 'underline decoration-2 underline-offset-4' : ''}`}>FINANCEIRO</span>
           </button>
         </div>
       </nav>
