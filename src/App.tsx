@@ -1403,6 +1403,7 @@ function CaboDashboard() {
 
   const [teamData, setTeamData] = useState<any>(null);
   const [voters, setVoters] = useState<any[]>([]);
+  const [myAgendas, setMyAgendas] = useState<any[]>([]);
   const [selectedVoter, setSelectedVoter] = useState<any>(null);
   const [isVoterDetailOpen, setIsVoterDetailOpen] = useState(false);
   const [isEditingVoter, setIsEditingVoter] = useState(false);
@@ -1438,9 +1439,18 @@ function CaboDashboard() {
         console.error("Erro ao escutar eleitores:", err);
       });
 
+      const agendasQuery = query(collection(db, 'agenda'), where('sugeridoPorId', '==', user.uid));
+      const unsubAgendas = onSnapshot(agendasQuery, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setMyAgendas(data);
+      }, (err) => {
+        console.error("Erro ao escutar agendas do líder:", err);
+      });
+
       return () => {
         unsubProfile();
         unsubVoters();
+        unsubAgendas();
       };
     }
   }, [user]);
@@ -1775,40 +1785,88 @@ function CaboDashboard() {
             </section>
 
             {/* HISTÓRICO DE SOLICITAÇÕES */}
-            {myRequests.length > 0 && (
-              <section className="bg-white border-2 border-zinc-200 rounded-[2rem] p-6 shadow-sm overflow-hidden">
-                <h3 className="text-zinc-500 font-black text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <RefreshCcw className="w-4 h-4" /> Minhas Solicitações Recentes
-                </h3>
-                <div className="space-y-3">
-                  {myRequests.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5).map(req => (
-                    <div key={req.id} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${
-                          req.type === 'combustivel' ? 'bg-blue-100 text-blue-600' : 
-                          req.type === 'demanda' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
-                        }`}>
-                          {req.type === 'combustivel' ? <Fuel className="w-4 h-4" /> : <StickyNote className="w-4 h-4" />}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {myRequests.length > 0 && (
+                <section className="bg-white border-2 border-zinc-200 rounded-[2rem] p-6 shadow-sm overflow-hidden flex flex-col h-full">
+                  <h3 className="text-zinc-500 font-black text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <RefreshCcw className="w-4 h-4" /> Minhas Solicitações
+                  </h3>
+                  <div className="space-y-3 flex-1">
+                    {myRequests.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5).map(req => (
+                      <div key={req.id} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${
+                            req.type === 'combustivel' ? 'bg-blue-100 text-blue-600' : 
+                            req.type === 'demanda' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
+                          }`}>
+                            {req.type === 'combustivel' ? <Fuel className="w-4 h-4" /> : <StickyNote className="w-4 h-4" />}
+                          </div>
+                          <div className="text-left">
+                            <p className="font-black text-zinc-800 text-[10px] uppercase leading-none mb-1">{req.title}</p>
+                            <p className="text-[9px] text-zinc-400 font-bold uppercase">{new Date(req.createdAt).toLocaleDateString()}</p>
+                            {req.observation && (
+                              <p className="text-[10px] text-blue-600 font-black mt-1 italic">OBS: "{req.observation}"</p>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <p className="font-black text-zinc-800 text-[10px] uppercase leading-none mb-1">{req.title}</p>
-                          <p className="text-[9px] text-zinc-400 font-bold uppercase">{new Date(req.createdAt).toLocaleDateString()}</p>
-                          {req.observation && (
-                            <p className="text-[10px] text-blue-600 font-black mt-1 italic">OBS: "{req.observation}"</p>
+                        <span className={`text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-tighter ${
+                          req.status === 'aprovado' ? 'bg-green-100 text-green-700' : 
+                          req.status === 'negado' ? 'bg-red-100 text-red-700' : 'bg-zinc-200 text-zinc-500'
+                        }`}>
+                          {req.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {myAgendas.length > 0 && (
+                <section className="bg-white border-2 border-zinc-200 rounded-[2rem] p-6 shadow-sm overflow-hidden flex flex-col h-full">
+                  <h3 className="text-zinc-500 font-black text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" /> Minha Agenda Sugerida
+                  </h3>
+                  <div className="space-y-3 flex-1">
+                    {myAgendas.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5).map(agenda => (
+                      <div key={agenda.id} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${
+                            agenda.status === 'confirmado' ? 'bg-green-100 text-green-600' : 
+                            agenda.status === 'negado' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'
+                          }`}>
+                            <Calendar className="w-4 h-4" />
+                          </div>
+                          <div className="text-left">
+                            <p className="font-black text-zinc-800 text-[10px] uppercase leading-none mb-1">{agenda.municipio}</p>
+                            <p className="text-[9px] text-zinc-400 font-bold uppercase">{new Date(agenda.data).toLocaleDateString()} • {agenda.hora_inicio}</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={`text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-tighter ${
+                            agenda.status === 'confirmado' ? 'bg-green-100 text-green-700' : 
+                            agenda.status === 'negado' ? 'bg-red-100 text-red-700' : 'bg-zinc-200 text-zinc-500'
+                          }`}>
+                            {agenda.status === 'confirmado' ? 'Aprovada' : agenda.status === 'negado' ? 'Negada' : 'Pendente'}
+                          </span>
+                          {agenda.status === 'pendente' && (
+                            <button 
+                              onClick={async () => {
+                                if(window.confirm("Cancelar esta sugestão?")) {
+                                  await firestoreService.deleteDocument('agenda', agenda.id);
+                                }
+                              }}
+                              className="text-[8px] font-bold text-red-400 uppercase hover:text-red-600"
+                            >
+                              Cancelar
+                            </button>
                           )}
                         </div>
                       </div>
-                      <span className={`text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-tighter ${
-                        req.status === 'aprovado' ? 'bg-green-100 text-green-700' : 
-                        req.status === 'negado' ? 'bg-red-100 text-red-700' : 'bg-zinc-200 text-zinc-500'
-                      }`}>
-                        {req.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
 
             {/* FILA DE SINCRONIZAÇÃO E MOTIVAÇÃO - SIDE BY SIDE ON DESKTOP */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
