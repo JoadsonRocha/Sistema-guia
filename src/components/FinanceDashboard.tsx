@@ -45,7 +45,7 @@ const fmt = new Intl.NumberFormat('pt-BR', {
 export default function FinanceDashboard({ isNested = false }: { isNested?: boolean }) {
   const { user, isAdmin } = useAuth();
   // --- ESTADO FINANCEIRO (ESTADO DO CAIXA FORTE) ---
-  const [totalFunded, setTotalFunded] = useState(500000);
+  const [totalFunded, setTotalFunded] = useState(0);
   const [teams, setTeams] = useState<TeamFinance[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 

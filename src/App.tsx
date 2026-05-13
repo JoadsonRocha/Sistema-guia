@@ -31,7 +31,9 @@ import {
   Calendar,
   Clock,
   FileText,
-  GanttChart
+  GanttChart,
+  Trash2,
+  Edit3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { processarCaos, gerarBriefingCandidato } from './services/geminiService';
@@ -70,6 +72,8 @@ function CoordinatorDashboard() {
   // Modal State for New Team
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [teamCreationStep, setTeamCreationStep] = useState<'form' | 'success'>('form');
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
   const [createdTeamLink, setCreatedTeamLink] = useState('');
   const [newTeam, setNewTeam] = useState({
     name: '',
@@ -78,6 +82,7 @@ function CoordinatorDashboard() {
     leaderPhone: '',
     leaderAddress: '',
     location: '',
+    observations: '',
     status: 'OK',
     contacts: 0,
     fuel: 0,
@@ -127,31 +132,7 @@ function CoordinatorDashboard() {
     // Fallback for empty collections
     const checkAndSeed = async () => {
       if (isAdmin) {
-        const existingTeams = await firestoreService.getCollection('teams');
-        if (existingTeams.length === 0) {
-          const seedTeams = [
-            { name: 'EQUIPE NORTE', leader: 'Capitão Silva', location: 'Pacaraima', status: 'OK', contacts: 45, fuel: 80, demands: 3, allocated: 5000, spent: 1200 },
-            { name: 'EQUIPE LESTE', leader: 'Major Rocha', location: 'Bonfim', status: 'ALERTA', contacts: 22, fuel: 15, demands: 8, allocated: 3000, spent: 2500 },
-            { name: 'EQUIPE SUL', leader: 'Tenente Lima', location: 'Rorainópolis', status: 'OK', contacts: 38, fuel: 55, demands: 0, allocated: 4000, spent: 500 },
-          ];
-          for (const t of seedTeams) {
-            await firestoreService.setDocument('teams', t.name.replace(/\s/g, '_'), t);
-          }
-        }
-
-        const existingStats = await firestoreService.getDocument('stats', 'global');
-        if (!existingStats) {
-          await firestoreService.setDocument('stats', 'global', {
-            combustivelHoje: 420,
-            combustivelSaldo: 1200,
-            contatosValidos: 128,
-            contatosMeta: 200,
-            alertasAtivos: 3,
-            alertasCriticos: 1,
-            regionaisOnline: '05/05',
-            totalFunded: 500000
-          });
-        }
+        // No more seeding - only real data
       }
     };
     checkAndSeed();
@@ -190,36 +171,77 @@ function CoordinatorDashboard() {
     if (!isAdmin) return alert("Apenas administradores podem criar equipes.");
     
     try {
-      const teamId = newTeam.name.replace(/\s/g, '_').toLowerCase();
+      const teamId = editingTeamId || newTeam.name.replace(/\s/g, '_').toLowerCase();
       const defaultPassword = 'aguia' + Math.floor(1000 + Math.random() * 9000);
       
-      // 1. Criar a equipe no Firestore
+      // 1. Criar/Atualizar a equipe no Firestore
       await firestoreService.setDocument('teams', teamId, {
         ...newTeam,
-        createdAt: Date.now()
+        updatedAt: Date.now(),
+        createdAt: isEditMode ? (newTeam as any).createdAt : Date.now()
       });
 
-      // 2. Criar pré-registro para o líder
-      await firestoreService.setDocument('pre_registrations', newTeam.leaderEmail.toLowerCase(), {
-        email: newTeam.leaderEmail.toLowerCase(),
-        name: newTeam.leader,
-        phone: newTeam.leaderPhone,
-        address: newTeam.leaderAddress,
-        teamName: newTeam.name,
-        teamId: teamId,
-        location: newTeam.location,
-        tempPassword: defaultPassword,
-        role: 'lider',
-        createdAt: Date.now()
-      });
+      if (!isEditMode) {
+        // 2. Criar pré-registro para o líder (apenas em criação)
+        await firestoreService.setDocument('pre_registrations', newTeam.leaderEmail.toLowerCase(), {
+          email: newTeam.leaderEmail.toLowerCase(),
+          name: newTeam.leader,
+          phone: newTeam.leaderPhone,
+          address: newTeam.leaderAddress,
+          teamName: newTeam.name,
+          teamId: teamId,
+          location: newTeam.location,
+          tempPassword: defaultPassword,
+          role: 'lider',
+          createdAt: Date.now()
+        });
+        
+        const accessLink = `${window.location.origin}/?email=${encodeURIComponent(newTeam.leaderEmail)}&pass=${defaultPassword}`;
+        setCreatedTeamLink(accessLink);
+        setTeamCreationStep('success');
+      } else {
+        setIsTeamModalOpen(false);
+        setIsEditMode(false);
+        setEditingTeamId(null);
+        alert("Equipe atualizada com sucesso!");
+      }
       
-      const accessLink = `${window.location.origin}/?email=${encodeURIComponent(newTeam.leaderEmail)}&pass=${defaultPassword}`;
-      setCreatedTeamLink(accessLink);
-      setTeamCreationStep('success');
-      
-      alert("Equipe e acesso do líder criados com sucesso!");
+      if (!isEditMode) alert("Equipe e acesso do líder criados com sucesso!");
     } catch (err: any) {
-      alert("Erro ao criar equipe: " + err.message);
+      alert("Erro ao processar equipe: " + err.message);
+    }
+  };
+
+  const handleEditTeam = (team: any) => {
+    setNewTeam({
+      name: team.name,
+      leader: team.leader,
+      leaderEmail: team.leaderEmail || '',
+      leaderPhone: team.leaderPhone || '',
+      leaderAddress: team.leaderAddress || '',
+      location: team.location,
+      observations: team.observations || '',
+      status: team.status || 'OK',
+      contacts: team.contacts || 0,
+      fuel: team.fuel || 0,
+      demands: team.demands || 0,
+      allocated: team.allocated || 0,
+      spent: team.spent || 0
+    });
+    setEditingTeamId(team.id || team.name.replace(/\s/g, '_').toLowerCase());
+    setIsEditMode(true);
+    setTeamCreationStep('form');
+    setIsTeamModalOpen(true);
+  };
+
+  const handleDeleteTeam = async (teamId: string, teamName: string) => {
+    if (window.confirm(`Deseja realmente excluir a equipe "${teamName}"? Esta ação não pode ser desfeita.`)) {
+      try {
+        await firestoreService.deleteDocument('teams', teamId);
+        alert("Equipe excluída com sucesso!");
+      } catch (err: any) {
+        alert("Erro ao excluir equipe: " + err.message);
+      }
     }
   };
 
@@ -427,7 +449,26 @@ function CoordinatorDashboard() {
                 <p className="text-zinc-500 text-xs font-bold uppercase">Visão por líderes e localidades estratégicas</p>
               </div>
               <button 
-                onClick={() => setIsTeamModalOpen(true)}
+                onClick={() => {
+                  setIsTeamModalOpen(true);
+                  setIsEditMode(false);
+                  setEditingTeamId(null);
+                  setNewTeam({
+                    name: '',
+                    leader: '',
+                    leaderEmail: '',
+                    leaderPhone: '',
+                    leaderAddress: '',
+                    location: '',
+                    observations: '',
+                    status: 'OK',
+                    contacts: 0,
+                    fuel: 0,
+                    demands: 0,
+                    allocated: 0,
+                    spent: 0
+                  });
+                }}
                 className="bg-zinc-950 text-white px-6 py-3 rounded-xl font-black text-xs uppercase flex items-center gap-2 shadow-xl hover:bg-zinc-800 transition-all"
               >
                 <Plus className="w-4 h-4" /> Nova Equipe de Campo
@@ -488,6 +529,22 @@ function CoordinatorDashboard() {
                     </div>
 
                   <div className="flex flex-col gap-2 mt-4 md:mt-0">
+                    <div className="flex gap-2">
+                       <button 
+                         onClick={() => handleEditTeam(team)}
+                         className="flex-1 md:flex-none bg-zinc-100 text-zinc-600 p-3 rounded-xl hover:bg-zinc-200 transition-colors"
+                         title="Editar Equipe"
+                       >
+                         <Edit3 className="w-4 h-4" />
+                       </button>
+                       <button 
+                         onClick={() => handleDeleteTeam(team.id || team.name.replace(/\s/g, '_').toLowerCase(), team.name)}
+                         className="flex-1 md:flex-none bg-red-50 text-red-600 p-3 rounded-xl hover:bg-red-100 transition-colors"
+                         title="Excluir Equipe"
+                       >
+                         <Trash2 className="w-4 h-4" />
+                       </button>
+                    </div>
                     <div className="flex gap-2">
                       <button className="flex-1 md:flex-none bg-zinc-100 text-zinc-600 px-6 py-3 rounded-xl font-black text-xs uppercase hover:bg-zinc-200 transition-colors">Histórico</button>
                       <button 
@@ -830,10 +887,10 @@ function CoordinatorDashboard() {
 
               <div className="bg-zinc-950 p-6 border-b-4 border-yellow-500 text-left">
                 <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
-                  {teamCreationStep === 'form' ? 'Cadastrar Equipe Regional' : 'Equipe Criada com Sucesso'}
+                  {teamCreationStep === 'form' ? (isEditMode ? 'Editar Equipe Regional' : 'Cadastrar Equipe Regional') : 'Equipe Criada com Sucesso'}
                 </h2>
                 <p className="text-zinc-400 text-xs font-bold mt-2 uppercase tracking-widest">
-                  {teamCreationStep === 'form' ? 'Defina o líder e a base estratégica' : 'Link de acesso gerado para o líder'}
+                  {teamCreationStep === 'form' ? (isEditMode ? 'Ajuste os dados estratégicos' : 'Defina o líder e a base estratégica') : 'Link de acesso gerado para o líder'}
                 </p>
               </div>
 
@@ -847,7 +904,8 @@ function CoordinatorDashboard() {
                       value={newTeam.name}
                       onChange={(e) => setNewTeam({...newTeam, name: e.target.value})}
                       placeholder="Ex: Equipe Central"
-                      className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                      disabled={isEditMode}
+                      className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all disabled:opacity-50"
                     />
                   </div>
                   
@@ -872,7 +930,8 @@ function CoordinatorDashboard() {
                         value={newTeam.leaderEmail}
                         onChange={(e) => setNewTeam({...newTeam, leaderEmail: e.target.value})}
                         placeholder="lider@exemplo.com"
-                        className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                        disabled={isEditMode}
+                        className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all disabled:opacity-50"
                       />
                     </div>
                     <div className="space-y-1">
@@ -912,12 +971,24 @@ function CoordinatorDashboard() {
                       />
                     </div>
                   </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Observações do Coordenador</label>
+                    <textarea 
+                      value={newTeam.observations}
+                      onChange={(e) => setNewTeam({...newTeam, observations: e.target.value})}
+                      placeholder="Informações adicionais..."
+                      maxLength={1000}
+                      className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24"
+                    />
+                    <div className="text-[9px] font-black text-zinc-400 text-right mt-1">{newTeam.observations?.length || 0}/1000</div>
+                  </div>
                   
                   <button 
                     type="submit"
                     className="w-full bg-zinc-950 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-zinc-200 border-b-4 border-zinc-800 active:border-b-0 active:translate-y-1 transition-all mt-4"
                   >
-                    SALVAR EQUIPE ESTRATÉGICA
+                    {isEditMode ? 'SALVAR ALTERAÇÕES' : 'SALVAR EQUIPE ESTRATÉGICA'}
                   </button>
                 </form>
               ) : (
@@ -1858,7 +1929,7 @@ export default function App() {
         } catch (err: any) {
           // Se falhou o login padrão, verificar se é um pré-registro
           if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || (err.message && err.message.includes('INVALID_LOGIN_CREDENTIALS'))) {
-            const preRegDoc = await firestoreService.getDocument('pre_registrations', email.toLowerCase());
+            const preRegDoc = await firestoreService.getDocument('pre_registrations', email.toLowerCase()) as any;
             
             if (preRegDoc && preRegDoc.tempPassword === password) {
               // É um líder com senha temporária! Criar a conta oficial agora.

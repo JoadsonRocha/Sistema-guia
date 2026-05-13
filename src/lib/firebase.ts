@@ -4,7 +4,7 @@ import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 // Safety check for empty or missing config
-const safeConfig = firebaseConfig || {};
+const safeConfig = (firebaseConfig || {}) as any;
 
 const app = initializeApp(safeConfig);
 console.log("🦅 [Firebase Initialized] Project:", safeConfig.projectId, "DB:", safeConfig.firestoreDatabaseId);
