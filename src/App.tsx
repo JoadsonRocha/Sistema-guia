@@ -65,6 +65,13 @@ function CoordinatorDashboard() {
   const [attendance, setAttendance] = useState<any[]>([]);
   const [agendas, setAgendas] = useState<any[]>([]);
   
+  const [isTeamManagementOpen, setIsTeamManagementOpen] = useState(false);
+  const [selectedManagingTeam, setSelectedManagingTeam] = useState<any>(null);
+  const [managingTeamVoters, setManagingTeamVoters] = useState<any[]>([]);
+  const [selectedVoter, setSelectedVoter] = useState<any>(null);
+  const [isVoterEditModalOpen, setIsVoterEditModalOpen] = useState(false);
+  const [voterEditForm, setVoterEditForm] = useState({ name: '', phone: '', address: '', observations: '' });
+
   // Briefing State
   const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
   const [briefingResult, setBriefingResult] = useState('');
@@ -230,6 +237,40 @@ function CoordinatorDashboard() {
     }
   };
 
+  // Sincronizar eleitores da equipe gerenciada pelo coordenador
+  useEffect(() => {
+    if (selectedManagingTeam && isAdmin) {
+      const leaderEmail = selectedManagingTeam.leaderEmail?.toLowerCase();
+      if (!leaderEmail) return;
+
+      const fetchLeaderAndVoters = async () => {
+        try {
+          const usersRef = collection(db, 'users');
+          const qUser = query(usersRef, where('email', '==', leaderEmail));
+          const userSnap = await getDocs(qUser);
+          
+          if (!userSnap.empty) {
+            const leaderId = userSnap.docs[0].id;
+            const votersRef = collection(db, 'voters');
+            const qVoters = query(votersRef, where('leaderId', '==', leaderId));
+            
+            const unsub = onSnapshot(qVoters, (snapshot) => {
+              const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              setManagingTeamVoters(data);
+            });
+            return unsub;
+          }
+        } catch (err) {
+          console.error("Erro ao buscar eleitores da equipe:", err);
+        }
+      };
+
+      let unsub: any;
+      fetchLeaderAndVoters().then(u => unsub = u);
+      return () => unsub && unsub();
+    }
+  }, [selectedManagingTeam, isAdmin]);
+
   const handleProcessCaos = async () => {
     setIsProcessing(true);
     setAiResult(null);
@@ -319,6 +360,19 @@ function CoordinatorDashboard() {
     setIsEditMode(true);
     setTeamCreationStep('form');
     setIsTeamModalOpen(true);
+  };
+
+  const handleVoterEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedVoter) return;
+    try {
+      await firestoreService.updateDocument('voters', selectedVoter.id, voterEditForm);
+      setIsVoterEditModalOpen(false);
+      setSelectedVoter(null);
+      alert("Eleitor atualizado com sucesso!");
+    } catch (err: any) {
+      alert("Erro ao atualizar eleitor: " + err.message);
+    }
   };
 
   const handleDeleteTeam = async (teamId: string, teamName: string) => {
@@ -657,9 +711,15 @@ function CoordinatorDashboard() {
                       >
                         {briefingLoading && briefingLocation === team.location ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />} Briefing IA
                       </button>
-                      <button className={`flex-1 md:flex-none px-6 py-3 rounded-xl font-black text-xs uppercase shadow-lg transition-all ${
-                         team.demands > 0 ? 'bg-red-600 text-white shadow-red-200' : 'bg-zinc-950 text-white shadow-zinc-200'
-                      }`}>
+                      <button 
+                        onClick={() => {
+                          setSelectedManagingTeam(team);
+                          setIsTeamManagementOpen(true);
+                        }}
+                        className={`flex-1 md:flex-none px-6 py-3 rounded-xl font-black text-xs uppercase shadow-lg transition-all ${
+                          team.demands > 0 ? 'bg-red-600 text-white shadow-red-200' : 'bg-zinc-950 text-white shadow-zinc-200'
+                        }`}
+                      >
                         Coordenar
                       </button>
                     </div>
@@ -1318,6 +1378,222 @@ function CoordinatorDashboard() {
                   ENTENDIDO, COPIAR PARA O CANDIDATO
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL: GESTÃO DE EQUIPE (DETALHAMENTO) */}
+      <AnimatePresence>
+        {isTeamManagementOpen && selectedManagingTeam && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[120] bg-zinc-950/95 backdrop-blur-xl p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 40 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 40 }}
+              className="bg-white w-full max-w-4xl rounded-[3rem] overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]"
+            >
+              <button 
+                onClick={() => {
+                  setIsTeamManagementOpen(false);
+                  setSelectedManagingTeam(null);
+                  setManagingTeamVoters([]);
+                }} 
+                className="absolute top-8 right-8 bg-zinc-100 p-3 rounded-full text-zinc-500 hover:bg-zinc-200 transition-all z-10"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="bg-zinc-950 p-10 border-b-8 border-yellow-500 text-left">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                  <div className="flex items-center gap-6">
+                    <div className="bg-yellow-500 text-zinc-950 w-20 h-20 rounded-3xl flex items-center justify-center font-black text-3xl shadow-lg shadow-yellow-500/20">
+                      {selectedManagingTeam.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h2 className="text-4xl font-black text-white tracking-tighter uppercase leading-none mb-2">{selectedManagingTeam.name}</h2>
+                      <div className="flex items-center gap-4 text-zinc-400 font-bold uppercase text-[10px] tracking-widest">
+                         <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {selectedManagingTeam.location}</span>
+                         <span className="bg-zinc-800 px-2 py-0.5 rounded text-green-400">Ativa</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                     <button 
+                       onClick={() => handleEditTeam(selectedManagingTeam)}
+                       className="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-zinc-700 hover:bg-zinc-700 shadow-lg"
+                     >
+                       Editar Equipe
+                     </button>
+                     <button 
+                       onClick={() => handleDeleteTeam(selectedManagingTeam.id || selectedManagingTeam.name.toLowerCase(), selectedManagingTeam.name)}
+                       className="bg-red-950/30 text-red-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-red-900/20 hover:bg-red-900/40"
+                     >
+                       Excluir Equipe
+                     </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-10">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                  <div className="lg:col-span-1 space-y-8">
+                     <div className="bg-zinc-50 p-6 rounded-[2rem] border-2 border-zinc-100">
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4">Líder e Contato</p>
+                        <div className="flex items-center gap-4 mb-6">
+                           <div className="bg-zinc-200 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-zinc-600">
+                              {selectedManagingTeam.leader.charAt(0).toUpperCase()}
+                           </div>
+                           <div className="text-left font-sans">
+                              <p className="font-black text-zinc-900 leading-none mb-1 uppercase tracking-tight">{selectedManagingTeam.leader}</p>
+                              <button 
+                                onClick={() => window.open(`https://wa.me/55${selectedManagingTeam.leaderPhone?.replace(/\D/g, '')}`, '_blank')}
+                                className="text-blue-600 text-xs font-black flex items-center gap-1 hover:underline"
+                              >
+                                {selectedManagingTeam.leaderPhone} <Phone className="w-3 h-3" />
+                              </button>
+                           </div>
+                        </div>
+                        <div className="space-y-4 pt-4 border-t border-zinc-200 font-sans">
+                           <div className="flex justify-between items-center text-left">
+                              <span className="text-[10px] font-bold text-zinc-400 uppercase">E-mail de Acesso</span>
+                              <span className="text-xs font-black text-zinc-600 break-all ml-4 line-clamp-1">{selectedManagingTeam.leaderEmail}</span>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-4 font-sans">
+                        <div className="bg-green-50 p-6 rounded-3xl border border-green-100 text-center">
+                           <p className="text-2xl font-black text-green-700 leading-none">{managingTeamVoters.length}</p>
+                           <p className="text-[8px] font-black text-green-600 uppercase tracking-widest mt-2">Membros</p>
+                        </div>
+                        <div className="bg-zinc-900 p-6 rounded-3xl text-center">
+                           <p className="text-2xl font-black text-yellow-500 leading-none">ATIVO</p>
+                           <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mt-2">Status</p>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="lg:col-span-2 text-left font-sans">
+                     <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-xl font-black text-zinc-950 uppercase tracking-tighter flex items-center gap-3">
+                           Membros Cadastrados <span className="bg-zinc-100 text-zinc-400 px-3 py-1 rounded-full text-xs">{managingTeamVoters.length}</span>
+                        </h3>
+                     </div>
+
+                     <div className="space-y-3">
+                        {managingTeamVoters.length > 0 ? (
+                          managingTeamVoters.sort((a,b) => a.name.localeCompare(b.name)).map((vx) => (
+                           <div key={vx.id} className="group bg-white p-5 rounded-3xl border-2 border-zinc-100 hover:border-yellow-500 transition-all flex items-center justify-between shadow-sm">
+                              <div className="flex items-center gap-4">
+                                 <div className="bg-zinc-100 group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg">
+                                    {vx.name.charAt(0).toUpperCase()}
+                                 </div>
+                                 <div>
+                                    <p className="font-black text-zinc-950 text-base uppercase tracking-tight leading-none mb-1">{vx.name}</p>
+                                    <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">{vx.phone} • {vx.address}</p>
+                                 </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                 <button 
+                                   onClick={() => {
+                                      const cleanPhone = vx.phone.replace(/\D/g, '');
+                                      window.open(`https://wa.me/55${cleanPhone}`, '_blank');
+                                   }}
+                                   className="p-3 bg-zinc-50 rounded-xl text-zinc-400 hover:text-green-600 hover:bg-green-50 transition-all"
+                                 >
+                                    <Phone className="w-4 h-4" />
+                                 </button>
+                                 <button 
+                                   onClick={() => {
+                                      setVoterEditForm({
+                                        name: vx.name,
+                                        phone: vx.phone,
+                                        address: vx.address,
+                                        observations: vx.observations || ''
+                                      });
+                                      setSelectedVoter(vx);
+                                      setIsVoterEditModalOpen(true);
+                                   }}
+                                   className="p-3 bg-zinc-50 rounded-xl text-zinc-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                                 >
+                                    <Edit3 className="w-4 h-4" />
+                                 </button>
+                                 <button 
+                                   onClick={async () => {
+                                      if(window.confirm(`Remover o eleitor ${vx.name}?`)) {
+                                         await firestoreService.deleteDocument('voters', vx.id);
+                                      }
+                                   }}
+                                   className="p-3 bg-zinc-50 rounded-xl text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                                 >
+                                    <Trash2 className="w-4 h-4" />
+                                 </button>
+                              </div>
+                           </div>
+                        ))) : (
+                           <div className="py-20 text-center bg-zinc-50 rounded-[3rem] border-2 border-dashed border-zinc-200">
+                              <p className="font-black text-zinc-300 uppercase tracking-widest italic">Nenhum eleitor registrado por este líder ainda.</p>
+                           </div>
+                        )}
+                     </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL: EDITAR ELEITOR (COORDENADOR) */}
+      <AnimatePresence>
+        {isVoterEditModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[140] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+            >
+              <button 
+                onClick={() => {
+                   setIsVoterEditModalOpen(false);
+                   setSelectedVoter(null);
+                }} 
+                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 transition-all"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <div className="bg-zinc-950 p-8 border-b-4 border-yellow-500 text-left">
+                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">
+                  Editar Eleitor
+                </h2>
+                <p className="text-zinc-400 text-xs font-bold mt-2 uppercase tracking-widest">Base de dados da equipe {selectedManagingTeam?.name}</p>
+              </div>
+              <form onSubmit={handleVoterEditSubmit} className="p-8 space-y-4 text-left">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
+                  <input required type="text" value={voterEditForm.name} onChange={e => setVoterEditForm({...voterEditForm, name: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="Digite o nome..." />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Telefone / WhatsApp</label>
+                  <input type="text" value={voterEditForm.phone} onChange={e => setVoterEditForm({...voterEditForm, phone: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="(00) 00000-0000" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Endereço / Referência</label>
+                  <input type="text" value={voterEditForm.address} onChange={e => setVoterEditForm({...voterEditForm, address: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="Rua, Bairro, N..." />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Observações Estratégicas</label>
+                  <textarea value={voterEditForm.observations} onChange={e => setVoterEditForm({...voterEditForm, observations: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold h-24" placeholder="Ex: Prioritário, transporte necessário..."></textarea>
+                </div>
+                
+                <button type="submit" className="w-full bg-zinc-950 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-zinc-200 mt-4 active:scale-95 transition-all">
+                  SALVAR ALTERAÇÕES
+                </button>
+              </form>
             </motion.div>
           </motion.div>
         )}
