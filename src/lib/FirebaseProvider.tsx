@@ -15,10 +15,12 @@ interface AuthContextType {
   user: User | null;
   role: 'coordenador' | 'lider' | null;
   loading: boolean;
+  forcePasswordChange: boolean;
   login: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   signupWithEmail: (email: string, pass: string, role: 'coordenador' | 'lider') => Promise<void>;
   logout: () => Promise<void>;
+  changePassword: (newPass: string) => Promise<void>;
   isAdmin: boolean;
 }
 
@@ -29,6 +31,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<'coordenador' | 'lider' | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [forcePasswordChange, setForcePasswordChange] = useState(false);
 
   useEffect(() => {
     let unsubProfile: (() => void) | null = null;
@@ -65,10 +68,12 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
           if (snapshot.exists()) {
             const data = snapshot.data();
             setRole(data.role);
+            setForcePasswordChange(!!data.forcePasswordChange);
             setIsAdmin(data.role === 'coordenador' || currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com");
           } else if (currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com") {
             setIsAdmin(true);
             setRole('coordenador');
+            setForcePasswordChange(false);
           }
           setLoading(false);
         }, (err) => {
@@ -78,6 +83,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
       } else {
         setRole(null);
         setIsAdmin(false);
+        setForcePasswordChange(false);
         setLoading(false);
       }
     });
@@ -99,14 +105,19 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithEmail = async (email: string, pass: string) => {
     try {
-      await signInWithEmailAndPassword(auth, email, pass);
-    } catch (error) {
+      const res = await signInWithEmailAndPassword(auth, email, pass);
+      // Check if user has forcePasswordChange
+      const userDoc = await getDoc(doc(db, 'users', res.user.uid));
+      if (userDoc.exists() && userDoc.data().forcePasswordChange) {
+        // We'll handle this in the App component by checking the role and this flag
+      }
+    } catch (error: any) {
       console.error("Email login failed:", error);
       throw error;
     }
   };
 
-  const signupWithEmail = async (email: string, pass: string, userRole: 'coordenador' | 'lider') => {
+  const signupWithEmail = async (email: string, pass: string, userRole: 'coordenador' | 'lider', extraData?: any) => {
     try {
       const res = await createUserWithEmailAndPassword(auth, email, pass);
       if (res.user) {
@@ -114,7 +125,8 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
         await setDoc(doc(db, 'users', res.user.uid), {
           email: email,
           role: userRole,
-          createdAt: Date.now()
+          createdAt: Date.now(),
+          ...extraData
         });
       }
     } catch (error) {
@@ -131,8 +143,25 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const changePassword = async (newPass: string) => {
+    if (!auth.currentUser) throw new Error("Usuário não autenticado");
+    try {
+      // Re-import dynamic correctly or assume it's exposed
+      const { updatePassword } = await import('firebase/auth');
+      await updatePassword(auth.currentUser, newPass);
+      
+      // Clear flag in Firestore
+      await setDoc(doc(db, 'users', auth.currentUser.uid), {
+        forcePasswordChange: false
+      }, { merge: true });
+    } catch (error) {
+      console.error("Password change failed:", error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, role, loading, login, loginWithEmail, signupWithEmail, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, role, loading, login, loginWithEmail, signupWithEmail, logout, isAdmin, forcePasswordChange, changePassword }}>
       {(!loading || user) ? children : (
         <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-8">
            <div className="w-16 h-16 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mb-4"></div>

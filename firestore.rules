@@ -1,10 +1,51 @@
 rules_version = '2';
-// DEPLOY_TIMESTAMP: 2026-05-12T16:44:00Z
 service cloud.firestore {
   match /databases/{database}/documents {
-    // LIBERAÇÃO ABSOLUTA - TESTE DE EMERGÊNCIA
+    
+    // Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() { 
+      return isSignedIn() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coordenador' ||
+        request.auth.token.email.lower() == 'sergiosilvabezerra@gmail.com'
+      );
+    }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+
+    // Users
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    // Pre-registrations (for leader setup)
+    match /pre_registrations/{email} {
+      allow read: if true; // Needed for the signup flow before auth
+      allow write: if isAdmin();
+    }
+
+    // Teams
+    match /teams/{teamId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Voters
+    match /voters/{voterId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.createdBy == request.auth.uid);
+    }
+
+    // Other collections (Urgencies, Agendas, etc)
+    match /urgencies/{id} { allow read, write: if isSignedIn(); }
+    match /agenda/{id} { allow read, write: if isSignedIn(); }
+    match /finance/{id} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    match /offline_actions/{id} { allow read, write: if isSignedIn(); }
+
+    // Default deny
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if isSignedIn() || isAdmin();
     }
   }
 }

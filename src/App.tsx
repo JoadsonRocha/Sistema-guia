@@ -69,9 +69,14 @@ function CoordinatorDashboard() {
 
   // Modal State for New Team
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+  const [teamCreationStep, setTeamCreationStep] = useState<'form' | 'success'>('form');
+  const [createdTeamLink, setCreatedTeamLink] = useState('');
   const [newTeam, setNewTeam] = useState({
     name: '',
     leader: '',
+    leaderEmail: '',
+    leaderPhone: '',
+    leaderAddress: '',
     location: '',
     status: 'OK',
     contacts: 0,
@@ -186,20 +191,33 @@ function CoordinatorDashboard() {
     
     try {
       const teamId = newTeam.name.replace(/\s/g, '_').toLowerCase();
-      await firestoreService.setDocument('teams', teamId, newTeam);
-      setIsTeamModalOpen(false);
-      setNewTeam({
-        name: '',
-        leader: '',
-        location: '',
-        status: 'OK',
-        contacts: 0,
-        fuel: 0,
-        demands: 0,
-        allocated: 0,
-        spent: 0
+      const defaultPassword = 'aguia' + Math.floor(1000 + Math.random() * 9000);
+      
+      // 1. Criar a equipe no Firestore
+      await firestoreService.setDocument('teams', teamId, {
+        ...newTeam,
+        createdAt: Date.now()
       });
-      alert("Equipe criada com sucesso!");
+
+      // 2. Criar pré-registro para o líder
+      await firestoreService.setDocument('pre_registrations', newTeam.leaderEmail.toLowerCase(), {
+        email: newTeam.leaderEmail.toLowerCase(),
+        name: newTeam.leader,
+        phone: newTeam.leaderPhone,
+        address: newTeam.leaderAddress,
+        teamName: newTeam.name,
+        teamId: teamId,
+        location: newTeam.location,
+        tempPassword: defaultPassword,
+        role: 'lider',
+        createdAt: Date.now()
+      });
+      
+      const accessLink = `${window.location.origin}/?email=${encodeURIComponent(newTeam.leaderEmail)}&pass=${defaultPassword}`;
+      setCreatedTeamLink(accessLink);
+      setTeamCreationStep('success');
+      
+      alert("Equipe e acesso do líder criados com sucesso!");
     } catch (err: any) {
       alert("Erro ao criar equipe: " + err.message);
     }
@@ -443,29 +461,31 @@ function CoordinatorDashboard() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 flex-1 md:ml-12">
-                    <div>
-                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Contatos</p>
-                      <p className="text-2xl font-black text-zinc-900 tracking-tighter">{team.contacts}</p>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 flex-1 md:ml-12 text-left">
+                      <div>
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Contatos</p>
+                        <p className="text-2xl font-black text-zinc-900 tracking-tighter">{team.contacts || 0}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Performance</p>
+                        <p className="text-2xl font-black text-green-600 tracking-tighter">
+                          {Math.min(100, Math.round(((team.contacts || 0) / 100) * 100))}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Pendências</p>
+                        <p className={`text-2xl font-black tracking-tighter ${team.demands > 0 ? 'text-red-600' : 'text-green-500'}`}>{team.demands || 0}</p>
+                      </div>
+                      <div className="hidden lg:block">
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest" >Status</p>
+                        <span className={`inline-block mt-1 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
+                          team.status === 'OK' ? 'bg-green-500 text-white' : 
+                          team.status === 'ALERTA' ? 'bg-yellow-500 text-white' : 'bg-red-600 text-white'
+                        }`}>
+                          {team.status}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Autonomia</p>
-                      <p className="text-2xl font-black text-blue-600 tracking-tighter">{team.fuel}L</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Pendências</p>
-                      <p className={`text-2xl font-black tracking-tighter ${team.demands > 0 ? 'text-red-600' : 'text-green-500'}`}>{team.demands}</p>
-                    </div>
-                    <div className="hidden lg:block">
-                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest" >Status</p>
-                      <span className={`inline-block mt-1 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
-                        team.status === 'OK' ? 'bg-green-500 text-white' : 
-                        team.status === 'ALERTA' ? 'bg-yellow-500 text-white' : 'bg-red-600 text-white'
-                      }`}>
-                        {team.status}
-                      </span>
-                    </div>
-                  </div>
 
                   <div className="flex flex-col gap-2 mt-4 md:mt-0">
                     <div className="flex gap-2">
@@ -799,32 +819,40 @@ function CoordinatorDashboard() {
               className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative"
             >
               <button 
-                onClick={() => setIsTeamModalOpen(false)}
+                onClick={() => {
+                  setIsTeamModalOpen(false);
+                  setTeamCreationStep('form');
+                }}
                 className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200"
               >
                 <X className="w-6 h-6" />
               </button>
 
-              <div className="bg-zinc-950 p-6 border-b-4 border-yellow-500">
-                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">Cadastrar Equipe Regional</h2>
-                <p className="text-zinc-400 text-xs font-bold mt-2 uppercase tracking-widest">Defina o líder e a base estratégica</p>
+              <div className="bg-zinc-950 p-6 border-b-4 border-yellow-500 text-left">
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
+                  {teamCreationStep === 'form' ? 'Cadastrar Equipe Regional' : 'Equipe Criada com Sucesso'}
+                </h2>
+                <p className="text-zinc-400 text-xs font-bold mt-2 uppercase tracking-widest">
+                  {teamCreationStep === 'form' ? 'Defina o líder e a base estratégica' : 'Link de acesso gerado para o líder'}
+                </p>
               </div>
 
-              <form onSubmit={handleCreateTeam} className="p-6 space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome da Equipe</label>
-                  <input 
-                    required
-                    type="text" 
-                    value={newTeam.name}
-                    onChange={(e) => setNewTeam({...newTeam, name: e.target.value})}
-                    placeholder="Ex: Equipe Central"
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+              {teamCreationStep === 'form' ? (
+                <form onSubmit={handleCreateTeam} className="p-6 space-y-4 text-left">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Líder Regional</label>
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome da Equipe</label>
+                    <input 
+                      required
+                      type="text" 
+                      value={newTeam.name}
+                      onChange={(e) => setNewTeam({...newTeam, name: e.target.value})}
+                      placeholder="Ex: Equipe Central"
+                      className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                    />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 text-left block">Líder Regional (Nome Completo)</label>
                     <input 
                       required
                       type="text" 
@@ -834,35 +862,113 @@ function CoordinatorDashboard() {
                       className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Localidade / Base</label>
-                    <input 
-                      required
-                      type="text" 
-                      value={newTeam.location}
-                      onChange={(e) => setNewTeam({...newTeam, location: e.target.value})}
-                      placeholder="Ex: Boa Vista"
-                      className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
-                    />
+
+                  <div className="grid grid-cols-2 gap-4 text-left">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">E-mail do Líder</label>
+                      <input 
+                        required
+                        type="email" 
+                        value={newTeam.leaderEmail}
+                        onChange={(e) => setNewTeam({...newTeam, leaderEmail: e.target.value})}
+                        placeholder="lider@exemplo.com"
+                        className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">WhatsApp do Líder</label>
+                      <input 
+                        required
+                        type="tel" 
+                        value={newTeam.leaderPhone}
+                        onChange={(e) => setNewTeam({...newTeam, leaderPhone: e.target.value})}
+                        placeholder="(00) 00000-0000"
+                        className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                      />
+                    </div>
                   </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-left">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Localidade / Base</label>
+                      <input 
+                        required
+                        type="text" 
+                        value={newTeam.location}
+                        onChange={(e) => setNewTeam({...newTeam, location: e.target.value})}
+                        placeholder="Ex: Boa Vista"
+                        className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Endereço do Líder</label>
+                      <input 
+                        required
+                        type="text" 
+                        value={newTeam.leaderAddress}
+                        onChange={(e) => setNewTeam({...newTeam, leaderAddress: e.target.value})}
+                        placeholder="Rua, Bairro..."
+                        className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                      />
+                    </div>
+                  </div>
+                  
+                  <button 
+                    type="submit"
+                    className="w-full bg-zinc-950 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-zinc-200 border-b-4 border-zinc-800 active:border-b-0 active:translate-y-1 transition-all mt-4"
+                  >
+                    SALVAR EQUIPE ESTRATÉGICA
+                  </button>
+                </form>
+              ) : (
+                <div className="p-8 space-y-6 text-center">
+                  <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-green-50">
+                    <CheckCircle2 className="w-10 h-10" />
+                  </div>
+                  <h3 className="text-xl font-black text-zinc-900 uppercase leading-tight">Credenciais Geradas!</h3>
+                  <p className="text-zinc-500 text-sm font-bold">
+                    Copie o link abaixo e envie para o Líder {newTeam.leader}. Este link contém o acesso direto ao sistema.
+                  </p>
+                  
+                  <div className="bg-zinc-50 p-4 rounded-2xl border-2 border-zinc-100 break-all text-xs font-mono font-bold text-blue-600 select-all">
+                    {createdTeamLink}
+                  </div>
+
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(createdTeamLink);
+                      alert("Link copiado!");
+                    }}
+                    className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-100 border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all"
+                  >
+                    Copiar Link de Acesso
+                  </button>
+                  
+                  <button 
+                    onClick={() => {
+                      setIsTeamModalOpen(false);
+                      setTeamCreationStep('form');
+                      setNewTeam({
+                        name: '',
+                        leader: '',
+                        leaderEmail: '',
+                        leaderPhone: '',
+                        leaderAddress: '',
+                        location: '',
+                        status: 'OK',
+                        contacts: 0,
+                        fuel: 0,
+                        demands: 0,
+                        allocated: 0,
+                        spent: 0
+                      });
+                    }}
+                    className="w-full bg-zinc-100 text-zinc-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest"
+                  >
+                    Fechar e Voltar
+                  </button>
                 </div>
-                <div className="space-y-1 pt-2">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Cota Inicial de Combustível (L)</label>
-                  <input 
-                    type="number" 
-                    value={newTeam.fuel}
-                    onChange={(e) => setNewTeam({...newTeam, fuel: parseInt(e.target.value) || 0})}
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
-                  />
-                </div>
-                
-                <button 
-                  type="submit"
-                  className="w-full bg-zinc-950 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-zinc-200 border-b-4 border-zinc-800 active:border-b-0 active:translate-y-1 transition-all mt-4"
-                >
-                  SALVAR EQUIPE ESTRATÉGICA
-                </button>
-              </form>
+              )}
             </motion.div>
           </motion.div>
         )}
@@ -1691,7 +1797,7 @@ function CaboDashboard() {
 }
 
 export default function App() {
-  const { user, login, loginWithEmail, signupWithEmail, loading, isAdmin } = useAuth();
+  const { user, login, loginWithEmail, signupWithEmail, logout, loading, isAdmin, forcePasswordChange, changePassword } = useAuth();
   const [view, setView] = useState<'coord' | 'cabo'>('cabo');
   
   useEffect(() => {
@@ -1705,6 +1811,17 @@ export default function App() {
   const [userRole, setUserRole] = useState<'coordenador' | 'lider'>('lider');
   const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+
+  // Handle URL Params for Easy Access
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const emailParam = params.get('email');
+    const passParam = params.get('pass');
+    if (emailParam) setEmail(emailParam);
+    if (passParam) setPassword(passParam);
+  }, []);
 
   if (loading) {
     return (
@@ -1715,6 +1832,20 @@ export default function App() {
     );
   }
 
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    if (newPassword.length < 6) {
+      return setAuthError('A nova senha deve ter pelo menos 6 caracteres');
+    }
+    try {
+      await changePassword(newPassword);
+      alert("Senha alterada com sucesso!");
+    } catch (err: any) {
+      setAuthError(err.message || 'Erro ao alterar senha');
+    }
+  };
+
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
@@ -1722,12 +1853,83 @@ export default function App() {
       if (isRegistering) {
         await signupWithEmail(email, password, userRole);
       } else {
-        await loginWithEmail(email, password);
+        try {
+          await loginWithEmail(email, password);
+        } catch (err: any) {
+          // Se falhou o login padrão, verificar se é um pré-registro
+          if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || (err.message && err.message.includes('INVALID_LOGIN_CREDENTIALS'))) {
+            const preRegDoc = await firestoreService.getDocument('pre_registrations', email.toLowerCase());
+            
+            if (preRegDoc && preRegDoc.tempPassword === password) {
+              // É um líder com senha temporária! Criar a conta oficial agora.
+              await signupWithEmail(email, password, 'lider', {
+                name: preRegDoc.name,
+                phone: preRegDoc.phone,
+                address: preRegDoc.address,
+                teamName: preRegDoc.teamName,
+                teamId: preRegDoc.teamId,
+                forcePasswordChange: true // Obrigar a trocar a senha
+              });
+              
+              // Deletar o pré-registro após uso
+              // await firestoreService.deleteDocument('pre_registrations', email.toLowerCase()); // Opcional, mantemos por segurança ou logs
+            } else {
+              throw err;
+            }
+          } else {
+            throw err;
+          }
+        }
       }
     } catch (err: any) {
-      setAuthError(err.message || 'Erro na autenticação');
+      setAuthError(err.message || 'Erro na autenticação. Verifique suas credenciais.');
     }
   };
+
+  if (user && forcePasswordChange) {
+    return (
+      <div className="min-h-screen bg-zinc-900 flex flex-col items-center justify-center p-4 text-center selection:bg-yellow-500 selection:text-zinc-950">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }} 
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full bg-zinc-950 p-8 rounded-[2.5rem] shadow-2xl border border-zinc-800 relative"
+        >
+          <Lock className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-black text-white tracking-tighter uppercase leading-none mb-1">Acesso Seguro</h1>
+          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-8">Por segurança, altere sua senha inicial</p>
+          
+          <form onSubmit={handlePasswordChange} className="space-y-4 text-left">
+            <div>
+              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 mb-1 block">Nova Senha Pessoal</label>
+              <input 
+                type="password" 
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                minLength={6}
+                className="w-full bg-zinc-900 border border-zinc-800 text-white p-4 rounded-2xl focus:outline-none focus:border-yellow-500 transition-all font-medium"
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+            {authError && <p className="text-red-500 text-[10px] font-black text-center">{authError}</p>}
+            <button 
+              type="submit"
+              className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl"
+            >
+              DEFINIR NOVA SENHA
+            </button>
+          </form>
+
+          <button 
+            onClick={logout}
+            className="mt-6 text-[10px] font-black text-zinc-600 hover:text-zinc-400 uppercase tracking-widest transition-colors"
+          >
+            Sair do Sistema
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
