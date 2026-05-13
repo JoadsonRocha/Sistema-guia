@@ -35,7 +35,11 @@ import {
   Trash2,
   Edit3,
   Lock,
-  Phone
+  Phone,
+  LayoutDashboard,
+  DollarSign,
+  Briefcase,
+  Target
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { processarCaos, gerarBriefingCandidato } from './services/geminiService';
@@ -64,6 +68,10 @@ function CoordinatorDashboard() {
   const [statsData, setStatsData] = useState<any>(null);
   const [attendance, setAttendance] = useState<any[]>([]);
   const [agendas, setAgendas] = useState<any[]>([]);
+
+  // Profile State
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
   
   const [isTeamManagementOpen, setIsTeamManagementOpen] = useState(false);
   const [selectedManagingTeam, setSelectedManagingTeam] = useState<any>(null);
@@ -74,6 +82,10 @@ function CoordinatorDashboard() {
 
   // Briefing State
   const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [selectedHistoryTeam, setSelectedHistoryTeam] = useState<any>(null);
+  const [teamHistory, setTeamHistory] = useState<any[]>([]);
+  
   const [briefingResult, setBriefingResult] = useState('');
   const [briefingLoading, setBriefingLoading] = useState(false);
   const [briefingLocation, setBriefingLocation] = useState('');
@@ -102,6 +114,8 @@ function CoordinatorDashboard() {
 
   const [isAgendaCreateModalOpen, setIsAgendaCreateModalOpen] = useState(false);
   const [editingAgenda, setEditingAgenda] = useState<any>(null);
+  const [selectedAgenda, setSelectedAgenda] = useState<any>(null);
+  const [isAgendaDetailModalOpen, setIsAgendaDetailModalOpen] = useState(false);
   const [agendaForm, setAgendaForm] = useState({
     municipio: '',
     data: '',
@@ -147,6 +161,12 @@ function CoordinatorDashboard() {
     const unsubAgendas = firestoreService.subscribeToCollection('agenda', (data) => {
       setAgendas(data);
     });
+
+    const unsubProfile = onSnapshot(doc(db, 'users', user.uid), (snapshot) => {
+      if (snapshot.exists()) {
+        setProfileData(snapshot.data());
+      }
+    });
     
     // Fallback for empty collections
     const checkAndSeed = async () => {
@@ -167,28 +187,32 @@ function CoordinatorDashboard() {
 
   const stats = [
     { 
-      label: 'Combustível Hoje', 
-      value: statsData?.combustivelHoje ? `${Math.round(statsData.combustivelHoje)}L` : '0L', 
-      sub: `Saldo: ${statsData?.combustivelSaldo || '0'}L`, 
-      color: 'text-blue-700' 
+      label: 'Equipes Ativas', 
+      value: teams.length, 
+      sub: 'Gestão de Líderes', 
+      color: 'text-zinc-900',
+      action: () => setActiveTab('teams')
     },
     { 
-      label: 'Contatos Válidos', 
+      label: 'Contatos Base', 
       value: teams.reduce((acc, t) => acc + (t.contacts || 0), 0), 
-      sub: `Meta: ${statsData?.contatosMeta || '500'}`, 
-      color: 'text-green-700' 
+      sub: 'Monitoramento Real', 
+      color: 'text-green-700',
+      action: () => setActiveTab('teams')
     },
     { 
-      label: 'Alertas Ativos', 
-      value: urgencies.filter(u => u.status === 'pendente').length.toString().padStart(2, '0'), 
-      sub: `Críticos: ${urgencies.filter(u => u.type === 'fraude' && u.status === 'pendente').length.toString().padStart(2, '0')}`, 
-      color: 'text-red-600' 
+      label: 'Agenda Pendente', 
+      value: agendas.filter(a => a.status === 'pendente').length, 
+      sub: 'Compromissos Hoje', 
+      color: 'text-blue-600',
+      action: () => setActiveTab('agenda')
     },
     { 
-      label: 'Regionais Online', 
-      value: `${teams.length}/${teams.length}`, 
-      sub: teams.length > 0 ? '100% Ativas' : 'Nenhuma cadastrada', 
-      color: 'text-zinc-900' 
+      label: 'Recursos Totais', 
+      value: `R$ ${teams.reduce((acc, t) => acc + (t.allocated || 0), 0).toLocaleString()}`, 
+      sub: 'Gestão Financeira', 
+      color: 'text-yellow-600',
+      action: () => setActiveTab('finance')
     },
   ];
 
@@ -422,58 +446,81 @@ function CoordinatorDashboard() {
     }
   };
 
+  const handleShowTeamHistory = async (team: any) => {
+    setSelectedHistoryTeam(team);
+    setIsHistoryModalOpen(true);
+    try {
+      const q = query(
+        collection(db, 'transactions'),
+        where('team', '==', team.name),
+        orderBy('date', 'desc'),
+        limit(20)
+      );
+      const snap = await getDocs(q);
+      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setTeamHistory(data);
+    } catch (err) {
+      console.error("Erro ao buscar histórico:", err);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-zinc-950 font-sans pb-24">
-      <header className="sticky top-0 z-50 bg-zinc-950 text-white p-4 shadow-lg border-b-2 border-yellow-500">
-        <div className="max-w-7xl mx-auto w-full flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-black tracking-tighter flex items-center gap-2">
-              <ShieldCheck className="text-yellow-500 w-6 h-6" />
-              SISTEMA ÁGUIA
-            </h1>
-            <p className="text-xs font-medium text-zinc-400">Coordenador: {user?.displayName || 'Convidado'}</p>
+      <header className="bg-zinc-950 border-b-2 border-yellow-500/30 px-6 py-4 flex items-center justify-between shadow-2xl relative z-50">
+        <div className="flex items-center gap-6">
+          <div className="flex flex-col items-start leading-none group cursor-pointer" onClick={() => setIsProfileModalOpen(true)}>
+             <div className="flex items-center gap-3">
+               <div className="bg-yellow-500 p-1.5 rounded-lg">
+                 <ShieldCheck className="w-6 h-6 text-zinc-950" />
+               </div>
+               <h1 className="text-xl font-black text-white tracking-tighter uppercase italic">
+                 SISTEMA ÁGUIA
+               </h1>
+             </div>
+             <span className="text-[10px] font-black text-yellow-500 mt-2 uppercase tracking-[0.2em] opacity-80 group-hover:opacity-100 transition-opacity">
+                 COORDENADOR: {profileData?.name || user?.email?.split('@')[0]}
+             </span>
           </div>
-          <div className="hidden md:flex items-center gap-4">
-            {user ? (
-              <button onClick={logout} className="text-xs bg-zinc-800 hover:bg-red-900 text-zinc-300 p-2 rounded-lg flex items-center gap-2 uppercase font-black transition-all">
-                <LogOut className="w-4 h-4" /> Sair
-              </button>
-            ) : (
-              <button onClick={login} className="text-xs bg-yellow-500 hover:bg-yellow-400 text-zinc-950 px-4 py-2 rounded-lg flex items-center gap-2 uppercase font-black transition-all">
-                <LogIn className="w-4 h-4" /> Entrar
-              </button>
-            )}
-            <nav className="flex items-center gap-1 bg-zinc-900 p-1 rounded-xl">
-              <button 
-                onClick={() => setActiveTab('overview')}
-                className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${activeTab === 'overview' ? 'bg-yellow-500 text-zinc-950' : 'text-zinc-400 hover:text-white'}`}
-              >
-                Visão Geral
-              </button>
-              <button 
-                onClick={() => setActiveTab('teams')}
-                className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${activeTab === 'teams' ? 'bg-yellow-500 text-zinc-950' : 'text-zinc-400 hover:text-white'}`}
-              >
-                Equipes
-              </button>
-              <button 
-                onClick={() => setActiveTab('agenda')}
-                className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${activeTab === 'agenda' ? 'bg-yellow-500 text-zinc-950' : 'text-zinc-400 hover:text-white'}`}
-              >
-                Agenda
-              </button>
-              <button 
-                onClick={() => setActiveTab('finance')}
-                className={`px-4 py-2 rounded-lg text-xs font-black uppercase transition-all ${activeTab === 'finance' ? 'bg-yellow-500 text-zinc-950' : 'text-zinc-400 hover:text-white'}`}
-              >
-                Financeiro
-              </button>
-            </nav>
+        </div>
+
+        <nav className="hidden lg:flex items-center gap-2 bg-zinc-900 p-1.5 rounded-2xl border border-zinc-800">
+          {[
+            { id: 'overview', label: 'Visão Geral', icon: <LayoutDashboard className="w-4 h-4" /> },
+            { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
+            { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
+            { id: 'finance', label: 'Financeiro', icon: <DollarSign className="w-4 h-4" /> }
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id as any)}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                activeTab === item.id 
+                ? 'bg-yellow-500 text-zinc-950 shadow-lg shadow-yellow-500/20' 
+                : 'text-zinc-500 hover:text-white hover:bg-zinc-800'
+              }`}
+            >
+              {item.icon} {item.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20">
+             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+             <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">AO VIVO</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1 bg-zinc-800 rounded-full border border-zinc-700">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span className="text-[10px] font-bold uppercase tracking-widest">Ao Vivo</span>
-          </div>
+          <button 
+            onClick={() => setIsProfileModalOpen(true)}
+            className="p-2.5 rounded-xl bg-zinc-900 text-zinc-400 hover:text-yellow-500 border border-zinc-800 transition-all"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+          <button 
+            onClick={logout}
+            className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-4 py-2.5 rounded-xl text-xs font-black text-white uppercase tracking-widest hover:bg-zinc-800 transition-all"
+          >
+            <LogOut className="w-4 h-4" /> SAIR
+          </button>
         </div>
       </header>
 
@@ -517,11 +564,15 @@ function CoordinatorDashboard() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
-                  className="bg-white p-4 lg:p-6 rounded-xl border-2 border-zinc-200 shadow-sm"
+                  onClick={stat.action}
+                  className="bg-white p-4 lg:p-6 rounded-[2rem] border-2 border-zinc-100 shadow-sm hover:border-yellow-500 hover:shadow-xl transition-all cursor-pointer group"
                 >
-                  <p className="text-[10px] lg:text-xs font-black text-zinc-500 uppercase">{stat.label}</p>
-                  <p className={`text-2xl lg:text-3xl font-black ${stat.color}`}>{stat.value}</p>
-                  <p className="text-[10px] font-medium text-zinc-400 mt-1">{stat.sub}</p>
+                  <p className="text-[10px] lg:text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 flex items-center justify-between">
+                    {stat.label}
+                    <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </p>
+                  <p className={`text-2xl lg:text-4xl font-black tracking-tighter ${stat.color}`}>{stat.value}</p>
+                  <p className="text-[10px] font-bold text-zinc-500 mt-2 uppercase tracking-tight">{stat.sub}</p>
                 </motion.div>
               ))}
             </section>
@@ -694,7 +745,12 @@ function CoordinatorDashboard() {
                        </button>
                     </div>
                     <div className="flex gap-2">
-                      <button className="flex-1 md:flex-none bg-zinc-100 text-zinc-600 px-6 py-3 rounded-xl font-black text-xs uppercase hover:bg-zinc-200 transition-colors">Histórico</button>
+                      <button 
+                         onClick={() => handleShowTeamHistory(team)}
+                         className="flex-1 md:flex-none bg-zinc-100 text-zinc-600 px-6 py-3 rounded-xl font-black text-xs uppercase hover:bg-zinc-200 transition-colors"
+                      >
+                         Histórico
+                      </button>
                       <button 
                         onClick={() => handleManualCheckin(team.id || team.name.toLowerCase(), team.leader)}
                         className="flex-1 md:flex-none bg-yellow-100 text-yellow-700 px-6 py-3 rounded-xl font-black text-xs uppercase hover:bg-yellow-200 transition-colors flex items-center gap-2"
@@ -812,33 +868,30 @@ function CoordinatorDashboard() {
               </h3>
               <div className="grid grid-cols-1 gap-4">
                 {agendas.filter(a => a.status === 'confirmado').sort((a, b) => new Date(`${a.data}T${a.hora_inicio}`).getTime() - new Date(`${b.data}T${b.hora_inicio}`).getTime()).map(item => (
-                  <div key={item.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 group">
+                  <div 
+                    key={item.id} 
+                    onClick={() => {
+                      setSelectedAgenda(item);
+                      setIsAgendaDetailModalOpen(true);
+                    }}
+                    className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 group cursor-pointer hover:border-yellow-500 transition-all"
+                  >
                     <div className="flex items-center gap-6">
-                      <div className="bg-zinc-800 p-4 rounded-2xl border border-zinc-700 flex flex-col items-center min-w-[70px]">
-                        <span className="text-[10px] font-black uppercase text-zinc-500">{new Date(item.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
-                        <span className="text-2xl font-black text-white">{new Date(item.data).getDate() + 1}</span>
+                      <div className="bg-zinc-800 p-4 rounded-2xl border border-zinc-700 flex flex-col items-center min-w-[70px] group-hover:bg-yellow-500/10 group-hover:border-yellow-500/30 transition-all text-center">
+                        <span className="text-[10px] font-black uppercase text-zinc-500 group-hover:text-yellow-500 transition-colors">{new Date(item.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
+                        <span className="text-2xl font-black text-white group-hover:text-yellow-500 transition-colors">{new Date(item.data).getDate()}</span>
                       </div>
                       <div className="text-left">
-                        <h4 className="text-xl font-black uppercase text-yellow-500">{item.municipio}</h4>
-                        <div className="flex items-center gap-4 text-xs font-bold text-zinc-400 mt-1 uppercase">
-                          <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-zinc-500" /> {item.hora_inicio} - {item.hora_fim}</span>
-                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-zinc-500" /> {item.motivo || 'Agenda confirmada'}</span>
+                        <h4 className="text-xl font-black uppercase text-white group-hover:text-yellow-500 transition-colors">{item.municipio}</h4>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-black text-zinc-500 mt-2 uppercase tracking-widest">
+                          <span className="flex items-center gap-1.5"><Clock className="w-3 h-3" /> {item.hora_inicio} - {item.hora_fim}</span>
+                          <span className="flex items-center gap-1.5"><Users className="w-3 h-3" /> Equipe: {item.sugeridoPor}</span>
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
-                        onClick={() => handleEditAgenda(item)}
-                        className="p-3 bg-zinc-800 text-zinc-400 rounded-xl hover:bg-zinc-700 transition-all"
-                      >
-                        <Edit3 className="w-5 h-5" />
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteAgenda(item.id)}
-                        className="p-3 bg-red-900/30 text-red-500 rounded-xl hover:bg-red-900/50 transition-all"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                    <div className="flex gap-2">
+                       <button onClick={(e) => { e.stopPropagation(); handleEditAgenda(item); }} className="p-3 bg-zinc-800 text-zinc-500 hover:text-white rounded-xl transition-all"><Edit3 className="w-4 h-4" /></button>
+                       <button onClick={(e) => { e.stopPropagation(); handleDeleteAgenda(item.id); }} className="p-3 bg-zinc-800 text-zinc-500 hover:text-red-500 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </div>
                 ))}
@@ -1594,6 +1647,228 @@ function CoordinatorDashboard() {
                   SALVAR ALTERAÇÕES
                 </button>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isProfileModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[160] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+            >
+              <button 
+                onClick={() => setIsProfileModalOpen(false)} 
+                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 z-10"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <div className="bg-zinc-950 p-10 border-b-4 border-yellow-500 text-left">
+                <div className="flex items-center gap-6">
+                   <div className="relative group">
+                      <div className="w-20 h-20 bg-zinc-800 rounded-3xl flex items-center justify-center border-2 border-zinc-700 overflow-hidden">
+                         {profileData?.photoUrl ? (
+                           <img src={profileData.photoUrl} alt="Perfil" className="w-full h-full object-cover" />
+                         ) : (
+                           <User className="w-10 h-10 text-zinc-600" />
+                         )}
+                      </div>
+                      <button className="absolute -bottom-2 -right-2 bg-yellow-500 p-2 rounded-xl text-zinc-950 shadow-lg hover:scale-110 transition-all">
+                         <Camera className="w-4 h-4" />
+                      </button>
+                   </div>
+                   <div>
+                      <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">
+                        Meu Perfil
+                      </h2>
+                      <p className="text-yellow-500 text-[10px] font-black mt-2 uppercase tracking-widest">Acesso de Coordenação Geral</p>
+                   </div>
+                </div>
+              </div>
+              <form 
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  const updates = {
+                    name: formData.get('name') as string,
+                    phone: formData.get('phone') as string,
+                    bio: formData.get('bio') as string,
+                    updatedAt: Date.now()
+                  };
+                  try {
+                    await firestoreService.setDocument('users', user?.uid || '', updates, true);
+                    setIsProfileModalOpen(false);
+                    alert("Perfil atualizado com sucesso!");
+                  } catch (err: any) {
+                    alert("Erro ao atualizar perfil: " + err.message);
+                  }
+                }} 
+                className="p-10 space-y-4 text-left font-sans"
+              >
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
+                  <input defaultValue={profileData?.name} name="name" type="text" className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="Seu nome real..." />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Telefone Profissional</label>
+                  <input defaultValue={profileData?.phone} name="phone" type="text" className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="(00) 00000-0000" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Cargo / Biografia</label>
+                  <textarea defaultValue={profileData?.bio} name="bio" className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold h-24" placeholder="Ex: Coordenador de Logística e Transmissão..."></textarea>
+                </div>
+                
+                <button type="submit" className="w-full bg-zinc-950 text-white py-5 rounded-3xl font-black text-lg shadow-xl shadow-zinc-200 mt-4 active:scale-95 transition-all">
+                  SALVAR CONFIGURAÇÕES
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isAgendaDetailModalOpen && selectedAgenda && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[260] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+            >
+              <button 
+                onClick={() => setIsAgendaDetailModalOpen(false)}
+                className="absolute top-8 right-8 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="bg-zinc-950 p-12 text-left">
+                <div className="flex items-center gap-6">
+                   <div className="w-20 h-20 bg-yellow-500 rounded-3xl flex flex-col items-center justify-center text-zinc-950 text-center">
+                      <span className="text-[10px] font-black uppercase leading-none">{new Date(selectedAgenda.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
+                      <span className="text-3xl font-black">{new Date(selectedAgenda.data).getDate()}</span>
+                   </div>
+                   <div>
+                      <h2 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">
+                        Compromisso Oficial
+                      </h2>
+                      <p className="text-yellow-500 text-xs font-black mt-2 uppercase tracking-widest">{selectedAgenda.municipio}</p>
+                   </div>
+                </div>
+              </div>
+
+              <div className="p-12 space-y-8 text-left">
+                <div className="grid grid-cols-2 gap-8">
+                   <div className="space-y-1">
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Horário</p>
+                      <p className="text-lg font-black text-zinc-900">{selectedAgenda.hora_inicio} às {selectedAgenda.hora_fim}</p>
+                   </div>
+                   <div className="space-y-1">
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Equipe Responsável</p>
+                      <p className="text-lg font-black text-zinc-900">{selectedAgenda.sugeridoPor}</p>
+                   </div>
+                </div>
+
+                <div className="bg-zinc-50 p-8 rounded-3xl border-2 border-zinc-100">
+                   <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Objetivo Estratégico</p>
+                   <p className="text-xl font-bold text-zinc-700 leading-relaxed italic">
+                      "{selectedAgenda.motivo || 'Nenhum motivo detalhado informado.'}"
+                   </p>
+                </div>
+
+                <div className="flex items-center gap-4 pt-4">
+                   <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl flex items-center gap-3 flex-1 border border-blue-100">
+                      <Users className="w-6 h-6" />
+                      <div>
+                         <p className="text-[10px] font-black uppercase tracking-tighter">Mobilização</p>
+                         <p className="text-sm font-bold">Equipe e Membros</p>
+                      </div>
+                   </div>
+                   <div className="p-4 bg-green-50 text-green-600 rounded-2xl flex items-center gap-3 flex-1 border border-green-100">
+                      <CheckCircle2 className="w-6 h-6" />
+                      <div>
+                         <p className="text-[10px] font-black uppercase tracking-tighter">Status</p>
+                         <p className="text-sm font-bold">Agenda Confirmada</p>
+                      </div>
+                   </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isHistoryModalOpen && selectedHistoryTeam && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[260] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+            >
+              <button 
+                onClick={() => setIsHistoryModalOpen(false)}
+                className="absolute top-8 right-8 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="bg-zinc-950 p-10 border-b-4 border-yellow-500 text-left">
+                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">
+                  Histórico Estratégico
+                </h2>
+                <p className="text-yellow-500 text-xs font-black mt-2 uppercase tracking-widest">Equipe: {selectedHistoryTeam.name}</p>
+              </div>
+
+              <div className="p-10 space-y-6 text-left max-h-[60vh] overflow-y-auto">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                   <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                      <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Contatos</p>
+                      <p className="text-xl font-black">{selectedHistoryTeam.contacts || 0}</p>
+                   </div>
+                   <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                      <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest text-center">Alocado</p>
+                      <p className="text-xl font-black text-blue-600">R$ {selectedHistoryTeam.allocated || 0}</p>
+                   </div>
+                   <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                      <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest text-center">Gasto</p>
+                      <p className="text-xl font-black text-red-600">R$ {selectedHistoryTeam.spent || 0}</p>
+                   </div>
+                   <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                      <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest text-center">Ponto</p>
+                      <p className="text-sm font-black text-green-600">OK (98%)</p>
+                   </div>
+                </div>
+
+                <div className="space-y-3">
+                   <h3 className="text-xs font-black uppercase text-zinc-400 tracking-widest">Últimas Movimentações Financeiras</h3>
+                   {teamHistory.length > 0 ? teamHistory.map((tx: any) => (
+                     <div key={tx.id} className="p-4 bg-white border border-zinc-100 rounded-xl flex justify-between items-center shadow-sm">
+                        <div className="text-left">
+                           <p className="text-sm font-black uppercase text-zinc-800">{tx.description || 'Movimentação sem descrição'}</p>
+                           <p className="text-[10px] text-zinc-500 italic">{tx.purpose || 'Uso operacional'}</p>
+                        </div>
+                        <div className="text-right">
+                           <p className={`font-black text-sm ${tx.type === 'alocacao' ? 'text-blue-600' : 'text-red-600'}`}>
+                             {tx.type === 'alocacao' ? '+' : '-'} R$ {tx.amount?.toLocaleString()}
+                           </p>
+                           <p className="text-[9px] text-zinc-400">{new Date(tx.date).toLocaleDateString()}</p>
+                        </div>
+                     </div>
+                   )) : (
+                     <p className="text-center py-10 text-zinc-400 text-[10px] font-black uppercase italic">Nenhuma movimentação para esta equipe.</p>
+                   )}
+                </div>
+              </div>
             </motion.div>
           </motion.div>
         )}
