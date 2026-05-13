@@ -40,7 +40,7 @@ import { processarCaos, gerarBriefingCandidato } from './services/geminiService'
 import FinanceDashboard from './components/FinanceDashboard';
 import { useAuth } from './lib/FirebaseProvider';
 import { firestoreService } from './lib/firestoreService';
-import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
+import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, getDoc } from 'firebase/firestore';
 import { db, auth } from './lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from './lib/agendaLogic';
 
@@ -1165,24 +1165,25 @@ function CaboDashboard() {
     zone: ''
   });
 
-  // Sincronizar Perfil com Firestore
+  const [teamData, setTeamData] = useState<any>(null);
+
+  // Sincronizar Perfil e Time com Firestore
   useEffect(() => {
     if (user) {
-      console.log("Iniciando escuta do perfil para:", user.uid);
-      const unsubProfile = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
+      const unsubProfile = onSnapshot(doc(db, 'users', user.uid), async (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
-          console.log("Dados do perfil recebidos:", data);
           setProfileData({
             name: data.name || user.displayName || '',
-            zone: data.zone || data.team || ''
+            zone: data.teamName || data.zone || data.team || ''
           });
-        } else {
-          console.log("Perfil não encontrado no Firestore, usando dados do Auth");
-          setProfileData(prev => ({
-            ...prev,
-            name: prev.name || user.displayName || ''
-          }));
+          
+          if (data.teamId) {
+            const teamSnap = await getDoc(doc(db, 'teams', data.teamId));
+            if (teamSnap.exists()) {
+              setTeamData({ ...teamSnap.data(), id: teamSnap.id });
+            }
+          }
         }
       }, (error) => {
         console.error("Erro ao escutar perfil:", error);
@@ -1440,6 +1441,20 @@ function CaboDashboard() {
             )}
 
             {/* GRID DE BOTÕES GIGANTES - RESPONSIVO (2 colunas mobile, 4 colunas desktop) */}
+            {teamData?.observations && (
+              <section className="bg-yellow-50 border-2 border-yellow-200 rounded-3xl p-6 shadow-sm mb-6 text-left relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <StickyNote className="w-16 h-16 text-yellow-600 rotate-12" />
+                </div>
+                <h3 className="text-yellow-800 font-black text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2">
+                  <StickyNote className="w-4 h-4" /> Orientações da Coordenação
+                </h3>
+                <p className="text-yellow-900 font-bold text-sm leading-relaxed whitespace-pre-wrap">
+                  {teamData.observations}
+                </p>
+              </section>
+            )}
+
             <section className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
               <motion.button 
                 whileTap={{ scale: 0.95 }}
@@ -1879,7 +1894,7 @@ export default function App() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [userRole, setUserRole] = useState<'coordenador' | 'lider'>('lider');
+  const [userRole, setUserRole] = useState<'coordenador' | 'lider'>('coordenador');
   const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState('');
   const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -2020,21 +2035,10 @@ export default function App() {
           
           <form onSubmit={handleEmailAuth} className="space-y-4 text-left relative z-10">
             {isRegistering && (
-              <div className="flex gap-2 p-1 bg-zinc-900 rounded-2xl border border-zinc-800 mb-4">
-                <button 
-                  type="button"
-                  onClick={() => setUserRole('coordenador')}
-                  className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${userRole === 'coordenador' ? 'bg-yellow-500 text-zinc-950 shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
-                >
-                  Coordenador
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => setUserRole('lider')}
-                  className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${userRole === 'lider' ? 'bg-yellow-500 text-zinc-950 shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
-                >
-                  Líder Equipe
-                </button>
+              <div className="bg-zinc-900/50 p-1 rounded-2xl flex mb-6 border border-zinc-800">
+                <div className="flex-1 py-3 rounded-xl font-black text-[10px] tracking-widest bg-yellow-500 text-zinc-950 shadow-lg text-center uppercase">
+                  Somente Coordenador
+                </div>
               </div>
             )}
             <div>
