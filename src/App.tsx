@@ -1941,6 +1941,8 @@ function CaboDashboard() {
   const [isSignReceiptModalOpen, setIsSignReceiptModalOpen] = useState(false);
   const [selectedTxToSign, setSelectedTxToSign] = useState<any>(null);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [isExpenseVoucherModalOpen, setIsExpenseVoucherModalOpen] = useState(false);
+  const [selectedExpenseForVoucher, setSelectedExpenseForVoucher] = useState<any>(null);
   const [expenseForm, setExpenseForm] = useState({ amount: '', description: '', purpose: '' });
   
   const [isVoterModalOpen, setIsVoterModalOpen] = useState(false);
@@ -1974,12 +1976,15 @@ function CaboDashboard() {
   // Sincronizar Perfil, Time e Eleitores com Firestore
   useEffect(() => {
     if (user) {
+      let unsubTx: (() => void) | null = null;
+      
       const unsubProfile = onSnapshot(doc(db, 'users', user.uid), async (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
+          const teamName = data.teamName || data.zone || data.team || '';
           setProfileData({
             name: data.name || user.displayName || '',
-            zone: data.teamName || data.zone || data.team || ''
+            zone: teamName
           });
           
           if (data.teamId) {
@@ -1987,6 +1992,18 @@ function CaboDashboard() {
             if (teamSnap.exists()) {
               setTeamData({ ...teamSnap.data(), id: teamSnap.id });
             }
+          }
+
+          // Subscribe to transactions whenever team info is available
+          if (teamName) {
+            if (unsubTx) unsubTx();
+            const txQuery = query(collection(db, 'transactions'), where('team', '==', teamName));
+            unsubTx = onSnapshot(txQuery, (snapshot) => {
+              const txs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+              setTeamTransactions(txs.sort((a, b) => (b.date || 0) - (a.date || 0)));
+            }, (err) => {
+              console.error("Erro ao escutar transações da equipe:", err);
+            });
           }
         }
       }, (error) => {
@@ -2009,28 +2026,11 @@ function CaboDashboard() {
         console.error("Erro ao escutar agendas do líder:", err);
       });
 
-      // Subscribe to team transactions
-      if (profileData.zone || (user as any).team) {
-        const teamName = profileData.zone || (user as any).team;
-        const txQuery = query(collection(db, 'transactions'), where('team', '==', teamName));
-        const unsubTx = onSnapshot(txQuery, (snapshot) => {
-          const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setTeamTransactions(data.sort((a, b) => b.date - a.date));
-        }, (err) => {
-          console.error("Erro ao escutar transações da equipe:", err);
-        });
-        return () => {
-          unsubProfile();
-          unsubVoters();
-          unsubAgendas();
-          unsubTx();
-        };
-      }
-
       return () => {
         unsubProfile();
         unsubVoters();
         unsubAgendas();
+        if (unsubTx) unsubTx();
       };
     }
   }, [user]);
@@ -2666,13 +2666,21 @@ function CaboDashboard() {
                 </div>
                 <div className="space-y-3">
                   {teamTransactions.filter(t => t.type === 'gasto').length > 0 ? teamTransactions.filter(t => t.type === 'gasto').map(tx => (
-                    <div key={tx.id} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex justify-between items-center">
+                    <div 
+                      key={tx.id} 
+                      onClick={() => {
+                        setSelectedExpenseForVoucher(tx);
+                        setIsExpenseVoucherModalOpen(true);
+                      }}
+                      className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex justify-between items-center cursor-pointer hover:bg-zinc-100 transition-all border-l-4 border-l-red-500"
+                    >
                       <div className="text-left">
                         <p className="font-black text-sm uppercase text-zinc-800">{tx.description}</p>
                         <p className="text-[10px] text-zinc-500 font-bold italic">{new Date(tx.date).toLocaleDateString()}</p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right flex items-center gap-3">
                         <p className="font-black text-red-600 text-sm">- R$ {tx.amount.toLocaleString()}</p>
+                        <FileText className="w-4 h-4 text-zinc-300" />
                       </div>
                     </div>
                   )) : (
@@ -2996,6 +3004,79 @@ function CaboDashboard() {
                 </div>
                 <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-5 rounded-2xl font-black text-lg shadow-xl shadow-yellow-100 border-b-4 border-yellow-700 active:border-b-0 active:translate-y-1 transition-all mt-4">ENVIAR DEMANDA AO COORDENADOR</button>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL: COMPROVANTE DE GASTO (VOUCHER) */}
+      <AnimatePresence>
+        {isExpenseVoucherModalOpen && selectedExpenseForVoucher && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-zinc-950/95 backdrop-blur-xl p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
+              className="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl relative p-12 text-zinc-950"
+            >
+              <button 
+                onClick={() => setIsExpenseVoucherModalOpen(false)}
+                className="absolute top-8 right-8 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 print:hidden"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="border-4 border-red-100 p-8 rounded-[2rem] space-y-8 relative">
+                <div className="flex justify-between items-start">
+                   <div className="flex items-center gap-3">
+                      <div className="bg-red-600 p-2 rounded-lg"><DollarSign className="text-white w-6 h-6" /></div>
+                      <div>
+                        <h3 className="font-black text-xl leading-none">VOUCHER DE DESPESA</h3>
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comprovante de Saída de Recurso</p>
+                      </div>
+                   </div>
+                   <div className="text-right">
+                      <p className="text-[10px] font-black text-zinc-400 uppercase">Token</p>
+                      <p className="font-mono text-sm font-bold uppercase">{selectedExpenseForVoucher.id.split('_').pop()}</p>
+                   </div>
+                </div>
+
+                <div className="space-y-6">
+                   <div className="bg-zinc-50 p-6 rounded-2xl border-2 border-zinc-100">
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Detalhes do Gasto</p>
+                      <div className="flex justify-between items-end">
+                         <div>
+                            <p className="text-2xl font-black">{selectedExpenseForVoucher.description}</p>
+                            <p className="text-xs font-bold text-zinc-500 italic mt-1">Finalidade: {selectedExpenseForVoucher.purpose}</p>
+                            <p className="text-[10px] font-black text-zinc-400 uppercase mt-4">Data/Hora: {new Date(selectedExpenseForVoucher.date).toLocaleString('pt-BR')}</p>
+                         </div>
+                         <div className="text-right">
+                            <p className="text-3xl font-black text-red-600">R$ {selectedExpenseForVoucher.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                         </div>
+                      </div>
+                   </div>
+
+                   <div className="bg-zinc-50 p-6 rounded-2xl border-2 border-zinc-100">
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Equipe Responsável</p>
+                      <p className="text-lg font-black">{selectedExpenseForVoucher.team}</p>
+                      <p className="text-xs font-bold text-zinc-500">Líder: {profileData.name}</p>
+                   </div>
+
+                   <p className="text-[10px] font-medium leading-relaxed text-zinc-400 text-center uppercase tracking-widest pt-8">
+                      Documento gerado eletronicamente através do Sistema Águia
+                   </p>
+                </div>
+              </div>
+
+              <div className="mt-8 flex justify-end gap-3 print:hidden">
+                 <button 
+                   onClick={() => window.print()}
+                   className="flex items-center gap-2 bg-zinc-950 text-white px-8 py-4 rounded-2xl font-black text-sm uppercase hover:bg-zinc-800 transition-all shadow-xl shadow-zinc-200"
+                 >
+                   <Printer className="w-5 h-5" /> Imprimir / Salvar PDF
+                 </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
