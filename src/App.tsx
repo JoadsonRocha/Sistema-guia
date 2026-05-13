@@ -33,7 +33,8 @@ import {
   FileText,
   GanttChart,
   Trash2,
-  Edit3
+  Edit3,
+  Lock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { processarCaos, gerarBriefingCandidato } from './services/geminiService';
@@ -252,6 +253,7 @@ function CoordinatorDashboard() {
       // 1. Criar/Atualizar a equipe no Firestore
       await firestoreService.setDocument('teams', teamId, {
         ...newTeam,
+        tempPassword: isEditMode ? (newTeam as any).tempPassword : defaultPassword, // Manter ou criar senha
         updatedAt: Date.now(),
         createdAt: isEditMode ? (newTeam as any).createdAt : Date.now()
       });
@@ -271,7 +273,7 @@ function CoordinatorDashboard() {
           createdAt: Date.now()
         });
         
-        const accessLink = `${window.location.origin}/?email=${encodeURIComponent(newTeam.leaderEmail)}&pass=${defaultPassword}`;
+        const accessLink = `${window.location.origin}/?email=${encodeURIComponent(newTeam.leaderEmail)}&access_token=${btoa(defaultPassword)}`;
         setCreatedTeamLink(accessLink);
         setTeamCreationStep('success');
       } else {
@@ -285,6 +287,14 @@ function CoordinatorDashboard() {
     } catch (err: any) {
       alert("Erro ao processar equipe: " + err.message);
     }
+  };
+
+  const handleCopyAccessLink = (team: any) => {
+    const email = team.leaderEmail;
+    const pass = team.tempPassword || 'aguia1234'; 
+    const link = `${window.location.origin}/?email=${encodeURIComponent(email)}&access_token=${btoa(pass)}`;
+    navigator.clipboard.writeText(link);
+    alert(`Link de acesso copiado para ${team.leader}!\nEnvie via WhatsApp.`);
   };
 
   const handleEditTeam = (team: any) => {
@@ -605,6 +615,13 @@ function CoordinatorDashboard() {
 
                   <div className="flex flex-col gap-2 mt-4 md:mt-0">
                     <div className="flex gap-2">
+                       <button 
+                         onClick={() => handleCopyAccessLink(team)}
+                         className="flex-1 md:flex-none bg-blue-50 text-blue-600 p-3 rounded-xl hover:bg-blue-100 transition-colors"
+                         title="Copiar Link de Acesso"
+                       >
+                         <LogIn className="w-4 h-4" />
+                       </button>
                        <button 
                          onClick={() => handleEditTeam(team)}
                          className="flex-1 md:flex-none bg-zinc-100 text-zinc-600 p-3 rounded-xl hover:bg-zinc-200 transition-colors"
@@ -2121,10 +2138,30 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get('email');
-    const passParam = params.get('pass');
-    if (emailParam) setEmail(emailParam);
-    if (passParam) setPassword(passParam);
-  }, []);
+    const tokenParam = params.get('access_token');
+    
+    if (emailParam) {
+      // Se já houver alguém logado e for outro e-mail, forçar logout para o líder entrar
+      if (user && user.email !== emailParam) {
+        logout();
+      }
+      setEmail(emailParam);
+    }
+    
+    if (tokenParam) {
+      try {
+        const decodedPass = atob(tokenParam);
+        setPassword(decodedPass);
+      } catch (e) {
+        console.error("Token inválido");
+      }
+    }
+
+    if (emailParam || tokenParam) {
+       // Limpar URL para não ficar poluído
+       window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [user]);
 
   if (loading) {
     return (

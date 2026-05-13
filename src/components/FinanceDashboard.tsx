@@ -270,7 +270,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
       )}
 
       {/* CARDS SUPERIORES - VISÃO GERAL */}
-      <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2 ${isNested ? '' : 'px-4 md:px-8 max-w-7xl mx-auto'}`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-2 ${isNested ? '' : 'px-4 md:px-8 max-w-7xl mx-auto'}`}>
         <div className="bg-zinc-900 text-white p-6 rounded-2xl border border-zinc-800 shadow-xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <TrendingUp className="w-20 h-20" />
@@ -299,14 +299,24 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
             </div>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border-2 border-zinc-200 shadow-sm">
+
+        <div className="bg-white p-4 rounded-2xl border-2 border-zinc-200 shadow-sm flex flex-col justify-center">
           <p className="text-[10px] font-black text-zinc-500 uppercase flex items-center gap-1">
             <Plus className="w-3 h-3 text-blue-500" /> Total Alocado (Fatiado)
           </p>
           <p className="text-xl font-black text-zinc-900 mt-1">{fmt.format(totalAllocated)}</p>
           <p className="text-[10px] text-zinc-400 mt-1">Recursos distribuídos entre {teams.length} equipes.</p>
         </div>
-        <div className="bg-zinc-950 p-4 rounded-2xl border-4 border-green-500 relative overflow-hidden shadow-2xl">
+
+        <div className="bg-white p-4 rounded-2xl border-2 border-zinc-200 shadow-sm flex flex-col justify-center">
+          <p className="text-[10px] font-black text-zinc-500 uppercase flex items-center gap-1">
+            <ArrowDownRight className="w-3 h-3 text-red-500" /> Total Executado (Saídas)
+          </p>
+          <p className="text-xl font-black text-red-600 mt-1">{fmt.format(teams.reduce((acc, t) => acc + (t.spent || 0), 0))}</p>
+          <p className="text-[10px] text-zinc-400 mt-1">Gastos reais computados em campo.</p>
+        </div>
+
+        <div className="bg-zinc-950 p-4 rounded-2xl border-4 border-green-500 relative overflow-hidden shadow-2xl flex flex-col justify-center">
           <div className="absolute -right-2 -top-2 opacity-10"><Wallet className="w-16 h-16 text-white" /></div>
           <p className="text-[10px] font-black text-green-500 uppercase">Saldo Livre (Em Caixa)</p>
           <p className="text-2xl font-black text-white mt-1">{fmt.format(freeBalance)}</p>
