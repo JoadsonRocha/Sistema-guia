@@ -253,9 +253,9 @@ function CoordinatorDashboard() {
       // 1. Criar/Atualizar a equipe no Firestore
       await firestoreService.setDocument('teams', teamId, {
         ...newTeam,
-        tempPassword: isEditMode ? (newTeam as any).tempPassword : defaultPassword, // Manter ou criar senha
+        tempPassword: isEditMode ? ((newTeam as any).tempPassword || defaultPassword) : defaultPassword, // Manter ou criar senha
         updatedAt: Date.now(),
-        createdAt: isEditMode ? (newTeam as any).createdAt : Date.now()
+        createdAt: isEditMode ? ((newTeam as any).createdAt || Date.now()) : Date.now()
       });
 
       if (!isEditMode) {
@@ -299,6 +299,7 @@ function CoordinatorDashboard() {
 
   const handleEditTeam = (team: any) => {
     setNewTeam({
+      ...team,
       name: team.name,
       leader: team.leader,
       leaderEmail: team.leaderEmail || '',
