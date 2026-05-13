@@ -18,6 +18,8 @@ import {
   X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { onSnapshot, doc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { firestoreService } from '../lib/firestoreService';
 import { useAuth } from '../lib/FirebaseProvider';
 
@@ -54,32 +56,33 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
     
     // Subscribe to teams and transactions
     const unsubTeams = firestoreService.subscribeToCollection('teams', (data: any[]) => {
-       // Filter or map if necessary
        setTeams(data as TeamFinance[]);
     });
 
     let unsubTransactions = () => {};
     if (isAdmin) {
       unsubTransactions = firestoreService.subscribeToCollection('transactions', (data: any[]) => {
-        // Sort by date desc
         const sorted = [...data].sort((a, b) => b.date - a.date);
         setTransactions(sorted as Transaction[]);
       });
     }
 
-    const fetchGlobalStats = async () => {
-      const stats = await firestoreService.getDocument('stats', 'global') as any;
-      if (stats && stats.totalFunded) {
-        setTotalFunded(stats.totalFunded);
+    // Subscribe to global stats for totalFunded
+    const unsubStats = onSnapshot(doc(db, 'stats', 'global'), (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data.totalFunded !== undefined) {
+          setTotalFunded(data.totalFunded);
+        }
       }
-    };
-    fetchGlobalStats();
+    });
 
     return () => {
       unsubTeams();
       if (unsubTransactions) unsubTransactions();
+      unsubStats();
     };
-  }, [user]);
+  }, [user, isAdmin]);
 
   // Form states
   const [allocAmount, setAllocAmount] = useState('');
@@ -115,11 +118,12 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
     setTotalFunded(newTotal);
     
     // Update global stats
-    await firestoreService.updateDocument('stats', 'global', { totalFunded: newTotal });
+    await firestoreService.setDocument('stats', 'global', { totalFunded: newTotal }, true);
 
     // Create transaction
-    const txId = Math.random().toString(36).substr(2, 9);
+    const txId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
     await firestoreService.setDocument('transactions', txId, {
+      id: txId,
       type: 'entrada',
       amount: val,
       description: 'Nova Arrecadação / Fundo',
@@ -145,8 +149,9 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
       allocated: team.allocated + val
     });
 
-    const txId = Math.random().toString(36).substr(2, 9);
+    const txId = `tx_alloc_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
     await firestoreService.setDocument('transactions', txId, {
+      id: txId,
       type: 'alocacao',
       amount: val,
       team: selectedTeam,
@@ -155,6 +160,35 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
     });
     
     setAllocAmount('');
+  };
+
+  const zerarFinanceiro = async () => {
+    if (!isAdmin) return;
+    if (window.confirm("CUIDADO: Deseja realmente ZERAR todo o financeiro? Isso apagará arrecadações, alocações e transações para começar do zero com dados REAIS.")) {
+      try {
+        await firestoreService.setDocument('stats', 'global', { 
+           totalFunded: 0,
+           combustivelHoje: 0,
+           combustivelSaldo: 0
+        }, true);
+        
+        // Limpar transações
+        const txs = await firestoreService.getCollection<any>('transactions');
+        await Promise.all(txs.map(tx => firestoreService.deleteDocument('transactions', tx.id)));
+        
+        // Resetar equipes
+        await Promise.all(teams.map(team => 
+          firestoreService.updateDocument('teams', team.id || team.name.replace(/\s/g, '_').toLowerCase(), {
+            allocated: 0,
+            spent: 0
+          })
+        ));
+        
+        alert("Financeiro limpo com sucesso! Pronto para inserção de dados reais.");
+      } catch (err: any) {
+        alert("Erro ao limpar dados: " + err.message);
+      }
+    }
   };
 
   const handleRegistrarGasto = async (e: React.FormEvent) => {
@@ -217,9 +251,19 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
               <PiggyBank className="text-green-500 w-8 h-8" />
               CAIXA FORTE <span className="text-xs bg-zinc-800 text-zinc-400 px-2 py-1 rounded hidden sm:inline">BLOCO 3.2</span>
             </h1>
-            <div className="bg-zinc-800 p-2 rounded-lg text-right">
-               <p className="text-[10px] font-black text-zinc-400 uppercase leading-none">Status de Auditoria</p>
-               <p className="text-[10px] text-green-400 font-bold">CONCILIADO</p>
+            <div className="flex items-center gap-3">
+              {isAdmin && (
+                <button 
+                  onClick={zerarFinanceiro}
+                  className="bg-red-900/20 text-red-500 border border-red-900/30 px-3 py-1 rounded-lg text-[10px] font-black hover:bg-red-900/40 transition-all uppercase"
+                >
+                  Zerar Financeiro
+                </button>
+              )}
+              <div className="bg-zinc-800 p-2 rounded-lg text-right">
+                 <p className="text-[10px] font-black text-zinc-400 uppercase leading-none">Status de Auditoria</p>
+                 <p className="text-[10px] text-green-400 font-bold">CONCILIADO</p>
+              </div>
             </div>
           </div>
         </header>
@@ -227,20 +271,32 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
 
       {/* CARDS SUPERIORES - VISÃO GERAL */}
       <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2 ${isNested ? '' : 'px-4 md:px-8 max-w-7xl mx-auto'}`}>
-        <div className="bg-zinc-900 text-white p-4 rounded-2xl border border-zinc-800 shadow-xl">
+        <div className="bg-zinc-900 text-white p-6 rounded-2xl border border-zinc-800 shadow-xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+            <TrendingUp className="w-20 h-20" />
+          </div>
           <p className="text-[10px] font-black text-zinc-500 uppercase flex items-center gap-1">
-            <TrendingUp className="w-3 h-3 text-green-500" /> Total Arrecadado
+            <TrendingUp className="w-3 h-3 text-green-500" /> Total Arrecadado (Real)
           </p>
-          <p className="text-xl font-black text-white mt-1">{fmt.format(totalFunded)}</p>
-          <div className="mt-4 flex gap-2">
-            <input 
-              type="number" 
-              value={fundAmount}
-              onChange={(e) => setFundAmount(e.target.value)}
-              placeholder="Adicionar Fundo"
-              className="bg-zinc-800 text-xs p-2 rounded-lg w-full outline-none focus:ring-1 ring-green-500"
-            />
-            <button onClick={adicionarFundos} className="bg-green-600 p-2 rounded-lg"><Plus className="w-4 h-4" /></button>
+          <p className="text-2xl font-black text-white mt-1">{fmt.format(totalFunded)}</p>
+          <div className="mt-6 space-y-2">
+            <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Lançar Nova Entrada / Recurso</label>
+            <div className="flex gap-2">
+              <input 
+                type="number" 
+                value={fundAmount}
+                onChange={(e) => setFundAmount(e.target.value)}
+                placeholder="R$ 0,00"
+                className="bg-zinc-800 text-sm font-bold p-3 rounded-xl w-full outline-none focus:ring-2 ring-green-500 border border-zinc-700"
+              />
+              <button 
+                onClick={adicionarFundos} 
+                className="bg-green-600 hover:bg-green-500 p-3 rounded-xl shadow-lg shadow-green-900/20 transition-all"
+                title="Confirmar Entrada"
+              >
+                <Plus className="w-6 h-6 text-white" />
+              </button>
+            </div>
           </div>
         </div>
         <div className="bg-white p-4 rounded-2xl border-2 border-zinc-200 shadow-sm">
