@@ -316,24 +316,26 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
       
       {/* HEADER FINANCEIRO (ONLY IF NOT NESTED) */}
       {!isNested && (
-        <header className="bg-zinc-950 text-white p-6 shadow-xl border-b-4 border-green-500 sticky top-0 z-50">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-black tracking-tighter flex items-center gap-2">
-              <PiggyBank className="text-green-500 w-8 h-8" />
-              CAIXA FORTE <span className="text-xs bg-zinc-800 text-zinc-400 px-2 py-1 rounded hidden sm:inline">BLOCO 3.2</span>
+        <header className="bg-neutral-950/80 backdrop-blur-xl border-b border-white/5 p-6 sticky top-0 z-50">
+          <div className="flex justify-between items-center max-w-7xl mx-auto">
+            <h1 className="text-2xl font-black italic tracking-tighter flex items-center gap-3 text-white">
+              <div className="bg-yellow-500 p-2 rounded-xl shadow-[0_0_20px_rgba(234,179,8,0.2)]">
+                <ShieldCheck className="text-black w-6 h-6" />
+              </div>
+              FINANCEIRO <span className="text-[9px] bg-white/5 text-zinc-500 px-2 py-1 rounded border border-white/5 not-italic tracking-widest font-black ml-2 mt-1">SECURE BLOCK 3.2</span>
             </h1>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               {isAdmin && (
                 <button 
                   onClick={zerarFinanceiro}
-                  className="bg-red-900/20 text-red-500 border border-red-900/30 px-3 py-1 rounded-lg text-[10px] font-black hover:bg-red-900/40 transition-all uppercase"
+                  className="bg-red-500/10 text-red-500 border border-red-500/20 px-4 py-2 rounded-xl text-[10px] font-black hover:bg-red-500 transition-all uppercase tracking-widest hover:text-white"
                 >
-                  Zerar Financeiro
+                  Hard Reset
                 </button>
               )}
-              <div className="bg-zinc-800 p-2 rounded-lg text-right">
-                 <p className="text-[10px] font-black text-zinc-400 uppercase leading-none">Status de Auditoria</p>
-                 <p className="text-[10px] text-green-400 font-bold">CONCILIADO</p>
+              <div className="bg-white/5 px-4 py-2 rounded-xl border border-white/5 text-right">
+                 <p className="text-[9px] font-black text-zinc-500 uppercase leading-none tracking-widest mb-1">AUDIT LINK</p>
+                 <p className="text-[10px] text-green-500 font-black uppercase tracking-widest">ACTIVE / VERIFIED</p>
               </div>
             </div>
           </div>
@@ -341,100 +343,110 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
       )}
 
       {/* CARDS SUPERIORES - VISÃO GERAL */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-2 ${isNested ? '' : 'px-4 md:px-8 max-w-7xl mx-auto'}`}>
-        <div className="bg-zinc-900 text-white p-6 rounded-2xl border border-zinc-800 shadow-xl relative overflow-hidden group">
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-2 ${isNested ? '' : 'px-4 md:px-8 max-w-7xl mx-auto pt-6'}`}>
+        <div className="bg-neutral-900 text-white p-6 rounded-2xl border border-white/5 shadow-xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <TrendingUp className="w-20 h-20" />
           </div>
-          <p className="text-[10px] font-black text-zinc-500 uppercase flex items-center gap-1">
-            <TrendingUp className="w-3 h-3 text-green-500" /> Arrecadação Real (Entradas)
+          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+            <TrendingUp className="w-3 h-3 text-green-500" /> Arrecadação Total
           </p>
-          <p className="text-2xl font-black text-white mt-1">{fmt.format(totalFunded)}</p>
-          <div className="mt-6">
+          <p className="text-3xl font-black text-white mt-4 font-mono tracking-tighter">{fmt.format(totalFunded)}</p>
+          <div className="mt-8">
             <button 
               onClick={() => {
                 setIncomeData({ amount: '', origin: '', description: '', id: '' });
                 setIsIncomeModalOpen(true);
               }} 
-              className="w-full bg-green-600 hover:bg-green-500 p-4 rounded-xl shadow-lg shadow-green-900/20 transition-all font-black text-xs uppercase flex items-center justify-center gap-2"
+              className="w-full bg-yellow-500 text-black p-4 rounded-xl shadow-lg shadow-yellow-500/10 transition-all font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 border-b-4 border-yellow-700 active:border-b-0 active:translate-y-1"
             >
-              <Plus className="w-5 h-5" /> Nova Entrada
+              <Plus className="w-5 h-5" /> Injetar Recurso
             </button>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border-2 border-zinc-200 shadow-sm flex flex-col justify-center">
-          <p className="text-[10px] font-black text-zinc-500 uppercase flex items-center gap-1">
-            <Plus className="w-3 h-3 text-blue-500" /> Total Alocado (Fatiado)
+        <div className="bg-neutral-900 p-6 rounded-2xl border border-white/5 shadow-sm flex flex-col justify-center relative overflow-hidden group">
+          <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-all">
+            <Users className="w-24 h-24 text-blue-500" />
+          </div>
+          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+            <Plus className="w-3 h-3 text-blue-500" /> Total Alocado
           </p>
-          <p className="text-xl font-black text-zinc-900 mt-1">{fmt.format(totalAllocated)}</p>
-          <p className="text-[10px] text-zinc-400 mt-1">Recursos distribuídos entre {teams.length} equipes.</p>
+          <p className="text-2xl font-black text-white mt-4 font-mono">{fmt.format(totalAllocated)}</p>
+          <p className="text-[9px] text-zinc-500 mt-4 uppercase font-bold tracking-widest">Distributed across {teams.length} teams</p>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border-2 border-zinc-200 shadow-sm flex flex-col justify-center">
-          <p className="text-[10px] font-black text-zinc-500 uppercase flex items-center gap-1">
-            <ArrowDownRight className="w-3 h-3 text-red-500" /> Total Executado (Saídas)
+        <div className="bg-neutral-900 p-6 rounded-2xl border border-white/5 shadow-sm flex flex-col justify-center relative overflow-hidden group">
+          <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-all text-red-500">
+             <ArrowDownRight className="w-24 h-24" />
+          </div>
+          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+            <ArrowDownRight className="w-3 h-3 text-red-500" /> Total Executado
           </p>
-          <p className="text-xl font-black text-red-600 mt-1">{fmt.format(teams.reduce((acc, t) => acc + (t.spent || 0), 0))}</p>
-          <p className="text-[10px] text-zinc-400 mt-1">Gastos reais computados em campo.</p>
+          <p className="text-2xl font-black text-red-500 mt-4 font-mono">{fmt.format(teams.reduce((acc, t) => acc + (t.spent || 0), 0))}</p>
+          <p className="text-[9px] text-zinc-500 mt-4 uppercase font-bold tracking-widest">Real-world spending logged</p>
         </div>
 
-        <div className="bg-zinc-950 p-4 rounded-2xl border-4 border-green-500 relative overflow-hidden shadow-2xl flex flex-col justify-center">
-          <div className="absolute -right-2 -top-2 opacity-10"><Wallet className="w-16 h-16 text-white" /></div>
-          <p className="text-[10px] font-black text-green-500 uppercase">Saldo Livre (Em Caixa)</p>
-          <p className="text-2xl font-black text-white mt-1">{fmt.format(freeBalance)}</p>
-          <p className="text-[10px] text-zinc-400 mt-1 uppercase tracking-widest font-black flex items-center gap-1">
-            <ShieldCheck className="w-3 h-3" /> Blindado
+        <div className="bg-neutral-950 p-6 rounded-2xl border-2 border-yellow-500 relative overflow-hidden shadow-2xl flex flex-col justify-center">
+          <div className="absolute -right-2 -top-2 opacity-5"><Wallet className="w-16 h-16 text-white" /></div>
+          <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest">Saldo Livre (Vault)</p>
+          <p className="text-3xl font-black text-white mt-4 font-mono tracking-tighter">{fmt.format(freeBalance)}</p>
+          <p className="text-[9px] text-zinc-500 mt-4 uppercase tracking-widest font-black flex items-center gap-2">
+            <ShieldCheck className="w-3 h-3 text-green-500" /> Encryption: AES-256
           </p>
         </div>
       </div>
 
-      <div className={`mt-6 ${isNested ? '' : 'p-4 md:p-8 max-w-7xl mx-auto'}`}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className={`mt-8 ${isNested ? '' : 'p-4 md:p-8 max-w-7xl mx-auto'}`}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* MÓDULO DE FATIAMENTO E EQUIPES (ESQUERDA - 2 COLUNAS) */}
-          <div className="lg:col-span-2 space-y-6">
-            <section className="bg-white border-2 border-zinc-200 rounded-3xl p-6 shadow-sm">
-              <h2 className="text-lg font-black uppercase text-zinc-800 mb-4 flex items-center gap-2">
-                <ArrowUpRight className="text-blue-600" /> Fatiamento de Recursos
+          <div className="lg:col-span-2 space-y-8">
+            <section className="bg-neutral-900 border border-white/5 rounded-3xl p-8 shadow-xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-8 opacity-5">
+                <ArrowUpRight className="w-32 h-32" />
+              </div>
+              <h2 className="text-xl font-black italic uppercase text-white mb-6 flex items-center gap-3 tracking-tighter">
+                <div className="bg-blue-500/20 p-2 rounded-lg"><ArrowUpRight className="text-blue-500 w-5 h-5" /></div>
+                Transferência de Recursos <span className="text-[9px] bg-white/5 text-zinc-500 px-2 py-1 rounded not-italic ml-2 tracking-widest font-black uppercase">NODE: ASSET_DIST</span>
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase ml-1">Equipe Regional</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Equipe Regional</label>
                   <select 
                     value={selectedTeam}
                     onChange={(e) => setSelectedTeam(e.target.value)}
-                    className="w-full bg-zinc-100 border-2 border-zinc-200 rounded-xl p-3 font-bold text-sm outline-none focus:border-blue-500"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl p-4 font-bold text-sm text-white outline-none focus:border-yellow-500 transition-all"
                   >
                     <option value="">Selecione...</option>
                     {teams.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
                   </select>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase ml-1">Finalidade</label>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Finalidade</label>
                   <input 
                     type="text" 
                     value={allocPurpose}
                     onChange={(e) => setAllocPurpose(e.target.value)}
-                    placeholder="Ex: Evento Comício"
-                    className="w-full bg-zinc-100 border-2 border-zinc-200 rounded-xl p-3 font-bold text-sm outline-none focus:border-blue-500"
+                    placeholder="Ex: Operação Centro"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl p-4 font-bold text-sm text-white outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-700"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase ml-1">Valor (R$)</label>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Valor Unitário</label>
                   <input 
                     type="number" 
                     value={allocAmount}
                     onChange={(e) => setAllocAmount(e.target.value)}
-                    placeholder="0,00"
-                    className="w-full bg-zinc-100 border-2 border-zinc-200 rounded-xl p-3 font-bold text-sm outline-none focus:border-blue-500"
+                    placeholder="0.00"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl p-4 font-bold text-sm text-white outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-700 font-mono"
                   />
                 </div>
                 <div className="flex items-end">
                   <button 
                     onClick={alocarParaEquipe}
-                    className="w-full bg-blue-600 text-white p-3 py-4 rounded-xl font-black text-xs uppercase shadow-lg border-b-4 border-blue-800 active:border-b-0 active:translate-y-1"
+                    className="w-full bg-yellow-500 text-black py-4 rounded-xl font-black text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(234,179,8,0.1)] hover:bg-white transition-all border-b-4 border-yellow-700 active:border-b-0 active:translate-y-1"
                   >
-                    Transferir e Gerar Recibo
+                    Transmitir Recurso
                   </button>
                 </div>
               </div>

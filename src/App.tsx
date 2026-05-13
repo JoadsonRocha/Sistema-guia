@@ -469,8 +469,8 @@ function CoordinatorDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-zinc-950 font-sans pb-24">
-      <header className="bg-zinc-950 border-b-2 border-yellow-500/30 px-6 py-4 flex items-center justify-between shadow-2xl relative z-50">
+    <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans pb-24">
+      <header className="sticky top-0 bg-neutral-950/80 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between z-50">
         <div className="flex items-center gap-6">
           <div className="flex flex-col items-start leading-none group cursor-pointer" onClick={() => setIsProfileModalOpen(true)}>
              <div className="flex items-center gap-3">
@@ -487,9 +487,9 @@ function CoordinatorDashboard() {
           </div>
         </div>
 
-        <nav className="hidden lg:flex items-center gap-2 bg-zinc-900 p-1.5 rounded-2xl border border-zinc-800">
+        <nav className="hidden lg:flex items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/5">
           {[
-            { id: 'overview', label: 'Visão Geral', icon: <LayoutDashboard className="w-4 h-4" /> },
+            { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
             { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
             { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
             { id: 'finance', label: 'Financeiro', icon: <DollarSign className="w-4 h-4" /> }
@@ -497,10 +497,10 @@ function CoordinatorDashboard() {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id as any)}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                 activeTab === item.id 
-                ? 'bg-yellow-500 text-zinc-950 shadow-lg shadow-yellow-500/20' 
-                : 'text-zinc-500 hover:text-white hover:bg-zinc-800'
+                ? 'bg-yellow-500 text-black shadow-[0_0_25px_rgba(234,179,8,0.15)] ring-1 ring-yellow-500/50' 
+                : 'text-zinc-500 hover:text-white hover:bg-white/5'
               }`}
             >
               {item.icon} {item.label}
@@ -510,18 +510,18 @@ function CoordinatorDashboard() {
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20">
-             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-             <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">AO VIVO</span>
+             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]"></div>
+             <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">LIVE DATA FEED</span>
           </div>
           <button 
             onClick={() => setIsProfileModalOpen(true)}
-            className="p-2.5 rounded-xl bg-zinc-900 text-zinc-400 hover:text-yellow-500 border border-zinc-800 transition-all"
+            className="p-2.5 rounded-xl bg-white/5 text-zinc-400 hover:text-yellow-500 border border-white/5 transition-all"
           >
             <Settings className="w-5 h-5" />
           </button>
           <button 
             onClick={logout}
-            className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-4 py-2.5 rounded-xl text-xs font-black text-white uppercase tracking-widest hover:bg-zinc-800 transition-all"
+            className="flex items-center gap-2 bg-white/5 border border-white/5 px-4 py-2.5 rounded-xl text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20 transition-all"
           >
             <LogOut className="w-4 h-4" /> SAIR
           </button>
@@ -529,31 +529,21 @@ function CoordinatorDashboard() {
       </header>
 
       {/* MOBILE NAV TABS */}
-      <div className="md:hidden sticky top-[72px] z-40 bg-white border-b border-zinc-200 flex p-2 gap-2 overflow-x-auto no-scrollbar">
-        <button 
-          onClick={() => setActiveTab('overview')}
-          className={`flex-none px-4 py-2 rounded-full text-[10px] font-black uppercase border-2 transition-all ${activeTab === 'overview' ? 'bg-zinc-950 text-white border-zinc-950' : 'bg-zinc-50 text-zinc-400 border-transparent'}`}
-        >
-          Visão Geral
-        </button>
-        <button 
-          onClick={() => setActiveTab('teams')}
-          className={`flex-none px-4 py-2 rounded-full text-[10px] font-black uppercase border-2 transition-all ${activeTab === 'teams' ? 'bg-zinc-950 text-white border-zinc-950' : 'bg-zinc-50 text-zinc-400 border-transparent'}`}
-        >
-          Equipes
-        </button>
-        <button 
-          onClick={() => setActiveTab('agenda')}
-          className={`flex-none px-4 py-2 rounded-full text-[10px] font-black uppercase border-2 transition-all ${activeTab === 'agenda' ? 'bg-zinc-950 text-white border-zinc-950' : 'bg-zinc-50 text-zinc-400 border-transparent'}`}
-        >
-          Agenda
-        </button>
-        <button 
-          onClick={() => setActiveTab('finance')}
-          className={`flex-none px-4 py-2 rounded-full text-[10px] font-black uppercase border-2 transition-all ${activeTab === 'finance' ? 'bg-zinc-950 text-white border-zinc-950' : 'bg-zinc-50 text-zinc-400 border-transparent'}`}
-        >
-          Financeiro
-        </button>
+      <div className="md:hidden sticky top-[73px] z-40 bg-black/80 backdrop-blur-md border-b border-white/5 flex p-2 gap-2 overflow-x-auto no-scrollbar">
+        {[
+          { id: 'overview', label: 'Dash' },
+          { id: 'teams', label: 'Equipes' },
+          { id: 'agenda', label: 'Agenda' },
+          { id: 'finance', label: 'Finance' }
+        ].map(tab => (
+          <button 
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`flex-none px-5 py-2.5 rounded-xl text-[9px] font-black uppercase transition-all border ${activeTab === tab.id ? 'bg-yellow-500 text-black border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)]' : 'bg-white/5 text-zinc-500 border-white/5'}`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       <main className="p-4 md:p-8 text-left max-w-7xl mx-auto min-h-[70vh]">
@@ -561,7 +551,7 @@ function CoordinatorDashboard() {
         {activeTab === 'overview' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             {/* RESUMO RÁPIDO */}
-            <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-2">
               {stats.map((stat, i) => (
                 <motion.div 
                   key={i}
@@ -569,68 +559,89 @@ function CoordinatorDashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
                   onClick={stat.action}
-                  className="bg-white p-4 lg:p-6 rounded-[2rem] border-2 border-zinc-100 shadow-sm hover:border-yellow-500 hover:shadow-xl transition-all cursor-pointer group"
+                  className="bg-neutral-900 border border-white/5 p-5 lg:p-6 rounded-2xl shadow-xl hover:border-yellow-500/50 hover:bg-neutral-800 transition-all cursor-pointer group relative overflow-hidden"
                 >
-                  <p className="text-[10px] lg:text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 flex items-center justify-between">
+                  <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <TrendingUp className="w-12 h-12 text-white" />
+                  </div>
+                  <p className="text-[10px] lg:text-[11px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-4 flex items-center justify-between">
                     {stat.label}
-                    <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all translate-x-1" />
                   </p>
-                  <p className={`text-2xl lg:text-4xl font-black tracking-tighter ${stat.color}`}>{stat.value}</p>
-                  <p className="text-[10px] font-bold text-zinc-500 mt-2 uppercase tracking-tight">{stat.sub}</p>
+                  <p className={`text-2xl lg:text-3xl font-black tracking-tight text-white mb-2`}>{stat.value}</p>
+                  <div className="flex items-center gap-2 mt-4">
+                    <div className="h-1 w-8 bg-yellow-500 rounded-full"></div>
+                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">{stat.sub}</p>
+                  </div>
                 </motion.div>
               ))}
             </section>
 
             {/* FEED DE AÇÕES (DASHBOARD DE SEMÁFORO) */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-black uppercase text-zinc-800 flex items-center gap-2">
-                Urgências do Dia
-                <span className="h-2 w-2 rounded-full bg-red-500"></span>
-              </h2>
+            <div className="pt-8 space-y-6">
+              <div className="flex items-center justify-between px-2">
+                <h2 className="text-xl font-black uppercase text-white tracking-tight flex items-center gap-3">
+                  <span className="w-1 h-6 bg-red-600 rounded-full"></span>
+                  OPERATIONAL ALERTS
+                </h2>
+                <div className="flex gap-2">
+                  <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-[9px] font-black text-zinc-500 uppercase">REAL-TIME MONITORING</div>
+                </div>
+              </div>
 
-              <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+              <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 px-2">
                 {(urgencies && urgencies.length > 0) ? urgencies.map((urgency) => (
                    <motion.div 
                      key={urgency.id}
-                     whileTap={{ scale: 0.98 }} 
-                     className={`bg-white border-4 ${urgency.type === 'fraude' ? 'border-red-600' : 'border-zinc-200'} rounded-2xl overflow-hidden shadow-sm flex flex-col h-full text-left`}
+                     whileHover={{ y: -4 }}
+                     className={`bg-neutral-900 border ${urgency.type === 'fraude' ? 'border-red-600/50' : 'border-white/5'} rounded-2xl overflow-hidden shadow-2xl flex flex-col h-full text-left group`}
                    >
-                     <div className={`${urgency.type === 'fraude' ? 'bg-red-600 text-white' : 'bg-zinc-100 text-zinc-600'} p-3 border-b border-zinc-200 flex justify-between items-center text-xs font-black`}>
+                     <div className={`${urgency.type === 'fraude' ? 'bg-red-600/10 text-red-500' : 'bg-white/5 text-zinc-400'} p-4 border-b border-white/5 flex justify-between items-center text-[10px] font-black tracking-widest uppercase`}>
                        <span className="flex items-center gap-2">
                          {urgency.type === 'combustivel' && <Fuel className="w-4 h-4" />}
                          {urgency.type === 'agenda' && <MapPin className="w-4 h-4" />}
                          {urgency.type === 'fraude' && <AlertTriangle className="w-4 h-4" />}
                          {urgency.type === 'demanda' && <StickyNote className="w-4 h-4" />}
-                         {urgency.type.toUpperCase()}
+                         {urgency.type}
                        </span>
-                       <span className={`${urgency.type === 'fraude' ? 'bg-white/20' : 'bg-blue-100 text-blue-700'} px-2 py-0.5 rounded`}>
+                       <span className={`px-2 py-1 rounded-lg ${urgency.type === 'fraude' ? 'bg-red-500 text-white' : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'}`}>
                          {urgency.team}
                        </span>
                      </div>
-                     <div className="p-4 flex-1 flex flex-col justify-between">
-                       <div>
-                         <h3 className={`text-xl font-black ${urgency.type === 'fraude' ? 'text-red-700' : 'text-zinc-950'}`}>{urgency.title}</h3>
-                         <p className="text-sm font-medium text-zinc-500 mt-2">{urgency.description || 'Nenhuma descrição detalhada.'}</p>
-                         {urgency.leaderName && <p className="text-[10px] font-black text-zinc-400 uppercase mt-2">SOLICITADO POR: {urgency.leaderName}</p>}
+                     <div className="p-6 flex-1 flex flex-col justify-between">
+                       <div className="space-y-3">
+                         <h3 className={`text-xl font-black leading-tight tracking-tight ${urgency.type === 'fraude' ? 'text-red-500' : 'text-white'}`}>{urgency.title}</h3>
+                         <p className="text-sm font-medium text-zinc-500 leading-relaxed opacity-80">{urgency.description || 'System generated: No detailed technical description provided.'}</p>
+                         {urgency.leaderName && (
+                           <div className="pt-4 flex items-center gap-3">
+                             <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center font-black text-[10px] text-zinc-400 border border-white/5">
+                               {urgency.leaderName.charAt(0)}
+                             </div>
+                             <div>
+                               <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">AGENT ON FIELD</p>
+                               <p className="text-[11px] font-black text-zinc-300 uppercase leading-none mt-1">{urgency.leaderName}</p>
+                             </div>
+                           </div>
+                         )}
                        </div>
-                       <div className="grid grid-cols-1 gap-3 mt-6">
+                       <div className="grid grid-cols-1 gap-3 mt-8">
                          <button 
                            onClick={() => {
                              setSelectedUrgency(urgency);
                              setIsUrgencyModalOpen(true);
                              setObservation('');
                            }}
-                           className="bg-zinc-950 text-white py-4 rounded-xl font-black text-sm flex items-center justify-center gap-2 shadow-lg hover:bg-zinc-800 transition-all"
+                           className={`bg-zinc-100 text-black py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 shadow-lg hover:bg-yellow-500 transition-all border-b-4 ${urgency.type === 'fraude' ? 'border-red-600' : 'border-zinc-300 hover:border-yellow-700'}`}
                          >
-                           ANALISAR SOLICITAÇÃO <ChevronRight className="w-4 h-4" />
+                           ANALYSE TARGET DATA <ChevronRight className="w-4 h-4" />
                          </button>
                        </div>
                      </div>
                    </motion.div>
                 )) : (
-                  <div className="bg-zinc-100 p-8 rounded-3xl border-2 border-dashed border-zinc-200 text-center col-span-full">
-                    <p className="font-black text-zinc-400 uppercase tracking-widest text-xs">Nenhuma urgência crítica detectada no momento.</p>
-                  </div>
+                   <div className="bg-white/5 p-12 rounded-3xl border border-dashed border-white/10 text-center col-span-full">
+                     <p className="font-black text-zinc-600 uppercase tracking-[0.3em] text-[10px]">ALL SYSTEMS CLEAR • NO ACTIVE URGENCES</p>
+                   </div>
                 )}
               </section>
             </div>
@@ -2298,10 +2309,10 @@ function CaboDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-zinc-950 font-sans">
+    <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans pb-32">
       
       {/* HEADER FIXO - CABO (WIDER ON DESKTOP) */}
-      <header className="sticky top-0 z-50 bg-white p-4 shadow-sm border-b-4 border-zinc-950">
+      <header className="sticky top-0 z-50 bg-neutral-950/80 backdrop-blur-xl border-b border-white/5 p-4">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div 
@@ -2378,47 +2389,81 @@ function CaboDashboard() {
               <motion.button 
                 whileTap={{ scale: 0.95 }}
                 onClick={() => processAction('ponto')}
-                className="aspect-square bg-zinc-950 text-white rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-xl border-b-8 border-zinc-800"
+                className="aspect-square bg-neutral-900 text-white rounded-2xl p-4 lg:p-6 flex flex-col items-center justify-center gap-4 shadow-xl border border-white/5 hover:border-yellow-500/50 hover:bg-neutral-800 transition-all group relative overflow-hidden"
               >
-                <div className="bg-zinc-800 p-4 lg:p-6 rounded-2xl"><Camera className="w-10 h-10 lg:w-14 lg:h-14 text-yellow-500" /></div>
-                <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Bater Ponto<br/>(Selfie)</span>
+                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <Camera className="w-12 h-12" />
+                </div>
+                <div className="bg-yellow-500/10 p-4 rounded-xl group-hover:bg-yellow-500/20 transition-all">
+                  <Camera className="w-8 h-8 lg:w-10 lg:h-10 text-yellow-500" />
+                </div>
+                <span className="font-black text-xs lg:text-sm uppercase tracking-widest leading-none text-center">
+                  Bater Ponto<br/><span className="text-[9px] text-zinc-500 mt-1 block tracking-normal">GEOLOCALIZAÇÃO</span>
+                </span>
               </motion.button>
 
               <motion.button 
                 whileTap={{ scale: 0.95 }} 
                 onClick={() => processAction('eleitor')}
-                className="aspect-square bg-white border-4 border-zinc-950 text-zinc-950 rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-lg relative"
+                className="aspect-square bg-neutral-900 text-white rounded-2xl p-4 lg:p-6 flex flex-col items-center justify-center gap-4 shadow-xl border border-white/5 hover:border-blue-500/50 hover:bg-neutral-800 transition-all group relative overflow-hidden"
               >
-                <div className="absolute -top-2 -right-2 bg-red-600 text-white text-[9px] font-black px-2 py-1 rounded-full border-2 border-white shadow-md">GPS OBRIGATÓRIO</div>
-                <div className="bg-zinc-100 p-4 lg:p-6 rounded-2xl text-zinc-950 border-2 border-zinc-200"><UserPlus className="w-10 h-10 lg:w-14 lg:h-14" /></div>
-                <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Cadastrar<br/>Eleitor</span>
+                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <UserPlus className="w-12 h-12" />
+                </div>
+                <div className="bg-blue-500/10 p-4 rounded-xl group-hover:bg-blue-500/20 transition-all">
+                  <UserPlus className="w-8 h-8 lg:w-10 lg:h-10 text-blue-500" />
+                </div>
+                <span className="font-black text-xs lg:text-sm uppercase tracking-widest leading-none text-center">
+                  Novo Eleitor<br/><span className="text-[9px] text-zinc-500 mt-1 block tracking-normal">FIDELIZAÇÃO</span>
+                </span>
               </motion.button>
 
               <motion.button 
                 whileTap={{ scale: 0.95 }}
                 onClick={() => processAction('agenda')}
-                className="aspect-square bg-orange-500 text-white rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-xl border-b-8 border-orange-700"
+                className="aspect-square bg-neutral-900 text-white rounded-2xl p-4 lg:p-6 flex flex-col items-center justify-center gap-4 shadow-xl border border-white/5 hover:border-emerald-500/50 hover:bg-neutral-800 transition-all group relative overflow-hidden"
               >
-                <div className="bg-orange-600 p-4 lg:p-6 rounded-2xl"><Calendar className="w-10 h-10 lg:w-14 lg:h-14 text-white" /></div>
-                <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Sugerir<br/>Agenda</span>
+                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <Calendar className="w-12 h-12" />
+                </div>
+                <div className="bg-emerald-500/10 p-4 rounded-xl group-hover:bg-emerald-500/20 transition-all">
+                  <Calendar className="w-8 h-8 lg:w-10 lg:h-10 text-emerald-500" />
+                </div>
+                <span className="font-black text-xs lg:text-sm uppercase tracking-widest leading-none text-center">
+                  Sugerir Agenda<br/><span className="text-[9px] text-zinc-500 mt-1 block tracking-normal">PLANEJAMENTO</span>
+                </span>
               </motion.button>
 
               <motion.button 
                 whileTap={{ scale: 0.95 }}
                 onClick={() => processAction('combustivel')}
-                className="aspect-square bg-blue-600 text-white rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-xl border-b-8 border-blue-800"
+                className="aspect-square bg-neutral-900 text-white rounded-2xl p-4 lg:p-6 flex flex-col items-center justify-center gap-4 shadow-xl border border-white/5 hover:border-orange-500/50 hover:bg-neutral-800 transition-all group relative overflow-hidden"
               >
-                <div className="bg-blue-700 p-4 lg:p-6 rounded-2xl"><Fuel className="w-10 h-10 lg:w-14 lg:h-14 text-white" /></div>
-                <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Pedir<br/>Combustível</span>
+                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <Fuel className="w-12 h-12" />
+                </div>
+                <div className="bg-orange-500/10 p-4 rounded-xl group-hover:bg-orange-500/20 transition-all">
+                  <Fuel className="w-8 h-8 lg:w-10 lg:h-10 text-orange-500" />
+                </div>
+                <span className="font-black text-xs lg:text-sm uppercase tracking-widest leading-none text-center">
+                  Combustível<br/><span className="text-[9px] text-zinc-500 mt-1 block tracking-normal">SUPORTE</span>
+                </span>
               </motion.button>
 
               <motion.button 
                 whileTap={{ scale: 0.95 }}
                 onClick={() => processAction('demanda')}
-                className="aspect-square bg-yellow-400 text-zinc-950 rounded-3xl p-4 lg:p-8 flex flex-col items-center justify-center gap-3 shadow-xl border-b-8 border-yellow-600"
+                className="aspect-square bg-neutral-900 text-white rounded-2xl p-4 lg:p-6 flex flex-col items-center justify-center gap-4 shadow-xl border border-white/5 hover:border-purple-500/50 hover:bg-neutral-800 transition-all group relative overflow-hidden"
               >
-                <div className="bg-yellow-500/20 p-4 lg:p-6 rounded-2xl"><StickyNote className="w-10 h-10 lg:w-14 lg:h-14 text-zinc-950" /></div>
-                <span className="font-black text-sm lg:text-base uppercase tracking-tighter leading-tight">Registrar<br/>Demanda</span>
+                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <StickyNote className="w-12 h-12" />
+                </div>
+                <div className="bg-purple-500/10 p-4 rounded-xl group-hover:bg-purple-500/20 transition-all">
+                  <StickyNote className="w-8 h-8 lg:w-10 lg:h-10 text-purple-500" />
+                </div>
+                <span className="font-black text-xs lg:text-sm uppercase tracking-widest leading-none text-center">
+                  Ouvidoria<br/><span className="text-[9px] text-zinc-500 mt-1 block tracking-normal">DEMANDAS</span>
+                </span>
               </motion.button>
             </section>
 
@@ -3258,39 +3303,31 @@ function CaboDashboard() {
       </AnimatePresence>
 
       {/* FOOTER NAVEGAÇÃO - RESPONSIVO (Larger buttons on tablet/PC) */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] border-t-4 border-yellow-500 z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-neutral-950/80 backdrop-blur-xl border-t border-white/5 z-50 pb-safe">
         <div className="max-w-5xl mx-auto flex justify-around items-center p-3">
-          <button 
-            onClick={() => setActiveTab('equipe')}
-            className={`flex flex-col items-center gap-1 p-2 transition-all ${activeTab === 'equipe' ? 'text-zinc-950 scale-110' : 'opacity-40'}`}
-          >
-            <Users className="w-6 h-6" />
-            <span className={`text-[9px] font-black uppercase ${activeTab === 'equipe' ? 'underline decoration-2 underline-offset-4' : ''}`}>EQUIPE</span>
-          </button>
-          
-          <button 
-            onClick={() => setActiveTab('logistica')}
-            className={`flex flex-col items-center gap-1 p-2 transition-all ${activeTab === 'logistica' ? 'text-zinc-950 scale-110' : 'opacity-40'}`}
-          >
-            <MapPin className={`w-7 h-7 ${activeTab === 'logistica' ? 'text-yellow-500' : 'text-zinc-400'}`} />
-            <span className={`text-[9px] font-black uppercase ${activeTab === 'logistica' ? 'underline decoration-2 underline-offset-4' : ''}`}>LOGÍSTICA</span>
-          </button>
-          
-          <button 
-            onClick={() => setActiveTab('ouvidoria')}
-            className={`flex flex-col items-center gap-1 p-2 transition-all ${activeTab === 'ouvidoria' ? 'text-zinc-950 scale-110' : 'opacity-40'}`}
-          >
-            <AlertTriangle className="w-6 h-6" />
-            <span className={`text-[9px] font-black uppercase ${activeTab === 'ouvidoria' ? 'underline decoration-2 underline-offset-4' : ''}`}>OUVIDORIA</span>
-          </button>
-
-          <button 
-            onClick={() => setActiveTab('financeiro')}
-            className={`flex flex-col items-center gap-1 p-2 transition-all ${activeTab === 'financeiro' ? 'text-zinc-950 scale-110' : 'opacity-40'}`}
-          >
-            <Wallet className={`w-6 h-6 ${activeTab === 'financeiro' ? 'text-green-600' : 'text-zinc-400'}`} />
-            <span className={`text-[9px] font-black uppercase ${activeTab === 'financeiro' ? 'underline decoration-2 underline-offset-4' : ''}`}>FINANCEIRO</span>
-          </button>
+          {[
+            { id: 'equipe', label: 'Membros', icon: <Users className="w-5 h-5 md:w-6 md:h-6" /> },
+            { id: 'logistica', label: 'Logística', icon: <MapPin className="w-5 h-5 md:w-6 md:h-6" /> },
+            { id: 'ouvidoria', label: 'Feed', icon: <History className="w-5 h-5 md:w-6 md:h-6" /> },
+            { id: 'financeiro', label: 'Finance', icon: <Wallet className="w-5 h-5 md:w-6 md:h-6" /> }
+          ].map(tab => (
+            <button 
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex flex-col items-center gap-1.5 px-6 py-2 rounded-2xl transition-all ${
+                activeTab === tab.id 
+                ? 'text-yellow-500' 
+                : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              <div className={`p-2 rounded-xl transition-all ${activeTab === tab.id ? 'bg-yellow-500/10 shadow-[0_0_15px_rgba(234,179,8,0.1)]' : ''}`}>
+                {tab.icon}
+              </div>
+              <span className={`text-[9px] font-black uppercase tracking-widest ${activeTab === tab.id ? 'opacity-100' : 'opacity-60'}`}>
+                {tab.label}
+              </span>
+            </button>
+          ))}
         </div>
       </nav>
     </div>
