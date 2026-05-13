@@ -209,22 +209,24 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
 
     try {
       // Update team spent
-      await firestoreService.updateDocument('teams', team.id || team.name.replace(/\s/g, '_').toLowerCase(), {
+      const teamId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
+      await firestoreService.updateDocument('teams', teamId, {
         spent: team.spent + val
       });
 
       // Update global stats (combustivelSaldo)
-      const globalStats = await firestoreService.getDocument('stats', 'global') as any;
-      if (globalStats) {
+      const globalStatsRes = await firestoreService.getDocument('stats', 'global') as any;
+      if (globalStatsRes) {
         await firestoreService.updateDocument('stats', 'global', {
-          combustivelHoje: (globalStats.combustivelHoje || 0) + (val / 5), // Estimativa de litros por R$
-          combustivelSaldo: (globalStats.combustivelSaldo || 1200) - (val / 5)
+          combustivelHoje: Number((globalStatsRes.combustivelHoje || 0) + (val / 5)).toFixed(2), // Estimativa de litros por R$
+          combustivelSaldo: Number((globalStatsRes.combustivelSaldo || 1200) - (val / 5)).toFixed(2)
         });
       }
 
       // Create transaction
-      const txId = Math.random().toString(36).substr(2, 9);
+      const txId = `tx_spent_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
       await firestoreService.setDocument('transactions', txId, {
+        id: txId,
         type: 'gasto',
         amount: val,
         team: expenseData.team,
