@@ -34,7 +34,8 @@ import {
   GanttChart,
   Trash2,
   Edit3,
-  Lock
+  Lock,
+  Phone
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { processarCaos, gerarBriefingCandidato } from './services/geminiService';
@@ -1401,8 +1402,13 @@ function CaboDashboard() {
   });
 
   const [teamData, setTeamData] = useState<any>(null);
+  const [voters, setVoters] = useState<any[]>([]);
+  const [selectedVoter, setSelectedVoter] = useState<any>(null);
+  const [isVoterDetailOpen, setIsVoterDetailOpen] = useState(false);
+  const [isEditingVoter, setIsEditingVoter] = useState(false);
+  const [editingVoterId, setEditingVoterId] = useState<string | null>(null);
 
-  // Sincronizar Perfil e Time com Firestore
+  // Sincronizar Perfil, Time e Eleitores com Firestore
   useEffect(() => {
     if (user) {
       const unsubProfile = onSnapshot(doc(db, 'users', user.uid), async (docSnap) => {
@@ -1423,7 +1429,19 @@ function CaboDashboard() {
       }, (error) => {
         console.error("Erro ao escutar perfil:", error);
       });
-      return () => unsubProfile();
+
+      const votersQuery = query(collection(db, 'voters'), where('leaderId', '==', user.uid));
+      const unsubVoters = onSnapshot(votersQuery, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setVoters(data);
+      }, (err) => {
+        console.error("Erro ao escutar eleitores:", err);
+      });
+
+      return () => {
+        unsubProfile();
+        unsubVoters();
+      };
     }
   }, [user]);
 
@@ -1502,6 +1520,19 @@ function CaboDashboard() {
     }
   };
 
+  const handleDeleteVoter = async (voterId: string) => {
+    if (window.confirm("Tem certeza que deseja excluir este eleitor? Esta ação é irreversível.")) {
+      try {
+        await firestoreService.deleteDocument('voters', voterId);
+        setIsVoterDetailOpen(false);
+        setSelectedVoter(null);
+        alert("Eleitor excluído com sucesso.");
+      } catch (err: any) {
+        alert("Erro ao excluir: " + err.message);
+      }
+    }
+  };
+
   const handleVoterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -1510,27 +1541,32 @@ function CaboDashboard() {
     }
 
     try {
-      const payload = {
-        ...voterForm,
-        leaderId: user.uid,
-        leaderName: profileData.name || user.displayName || "Líder",
-        team: profileData.zone || "Base",
-        createdAt: Date.now(),
-        registeredBy: user.email || user.uid,
-        location: null
-      };
-
-      console.log("🦅 [Firestore Save] Início do salvamento...");
-      await firestoreService.setDocument('voters', `voter_${Date.now()}`, payload);
+      if (isEditingVoter && editingVoterId) {
+        await firestoreService.updateDocument('voters', editingVoterId, {
+          ...voterForm,
+          updatedAt: Date.now()
+        });
+        alert("✅ CADASTRO ATUALIZADO COM SUCESSO!");
+      } else {
+        const payload = {
+          ...voterForm,
+          leaderId: user.uid,
+          leaderName: profileData.name || user.displayName || "Líder",
+          team: profileData.zone || "Base",
+          createdAt: Date.now(),
+          registeredBy: user.email || user.uid,
+          location: null
+        };
+        await firestoreService.setDocument('voters', `voter_${Date.now()}`, payload);
+        alert("✅ CADASTRO REALIZADO COM SUCESSO!");
+      }
       
       setIsVoterModalOpen(false);
+      setIsEditingVoter(false);
+      setEditingVoterId(null);
       setVoterForm({ name: '', phone: '', address: '', observations: '' });
-      alert("✅ CADASTRO REALIZADO COM SUCESSO!");
     } catch (err: any) {
-      console.error("🦅 [Firestore Save] Erro fatal:", err);
-      alert("🚫 ERRO CRÍTICO NO BANDO DE DADOS: " + err.message);
-    } finally {
-      setIsLocating(false);
+      alert("Erro ao salvar: " + err.message);
     }
   };
 
@@ -1815,22 +1851,42 @@ function CaboDashboard() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <div className="bg-white p-8 rounded-[2.5rem] border-2 border-zinc-200 shadow-xl text-center">
               <Users className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-black text-zinc-900 uppercase">Minha Equipe Regional</h2>
-              <p className="text-zinc-500 font-medium">Visualize o desempenho dos seus sub-cabos e colaboradores.</p>
+              <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Minha Equipe Regional</h2>
+              <p className="text-zinc-500 font-medium text-sm">Base estratégica de eleitores fidelizados em campo.</p>
               
               <div className="grid grid-cols-1 gap-4 mt-8">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="flex justify-between items-center p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-zinc-200 w-10 h-10 rounded-full flex items-center justify-center font-black">C{i}</div>
-                      <div className="text-left">
-                        <p className="font-black text-zinc-800 text-sm">Colaborador {i}</p>
-                        <p className="text-xs text-zinc-400 font-bold uppercase">Ativo • 12 Cadastros</p>
+                {voters.length > 0 ? voters.sort((a, b) => a.name.localeCompare(b.name)).map((voter) => (
+                  <motion.div 
+                    key={voter.id} 
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setSelectedVoter(voter);
+                      setIsVoterDetailOpen(true);
+                    }}
+                    className="flex justify-between items-center p-5 bg-white rounded-3xl border-2 border-zinc-100 shadow-sm hover:border-yellow-500 transition-all cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="bg-zinc-100 text-zinc-400 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg">
+                        {voter.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-black text-zinc-950 text-base uppercase tracking-tight leading-none mb-1">{voter.name}</p>
+                        <p className="text-xs text-zinc-400 font-bold uppercase tracking-widest">{voter.phone || 'Sem Telefone'}</p>
                       </div>
                     </div>
                     <ChevronRight className="text-zinc-300" />
+                  </motion.div>
+                )) : (
+                  <div className="p-12 border-2 border-dashed border-zinc-200 rounded-3xl text-center">
+                    <p className="font-black text-zinc-300 uppercase tracking-widest text-sm italic">Nenhum eleitor cadastrado ainda.</p>
+                    <button 
+                      onClick={() => setActiveTab('logistica')}
+                      className="mt-4 text-xs font-black text-yellow-600 underline uppercase"
+                    >
+                      Ir para logística cadastrar
+                    </button>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </motion.div>
@@ -1925,6 +1981,118 @@ function CaboDashboard() {
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {isVoterDetailOpen && selectedVoter && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+            >
+              <button 
+                onClick={() => {
+                  setIsVoterDetailOpen(false);
+                  setSelectedVoter(null);
+                }} 
+                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 transition-all"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="bg-zinc-950 p-8 border-b-4 border-yellow-500 text-left">
+                <div className="flex items-center gap-4 mb-2">
+                   <div className="bg-yellow-500 text-zinc-950 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl">
+                      {selectedVoter.name.charAt(0).toUpperCase()}
+                   </div>
+                   <div>
+                      <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">{selectedVoter.name}</h2>
+                      <p className="text-zinc-400 text-[10px] font-black mt-1 uppercase tracking-widest leading-none">Perfil do Eleitor Fidelizado</p>
+                   </div>
+                </div>
+              </div>
+
+              <div className="p-8 space-y-6 text-left">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Status</p>
+                    <p className="text-sm font-black text-green-600 uppercase">Fidelizado</p>
+                  </div>
+                  <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Cadastro em</p>
+                    <p className="text-sm font-black text-zinc-800 uppercase">{new Date(selectedVoter.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-blue-50 p-3 rounded-xl text-blue-600"><Phone className="w-5 h-5" /></div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Contato</p>
+                      <button 
+                        onClick={() => {
+                          const cleanPhone = selectedVoter.phone.replace(/\D/g, '');
+                          window.open(`https://wa.me/55${cleanPhone}`, '_blank');
+                        }}
+                        className="text-lg font-black text-zinc-900 border-b-2 border-blue-500 flex items-center gap-2"
+                      >
+                        {selectedVoter.phone || 'Sem Telefone'}
+                        <div className="bg-green-500 w-2 h-2 rounded-full animate-pulse"></div>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="bg-zinc-100 p-3 rounded-xl text-zinc-950"><MapPin className="w-5 h-5" /></div>
+                    <div>
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Localização / Base</p>
+                      <p className="text-base font-bold text-zinc-800 leading-tight">{selectedVoter.address || 'Não informado'}</p>
+                    </div>
+                  </div>
+
+                  {selectedVoter.observations && (
+                    <div className="flex items-start gap-4">
+                      <div className="bg-yellow-50 p-3 rounded-xl text-yellow-600"><StickyNote className="w-5 h-5" /></div>
+                      <div>
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Observações de Campo</p>
+                        <p className="text-sm font-bold text-zinc-600 italic">"{selectedVoter.observations}"</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t-2 border-zinc-50">
+                  <button 
+                    onClick={() => {
+                      setVoterForm({
+                        name: selectedVoter.name,
+                        phone: selectedVoter.phone,
+                        address: selectedVoter.address,
+                        observations: selectedVoter.observations
+                      });
+                      setEditingVoterId(selectedVoter.id);
+                      setIsEditingVoter(true);
+                      setIsVoterModalOpen(true);
+                      setIsVoterDetailOpen(false);
+                    }}
+                    className="flex items-center justify-center gap-2 bg-zinc-100 text-zinc-950 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-sm active:bg-zinc-200 transition-all"
+                  >
+                    <Settings className="w-4 h-4" /> Editar Dados
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteVoter(selectedVoter.id)}
+                    className="flex items-center justify-center gap-2 bg-red-50 text-red-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-sm active:bg-red-100 transition-all border border-red-100"
+                  >
+                    <Trash2 className="w-4 h-4" /> Excluir Registro
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* MODAL: CADASTRAR ELEITOR */}
       <AnimatePresence>
         {isVoterModalOpen && (
@@ -1936,9 +2104,21 @@ function CaboDashboard() {
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
               className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
             >
-              <button onClick={() => setIsVoterModalOpen(false)} className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500"><X className="w-6 h-6" /></button>
+              <button 
+                onClick={() => {
+                   setIsVoterModalOpen(false);
+                   setIsEditingVoter(false);
+                   setEditingVoterId(null);
+                   setVoterForm({ name: '', phone: '', address: '', observations: '' });
+                }} 
+                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 transition-all"
+              >
+                <X className="w-6 h-6" />
+              </button>
               <div className="bg-zinc-950 p-8 border-b-4 border-yellow-500 text-left">
-                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">Novo Cadastro</h2>
+                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">
+                  {isEditingVoter ? 'Editar Cadastro' : 'Novo Cadastro'}
+                </h2>
                 <p className="text-zinc-400 text-xs font-bold mt-2 uppercase tracking-widest">Base de dados estratégica</p>
               </div>
               <form onSubmit={handleVoterSubmit} className="p-8 space-y-4 text-left">
