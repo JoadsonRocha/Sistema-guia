@@ -134,7 +134,7 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
         </div>
       </div>
 
-      <p className="text-zinc-800 font-bold text-sm leading-relaxed mb-6 italic whitespace-pre-wrap">"{note.text}"</p>
+      <p className="text-zinc-800 font-bold text-sm leading-relaxed mb-6 whitespace-pre-wrap">"{note.text}"</p>
 
       <div className="mt-auto">
         <div className="pt-4 border-t border-zinc-50 flex items-center justify-between mb-4">
@@ -175,7 +175,7 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
                     <p className="text-[11px] font-medium text-zinc-600 leading-relaxed">{comment.text}</p>
                   </div>
                 )) : (
-                  <p className="text-[8px] font-black text-zinc-300 uppercase text-center py-4 tracking-widest italic">Nenhum comentário ainda.</p>
+                  <p className="text-[8px] font-black text-zinc-300 uppercase text-center py-4 tracking-widest">Nenhum comentário ainda.</p>
                 )}
               </div>
               
@@ -846,7 +846,7 @@ function CoordinatorDashboard() {
               <ShieldCheck className="w-5 h-5 text-yellow-500" />
             </div>
             <div>
-              <h1 className="text-base font-black tracking-tighter text-zinc-950 uppercase italic leading-none">
+              <h1 className="text-base font-black tracking-tighter text-zinc-950 uppercase leading-none">
                 ÁGUIA
               </h1>
               <p className="text-[8px] font-black text-yellow-600 uppercase tracking-widest mt-1">
@@ -975,7 +975,7 @@ function CoordinatorDashboard() {
                               <button key={n.id} onClick={() => { setActiveTab('notes'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-sm transition-colors text-left">
                                 <div className="w-8 h-8 rounded-sm bg-zinc-100 flex items-center justify-center"><MessageSquare className="w-4 h-4 text-zinc-900" /></div>
                                 <div>
-                                  <p className="text-[10px] text-zinc-800 font-medium italic line-clamp-1">"{n.text}"</p>
+                                  <p className="text-[10px] text-zinc-800 font-medium line-clamp-1">"{n.text}"</p>
                                   <p className="text-[8px] text-zinc-400 font-black uppercase tracking-widest leading-none mt-1">{n.leaderName} • {n.team}</p>
                                 </div>
                               </button>
@@ -997,7 +997,7 @@ function CoordinatorDashboard() {
               <div className="p-1.5 bg-zinc-950 rounded-sm">
                 <ShieldCheck className="w-4 h-4 text-yellow-500" />
               </div>
-              <h1 className="text-base font-black text-zinc-950 uppercase italic leading-none">ÁGUIA</h1>
+              <h1 className="text-base font-black text-zinc-950 uppercase leading-none">ÁGUIA</h1>
             </div>
           </div>
 
@@ -1036,7 +1036,7 @@ function CoordinatorDashboard() {
             {activeTab === 'overview' && (
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
               <div className="flex-col gap-1 flex">
-                <h2 className="text-lg font-black text-zinc-950 tracking-tighter uppercase leading-none italic">Painel de Operações</h2>
+                <h2 className="text-lg font-black text-zinc-950 tracking-tighter uppercase leading-none">Painel de Operações</h2>
                 <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Monitoramento estratégico em tempo real</p>
               </div>
 
@@ -1056,7 +1056,7 @@ function CoordinatorDashboard() {
                       <Zap className="w-5 h-5 text-zinc-950" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-black text-white uppercase tracking-tighter italic">Ordem do Dia</h3>
+                      <h3 className="text-sm font-black text-white uppercase tracking-tighter">Ordem do Dia</h3>
                       <p className="text-[8px] font-black text-yellow-500 uppercase tracking-[0.2em]">Diretiva Central de Comando</p>
                     </div>
                   </div>
@@ -1088,11 +1088,11 @@ function CoordinatorDashboard() {
                 ) : (
                   <div className="relative z-10">
                     {dailyOrder?.text ? (
-                      <p className="text-lg font-black text-white tracking-tight leading-relaxed italic">
+                      <p className="text-lg font-black text-white tracking-tight leading-relaxed">
                         "{dailyOrder.text}"
                       </p>
                     ) : (
-                      <p className="text-zinc-500 text-xs italic font-bold">Nenhuma diretiva emitida para hoje.</p>
+                      <p className="text-zinc-500 text-xs font-bold">Nenhuma diretiva emitida para hoje.</p>
                     )}
                     <div className="mt-6 flex items-center gap-4 text-[8px] font-black text-zinc-500 uppercase tracking-widest">
                       <span>Último ajuste: {dailyOrder?.updatedAt ? new Date(dailyOrder.updatedAt).toLocaleTimeString() : '---'}</span>
@@ -1142,7 +1142,7 @@ function CoordinatorDashboard() {
                   <div className="w-full lg:w-72 space-y-6">
 
                     <div className="bg-white border border-zinc-200 rounded-sm p-5 shadow-sm">
-                      <h3 className="text-sm font-black uppercase tracking-tighter text-zinc-950 mb-4 flex items-center gap-2 italic">
+                      <h3 className="text-sm font-black uppercase tracking-tighter text-zinc-950 mb-4 flex items-center gap-2">
                         < Zap className="w-3.5 h-3.5 text-yellow-500" /> Atividade Recente
                       </h3>
                       <div className="space-y-4">
@@ -1168,7 +1168,7 @@ function CoordinatorDashboard() {
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 border-b border-zinc-200 pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none italic">Gestão de Equipes</h2>
+                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Gestão de Equipes</h2>
                     <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Controle tático de recursos e unidades</p>
                   </div>
                   <button 
@@ -1219,7 +1219,7 @@ function CoordinatorDashboard() {
                           <Users className="w-7 h-7" />
                         </div>
                         <div className="space-y-0.5">
-                          <h3 className="font-black text-zinc-950 text-xl uppercase tracking-tighter italic leading-none">{team.name}</h3>
+                          <h3 className="font-black text-zinc-950 text-xl uppercase tracking-tighter leading-none">{team.name}</h3>
                           <div className="flex flex-col gap-0.5 pt-1">
                             <p className="text-[9px] font-black text-zinc-400 uppercase flex items-center gap-1.5 tracking-widest">
                               <User className="w-2.5 h-2.5 text-yellow-500" /> Líder: {team.leader}
@@ -1313,7 +1313,7 @@ function CoordinatorDashboard() {
                       <Calendar className="w-6 h-6 text-zinc-950" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none italic">Agenda</h2>
+                      <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Agenda</h2>
                       <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Logística e compromissos oficiais</p>
                     </div>
                   </div>
@@ -1332,7 +1332,7 @@ function CoordinatorDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   <div className="lg:col-span-2 space-y-6">
                     <div className="bg-white border border-zinc-200 rounded-sm p-6 lg:p-8 shadow-sm">
-                      <h3 className="text-lg font-black uppercase text-zinc-950 tracking-tighter mb-6 flex items-center gap-3 italic">
+                      <h3 className="text-lg font-black uppercase text-zinc-950 tracking-tighter mb-6 flex items-center gap-3">
                         Solicitações
                       </h3>
                       
@@ -1387,7 +1387,7 @@ function CoordinatorDashboard() {
                       <div className="absolute top-0 right-0 p-6 opacity-5">
                          <Calendar className="w-32 h-32" />
                       </div>
-                      <h3 className="text-lg font-black uppercase tracking-tighter mb-6 italic flex items-center gap-3">
+                      <h3 className="text-lg font-black uppercase tracking-tighter mb-6 flex items-center gap-3">
                          Cronograma Confirmado
                       </h3>
                       <div className="space-y-4 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
@@ -1406,7 +1406,7 @@ function CoordinatorDashboard() {
                               <span className="text-xl font-black text-white group-hover:text-zinc-950 leading-none">{new Date(item.data).getDate()}</span>
                             </div>
                             <div className="flex-1 overflow-hidden">
-                              <h4 className="text-base font-black uppercase text-white truncate italic group-hover:text-yellow-500 transition-colors leading-none">{item.municipio}</h4>
+                              <h4 className="text-base font-black uppercase text-white truncate group-hover:text-yellow-500 transition-colors leading-none">{item.municipio}</h4>
                               <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mt-1.5 flex items-center gap-2">
                                 <Clock className="w-2.5 h-2.5" /> {item.hora_inicio}
                               </p>
@@ -1425,7 +1425,7 @@ function CoordinatorDashboard() {
               <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none italic">Controle de Frequência (GPS)</h2>
+                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Controle de Frequência (GPS)</h2>
                     <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Auditoria de localização e horários em tempo real</p>
                   </div>
                   <div className="flex gap-3">
@@ -1489,7 +1489,7 @@ function CoordinatorDashboard() {
                                     <MapPin className="w-3.5 h-3.5" /> Ver no Mapa
                                   </a>
                                 ) : (
-                                  <span className="text-xs text-zinc-400 italic">Localização indisponível</span>
+                                  <span className="text-xs text-zinc-400">Localização indisponível</span>
                                 )}
                               </td>
                               <td className="p-4 text-right">
@@ -1526,7 +1526,7 @@ function CoordinatorDashboard() {
                       <MessageSquare className="w-6 h-6 text-zinc-950" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none italic">Anotações Táticas</h2>
+                      <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Anotações Táticas</h2>
                       <div className="flex gap-4 mt-4">
                         <button 
                           onClick={() => setNoteSubTab('tactical')}
@@ -1547,7 +1547,7 @@ function CoordinatorDashboard() {
                   {noteSubTab === 'private' && (
                     <button 
                       onClick={() => setIsAiModalOpen(true)}
-                      className="bg-yellow-500 text-zinc-950 px-6 py-3 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-zinc-950 hover:text-white transition-all flex items-center gap-2 italic"
+                      className="bg-yellow-500 text-zinc-950 px-6 py-3 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-zinc-950 hover:text-white transition-all flex items-center gap-2"
                     >
                       <Plus className="w-4 h-4" /> Nova Observação
                     </button>
@@ -1573,7 +1573,7 @@ function CoordinatorDashboard() {
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none italic">Gestão de Materiais</h2>
+                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Gestão de Materiais</h2>
                     <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Controle de Estoque e Distribuição</p>
                   </div>
                 </div>
@@ -1581,7 +1581,7 @@ function CoordinatorDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   {/* FORM ADD MATERIAL */}
                   <div className="lg:col-span-1 bg-white border border-zinc-200 rounded-sm p-6 shadow-sm h-fit">
-                    <h3 className="text-sm font-black uppercase text-zinc-900 mb-6 flex items-center gap-2 italic">
+                    <h3 className="text-sm font-black uppercase text-zinc-900 mb-6 flex items-center gap-2">
                       <Plus className="w-4 h-4 text-yellow-500" /> Novo Lote
                     </h3>
                     <form onSubmit={handleAddMaterial} className="space-y-4">
@@ -1608,7 +1608,7 @@ function CoordinatorDashboard() {
                             <Package className="w-6 h-6 text-zinc-400 group-hover:text-yellow-600 transition-colors" />
                           </div>
                           <div>
-                            <h4 className="font-black text-zinc-900 uppercase tracking-tight italic">{m.name}</h4>
+                            <h4 className="font-black text-zinc-900 uppercase tracking-tight">{m.name}</h4>
                             <div className="mt-1 flex items-center gap-3">
                               <div className="h-1.5 w-32 bg-zinc-100 rounded-sm overflow-hidden">
                                 <div 
@@ -1639,7 +1639,7 @@ function CoordinatorDashboard() {
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none italic">Articulação Política</h2>
+                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Articulação Política</h2>
                     <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">CRM de Relacionamento e Parcerias</p>
                   </div>
                 </div>
@@ -1677,7 +1677,7 @@ function CoordinatorDashboard() {
                             }`} />
                           </div>
                           <div>
-                            <h4 className="font-black text-zinc-900 uppercase leading-none tracking-tight italic">{p.name}</h4>
+                            <h4 className="font-black text-zinc-900 uppercase leading-none tracking-tight">{p.name}</h4>
                             <p className="text-[9px] font-bold text-zinc-400 mt-1 uppercase tracking-widest">{p.role}</p>
                           </div>
                         </div>
@@ -1700,7 +1700,7 @@ function CoordinatorDashboard() {
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none italic">Mapa de Calor: Ouvidoria</h2>
+                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Mapa de Calor: Ouvidoria</h2>
                     <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Concentração de Demandas por Região</p>
                   </div>
                 </div>
@@ -1708,7 +1708,7 @@ function CoordinatorDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                    <div className="lg:col-span-3 bg-white border border-zinc-200 rounded-sm p-8 shadow-sm">
                       <div className="mb-8">
-                        <h3 className="text-sm font-black uppercase tracking-tighter italic text-zinc-950">Volume por Zona de Atuação</h3>
+                        <h3 className="text-sm font-black uppercase tracking-tighter text-zinc-950">Volume por Zona de Atuação</h3>
                         <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comparativo de solicitações em campo</p>
                       </div>
                       
@@ -1748,7 +1748,7 @@ function CoordinatorDashboard() {
                    <div className="lg:col-span-1 space-y-4">
                       <div className="bg-zinc-950 rounded-sm p-6 text-white text-center">
                         <Activity className="w-10 h-10 text-yellow-500 mx-auto mb-4" />
-                        <h4 className="text-lg font-black uppercase italic tracking-tighter">Foco Estratégico</h4>
+                        <h4 className="text-lg font-black uppercase tracking-tighter">Foco Estratégico</h4>
                         <p className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mt-2 leading-relaxed">
                           A Região com maior concentração requer visita imediata do candidato.
                         </p>
@@ -1760,7 +1760,7 @@ function CoordinatorDashboard() {
                           {demandsSummary.map(d => (
                             <div key={d.name}>
                               <div className="flex justify-between items-center mb-1.5">
-                                <span className="text-[10px] font-black uppercase text-zinc-600 italic leading-none">{d.name}</span>
+                                <span className="text-[10px] font-black uppercase text-zinc-600 leading-none">{d.name}</span>
                                 <span className="text-[9px] font-black text-zinc-400">{d.value}</span>
                               </div>
                               <div className="h-1 bg-zinc-50 rounded-sm overflow-hidden">
@@ -1808,7 +1808,7 @@ function CoordinatorDashboard() {
 
               <div className="bg-yellow-500 p-6">
                 <Brain className="w-10 h-10 text-zinc-950 mb-4" />
-                <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none italic">Análise de IA</h2>
+                <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none">Análise de IA</h2>
                 <p className="text-zinc-900 text-[10px] font-black mt-2 uppercase tracking-widest leading-tight">Mapeamento Estratégico de Demandas</p>
               </div>
 
@@ -1836,7 +1836,7 @@ function CoordinatorDashboard() {
                         <button 
                           onClick={() => handleSaveNote('tactical')}
                           disabled={isProcessing || !chaosText}
-                          className="flex-1 bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2 italic"
+                          className="flex-1 bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2"
                         >
                           <MessageSquare className="w-4 h-4" /> Postar no Fórum
                         </button>
@@ -1919,7 +1919,7 @@ function CoordinatorDashboard() {
                           setChaosText(`${aiResult.title}: ${summary}`);
                           handleSaveNote('tactical');
                         }}
-                        className="flex-1 bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all italic flex items-center justify-center gap-2"
+                        className="flex-1 bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all flex items-center justify-center gap-2"
                       >
                         <MessageSquare className="w-4 h-4" /> Postar no Fórum
                       </button>
@@ -1967,20 +1967,20 @@ function CoordinatorDashboard() {
                 </button>
 
                 <div className={`p-6 ${selectedUrgency.type === 'combustivel' ? 'bg-blue-600' : selectedUrgency.type === 'demanda' ? 'bg-yellow-500' : 'bg-red-600'}`}>
-                  <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">{selectedUrgency.title}</h2>
+                  <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">{selectedUrgency.title}</h2>
                   <p className="text-white/70 text-[9px] font-black mt-2 uppercase tracking-widest leading-none">{selectedUrgency.leaderName} • {selectedUrgency.team}</p>
                 </div>
 
                 <div className="p-6 space-y-6">
                   <div>
-                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block mb-2 leading-none italic">Relato de Campo</label>
-                    <p className="p-4 bg-zinc-50 border border-zinc-100 rounded-sm text-xs font-bold text-zinc-700 italic leading-relaxed">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block mb-2 leading-none">Relato de Campo</label>
+                    <p className="p-4 bg-zinc-50 border border-zinc-100 rounded-sm text-xs font-bold text-zinc-700 leading-relaxed">
                       "{selectedUrgency.description}"
                     </p>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block leading-none italic">Feedback Estratégico</label>
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block leading-none">Feedback Estratégico</label>
                     <textarea 
                       value={observation}
                       onChange={(e) => setObservation(e.target.value)}
@@ -2051,7 +2051,7 @@ function CoordinatorDashboard() {
               </button>
 
               <div className="bg-zinc-950 p-6">
-                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
                   {teamCreationStep === 'form' ? (isEditMode ? 'Editar Unidade' : 'Cadastrar Unidade') : 'Unidade Ativada'}
                 </h2>
                 <p className="text-zinc-400 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">
@@ -2150,7 +2150,7 @@ function CoordinatorDashboard() {
                   
                   <button 
                     type="submit"
-                    className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-zinc-950/10 hover:bg-zinc-900 transition-all active:scale-[0.98] mt-2 italic"
+                    className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-zinc-950/10 hover:bg-zinc-900 transition-all active:scale-[0.98] mt-2"
                   >
                     {isEditMode ? 'SALVAR ALTERAÇÕES' : 'EFETIVAR CADASTRO'}
                   </button>
@@ -2160,12 +2160,12 @@ function CoordinatorDashboard() {
                   <div className="w-16 h-16 bg-green-50 text-green-600 rounded-sm flex items-center justify-center mx-auto mb-2 border border-green-100">
                     <CheckCircle2 className="w-8 h-8" />
                   </div>
-                  <h3 className="text-xl font-black text-zinc-900 uppercase tracking-tighter italic">Credenciais Geradas</h3>
+                  <h3 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Credenciais Geradas</h3>
                   <p className="text-zinc-500 text-xs font-bold leading-relaxed px-4">
                     Transmita o link de segurança abaixo para <span className="text-zinc-950">{newTeam.leader}</span>. Acesso imediato e restrito via Token Único.
                   </p>
                   
-                  <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100 break-all text-[9px] font-mono font-black text-blue-600 select-all italic">
+                  <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100 break-all text-[9px] font-mono font-black text-blue-600 select-all">
                     {createdTeamLink}
                   </div>
 
@@ -2230,7 +2230,7 @@ function CoordinatorDashboard() {
               </button>
 
               <div className="bg-yellow-500 p-6">
-                <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none italic">
+                <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none">
                   {editingAgenda ? 'Editar Evento' : 'Novo Evento Estratégico'}
                 </h2>
                 <p className="text-zinc-900 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Cronograma Oficial de Campanha</p>
@@ -2295,7 +2295,7 @@ function CoordinatorDashboard() {
                 
                 <button 
                   type="submit"
-                  className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl border-zinc-950 hover:bg-zinc-900 transition-all mt-2 italic"
+                  className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl border-zinc-950 hover:bg-zinc-900 transition-all mt-2"
                 >
                   {editingAgenda ? 'ATUALIZAR CRONOGRAMA' : 'PUBLICAR EVENTO'}
                 </button>
@@ -2503,7 +2503,7 @@ function CoordinatorDashboard() {
                            </div>
                         ))) : (
                            <div className="py-20 text-center bg-zinc-50 rounded-sm border-2 border-dashed border-zinc-200">
-                              <p className="font-black text-zinc-300 uppercase tracking-widest italic">Nenhum eleitor registrado por este líder ainda.</p>
+                              <p className="font-black text-zinc-300 uppercase tracking-widest">Nenhum eleitor registrado por este líder ainda.</p>
                            </div>
                         )}
                      </div>
@@ -2692,7 +2692,7 @@ function CoordinatorDashboard() {
                     >
                       <Trash2 className="w-4 h-4" /> Zerar Tudo do Zero
                     </button>
-                    <p className="text-[7px] text-zinc-400 text-center mt-2 font-bold italic leading-tight">Remove 100% dos dados fictícios e registros de teste.</p>
+                    <p className="text-[7px] text-zinc-400 text-center mt-2 font-bold leading-tight">Remove 100% dos dados fictícios e registros de teste.</p>
                   </div>
                 )}
               </form>
@@ -2747,7 +2747,7 @@ function CoordinatorDashboard() {
 
                 <div className="bg-zinc-50 p-8 rounded-sm border-2 border-zinc-100">
                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Objetivo Estratégico</p>
-                   <p className="text-xl font-bold text-zinc-700 leading-relaxed italic">
+                   <p className="text-xl font-bold text-zinc-700 leading-relaxed">
                       "{selectedAgenda.motivo || 'Nenhum motivo detalhado informado.'}"
                    </p>
                 </div>
@@ -2824,7 +2824,7 @@ function CoordinatorDashboard() {
                      <div key={tx.id} className="p-4 bg-white border border-zinc-100 rounded-sm flex justify-between items-center shadow-sm">
                         <div className="text-left">
                            <p className="text-sm font-black uppercase text-zinc-800">{tx.description || 'Movimentação sem descrição'}</p>
-                           <p className="text-[10px] text-zinc-500 italic">{tx.purpose || 'Uso operacional'}</p>
+                           <p className="text-[10px] text-zinc-500">{tx.purpose || 'Uso operacional'}</p>
                         </div>
                         <div className="text-right">
                            <p className={`font-black text-sm ${tx.type === 'alocacao' ? 'text-blue-600' : 'text-red-600'}`}>
@@ -2834,7 +2834,7 @@ function CoordinatorDashboard() {
                         </div>
                      </div>
                    )) : (
-                     <p className="text-center py-10 text-zinc-400 text-[10px] font-black uppercase italic">Nenhuma movimentação para esta equipe.</p>
+                     <p className="text-center py-10 text-zinc-400 text-[10px] font-black uppercase">Nenhuma movimentação para esta equipe.</p>
                    )}
                 </div>
               </div>
@@ -3400,7 +3400,7 @@ function CaboDashboard() {
               <ShieldCheck className="w-6 h-6 text-zinc-950" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-white tracking-tighter leading-none italic uppercase">Rede Águia</h2>
+              <h2 className="text-lg font-black text-white tracking-tighter leading-none uppercase">Rede Águia</h2>
               <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-1">Líder Regional</p>
             </div>
           </div>
@@ -3459,7 +3459,7 @@ function CaboDashboard() {
         <header className="h-16 bg-neutral-950/80 backdrop-blur-xl border-b border-white/5 px-6 lg:px-10 flex items-center justify-between flex-shrink-0 relative z-30">
           <div className="flex items-center gap-3 lg:hidden">
             <ShieldCheck className="w-6 h-6 text-yellow-500" />
-            <h1 className="font-black text-base uppercase tracking-tighter italic">Líder Águia</h1>
+            <h1 className="font-black text-base uppercase tracking-tighter">Líder Águia</h1>
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
@@ -3514,11 +3514,11 @@ function CaboDashboard() {
                     <div className="flex items-center gap-4 mb-6">
                       <div className="bg-yellow-500 p-3 rounded-sm"><Zap className="w-6 h-6 text-zinc-950" /></div>
                       <div>
-                        <h3 className="text-white font-black text-xl uppercase tracking-tighter italic">Ordem do Dia</h3>
+                        <h3 className="text-white font-black text-xl uppercase tracking-tighter">Ordem do Dia</h3>
                         <p className="text-yellow-500 text-[8px] font-black uppercase tracking-[0.2em] mt-1">Diretriz Crítica de Campo</p>
                       </div>
                     </div>
-                    <p className="text-white font-black text-2xl leading-relaxed italic border-l-4 border-yellow-500 pl-6">
+                    <p className="text-white font-black text-2xl leading-relaxed border-l-4 border-yellow-500 pl-6">
                       "{dailyOrder.text}"
                     </p>
                     <div className="mt-8 flex items-center gap-3 text-[9px] font-black text-zinc-500 uppercase tracking-widest">
@@ -3534,7 +3534,7 @@ function CaboDashboard() {
                     </div>
                     <div className="flex items-center gap-4 mb-6">
                       <div className="bg-zinc-950 p-3 rounded-sm"><StickyNote className="w-6 h-6 text-yellow-500" /></div>
-                      <h3 className="text-zinc-950 font-black text-xl uppercase tracking-tighter italic">Comunicações da Central</h3>
+                      <h3 className="text-zinc-950 font-black text-xl uppercase tracking-tighter">Comunicações da Central</h3>
                     </div>
                     <p className="text-zinc-600 font-bold text-lg leading-relaxed whitespace-pre-wrap pl-2 border-l-4 border-yellow-500">
                       {teamData.observations}
@@ -3578,7 +3578,7 @@ function CaboDashboard() {
                   {myRequests.length > 0 && (
                     <section className="bg-white border-2 border-zinc-100 rounded-sm p-10 shadow-sm overflow-hidden flex flex-col h-full group">
                       <div className="flex justify-between items-center mb-8">
-                        <h3 className="text-zinc-950 font-black text-lg uppercase tracking-tighter flex items-center gap-3 italic">
+                        <h3 className="text-zinc-950 font-black text-lg uppercase tracking-tighter flex items-center gap-3">
                           <div className="bg-zinc-100 p-2 rounded-sm group-hover:bg-zinc-950 group-hover:text-white transition-all"><RefreshCcw className="w-5 h-5 text-zinc-400 group-hover:text-yellow-500" /></div>
                           Fluxo de Suporte
                         </h3>
@@ -3618,7 +3618,7 @@ function CaboDashboard() {
                   {myAgendas.length > 0 && (
                     <section className="bg-white border-2 border-zinc-100 rounded-sm p-10 shadow-sm overflow-hidden flex flex-col h-full group">
                       <div className="flex justify-between items-center mb-8">
-                        <h3 className="text-zinc-950 font-black text-lg uppercase tracking-tighter flex items-center gap-3 italic">
+                        <h3 className="text-zinc-950 font-black text-lg uppercase tracking-tighter flex items-center gap-3">
                           <div className="bg-zinc-100 p-2 rounded-sm group-hover:bg-zinc-950 group-hover:text-white transition-all"><Calendar className="w-5 h-5 text-zinc-400 group-hover:text-emerald-500" /></div>
                           Monitor de Agenda
                         </h3>
@@ -3682,7 +3682,7 @@ function CaboDashboard() {
                       )}
                     </div>
                     <div className="text-center relative z-10">
-                      <h3 className="text-white font-black text-2xl tracking-tighter uppercase italic">{queueCount} Pacotes Offline</h3>
+                      <h3 className="text-white font-black text-2xl tracking-tighter uppercase">{queueCount} Pacotes Offline</h3>
                       <p className="text-zinc-500 text-[10px] font-black mt-3 uppercase tracking-[0.3em]">
                         {isOnline ? 'Conexão estável com o terminal central' : 'Armazenamento local criptografado (sem rede)'}
                       </p>
@@ -3700,7 +3700,7 @@ function CaboDashboard() {
                   <div className="bg-blue-600 p-10 rounded-sm flex flex-col justify-center relative overflow-hidden shadow-2xl group">
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-transparent opacity-20"></div>
                     <ShieldCheck className="absolute -right-8 -bottom-8 w-48 h-48 text-white/10 rotate-12 group-hover:rotate-6 transition-all duration-500" />
-                    <p className="text-white font-black text-2xl lg:text-3xl uppercase italic leading-tight text-left relative z-10 tracking-tighter">
+                    <p className="text-white font-black text-2xl lg:text-3xl uppercase leading-tight text-left relative z-10 tracking-tighter">
                       "A vitória é o resultado do trabalho silencioso em cada bairro."
                     </p>
                     <div className="mt-8 flex items-center gap-4 relative z-10">
@@ -3743,7 +3743,7 @@ function CaboDashboard() {
                   </motion.div>
                 )) : (
                   <div className="p-12 border-2 border-dashed border-zinc-200 rounded-sm text-center">
-                    <p className="font-black text-zinc-300 uppercase tracking-widest text-sm italic">Nenhum eleitor cadastrado ainda.</p>
+                    <p className="font-black text-zinc-300 uppercase tracking-widest text-sm">Nenhum eleitor cadastrado ainda.</p>
                     <button 
                       onClick={() => setActiveTab('logistica')}
                       className="mt-4 text-xs font-black text-yellow-600 underline uppercase"
@@ -3791,7 +3791,7 @@ function CaboDashboard() {
                     <div key={tx.id} className="p-4 bg-zinc-50 rounded-sm border border-zinc-100 flex justify-between items-center">
                       <div className="text-left">
                         <p className="font-black text-sm uppercase text-zinc-800">Recurso Recebido</p>
-                        <p className="text-[10px] text-zinc-500 font-bold italic">"{tx.purpose || 'Uso em campo'}"</p>
+                        <p className="text-[10px] text-zinc-500 font-bold">"{tx.purpose || 'Uso em campo'}"</p>
                       </div>
                       <div className="text-right flex items-center gap-4">
                         <div>
@@ -3816,7 +3816,7 @@ function CaboDashboard() {
                       </div>
                     </div>
                   )) : (
-                    <p className="text-center py-10 text-zinc-300 text-[10px] font-black uppercase italic">Nenhuma alocação registrada.</p>
+                    <p className="text-center py-10 text-zinc-300 text-[10px] font-black uppercase">Nenhuma alocação registrada.</p>
                   )}
                 </div>
               </section>
@@ -3845,7 +3845,7 @@ function CaboDashboard() {
                     >
                       <div className="text-left">
                         <p className="font-black text-sm uppercase text-zinc-800">{tx.description}</p>
-                        <p className="text-[10px] text-zinc-500 font-bold italic">{new Date(tx.date).toLocaleDateString()}</p>
+                        <p className="text-[10px] text-zinc-500 font-bold">{new Date(tx.date).toLocaleDateString()}</p>
                       </div>
                       <div className="text-right flex items-center gap-3">
                         <p className="font-black text-red-600 text-sm">- R$ {tx.amount.toLocaleString()}</p>
@@ -3853,7 +3853,7 @@ function CaboDashboard() {
                       </div>
                     </div>
                   )) : (
-                    <p className="text-center py-10 text-zinc-300 text-[10px] font-black uppercase italic">Nenhum gasto registrado ainda.</p>
+                    <p className="text-center py-10 text-zinc-300 text-[10px] font-black uppercase">Nenhum gasto registrado ainda.</p>
                   )}
                 </div>
               </section>
@@ -3863,7 +3863,7 @@ function CaboDashboard() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-900/50 pb-6">
               <div>
-                <h2 className="text-2xl font-black uppercase text-white tracking-tighter leading-none italic">Feed Tático</h2>
+                <h2 className="text-2xl font-black uppercase text-white tracking-tighter leading-none">Feed Tático</h2>
                 <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Comunicação estratégica e fórum de campo</p>
               </div>
               <button 
@@ -3889,7 +3889,7 @@ function CaboDashboard() {
               ) : (
                 <div className="col-span-full py-20 bg-zinc-900/50 border-2 border-dashed border-zinc-800 rounded-sm text-center">
                   <MessageSquare className="w-12 h-12 text-zinc-800 mx-auto mb-4" />
-                  <p className="font-black text-zinc-600 uppercase tracking-[0.2em] text-xs italic">Nenhuma comunicação tática registrada no momento.</p>
+                  <p className="font-black text-zinc-600 uppercase tracking-[0.2em] text-xs">Nenhuma comunicação tática registrada no momento.</p>
                 </div>
               )}
             </div>
@@ -3899,7 +3899,7 @@ function CaboDashboard() {
             <div className="bg-white p-8 rounded-sm border-2 border-zinc-200 shadow-xl">
               <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
                 <div className="text-left text-zinc-950">
-                  <h2 className="text-2xl font-black uppercase tracking-tighter italic">Notas Estratégicas</h2>
+                  <h2 className="text-2xl font-black uppercase tracking-tighter">Notas Estratégicas</h2>
                   <p className="text-zinc-500 font-medium text-sm">Registre impressões, nomes e lembretes rápidos via áudio.</p>
                 </div>
                 <button 
@@ -4011,7 +4011,7 @@ function CaboDashboard() {
                       />
                     </label>
                   </div>
-                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] italic">Formatos: JPG, PNG • Max: 1MB</p>
+                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Formatos: JPG, PNG • Max: 1MB</p>
                 </div>
 
                 <div className="space-y-1">
@@ -4129,7 +4129,7 @@ function CaboDashboard() {
                       <div className="bg-yellow-50 p-3 rounded-sm text-yellow-600"><StickyNote className="w-5 h-5" /></div>
                       <div>
                         <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Observações de Campo</p>
-                        <p className="text-sm font-bold text-zinc-600 italic">"{selectedVoter.observations}"</p>
+                        <p className="text-sm font-bold text-zinc-600">"{selectedVoter.observations}"</p>
                       </div>
                     </div>
                   )}
@@ -4189,7 +4189,7 @@ function CaboDashboard() {
                 <X className="w-4 h-4" />
               </button>
               <div className="bg-zinc-950 p-6">
-                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
                   {isEditingVoter ? 'Editar Registro' : 'Novo Alistamento'}
                 </h2>
                 <p className="text-zinc-400 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Inteligência Territorial e Base de Dados</p>
@@ -4211,7 +4211,7 @@ function CaboDashboard() {
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Observações Técnicas de Campo</label>
                   <textarea value={voterForm.observations} onChange={e => setVoterForm({...voterForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Histórico de engajamento ou demandas específicas..." />
                 </div>
-                <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-yellow-500/10 hover:bg-yellow-600 transition-all active:scale-[0.98] mt-2 italic">
+                <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-yellow-500/10 hover:bg-yellow-600 transition-all active:scale-[0.98] mt-2">
                   {isEditingVoter ? 'ATUALIZAR REGISTRO' : 'EFETIVAR ALISTAMENTO'}
                 </button>
               </form>
@@ -4238,7 +4238,7 @@ function CaboDashboard() {
                 <X className="w-4 h-4" />
               </button>
               <div className="bg-blue-600 p-6">
-                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">Logística de Suporte</h2>
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">Logística de Suporte</h2>
                 <p className="text-blue-200 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Requisição Oficial de Combustível</p>
               </div>
               <form onSubmit={handleFuelSubmit} className="p-6 space-y-4 text-left">
@@ -4250,7 +4250,7 @@ function CaboDashboard() {
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Roteiro Planejado e Justificativa</label>
                   <textarea required value={fuelForm.reason} onChange={e => setFuelForm({...fuelForm, reason: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-blue-500 transition-all h-32 resize-none placeholder:text-zinc-300" placeholder="Descreva o trajeto e comunidades atendidas..." />
                 </div>
-                <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-[0.98] mt-2 italic">ENVIAR REQUISIÇÃO</button>
+                <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-[0.98] mt-2">ENVIAR REQUISIÇÃO</button>
               </form>
             </motion.div>
           </motion.div>
@@ -4275,7 +4275,7 @@ function CaboDashboard() {
                 <X className="w-4 h-4" />
               </button>
               <div className="bg-yellow-500 p-6">
-                <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none italic">Demanda Territorial</h2>
+                <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none">Demanda Territorial</h2>
                 <p className="text-zinc-900 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Monitoramento de Necessidades Sociais</p>
               </div>
               <form onSubmit={handleDemandSubmit} className="p-6 space-y-4 text-left">
@@ -4287,7 +4287,7 @@ function CaboDashboard() {
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Briefing Detalhado</label>
                   <textarea required value={demandForm.description} onChange={e => setDemandForm({...demandForm, description: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-600 transition-all h-32 resize-none placeholder:text-zinc-300" placeholder="Descreva a urgência e o impacto na comunidade..." />
                 </div>
-                <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-yellow-500/10 hover:bg-yellow-600 transition-all active:scale-[0.98] mt-2 italic">ENVIAR PARA COORDENAÇÃO</button>
+                <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-yellow-500/10 hover:bg-yellow-600 transition-all active:scale-[0.98] mt-2">ENVIAR PARA COORDENAÇÃO</button>
               </form>
             </motion.div>
           </motion.div>
@@ -4317,7 +4317,7 @@ function CaboDashboard() {
                    <div className="flex items-center gap-3">
                       <div className="bg-red-600 p-2 rounded-sm"><DollarSign className="text-white w-5 h-5 md:w-6 md:h-6" /></div>
                       <div>
-                        <h3 className="font-black text-lg md:text-xl leading-none italic uppercase tracking-tighter">VOUCHER DE GASTO</h3>
+                        <h3 className="font-black text-lg md:text-xl leading-none uppercase tracking-tighter">VOUCHER DE GASTO</h3>
                         <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comprovante de Saída Operacional</p>
                       </div>
                    </div>
@@ -4332,8 +4332,8 @@ function CaboDashboard() {
                       <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">Discriminação</p>
                       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                          <div>
-                            <p className="text-xl font-black text-zinc-950 leading-tight uppercase italic">{selectedExpenseForVoucher.description}</p>
-                            <p className="text-[10px] font-bold text-zinc-500 italic mt-1">Finalidade: {selectedExpenseForVoucher.purpose}</p>
+                            <p className="text-xl font-black text-zinc-950 leading-tight uppercase">{selectedExpenseForVoucher.description}</p>
+                            <p className="text-[10px] font-bold text-zinc-500 mt-1">Finalidade: {selectedExpenseForVoucher.purpose}</p>
                             <p className="text-[8px] font-black text-zinc-400 uppercase mt-4 tracking-widest">Data/Hora: {new Date(selectedExpenseForVoucher.date).toLocaleString('pt-BR')}</p>
                          </div>
                          <div className="text-left md:text-right w-full md:w-auto">
@@ -4344,7 +4344,7 @@ function CaboDashboard() {
 
                    <div className="bg-zinc-50 p-6 rounded-sm border border-zinc-100">
                       <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">Unidade Responsável</p>
-                      <p className="text-base font-black text-zinc-950 uppercase italic tracking-tight">{selectedExpenseForVoucher.team}</p>
+                      <p className="text-base font-black text-zinc-950 uppercase tracking-tight">{selectedExpenseForVoucher.team}</p>
                       <p className="text-[10px] font-bold text-zinc-500 mt-0.5">Líder: {profileData.name}</p>
                    </div>
 
@@ -4357,7 +4357,7 @@ function CaboDashboard() {
               <div className="mt-8 flex justify-end gap-3 print:hidden">
                  <button 
                    onClick={() => window.print()}
-                   className="flex items-center gap-2 bg-zinc-950 text-white px-6 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-900 transition-all shadow-xl shadow-zinc-200 italic"
+                   className="flex items-center gap-2 bg-zinc-950 text-white px-6 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-900 transition-all shadow-xl shadow-zinc-200"
                  >
                    <Printer className="w-4 h-4" /> Gerar Documento (PDF)
                  </button>
@@ -4390,7 +4390,7 @@ function CaboDashboard() {
                    <div className="flex items-center gap-3">
                       <div className="bg-zinc-950 p-2 rounded-sm"><ShieldCheck className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" /></div>
                       <div>
-                        <h3 className="font-black text-lg md:text-xl leading-none italic uppercase tracking-tighter">PROTOCOLO ÁGUIA</h3>
+                        <h3 className="font-black text-lg md:text-xl leading-none uppercase tracking-tighter">PROTOCOLO ÁGUIA</h3>
                         <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comprovante de Transferência Digital</p>
                       </div>
                    </div>
@@ -4405,11 +4405,11 @@ function CaboDashboard() {
                       <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">Beneficiário e Valor</p>
                       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                          <div>
-                            <p className="text-xl font-black text-zinc-950 leading-tight uppercase italic">{selectedTxToSign.team}</p>
-                            <p className="text-[10px] font-bold text-zinc-500 italic mt-1">Finalidade: {selectedTxToSign.purpose || 'Uso Operacional'}</p>
+                            <p className="text-xl font-black text-zinc-950 leading-tight uppercase">{selectedTxToSign.team}</p>
+                            <p className="text-[10px] font-bold text-zinc-500 mt-1">Finalidade: {selectedTxToSign.purpose || 'Uso Operacional'}</p>
                          </div>
                          <div className="text-left md:text-right w-full md:w-auto">
-                            <p className="text-2xl md:text-3xl font-black text-zinc-950 tracking-tighter italic">R$ {selectedTxToSign.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-2xl md:text-3xl font-black text-zinc-950 tracking-tighter">R$ {selectedTxToSign.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                          </div>
                       </div>
                    </div>
@@ -4425,7 +4425,7 @@ function CaboDashboard() {
                       </div>
                       <div className="text-center border-t border-zinc-200 pt-4">
                          <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest mb-1">Receptor / Líder</p>
-                         <p className="text-zinc-400 font-bold text-[9px] italic uppercase">Assinatura Pendente</p>
+                         <p className="text-zinc-400 font-bold text-[9px] uppercase">Assinatura Pendente</p>
                       </div>
                    </div>
                 </div>
@@ -4440,7 +4440,7 @@ function CaboDashboard() {
                  </button>
                  <button 
                    onClick={() => handleSignReceipt(selectedTxToSign)}
-                   className="bg-green-600 text-white px-8 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] hover:bg-green-700 transition-all shadow-xl shadow-green-100 italic"
+                   className="bg-green-600 text-white px-8 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] hover:bg-green-700 transition-all shadow-xl shadow-green-100"
                  >
                    Confirmar e Assinar
                  </button>
@@ -4468,7 +4468,7 @@ function CaboDashboard() {
                 <X className="w-4 h-4" />
               </button>
               <div className="bg-red-600 p-6">
-                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">Controle de Saídas</h2>
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">Controle de Saídas</h2>
                 <p className="text-red-100 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Registro de Despesa da Equipe</p>
               </div>
               <form onSubmit={handleExpenseSubmit} className="p-6 space-y-4 text-left">
@@ -4484,7 +4484,7 @@ function CaboDashboard() {
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Montante (Valores em R$)</label>
                   <input required type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-2xl text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" placeholder="0,00" />
                 </div>
-                <button type="submit" className="w-full bg-red-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-red-500/10 hover:bg-red-700 transition-all active:scale-[0.98] mt-2 italic">EFETIVAR SAÍDA</button>
+                <button type="submit" className="w-full bg-red-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-red-500/10 hover:bg-red-700 transition-all active:scale-[0.98] mt-2">EFETIVAR SAÍDA</button>
               </form>
             </motion.div>
           </motion.div>
@@ -4509,7 +4509,7 @@ function CaboDashboard() {
                 <X className="w-4 h-4" />
               </button>
               <div className="bg-orange-500 p-6">
-                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">Logística Proativa</h2>
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">Logística Proativa</h2>
                 <p className="text-orange-100 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Proposta de Itinerário Estratégico</p>
               </div>
               <form onSubmit={handleAgendaSubmit} className="p-6 space-y-4 text-left">
@@ -4545,7 +4545,7 @@ function CaboDashboard() {
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block leading-none">Justificativa e Objetivos Táticos</label>
                   <textarea required value={agendaForm.motivo} onChange={e => setAgendaForm({...agendaForm, motivo: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-orange-500 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Descreva os objetivos da diligência..." />
                 </div>
-                <button type="submit" className="w-full bg-orange-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-orange-500/10 hover:bg-orange-700 transition-all active:scale-[0.98] mt-2 italic">ENVIAR PROPOSTA</button>
+                <button type="submit" className="w-full bg-orange-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-orange-500/10 hover:bg-orange-700 transition-all active:scale-[0.98] mt-2">ENVIAR PROPOSTA</button>
               </form>
             </motion.div>
           </motion.div>
@@ -4574,7 +4574,7 @@ function CaboDashboard() {
                   <Mic className={`w-6 h-6 ${isRecording ? 'text-white' : 'text-zinc-500'}`} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">Anotação Tática</h2>
+                  <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">Anotação Tática</h2>
                   <p className="text-zinc-500 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">
                     {isRecording ? 'Escutando relato...' : 'Transcrição ou Digitação'}
                   </p>
@@ -4607,7 +4607,7 @@ function CaboDashboard() {
                   <button 
                     onClick={() => handleNoteSubmit()}
                     disabled={isProcessingNote || !noteText.trim()}
-                    className={`flex-1 ${isProcessingNote ? 'bg-zinc-400' : 'bg-yellow-500'} text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 italic`}
+                    className={`flex-1 ${isProcessingNote ? 'bg-zinc-400' : 'bg-yellow-500'} text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2`}
                   >
                     {isProcessingNote ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                     {isProcessingNote ? 'PROCESSANDO...' : 'SALVAR NOTA'}

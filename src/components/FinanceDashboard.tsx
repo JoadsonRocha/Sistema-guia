@@ -525,7 +525,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
               <div className="absolute top-0 right-0 p-12 opacity-5 translate-x-1/2 -translate-y-1/2">
                 <ArrowUpRight className="w-56 h-56" />
               </div>
-              <h2 className="text-lg font-black uppercase text-white mb-6 flex items-center gap-3 tracking-tighter leading-none italic">
+              <h2 className="text-lg font-black uppercase text-white mb-6 flex items-center gap-3 tracking-tighter leading-none">
                 <span className="p-2 bg-yellow-500 rounded-xl shadow-lg shadow-yellow-500/20 inline-flex items-center justify-center"><DollarSign className="text-zinc-950 w-5 h-5" /></span>
                 Fatiamento Estratégico
               </h2>
@@ -604,7 +604,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
 
             <section className="space-y-5">
               <div className="flex justify-between items-center px-1">
-                <h2 className="text-lg font-black uppercase text-zinc-900 tracking-tighter flex items-center gap-3 leading-none italic">
+                <h2 className="text-lg font-black uppercase text-zinc-900 tracking-tighter flex items-center gap-3 leading-none">
                   Controle por Frente
                 </h2>
                 <div className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">
@@ -630,7 +630,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 rounded-full ${balance > 100 ? 'bg-green-500' : 'bg-red-500'}`} />
-                          <h3 className="font-black text-zinc-950 text-sm uppercase tracking-tighter italic leading-none">{team.name}</h3>
+                          <h3 className="font-black text-zinc-950 text-sm uppercase tracking-tighter leading-none">{team.name}</h3>
                         </div>
                         <button 
                           onClick={() => {
@@ -680,7 +680,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
           {/* COLUNA DE TRANSAÇÕES (DIREITA - 1 COLUNA) */}
           <section className="bg-white border border-zinc-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full lg:max-h-[900px]">
             <div className="bg-zinc-950 p-5 border-b border-zinc-900">
-              <h2 className="text-base font-black uppercase tracking-tighter text-white flex items-center gap-2 italic">
+              <h2 className="text-base font-black uppercase tracking-tighter text-white flex items-center gap-2">
                 <History className="w-4 h-4 text-yellow-500" /> Auditoria
               </h2>
               <p className="text-[8px] font-black text-zinc-500 uppercase mt-1 tracking-widest">Logs de Transações Digitais</p>
@@ -743,7 +743,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
                   </div>
                 </div>
               )) : (
-                <div className="p-6 text-center text-zinc-300 uppercase text-[8px] font-black italic tracking-widest">Sem movimentos registrados</div>
+                <div className="p-6 text-center text-zinc-300 uppercase text-[8px] font-black tracking-widest">Sem movimentos registrados</div>
               )}
             </div>
           </section>
@@ -776,7 +776,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
                 <div className={`${editingTransaction ? 'bg-zinc-800' : 'bg-red-500'} w-10 h-10 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-red-500/20`}>
                   {editingTransaction ? <Edit3 className="text-white w-5 h-5" /> : <ArrowDownRight className="text-zinc-950 w-5 h-5" />}
                 </div>
-                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
                   {editingTransaction ? 'Editar Despesa' : 'Lançar Despesa'}
                 </h2>
                 <p className="text-zinc-500 text-[8px] font-black mt-2 uppercase tracking-widest">Unidade: {expenseData.team || editingTransaction?.team}</p>
@@ -847,7 +847,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
                 <div className={`${incomeData.id ? 'bg-zinc-800' : 'bg-green-500'} w-10 h-10 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-green-500/20`}>
                   {incomeData.id ? <Edit3 className="text-white w-5 h-5" /> : <TrendingUp className="text-zinc-950 w-5 h-5" />}
                 </div>
-                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
                   {incomeData.id ? 'Editar Capital' : 'Injetar Capital'}
                 </h2>
                 <p className="text-zinc-500 text-[8px] font-black mt-2 uppercase tracking-widest leading-none">Alimentação da Vault</p>
@@ -929,13 +929,13 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
                         <ShieldCheck className="text-yellow-500 w-6 h-6" />
                       </div>
                       <div>
-                        <h3 className="font-black text-xl leading-none tracking-tighter italic">SISTEMA ÁGUIA</h3>
+                        <h3 className="font-black text-xl leading-none tracking-tighter">SISTEMA ÁGUIA</h3>
                         <p className="text-[8px] font-black text-zinc-400 uppercase mt-1 tracking-widest">Digital Certificate</p>
                       </div>
                    </div>
                    <div className="text-right">
                       <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest leading-none mb-1">Doc Code</p>
-                      <p className="font-mono text-[10px] font-black bg-zinc-50 px-2 py-0.5 rounded border border-zinc-100 italic">
+                      <p className="font-mono text-[10px] font-black bg-zinc-50 px-2 py-0.5 rounded border border-zinc-100">
                         {selectedReceiptTx.id?.split('_').pop()?.toUpperCase() || 'N/A'}
                       </p>
                    </div>
@@ -943,17 +943,17 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
 
                 <div className="space-y-8">
                    <div className="bg-zinc-50 p-6 lg:p-8 rounded-xl border border-zinc-100 relative overflow-hidden group">
-                      <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-4 border-b border-zinc-200 pb-1 inline-block italic">Alocação</p>
+                      <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-4 border-b border-zinc-200 pb-1 inline-block">Alocação</p>
                       <div className="flex justify-between items-end relative z-10">
                          <div>
-                            <p className="text-2xl font-black tracking-tighter uppercase italic">{selectedReceiptTx.team}</p>
+                            <p className="text-2xl font-black tracking-tighter uppercase">{selectedReceiptTx.team}</p>
                             <div className="flex items-center gap-2 mt-1.5">
                                <p className="text-[10px] font-bold text-zinc-500">Motivo: {selectedReceiptTx.purpose || 'Operacional'}</p>
                             </div>
                          </div>
                          <div className="text-right">
                             <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1 leading-none">Valor Transferido</p>
-                            <p className="text-3xl font-black text-zinc-950 tracking-tighter italic">{fmt.format(selectedReceiptTx.amount)}</p>
+                            <p className="text-3xl font-black text-zinc-950 tracking-tighter">{fmt.format(selectedReceiptTx.amount)}</p>
                          </div>
                       </div>
                    </div>
@@ -966,18 +966,18 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
                       <div className="text-center">
                          <div className="border-t border-zinc-200 pt-4">
                             <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1">Coordenação Central</p>
-                            <p className="font-black text-[10px] text-zinc-950 uppercase tracking-widest italic">Autenticado</p>
+                            <p className="font-black text-[10px] text-zinc-950 uppercase tracking-widest">Autenticado</p>
                          </div>
                       </div>
                       <div className="text-center">
                          <div className="border-t border-zinc-200 pt-4">
                             <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1">Responsável Regional</p>
                             {selectedReceiptTx.receiptStatus === 'assinado' ? (
-                              <p className="text-green-600 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 italic">
+                              <p className="text-green-600 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
                                 <CheckCircle2 className="w-3 h-3" /> Assinado
                               </p>
                             ) : (
-                              <p className="text-zinc-300 font-black text-[10px] italic uppercase tracking-widest">Pendente</p>
+                              <p className="text-zinc-300 font-black text-[10px] uppercase tracking-widest">Pendente</p>
                             )}
                          </div>
                       </div>
