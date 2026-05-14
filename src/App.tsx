@@ -2039,7 +2039,6 @@ function CoordinatorDashboard() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative"
-              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
             >
               <button 
                 onClick={() => {
@@ -3525,7 +3524,7 @@ function CaboDashboard() {
                     <div className="mt-8 flex items-center gap-3 text-[9px] font-black text-zinc-500 uppercase tracking-widest">
                        <Clock className="w-3.5 h-3.5" /> Atualizado às {new Date(dailyOrder.updatedAt).toLocaleTimeString()}
                     </div>
-                  </motion.section>
+                  </motion.div>
                 )}
 
                 {teamData?.observations && (
@@ -4081,7 +4080,14 @@ function CaboDashboard() {
                       {selectedVoter.name.charAt(0).toUpperCase()}
                    </div>
                    <div>
-                      <h2 className="te                <div className="grid grid-cols-2 gap-4">
+                      <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">{selectedVoter.name}</h2>
+                      <p className="text-zinc-400 text-[10px] font-black mt-1 uppercase tracking-widest leading-none">Perfil do Eleitor Fidelizado</p>
+                    </div>
+                </div>
+              </div>
+
+              <div className="p-8 space-y-6 text-left">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100">
                     <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Status</p>
                     <p className="text-sm font-black text-green-600 uppercase">Fidelizado</p>
@@ -4103,12 +4109,6 @@ function CaboDashboard() {
                           window.open(`https://wa.me/55${cleanPhone}`, '_blank');
                         }}
                         className="text-lg font-black text-zinc-900 border-b-2 border-blue-500 flex items-center gap-2"
-                      >
-                        {selectedVoter.phone || 'Sem Telefone'}
-                        <div className="bg-green-50 w-2 h-2 rounded-sm animate-pulse"></div>
-                      </button>
-                    </div>
-                  </div>             className="text-lg font-black text-zinc-900 border-b-2 border-blue-500 flex items-center gap-2"
                       >
                         {selectedVoter.phone || 'Sem Telefone'}
                         <div className="bg-green-500 w-2 h-2 rounded-sm animate-pulse"></div>
@@ -4210,7 +4210,17 @@ function CaboDashboard() {
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Observações Técnicas de Campo</label>
                   <textarea value={voterForm.observations} onChange={e => setVoterForm({...voterForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Histórico de engajamento ou demandas específicas..." />
-                </div>       {/* MODAL: PEDIR COMBUSTÍVEL */}
+                </div>
+                <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-yellow-500/10 hover:bg-yellow-600 transition-all active:scale-[0.98] mt-2 italic">
+                  {isEditingVoter ? 'ATUALIZAR REGISTRO' : 'EFETIVAR ALISTAMENTO'}
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL: PEDIR COMBUSTÍVEL */}
       <AnimatePresence>
         {isFuelModalOpen && (
           <motion.div 
@@ -4239,12 +4249,6 @@ function CaboDashboard() {
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Roteiro Planejado e Justificativa</label>
                   <textarea required value={fuelForm.reason} onChange={e => setFuelForm({...fuelForm, reason: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-blue-500 transition-all h-32 resize-none placeholder:text-zinc-300" placeholder="Descreva o trajeto e comunidades atendidas..." />
-                </div>
-                <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-[0.98] mt-2 italic">ENVIAR REQUISIÇÃO</button>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}unidades atendidas..." />
                 </div>
                 <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-[0.98] mt-2 italic">ENVIAR REQUISIÇÃO</button>
               </form>

@@ -10,7 +10,8 @@ import {
   where, 
   onSnapshot,
   FirestoreError,
-  Timestamp
+  Timestamp,
+  addDoc
 } from 'firebase/firestore';
 import { db, auth } from './firebase';
 
@@ -118,6 +119,15 @@ export const firestoreService = {
       await deleteDoc(doc(db, path, id));
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, `${path}/${id}`);
+    }
+  },
+
+  async addDocument(path: string, data: any) {
+    try {
+      const docRef = await addDoc(collection(db, path), data);
+      return docRef.id;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, path);
     }
   },
 
