@@ -130,6 +130,7 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
             <div className="text-left">
               <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest leading-none">Registrado por</p>
               <p className="text-[9px] font-black text-zinc-900 uppercase tracking-tight mt-1 leading-none">{note.leaderName || note.authorName}</p>
+              <p className="text-[8px] font-bold text-yellow-600 uppercase tracking-widest mt-1 leading-none">{note.teamName || note.team || (note.authorRole === 'coordinator' ? 'Liderança' : 'Campo')}</p>
             </div>
           </div>
           
@@ -506,6 +507,7 @@ function CoordinatorDashboard() {
         authorId: user.uid,
         authorName: profileData?.name || 'Coordenador',
         authorRole: 'coordinator',
+        teamName: 'Liderança',
         type: type,
         createdAt: Date.now()
       });
@@ -2979,6 +2981,7 @@ function CaboDashboard() {
         leaderId: user.uid,
         leaderName: profileData.name,
         team: profileData.zone,
+        teamName: profileData.zone,
         type: 'tactical',
         createdAt: Date.now()
       });
