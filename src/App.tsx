@@ -1302,10 +1302,17 @@ function CoordinatorDashboard() {
                             <tr key={entry.id} className="hover:bg-zinc-50/50 transition-colors">
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center font-black text-white text-[10px]">
-                                    {entry.leaderName?.charAt(0)}
+                                  <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center font-black text-white text-[10px] overflow-hidden border-2 border-zinc-100">
+                                    {entry.leaderPhoto ? (
+                                      <img src={entry.leaderPhoto} alt={entry.leaderName} className="w-full h-full object-cover" />
+                                    ) : (
+                                      entry.leaderName?.charAt(0)
+                                    )}
                                   </div>
-                                  <span className="text-xs font-black text-zinc-900 uppercase">{entry.leaderName}</span>
+                                  <div className="flex flex-col">
+                                    <span className="text-xs font-black text-zinc-900 uppercase leading-none">{entry.leaderName}</span>
+                                    <span className="text-[9px] font-bold text-yellow-600 uppercase tracking-widest mt-1 leading-none">{entry.teamName || 'Equipe não ident.'}</span>
+                                  </div>
                                 </div>
                               </td>
                               <td className="p-4">
@@ -2240,6 +2247,7 @@ function CoordinatorDashboard() {
                   const updates = {
                     name: formData.get('name') as string,
                     phone: formData.get('phone') as string,
+                    photoUrl: formData.get('photoUrl') as string,
                     bio: formData.get('bio') as string,
                     updatedAt: Date.now()
                   };
@@ -2253,6 +2261,10 @@ function CoordinatorDashboard() {
                 }} 
                 className="p-6 space-y-3.5 text-left font-sans"
               >
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">URL da Foto (Perfil)</label>
+                  <input defaultValue={profileData?.photoUrl} name="photoUrl" type="text" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="https://..." />
+                </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
                   <input defaultValue={profileData?.name} name="name" type="text" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="Seu nome real..." />
@@ -2482,7 +2494,7 @@ const getDistanceInMeters = (lat1: number, lon1: number, lat2: number, lon2: num
 
 // --- COMPONENTE: DASHBOARD DO CABO ELEITORAL (PWA) ---
 function CaboDashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [queueCount, setQueueCount] = useState(0);
   const [isLocating, setIsLocating] = useState(false);
@@ -2522,6 +2534,7 @@ function CaboDashboard() {
   const [profileData, setProfileData] = useState({
     name: user?.displayName || '',
     phone: '',
+    photoUrl: user?.photoURL || '',
     zone: ''
   });
 
@@ -2544,6 +2557,8 @@ function CaboDashboard() {
           const teamName = data.teamName || data.zone || data.team || '';
           setProfileData({
             name: data.name || user.displayName || '',
+            phone: data.phone || '',
+            photoUrl: data.photoUrl || user.photoURL || '',
             zone: teamName
           });
           
@@ -2654,10 +2669,13 @@ function CaboDashboard() {
           const checkinData = {
             leaderId: user?.uid,
             leaderName: profileData.name || user?.displayName,
+            leaderPhoto: profileData.photoUrl || user?.photoURL || '',
+            teamId: teamData?.id || '',
+            teamName: teamData?.name || profileData.zone || 'Liderança',
             timestamp: Date.now(),
             location: { lat: latitude, lng: longitude },
             type: 'selfie',
-            status: 'pendente'
+            status: 'validado'
           };
           
           const queue = JSON.parse(localStorage.getItem('aguia_offline_queue') || '[]');
@@ -3488,6 +3506,17 @@ function CaboDashboard() {
                     placeholder="Ex: Pacaraima Centro"
                     value={profileData.zone}
                     onChange={(e) => setProfileData({...profileData, zone: e.target.value})}
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800"
+                  />
+                </div>
+                
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">URL da Foto de Perfil</label>
+                  <input 
+                    type="text" 
+                    placeholder="https://link-da-sua-foto.com/perfil.jpg"
+                    value={profileData.photoUrl || ''}
+                    onChange={(e) => setProfileData({...profileData, photoUrl: e.target.value})}
                     className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800"
                   />
                 </div>
