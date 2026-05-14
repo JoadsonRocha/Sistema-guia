@@ -59,7 +59,6 @@ const fmt = new Intl.NumberFormat('pt-BR', {
 export default function FinanceDashboard({ isNested = false }: { isNested?: boolean }) {
   const { user, isAdmin } = useAuth();
   // --- ESTADO FINANCEIRO (ESTADO DO CAIXA FORTE) ---
-  const [totalFunded, setTotalFunded] = useState(0);
   const [teams, setTeams] = useState<TeamFinance[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
@@ -79,27 +78,9 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
       });
     }
 
-    // Subscribe to global stats for totalFunded
-    const unsubStats = onSnapshot(doc(db, 'stats', 'global'), (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        if (data.totalFunded !== undefined) {
-          setTotalFunded(Number(data.totalFunded) || 0);
-        }
-      } else if (isAdmin) {
-        // Initialize if doesn't exist
-        firestoreService.setDocument('stats', 'global', { 
-          totalFunded: 0,
-          combustivelHoje: 0,
-          combustivelSaldo: 0
-        }, true);
-      }
-    });
-
     return () => {
       unsubTeams();
       unsubTransactions();
-      unsubStats();
     };
   }, [user, isAdmin]);
 
@@ -142,6 +123,12 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
   });
 
   // --- CÁLCULOS TÉCNICOS (REATIVOS) ---
+  const totalFunded = useMemo(() => 
+    transactions
+      .filter(t => t.type === 'entrada')
+      .reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
+  , [transactions]);
+
   const totalAllocated = useMemo(() => teams.reduce((acc, t) => acc + (Number(t.allocated) || 0), 0), [teams]);
   const totalSpent = useMemo(() => teams.reduce((acc, t) => acc + (Number(t.spent) || 0), 0), [teams]);
   const freeBalance = totalFunded - totalAllocated;
@@ -156,14 +143,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
 
     try {
       const txId = incomeData.id || `tx_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-      const oldAmount = incomeData.id ? Number(transactions.find(t => t.id === incomeData.id)?.amount) || 0 : 0;
       
-      const diff = val - oldAmount;
-      const newTotal = totalFunded + diff;
-
-      // Update global stats
-      await firestoreService.setDocument('stats', 'global', { totalFunded: Number(newTotal) }, true);
-
       // Create/Update transaction
       await firestoreService.setDocument('transactions', txId, {
         id: txId,
@@ -182,32 +162,40 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
   };
 
   const ajeitarSaldoEquipe = async (teamName: string, amountDiff: number, field: 'allocated' | 'spent') => {
+    // Buscar o dado mais recente do servidor para evitar problemas de concorrência com o estado local
     const team = teams.find(t => t.name === teamName);
     if (!team) return;
     const teamId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
     
-    const currentValue = Number(team[field]) || 0;
-    await firestoreService.updateDocument('teams', teamId, {
-      [field]: Math.max(0, currentValue + amountDiff)
-    });
+    try {
+      const latestDoc = await firestoreService.getDocument<any>('teams', teamId);
+      const currentValue = Number(latestDoc?.[field]) || Number(team[field]) || 0;
+      
+      await firestoreService.updateDocument('teams', teamId, {
+        [field]: Math.max(0, currentValue + amountDiff)
+      });
+    } catch (err) {
+      console.error("Erro ao ajeitar saldo da equipe:", err);
+    }
   };
 
   const deletarTransacao = async (tx: Transaction) => {
     if (!isAdmin) return;
-    if (!window.confirm(`Deseja realmente excluir esta movimentação de ${fmt.format(tx.amount)}?`)) return;
+    
+    const confirmMessage = `VOCE TEM CERTEZA?\n\nIsso removerá esta movimentação de ${fmt.format(tx.amount)} e REAJUSTARÁ todos os saldos retroativamente.\n\nEsta operação é irreversível.`;
+    
+    if (!window.confirm(confirmMessage)) return;
 
     try {
-      if (tx.type === 'entrada') {
-        const newTotal = totalFunded - Number(tx.amount);
-        await firestoreService.setDocument('stats', 'global', { totalFunded: Number(newTotal) }, true);
-      } else if (tx.type === 'alocacao' || tx.type === 'gasto') {
+      if (tx.type === 'alocacao' || tx.type === 'gasto') {
         const field = tx.type === 'alocacao' ? 'allocated' : 'spent';
         await ajeitarSaldoEquipe(tx.team || '', -Number(tx.amount), field);
       }
 
       await firestoreService.deleteDocument('transactions', tx.id);
+      alert("Movimentação removida!");
     } catch (err: any) {
-      alert("Erro ao excluir: " + err.message);
+      alert("FALHA NA EXCLUSÃO: " + err.message);
     }
   };
 
@@ -292,7 +280,8 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
         await firestoreService.setDocument('stats', 'global', { 
            totalFunded: 0,
            combustivelHoje: 0,
-           combustivelSaldo: 0
+           combustivelSaldo: 0,
+           votersTotal: 0
         }, true);
         
         // Limpar transações
@@ -300,16 +289,50 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
         for (const tx of txs) {
           await firestoreService.deleteDocument('transactions', tx.id);
         }
+
+        // Limpar Urgências/Demandas
+        const urgen = await firestoreService.getCollection<any>('urgencies');
+        for (const u of urgen) {
+          await firestoreService.deleteDocument('urgencies', u.id);
+        }
+
+        // Limpar Notas
+        const nts = await firestoreService.getCollection<any>('notes');
+        for (const n of nts) {
+          await firestoreService.deleteDocument('notes', n.id);
+        }
+
+        // Limpar Agenda
+        const agd = await firestoreService.getCollection<any>('agenda');
+        for (const a of agd) {
+          await firestoreService.deleteDocument('agenda', a.id);
+        }
+
+        // Limpar Eleitores
+        const vts = await firestoreService.getCollection<any>('voters');
+        for (const v of vts) {
+          await firestoreService.deleteDocument('voters', v.id);
+        }
+
+        // Limpar Presença/Ponto
+        const att = await firestoreService.getCollection<any>('attendance');
+        for (const a of att) {
+          await firestoreService.deleteDocument('attendance', a.id);
+        }
         
         // Resetar equipes
         for (const team of teams) {
-          await firestoreService.updateDocument('teams', team.id || team.name.replace(/\s/g, '_').toLowerCase(), {
+          const teamId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
+          await firestoreService.updateDocument('teams', teamId, {
             allocated: 0,
-            spent: 0
+            spent: 0,
+            contacts: 0,
+            demands: 0,
+            fuel: 0
           });
         }
         
-        alert("Financeiro limpo com sucesso! Pronto para inserção de dados reais.");
+        alert("SISTEMA RESETADO COM SUCESSO! Todos os valores fictícios foram removidos. O sistema está pronto para operação real.");
       } catch (err: any) {
         alert("Erro ao limpar dados: " + err.message);
       }
@@ -403,8 +426,18 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
             <TrendingUp className="w-20 h-20 text-yellow-500" />
           </div>
           <div className="relative z-10">
-            <div className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
-              <div className="w-1 h-1 bg-yellow-500 rounded-full" /> Arrecadação 
+            <div className="flex justify-between items-start">
+              <div className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <div className="w-1 h-1 bg-yellow-500 rounded-full" /> Arrecadação 
+              </div>
+              {isAdmin && (
+                <button 
+                  onClick={zerarFinanceiro}
+                  className="text-[6px] font-black text-red-500 uppercase tracking-widest hover:underline opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  Zerar Transações
+                </button>
+              )}
             </div>
             <p className="text-[12px] sm:text-[14px] font-black text-white mt-3 tracking-tighter leading-none truncate" title={fmt.format(totalFunded)}>
               {fmt.format(totalFunded)}
@@ -582,7 +615,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {teams.map((team, idx) => {
                   const balance = team.allocated - team.spent;
-                  const usagePercent = (team.spent / team.allocated) * 100;
+                  const usagePercent = team.allocated > 0 ? (team.spent / team.allocated) * 100 : 0;
                   let barColor = "bg-green-500";
                   if (usagePercent > 70) barColor = "bg-yellow-500";
                   if (usagePercent > 90) barColor = "bg-red-600";
@@ -701,7 +734,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
                       )}
                       <button 
                         onClick={() => deletarTransacao(t)}
-                        className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                        className="p-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all shadow-md active:scale-95"
                         title="Excluir"
                       >
                          <Trash2 className="w-3 h-3" />

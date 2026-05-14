@@ -529,6 +529,11 @@ function CoordinatorDashboard() {
       // 1. Criar/Atualizar a equipe no Firestore
       await firestoreService.setDocument('teams', teamId, {
         ...newTeam,
+        allocated: Number(newTeam.allocated) || 0,
+        spent: Number(newTeam.spent) || 0,
+        contacts: Number(newTeam.contacts) || 0,
+        demands: Number(newTeam.demands) || 0,
+        fuel: Number(newTeam.fuel) || 0,
         tempPassword: isEditMode ? ((newTeam as any).tempPassword || defaultPassword) : defaultPassword, // Manter ou criar senha
         updatedAt: Date.now(),
         createdAt: isEditMode ? ((newTeam as any).createdAt || Date.now()) : Date.now()
@@ -1058,14 +1063,14 @@ function CoordinatorDashboard() {
                            </button>
                            <button 
                              onClick={() => handleEditTeam(team)}
-                             className="p-3 bg-zinc-50 text-zinc-500 rounded-xl hover:bg-zinc-950 hover:text-white transition-all shadow-sm"
+                             className="p-3 bg-zinc-100 text-zinc-600 rounded-xl hover:bg-zinc-950 hover:text-white transition-all shadow-md active:scale-95"
                              title="Editar Unidade"
                            >
                              <Edit3 className="w-4 h-4" />
                            </button>
                            <button 
                              onClick={() => handleDeleteTeam(team.id || team.name.replace(/\s/g, '_').toLowerCase(), team.name)}
-                             className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                             className="p-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all shadow-md active:scale-95"
                              title="Excluir"
                            >
                              <Trash2 className="w-4 h-4" />
@@ -1954,10 +1959,15 @@ function CoordinatorDashboard() {
                                  <button 
                                    onClick={async () => {
                                       if(window.confirm(`Remover o eleitor ${vx.name}?`)) {
-                                         await firestoreService.deleteDocument('voters', vx.id);
+                                         try {
+                                            await firestoreService.deleteDocument('voters', vx.id);
+                                            alert("Membro removido com sucesso!");
+                                         } catch (err: any) {
+                                            alert("Erro ao excluir: " + err.message);
+                                         }
                                       }
                                    }}
-                                   className="p-3 bg-zinc-50 rounded-xl text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                                   className="p-3 bg-red-600 text-white rounded-xl hover:bg-red-700 shadow-md transition-all active:scale-95"
                                  >
                                     <Trash2 className="w-4 h-4" />
                                  </button>
@@ -3424,7 +3434,7 @@ function CaboDashboard() {
                   </button>
                   <button 
                     onClick={() => handleDeleteVoter(selectedVoter.id)}
-                    className="flex items-center justify-center gap-2 bg-red-50 text-red-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-sm active:bg-red-100 transition-all border border-red-100"
+                    className="flex items-center justify-center gap-2 bg-red-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-md hover:bg-red-700 active:scale-95 transition-all"
                   >
                     <Trash2 className="w-4 h-4" /> Excluir Registro
                   </button>
