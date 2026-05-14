@@ -916,28 +916,9 @@ function CoordinatorDashboard() {
           </div>
         </header>
 
-        {/* MOBILE NAVIGATION TABS (REPLACES SIDEBAR ON MOBILE) */}
-        <div className="lg:hidden h-14 bg-white border-b border-zinc-200 flex items-center px-4 gap-1.5 overflow-x-auto no-scrollbar shrink-0">
-          {[
-            { id: 'overview', label: 'Dash' },
-            { id: 'teams', label: 'Equipes' },
-            { id: 'attendance', label: 'Ponto' },
-            { id: 'agenda', label: 'Agenda' },
-            { id: 'finance', label: 'Finanças' },
-            { id: 'notes', label: 'Notas' }
-          ].map(tab => (
-            <button 
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-none px-4 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${activeTab === tab.id ? 'bg-yellow-500 text-zinc-950 shadow-sm' : 'text-zinc-500 hover:bg-zinc-50'}`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
 
         {/* CONTENT AREA */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar">
+        <main className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar pb-32 lg:pb-20">
           <div className="max-w-7xl mx-auto space-y-12 pb-20">
             
             {activeTab === 'overview' && (
@@ -2478,12 +2459,41 @@ function CoordinatorDashboard() {
         )}
       </AnimatePresence>
 
+      {/* MOBILE BOTTOM NAV - COORDINATOR */}
+      <nav className="lg:hidden fixed bottom-6 left-6 right-6 h-20 bg-white/90 backdrop-blur-xl border border-zinc-200 rounded-full flex items-center justify-around px-4 z-50 shadow-2xl">
+        {[
+          { id: 'overview', label: 'Dash', icon: <LayoutDashboard className="w-5 h-5" /> },
+          { id: 'teams', label: 'Equipes', icon: <Users className="w-5 h-5" /> },
+          { id: 'attendance', label: 'Ponto', icon: <Clock className="w-5 h-5" /> },
+          { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-5 h-5" /> },
+          { id: 'finance', label: 'Money', icon: <DollarSign className="w-5 h-5" /> },
+          { id: 'notes', label: 'Notas', icon: <MessageSquare className="w-5 h-5" /> }
+        ].map(tab => (
+          <button 
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`flex flex-col items-center gap-1 transition-all ${
+              activeTab === tab.id 
+              ? 'text-yellow-600 scale-110' 
+              : 'text-zinc-400'
+            }`}
+          >
+            <div className={`p-2 rounded-xl transition-all ${activeTab === tab.id ? 'bg-yellow-500/10' : ''}`}>
+              {tab.icon}
+            </div>
+            <span className="text-[8px] font-black uppercase tracking-[0.1em]">
+              {tab.label}
+            </span>
+          </button>
+        ))}
+      </nav>
+
       <motion.button 
         whileTap={{ scale: 0.9 }} 
         onClick={() => setIsAiModalOpen(true)}
-        className="fixed bottom-6 right-6 w-20 h-20 bg-zinc-950 text-yellow-500 rounded-full shadow-2xl border-4 border-yellow-500 flex items-center justify-center z-[100]"
+        className="fixed bottom-32 right-6 w-16 h-16 bg-zinc-950 text-yellow-500 rounded-full shadow-2xl border-4 border-yellow-500 flex items-center justify-center z-[100] lg:bottom-6"
       >
-        <Mic className="w-10 h-10" />
+        <Mic className="w-8 h-8" />
       </motion.button>
     </div>
   );
@@ -4198,7 +4208,7 @@ function CaboDashboard() {
           { id: 'equipe', label: 'Equipe', icon: <Users className="w-5 h-5" /> },
           { id: 'notas', label: 'Notas', icon: <Mic className="w-5 h-5" /> },
           { id: 'financeiro', label: 'Caixa', icon: <Wallet className="w-5 h-5" /> },
-          { id: 'ouvidoria', label: 'Feed', icon: <History className="w-5 h-5" /> }
+          { id: 'feed', label: 'Feed', icon: <History className="w-5 h-5" /> }
         ].map(tab => (
           <button 
             key={tab.id}
