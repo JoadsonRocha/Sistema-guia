@@ -28,6 +28,7 @@ import {
   LogIn,
   LogOut,
   Settings,
+  Upload,
   Calendar,
   Clock,
   FileText,
@@ -2228,9 +2229,36 @@ function CoordinatorDashboard() {
                            <User className="w-8 h-8 text-zinc-600" />
                          )}
                       </div>
-                      <button className="absolute -bottom-1 -right-1 bg-yellow-500 p-1.5 rounded-lg text-zinc-950 shadow-lg hover:scale-110 transition-all">
+                      <label className="absolute -bottom-1 -right-1 bg-yellow-500 p-1.5 rounded-lg text-zinc-950 shadow-lg hover:scale-110 transition-all cursor-pointer">
                          <Camera className="w-3.5 h-3.5" />
-                      </button>
+                         <input 
+                           type="file" 
+                           accept="image/*" 
+                           className="hidden" 
+                           onChange={(e) => {
+                             const file = e.target.files?.[0];
+                             if (file) {
+                               const reader = new FileReader();
+                               reader.onloadend = () => {
+                                 const img = new Image();
+                                 img.onload = () => {
+                                   const canvas = document.createElement('canvas');
+                                   const MAX_WIDTH = 400;
+                                   const scaleSize = MAX_WIDTH / img.width;
+                                   canvas.width = MAX_WIDTH;
+                                   canvas.height = img.height * scaleSize;
+                                   const ctx = canvas.getContext('2d');
+                                   ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+                                   const base64 = canvas.toDataURL('image/jpeg', 0.7);
+                                   setProfileData((prev: any) => ({ ...prev, photoUrl: base64 }));
+                                 };
+                                 img.src = reader.result as string;
+                               };
+                               reader.readAsDataURL(file);
+                             }
+                           }}
+                         />
+                      </label>
                    </div>
                    <div>
                       <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
@@ -2247,7 +2275,7 @@ function CoordinatorDashboard() {
                   const updates = {
                     name: formData.get('name') as string,
                     phone: formData.get('phone') as string,
-                    photoUrl: formData.get('photoUrl') as string,
+                    photoUrl: profileData?.photoUrl || '',
                     bio: formData.get('bio') as string,
                     updatedAt: Date.now()
                   };
@@ -2262,8 +2290,15 @@ function CoordinatorDashboard() {
                 className="p-6 space-y-3.5 text-left font-sans"
               >
                 <div className="space-y-1">
-                  <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">URL da Foto (Perfil)</label>
-                  <input defaultValue={profileData?.photoUrl} name="photoUrl" type="text" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="https://..." />
+                  <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Cole a URL ou use o botão de upload acima</label>
+                  <input 
+                    value={profileData?.photoUrl || ''} 
+                    name="photoUrl" 
+                    onChange={(e) => setProfileData((prev: any) => ({ ...prev, photoUrl: e.target.value }))}
+                    type="text" 
+                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" 
+                    placeholder="https://..." 
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
@@ -3510,8 +3545,51 @@ function CaboDashboard() {
                   />
                 </div>
                 
+                <div className="flex flex-col items-center gap-4 py-4">
+                  <div className="relative">
+                    <div className="w-32 h-32 rounded-[2.5rem] bg-zinc-100 border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center">
+                      {profileData.photoUrl ? (
+                        <img src={profileData.photoUrl} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <Users className="w-10 h-10 text-zinc-300" />
+                      )}
+                    </div>
+                    <label className="absolute -bottom-2 -right-2 bg-yellow-500 text-zinc-950 p-4 rounded-2xl cursor-pointer hover:bg-zinc-950 hover:text-white transition-all shadow-xl active:scale-95 border-4 border-white">
+                      <Upload className="w-5 h-5" />
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              const img = new Image();
+                              img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                const MAX_WIDTH = 400;
+                                const scaleSize = MAX_WIDTH / img.width;
+                                canvas.width = MAX_WIDTH;
+                                canvas.height = img.height * scaleSize;
+                                const ctx = canvas.getContext('2d');
+                                ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+                                const base64 = canvas.toDataURL('image/jpeg', 0.7);
+                                setProfileData(prev => ({ ...prev, photoUrl: base64 }));
+                              };
+                              img.src = reader.result as string;
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] italic">Formatos: JPG, PNG • Max: 1MB</p>
+                </div>
+
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">URL da Foto de Perfil</label>
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">URL da Foto (ou use o upload acima)</label>
                   <input 
                     type="text" 
                     placeholder="https://link-da-sua-foto.com/perfil.jpg"
