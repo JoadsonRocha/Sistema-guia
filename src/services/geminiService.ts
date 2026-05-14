@@ -99,6 +99,38 @@ export async function processarCaos(textoBruto: string) {
 }
 
 /**
+ * Módulo "Anotação Rápida"
+ * Transforma um áudio ou transcrição informal em uma nota estruturada para o Líder.
+ */
+export async function processarNotaAudio(textoBruto: string) {
+  if (!textoBruto || textoBruto.trim().length === 0) {
+    throw new Error("Conteúdo da nota vazio.");
+  }
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-1.5-flash",
+      contents: textoBruto,
+      config: {
+        systemInstruction: `
+          Você é um assistente pessoal tático para um líder de equipe de campanha.
+          Sua tarefa é pegar um relato de áudio (transcrito) que pode ser confuso ou informal e transformá-lo em uma anotação clara, curta e profissional.
+          Extraia o ponto principal e limpe vícios de linguagem.
+          Se houver nomes de pessoas ou locais, garanta que estejam destacados.
+          Mantenha o estilo "Nota de Campo".
+        `,
+        responseMimeType: "text/plain",
+      }
+    });
+
+    return response.text || textoBruto;
+  } catch (error) {
+    console.error("Erro ao processar nota:", error);
+    return textoBruto; // Fallback para o texto original
+  }
+}
+
+/**
  * Gera um briefing estratégico para o candidato baseado nas demandas locais.
  */
 export async function gerarBriefingCandidato(municipio: string, demandas: any[]) {

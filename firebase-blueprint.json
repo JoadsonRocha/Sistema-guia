@@ -87,6 +87,20 @@
         "alertasCriticos": { "type": "number" },
         "regionaisOnline": { "type": "string" }
       }
+    },
+    "Note": {
+      "title": "Voice Note",
+      "description": "Transcribed audio notes from leaders",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "originalText": { "type": "string" },
+        "leaderId": { "type": "string" },
+        "leaderName": { "type": "string" },
+        "team": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["text", "leaderId"]
     }
   },
   "firestore": {
@@ -113,6 +127,10 @@
     "/stats/{docId}": {
       "schema": "Stats",
       "description": "Aggregated stats"
+    },
+    "/notes/{noteId}": {
+      "schema": "Note",
+      "description": "Transcribed leader notes"
     },
     "/admins/{adminId}": {
       "schema": { "type": "object", "properties": {} },

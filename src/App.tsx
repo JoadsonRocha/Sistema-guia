@@ -43,10 +43,13 @@ import {
   Wallet,
   History,
   TrendingUp,
-  Printer
+  Printer,
+  Zap,
+  MessageSquare,
+  Search
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { processarCaos, gerarBriefingCandidato } from './services/geminiService';
+import { processarCaos, gerarBriefingCandidato, processarNotaAudio } from './services/geminiService';
 import FinanceDashboard from './components/FinanceDashboard';
 import { useAuth } from './lib/FirebaseProvider';
 import { firestoreService } from './lib/firestoreService';
@@ -54,10 +57,139 @@ import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, get
 import { db, auth } from './lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from './lib/agendaLogic';
 
+/// --- COMPONENTE: CARD DE NOTA (ESTILO FÓRUM) ---
+function NoteCard({ note, user, isAdmin, onDelete }: any) {
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+
+  useEffect(() => {
+    const q = query(collection(db, 'notes', note.id, 'comments'), orderBy('createdAt', 'asc'));
+    const unsub = onSnapshot(q, (snap) => {
+      setComments(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+    return () => unsub();
+  }, [note.id]);
+
+  const handlePostComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+    setIsSubmitting(true);
+    try {
+      const commentId = `comment_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      await firestoreService.setDocument(`notes/${note.id}/comments`, commentId, {
+        id: commentId,
+        text: newComment,
+        authorId: user.uid,
+        authorName: user.displayName || 'Membro Águia',
+        createdAt: Date.now()
+      });
+      setNewComment('');
+    } catch (err) {
+      console.error("Erro ao comentar:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <motion.div 
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white border border-zinc-200 rounded-[2rem] p-6 shadow-sm hover:border-yellow-500/50 transition-all flex flex-col h-full text-left"
+    >
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex items-center gap-2">
+          <span className={`text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-widest leading-none ${note.type === 'private' ? 'bg-zinc-100 text-zinc-500' : 'bg-zinc-950 text-white'}`}>
+            {note.type === 'private' ? 'Pessoal' : (note.team || 'Campo')}
+          </span>
+          {note.type === 'private' && <Lock className="w-3 h-3 text-zinc-400" />}
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">{new Date(note.createdAt).toLocaleDateString()}</span>
+          {(isAdmin || note.leaderId === user?.uid || note.authorId === user?.uid) && (
+             <button onClick={onDelete} className="text-zinc-300 hover:text-red-500 transition-colors p-1 hover:bg-red-50 rounded-lg">
+               <Trash2 className="w-3.5 h-3.5" />
+             </button>
+          )}
+        </div>
+      </div>
+
+      <p className="text-zinc-800 font-bold text-sm leading-relaxed mb-6 italic whitespace-pre-wrap">"{note.text}"</p>
+
+      <div className="mt-auto">
+        <div className="pt-4 border-t border-zinc-50 flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-yellow-500 flex items-center justify-center font-black text-[10px] text-zinc-950 shadow-sm border border-white">
+              {(note.leaderName || note.authorName || 'U').charAt(0)}
+            </div>
+            <div className="text-left">
+              <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest leading-none">Registrado por</p>
+              <p className="text-[9px] font-black text-zinc-900 uppercase tracking-tight mt-1 leading-none">{note.leaderName || note.authorName}</p>
+            </div>
+          </div>
+          
+          <button 
+            onClick={() => setShowComments(!showComments)}
+            className={`flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest transition-all px-3 py-1.5 rounded-lg ${showComments ? 'bg-zinc-950 text-white' : 'text-zinc-400 hover:text-yellow-600'}`}
+          >
+            <MessageSquare className="w-3 h-3" /> {comments.length}
+          </button>
+        </div>
+
+        <AnimatePresence>
+          {showComments && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden space-y-4 pt-2"
+            >
+              <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                {comments.length > 0 ? comments.map((comment) => (
+                  <div key={comment.id} className="bg-zinc-50/50 p-4 rounded-2xl border border-zinc-100 group/msg">
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="text-[8px] font-black text-zinc-950 uppercase tracking-tighter">{comment.authorName}</span>
+                      <span className="text-[7px] font-bold text-zinc-400 uppercase">{new Date(comment.createdAt).toLocaleTimeString().slice(0, 5)}</span>
+                    </div>
+                    <p className="text-[11px] font-medium text-zinc-600 leading-relaxed">{comment.text}</p>
+                  </div>
+                )) : (
+                  <p className="text-[8px] font-black text-zinc-300 uppercase text-center py-4 tracking-widest italic">Nenhum comentário ainda.</p>
+                )}
+              </div>
+              
+              <form onSubmit={handlePostComment} className="flex gap-2 pt-2">
+                <input 
+                  type="text"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Comentar..."
+                  className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-[10px] font-bold text-zinc-800 outline-none focus:border-yellow-500 shadow-inner"
+                />
+                <button 
+                  disabled={isSubmitting || !newComment.trim()}
+                  className="bg-zinc-950 text-white p-3 rounded-xl active:scale-95 disabled:opacity-50 shadow-lg"
+                  type="submit"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+}
+
 /// --- COMPONENTE: DASHBOARD DO COORDENADOR ---
 function CoordinatorDashboard() {
   const { user, login, logout, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'finance' | 'agenda'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'finance' | 'agenda' | 'notes'>('overview');
+  const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [chaosText, setChaosText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -72,11 +204,20 @@ function CoordinatorDashboard() {
   const [statsData, setStatsData] = useState<any>(null);
   const [attendance, setAttendance] = useState<any[]>([]);
   const [agendas, setAgendas] = useState<any[]>([]);
+  const [notes, setNotes] = useState<any[]>([]);
 
   // Profile State
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
   
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<{
+    teams: any[],
+    notes: any[],
+    agendas: any[]
+  }>({ teams: [], notes: [], agendas: [] });
+
   const [isTeamManagementOpen, setIsTeamManagementOpen] = useState(false);
   const [selectedManagingTeam, setSelectedManagingTeam] = useState<any>(null);
   const [managingTeamVoters, setManagingTeamVoters] = useState<any[]>([]);
@@ -166,6 +307,11 @@ function CoordinatorDashboard() {
       setAgendas(data);
     });
 
+    const unsubNotes = query(collection(db, 'notes'), orderBy('createdAt', 'desc'));
+    const unsubNotesSnap = onSnapshot(unsubNotes, (snapshot) => {
+      setNotes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
     const unsubProfile = onSnapshot(doc(db, 'users', user.uid), (snapshot) => {
       if (snapshot.exists()) {
         setProfileData(snapshot.data());
@@ -186,8 +332,43 @@ function CoordinatorDashboard() {
       unsubStats();
       unsubAttendance();
       unsubAgendas();
+      unsubNotesSnap();
     };
   }, [user, isAdmin]);
+
+  // --- GLOBAL SEARCH LOGIC ---
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.length < 2) {
+      setSearchResults({ teams: [], notes: [], agendas: [] });
+      return;
+    }
+
+    const queryLower = searchQuery.toLowerCase();
+
+    const filteredTeams = teams.filter(t => 
+      t.zone?.toLowerCase().includes(queryLower) || 
+      t.leaderName?.toLowerCase().includes(queryLower)
+    );
+
+    const filteredNotes = notes.filter(n => 
+      n.text?.toLowerCase().includes(queryLower) ||
+      n.leaderName?.toLowerCase().includes(queryLower) ||
+      n.team?.toLowerCase().includes(queryLower)
+    );
+
+    const filteredAgendas = agendas.filter(a => 
+      a.municipio?.toLowerCase().includes(queryLower) || 
+      a.motivo?.toLowerCase().includes(queryLower)
+    );
+
+    setSearchResults({
+      teams: filteredTeams,
+      notes: filteredNotes,
+      agendas: filteredAgendas
+    });
+  }, [searchQuery, teams, notes, agendas]);
+
+  const totalResults = searchResults.teams.length + searchResults.notes.length + searchResults.agendas.length;
 
   const stats = [
     { 
@@ -307,6 +488,31 @@ function CoordinatorDashboard() {
       setAiResult(res);
     } catch (error: any) {
       alert(error.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSaveAsPrivateNote = async () => {
+    if (!user || !chaosText.trim()) return;
+    setIsProcessing(true);
+    try {
+      const noteId = `note_coord_${Date.now()}`;
+      await firestoreService.setDocument('notes', noteId, {
+        id: noteId,
+        text: chaosText,
+        authorId: user.uid,
+        authorName: profileData?.name || 'Coordenador',
+        authorRole: 'coordinator',
+        type: 'private',
+        createdAt: Date.now()
+      });
+      setChaosText('');
+      setAiResult(null);
+      setIsAiModalOpen(false);
+      alert('Observação salva na sua área pessoal!');
+    } catch (err) {
+      console.error(err);
     } finally {
       setIsProcessing(false);
     }
@@ -469,463 +675,600 @@ function CoordinatorDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans pb-24">
-      <header className="sticky top-0 bg-neutral-950/80 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between z-50">
-        <div className="flex items-center gap-6">
-          <div className="flex flex-col items-start leading-none group cursor-pointer" onClick={() => setIsProfileModalOpen(true)}>
-             <div className="flex items-center gap-3">
-               <div className="bg-yellow-500 p-1.5 rounded-lg">
-                 <ShieldCheck className="w-6 h-6 text-zinc-950" />
-               </div>
-               <h1 className="text-xl font-black text-white tracking-tighter uppercase italic">
-                 SISTEMA ÁGUIA
-               </h1>
-             </div>
-             <span className="text-[10px] font-black text-yellow-500 mt-2 uppercase tracking-[0.2em] opacity-80 group-hover:opacity-100 transition-opacity">
-                 COORDENADOR: {profileData?.name || user?.email?.split('@')[0]}
-             </span>
+    <div className="flex h-screen bg-[#F9FAFB] text-zinc-900 font-sans overflow-hidden">
+      {/* SIDEBAR - DESKTOP */}
+      <aside className="hidden lg:flex w-72 flex-col bg-white border-r border-zinc-200 py-8 px-6 overflow-y-auto">
+        <div className="mb-10 px-2">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-zinc-950 rounded-md shadow-lg">
+              <ShieldCheck className="w-5 h-5 text-yellow-500" />
+            </div>
+            <div>
+              <h1 className="text-base font-black tracking-tighter text-zinc-950 uppercase italic leading-none">
+                ÁGUIA
+              </h1>
+              <p className="text-[8px] font-black text-yellow-600 uppercase tracking-widest mt-1">
+                Estratégia 2026
+              </p>
+            </div>
           </div>
         </div>
 
-        <nav className="hidden lg:flex items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/5">
+        <nav className="flex-1 space-y-1">
           {[
             { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
             { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
-            { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
-            { id: 'finance', label: 'Financeiro', icon: <DollarSign className="w-4 h-4" /> }
+            { id: 'agenda', label: 'Mapa & Agenda', icon: <Calendar className="w-4 h-4" /> },
+            { id: 'finance', label: 'Financeiro', icon: <DollarSign className="w-4 h-4" /> },
+            { id: 'notes', label: 'Anotações', icon: <MessageSquare className="w-4 h-4" /> }
           ].map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id as any)}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 activeTab === item.id 
-                ? 'bg-yellow-500 text-black shadow-[0_0_25px_rgba(234,179,8,0.15)] ring-1 ring-yellow-500/50' 
-                : 'text-zinc-500 hover:text-white hover:bg-white/5'
+                ? 'bg-yellow-500 text-zinc-950 shadow-md' 
+                : 'text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100'
               }`}
             >
-              {item.icon} {item.label}
+              <div className={activeTab === item.id ? 'text-zinc-950' : 'text-zinc-400 group-hover:text-zinc-600'}>
+                {item.icon}
+              </div>
+              {item.label}
             </button>
           ))}
         </nav>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20">
-             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]"></div>
-             <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">LIVE DATA FEED</span>
+        <div className="mt-8 space-y-2">
+          <button 
+            onClick={() => setIsAiModalOpen(true)}
+            className="w-full flex items-center justify-center gap-2.5 bg-zinc-950 text-white p-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg"
+          >
+            <Brain className="w-4 h-4 text-yellow-500" /> Nova Tarefa IA
+          </button>
+          
+          <div className="pt-6 border-t border-zinc-100 space-y-1">
+            <button 
+              onClick={() => setIsProfileModalOpen(true)}
+              className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-xs font-bold text-zinc-400 hover:text-zinc-950 hover:bg-zinc-100 transition-all"
+            >
+              <Settings className="w-4 h-4" /> Configurações
+            </button>
+            <button 
+              onClick={logout}
+              className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 transition-all"
+            >
+              <LogOut className="w-4 h-4" /> Sair do Sistema
+            </button>
           </div>
-          <button 
-            onClick={() => setIsProfileModalOpen(true)}
-            className="p-2.5 rounded-xl bg-white/5 text-zinc-400 hover:text-yellow-500 border border-white/5 transition-all"
-          >
-            <Settings className="w-5 h-5" />
-          </button>
-          <button 
-            onClick={logout}
-            className="flex items-center gap-2 bg-white/5 border border-white/5 px-4 py-2.5 rounded-xl text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20 transition-all"
-          >
-            <LogOut className="w-4 h-4" /> SAIR
-          </button>
         </div>
-      </header>
+      </aside>
 
-      {/* MOBILE NAV TABS */}
-      <div className="md:hidden sticky top-[73px] z-40 bg-black/80 backdrop-blur-md border-b border-white/5 flex p-2 gap-2 overflow-x-auto no-scrollbar">
-        {[
-          { id: 'overview', label: 'Dash' },
-          { id: 'teams', label: 'Equipes' },
-          { id: 'agenda', label: 'Agenda' },
-          { id: 'finance', label: 'Finance' }
-        ].map(tab => (
-          <button 
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`flex-none px-5 py-2.5 rounded-xl text-[9px] font-black uppercase transition-all border ${activeTab === tab.id ? 'bg-yellow-500 text-black border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)]' : 'bg-white/5 text-zinc-500 border-white/5'}`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      <main className="p-4 md:p-8 text-left max-w-7xl mx-auto min-h-[70vh]">
-        
-        {activeTab === 'overview' && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-            {/* RESUMO RÁPIDO */}
-            <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-2">
-              {stats.map((stat, i) => (
-                <motion.div 
-                  key={i}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  onClick={stat.action}
-                  className="bg-neutral-900 border border-white/5 p-5 lg:p-6 rounded-2xl shadow-xl hover:border-yellow-500/50 hover:bg-neutral-800 transition-all cursor-pointer group relative overflow-hidden"
-                >
-                  <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <TrendingUp className="w-12 h-12 text-white" />
-                  </div>
-                  <p className="text-[10px] lg:text-[11px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-4 flex items-center justify-between">
-                    {stat.label}
-                    <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all translate-x-1" />
-                  </p>
-                  <p className={`text-2xl lg:text-3xl font-black tracking-tight text-white mb-2`}>{stat.value}</p>
-                  <div className="flex items-center gap-2 mt-4">
-                    <div className="h-1 w-8 bg-yellow-500 rounded-full"></div>
-                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">{stat.sub}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </section>
-
-            {/* FEED DE AÇÕES (DASHBOARD DE SEMÁFORO) */}
-            <div className="pt-8 space-y-6">
-              <div className="flex items-center justify-between px-2">
-                <h2 className="text-xl font-black uppercase text-white tracking-tight flex items-center gap-3">
-                  <span className="w-1 h-6 bg-red-600 rounded-full"></span>
-                  OPERATIONAL ALERTS
-                </h2>
-                <div className="flex gap-2">
-                  <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-[9px] font-black text-zinc-500 uppercase">REAL-TIME MONITORING</div>
-                </div>
+      {/* MAIN VIEWPORT */}
+      <div className="flex-1 flex flex-col min-w-0 bg-[#F9FAFB] overflow-hidden relative">
+        {/* TOP BAR / COMMAND CENTER */}
+        <header className="h-16 bg-white border-b border-zinc-200 flex items-center justify-between px-6 z-30 shrink-0">
+          <div className="flex items-center gap-6 flex-1">
+            <div className="relative w-full max-w-sm hidden md:block">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <Search className="w-4 h-4 text-zinc-400" />
               </div>
+              <input 
+                type="text" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Pesquisar zonas, líderes ou demandas..."
+                className="w-full bg-zinc-100 border-none rounded-lg py-2 pl-11 pr-4 text-xs font-medium text-zinc-900 placeholder:text-zinc-500 focus:ring-1 focus:ring-yellow-500/20 outline-none transition-all"
+              />
 
-              <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 px-2">
-                {(urgencies && urgencies.length > 0) ? urgencies.map((urgency) => (
-                   <motion.div 
-                     key={urgency.id}
-                     whileHover={{ y: -4 }}
-                     className={`bg-neutral-900 border ${urgency.type === 'fraude' ? 'border-red-600/50' : 'border-white/5'} rounded-2xl overflow-hidden shadow-2xl flex flex-col h-full text-left group`}
-                   >
-                     <div className={`${urgency.type === 'fraude' ? 'bg-red-600/10 text-red-500' : 'bg-white/5 text-zinc-400'} p-4 border-b border-white/5 flex justify-between items-center text-[10px] font-black tracking-widest uppercase`}>
-                       <span className="flex items-center gap-2">
-                         {urgency.type === 'combustivel' && <Fuel className="w-4 h-4" />}
-                         {urgency.type === 'agenda' && <MapPin className="w-4 h-4" />}
-                         {urgency.type === 'fraude' && <AlertTriangle className="w-4 h-4" />}
-                         {urgency.type === 'demanda' && <StickyNote className="w-4 h-4" />}
-                         {urgency.type}
-                       </span>
-                       <span className={`px-2 py-1 rounded-lg ${urgency.type === 'fraude' ? 'bg-red-500 text-white' : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'}`}>
-                         {urgency.team}
-                       </span>
-                     </div>
-                     <div className="p-6 flex-1 flex flex-col justify-between">
-                       <div className="space-y-3">
-                         <h3 className={`text-xl font-black leading-tight tracking-tight ${urgency.type === 'fraude' ? 'text-red-500' : 'text-white'}`}>{urgency.title}</h3>
-                         <p className="text-sm font-medium text-zinc-500 leading-relaxed opacity-80">{urgency.description || 'System generated: No detailed technical description provided.'}</p>
-                         {urgency.leaderName && (
-                           <div className="pt-4 flex items-center gap-3">
-                             <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center font-black text-[10px] text-zinc-400 border border-white/5">
-                               {urgency.leaderName.charAt(0)}
-                             </div>
-                             <div>
-                               <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">AGENT ON FIELD</p>
-                               <p className="text-[11px] font-black text-zinc-300 uppercase leading-none mt-1">{urgency.leaderName}</p>
-                             </div>
-                           </div>
-                         )}
-                       </div>
-                       <div className="grid grid-cols-1 gap-3 mt-8">
-                         <button 
-                           onClick={() => {
-                             setSelectedUrgency(urgency);
-                             setIsUrgencyModalOpen(true);
-                             setObservation('');
-                           }}
-                           className={`bg-zinc-100 text-black py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 shadow-lg hover:bg-yellow-500 transition-all border-b-4 ${urgency.type === 'fraude' ? 'border-red-600' : 'border-zinc-300 hover:border-yellow-700'}`}
-                         >
-                           ANALYSE TARGET DATA <ChevronRight className="w-4 h-4" />
-                         </button>
-                       </div>
-                     </div>
-                   </motion.div>
-                )) : (
-                   <div className="bg-white/5 p-12 rounded-3xl border border-dashed border-white/10 text-center col-span-full">
-                     <p className="font-black text-zinc-600 uppercase tracking-[0.3em] text-[10px]">ALL SYSTEMS CLEAR • NO ACTIVE URGENCES</p>
-                   </div>
+              {/* SEARCH RESULTS PANEL */}
+              <AnimatePresence>
+                {searchQuery.length >= 2 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-200 rounded-xl shadow-2xl z-50 max-h-96 overflow-y-auto p-2"
+                  >
+                    {totalResults > 0 ? (
+                      <div className="p-1 space-y-3">
+                        {searchResults.teams.length > 0 && (
+                          <div>
+                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-2 mb-1">Equipes / Zonas</p>
+                            {searchResults.teams.map(t => (
+                              <button key={t.id} onClick={() => { setActiveTab('teams'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-lg transition-colors text-left">
+                                <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center"><Users className="w-4 h-4 text-zinc-900" /></div>
+                                <div>
+                                  <p className="text-xs font-bold text-zinc-900 uppercase">{t.zone}</p>
+                                  <p className="text-[10px] text-zinc-500 uppercase">{t.leaderName}</p>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {searchResults.agendas.length > 0 && (
+                          <div>
+                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-2 mb-1">Agenda / Demandas</p>
+                            {searchResults.agendas.map(a => (
+                              <button key={a.id} onClick={() => { setActiveTab('agenda'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-lg transition-colors text-left">
+                                <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center"><Calendar className="w-4 h-4 text-zinc-900" /></div>
+                                <div>
+                                  <p className="text-xs font-bold text-zinc-900 uppercase">{a.motivo}</p>
+                                  <p className="text-[10px] text-zinc-500 uppercase">{a.municipio} • {a.data}</p>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {searchResults.notes.length > 0 && (
+                          <div>
+                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-2 mb-1">Notas Táticas</p>
+                            {searchResults.notes.map(n => (
+                              <button key={n.id} onClick={() => { setActiveTab('notes'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-lg transition-colors text-left">
+                                <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center"><MessageSquare className="w-4 h-4 text-zinc-900" /></div>
+                                <div>
+                                  <p className="text-[10px] text-zinc-800 font-medium italic line-clamp-1">"{n.text}"</p>
+                                  <p className="text-[8px] text-zinc-400 font-black uppercase tracking-widest leading-none mt-1">{n.leaderName} • {n.team}</p>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="p-8 text-center">
+                        <Search className="w-8 h-8 text-zinc-200 mx-auto mb-2" />
+                        <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Sem resultados para "{searchQuery}"</p>
+                      </div>
+                    )}
+                  </motion.div>
                 )}
-              </section>
+              </AnimatePresence>
             </div>
-          </motion.div>
-        )}
-
-        {activeTab === 'teams' && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <h2 className="text-2xl font-black uppercase text-zinc-800 tracking-tighter">Coordenação de Equipes</h2>
-                <p className="text-zinc-500 text-xs font-bold uppercase">Visão por líderes e localidades estratégicas</p>
+            <div className="lg:hidden flex items-center gap-2">
+              <div className="p-1.5 bg-zinc-950 rounded-md">
+                <ShieldCheck className="w-4 h-4 text-yellow-500" />
               </div>
-              <button 
-                onClick={() => {
-                  setIsTeamModalOpen(true);
-                  setIsEditMode(false);
-                  setEditingTeamId(null);
-                  setNewTeam({
-                    name: '',
-                    leader: '',
-                    leaderEmail: '',
-                    leaderPhone: '',
-                    leaderAddress: '',
-                    location: '',
-                    observations: '',
-                    status: 'OK',
-                    contacts: 0,
-                    fuel: 0,
-                    demands: 0,
-                    allocated: 0,
-                    spent: 0
-                  });
-                }}
-                className="bg-zinc-950 text-white px-6 py-3 rounded-xl font-black text-xs uppercase flex items-center gap-2 shadow-xl hover:bg-zinc-800 transition-all"
-              >
-                <Plus className="w-4 h-4" /> Nova Equipe de Campo
-              </button>
+              <h1 className="text-base font-black text-zinc-950 uppercase italic leading-none">ÁGUIA</h1>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-2.5 px-3 h-10 bg-zinc-50 rounded-lg border border-zinc-100">
+               <div className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse"></div>
+               <span className="text-[9px] font-black text-zinc-900 uppercase tracking-widest">SINALIZADOR ATIVO</span>
             </div>
             
-            <div className="grid grid-cols-1 gap-4">
-              {teams.length > 0 ? teams.map((team) => (
-                <div key={team.id || team.name} className={`bg-white border-4 ${team.fraudAlert ? 'border-red-600 animate-pulse' : 'border-zinc-200'} rounded-3xl p-5 lg:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm hover:border-zinc-400 transition-all group overflow-hidden relative`}>
-                  {team.fraudAlert && (
-                    <div className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black px-6 py-1 rounded-bl-xl uppercase flex items-center gap-2">
-                      <AlertTriangle className="w-3 h-3" /> ALERTA DE FRAUDE DETECTADO
+            <div className="h-8 w-px bg-zinc-200 hidden sm:block"></div>
+
+            <button 
+              onClick={() => setIsProfileModalOpen(true)}
+              className="flex items-center gap-2.5 hover:bg-zinc-50 p-1 rounded-full transition-all"
+            >
+              <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center font-black text-xs text-zinc-950 overflow-hidden shadow-sm border border-zinc-200">
+                {profileData?.photoURL ? (
+                  <img src={profileData.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  (profileData?.name || user?.email || 'A').charAt(0).toUpperCase()
+                )}
+              </div>
+              <div className="hidden xl:block text-left">
+                <p className="text-[11px] font-black text-zinc-950 leading-none mb-0.5">{profileData?.name || user?.email?.split('@')[0]}</p>
+                <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">{isAdmin ? 'Coordenador' : 'Agente'}</p>
+              </div>
+            </button>
+          </div>
+        </header>
+
+        {/* MOBILE NAVIGATION TABS (REPLACES SIDEBAR ON MOBILE) */}
+        <div className="lg:hidden h-14 bg-white border-b border-zinc-200 flex items-center px-4 gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+          {[
+            { id: 'overview', label: 'Dash' },
+            { id: 'teams', label: 'Equipes' },
+            { id: 'agenda', label: 'Agenda' },
+            { id: 'finance', label: 'Finanças' },
+            { id: 'notes', label: 'Notas' }
+          ].map(tab => (
+            <button 
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex-none px-4 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${activeTab === tab.id ? 'bg-yellow-500 text-zinc-950 shadow-sm' : 'text-zinc-500 hover:bg-zinc-50'}`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* CONTENT AREA */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar">
+          <div className="max-w-7xl mx-auto space-y-12 pb-20">
+            
+            {activeTab === 'overview' && (
+              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+              <div className="flex-col gap-1 flex">
+                <h2 className="text-lg font-black text-zinc-950 tracking-tighter uppercase leading-none italic">Painel de Operações</h2>
+                <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Monitoramento estratégico em tempo real</p>
+              </div>
+
+              {/* STATS GRID */}
+              <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {stats.map((stat, i) => (
+                  <motion.div 
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    onClick={stat.action}
+                    className="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm hover:shadow-md hover:border-yellow-500/50 transition-all cursor-pointer group"
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div className={`p-2 bg-zinc-50 rounded-lg group-hover:bg-yellow-500 transition-colors`}>
+                        {i === 0 && <Target className="w-4 h-4 text-zinc-400 group-hover:text-zinc-950" />}
+                        {i === 1 && <Users className="w-4 h-4 text-zinc-400 group-hover:text-zinc-950" />}
+                        {i === 2 && <Calendar className="w-4 h-4 text-zinc-400 group-hover:text-zinc-950" />}
+                        {i === 3 && <DollarSign className="w-4 h-4 text-zinc-400 group-hover:text-zinc-950" />}
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-[7px] font-black py-0.5 px-2 bg-green-100 text-green-700 rounded-md uppercase tracking-widest border border-green-100">Estável</span>
+                      </div>
+                    </div>
+                    <p className="text-xl font-black tracking-tighter text-zinc-950 mb-0.5 leading-none">{stat.value}</p>
+                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.1em]">{stat.label}</p>
+                    <div className="mt-4 pt-3 border-t border-zinc-50 flex items-center justify-between">
+                      <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">{stat.sub}</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-zinc-300 group-hover:text-yellow-500 group-hover:translate-x-0.5 transition-all" />
+                    </div>
+                  </motion.div>
+                ))}
+              </section>
+
+                <div className="pt-2 flex flex-col lg:flex-row gap-6">
+                  <div className="flex-1 space-y-5">
+                  </div>
+
+                  <div className="w-full lg:w-72 space-y-6">
+
+                    <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-sm">
+                      <h3 className="text-sm font-black uppercase tracking-tighter text-zinc-950 mb-4 flex items-center gap-2 italic">
+                        < Zap className="w-3.5 h-3.5 text-yellow-500" /> Atividade Recente
+                      </h3>
+                      <div className="space-y-4">
+                        {teams.slice(0, 3).map((team, i) => (
+                          <div key={i} className="flex gap-2.5">
+                            <div className="w-7 h-7 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0">
+                              <Users className="w-3.5 h-3.5 text-zinc-500" />
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-black text-zinc-900 uppercase leading-none">{team.name}</p>
+                              <p className="text-[7.5px] font-bold text-zinc-400 mt-1 uppercase tracking-tight">Status OK • {10 + i}m atrás</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'teams' && (
+              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 border-b border-zinc-200 pb-6">
+                  <div>
+                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none italic">Gestão de Equipes</h2>
+                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Controle tático de recursos e unidades</p>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setIsTeamModalOpen(true);
+                      setIsEditMode(false);
+                      setEditingTeamId(null);
+                      setNewTeam({
+                        name: '',
+                        leader: '',
+                        leaderEmail: '',
+                        leaderPhone: '',
+                        leaderAddress: '',
+                        location: '',
+                        observations: '',
+                        status: 'OK',
+                        contacts: 0,
+                        fuel: 0,
+                        demands: 0,
+                        allocated: 0,
+                        spent: 0
+                      });
+                    }}
+                    className="bg-yellow-500 text-zinc-950 px-6 py-3.5 rounded-xl font-black text-[10px] uppercase flex items-center justify-center gap-2.5 shadow-lg shadow-yellow-500/10 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto"
+                  >
+                    <Plus className="w-4 h-4 text-zinc-950" /> Cadastrar Nova Unidade
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-4">
+                  {teams.length > 0 ? teams.map((team) => (
+                    <motion.div 
+                      key={team.id || team.name} 
+                      layout
+                      className={`bg-white border ${team.fraudAlert ? 'border-red-600 shadow-md animate-pulse' : 'border-zinc-200'} rounded-2xl p-5 lg:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:border-zinc-300 transition-all group relative`}
+                    >
+                      {team.fraudAlert && (
+                        <div className="absolute top-0 right-8 bg-red-600 text-white text-[8px] font-black px-6 py-1.5 rounded-b-xl uppercase flex items-center gap-1.5 shadow-lg z-10">
+                          <AlertTriangle className="w-3 h-3" /> Alerta Crítico
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-5 min-w-[240px]">
+                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-transform group-hover:rotate-3 ${
+                          team.status === 'OK' ? 'bg-green-50 text-green-600' : 
+                          team.status === 'ALERTA' ? 'bg-yellow-50 text-yellow-600' : 'bg-red-50 text-red-600'
+                        }`}>
+                          <Users className="w-7 h-7" />
+                        </div>
+                        <div className="space-y-0.5">
+                          <h3 className="font-black text-zinc-950 text-xl uppercase tracking-tighter italic leading-none">{team.name}</h3>
+                          <div className="flex flex-col gap-0.5 pt-1">
+                            <p className="text-[9px] font-black text-zinc-400 uppercase flex items-center gap-1.5 tracking-widest">
+                              <User className="w-2.5 h-2.5 text-yellow-500" /> Líder: {team.leader}
+                            </p>
+                            <p className="text-[9px] font-black text-zinc-400 uppercase flex items-center gap-1.5 tracking-widest">
+                              <MapPin className="w-2.5 h-2.5 text-yellow-500" /> Base: {team.location}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 flex-1 text-left">
+                        <div>
+                          <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-0.5 leading-none">Contatos</p>
+                          <p className="text-2xl font-black text-zinc-950 tracking-tighter">{team.contacts || 0}</p>
+                        </div>
+                        <div>
+                          <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-0.5 leading-none">Engajamento</p>
+                          <p className="text-2xl font-black text-green-600 tracking-tighter leading-none">
+                            {Math.min(100, Math.round(((team.contacts || 0) / 100) * 100))}%
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-0.5 leading-none">Alertas</p>
+                          <p className={`text-2xl font-black tracking-tighter leading-none ${team.demands > 0 ? 'text-red-600' : 'text-zinc-200'}`}>{team.demands || 0}</p>
+                        </div>
+                        <div>
+                           <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1 leading-none">Status</p>
+                           <span className={`inline-flex items-center gap-1.5 text-[8px] font-black px-3 py-1 rounded-lg uppercase tracking-widest border ${
+                            team.status === 'OK' ? 'bg-green-50 text-green-700 border-green-100' : 
+                            team.status === 'ALERTA' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' : 'bg-red-50 text-red-700 border-red-100'
+                          }`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${team.status === 'OK' ? 'bg-green-500' : team.status === 'ALERTA' ? 'bg-yellow-500' : 'bg-red-500'}`} />
+                            {team.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-row lg:flex-col gap-2 justify-end">
+                        <div className="flex gap-1.5">
+                           <button 
+                             onClick={() => handleCopyAccessLink(team)}
+                             className="p-3 bg-zinc-50 text-zinc-500 rounded-xl hover:bg-zinc-950 hover:text-white transition-all shadow-sm"
+                             title="Copiar Credenciais"
+                           >
+                             <LogIn className="w-4 h-4" />
+                           </button>
+                           <button 
+                             onClick={() => handleEditTeam(team)}
+                             className="p-3 bg-zinc-50 text-zinc-500 rounded-xl hover:bg-zinc-950 hover:text-white transition-all shadow-sm"
+                             title="Editar Unidade"
+                           >
+                             <Edit3 className="w-4 h-4" />
+                           </button>
+                           <button 
+                             onClick={() => handleDeleteTeam(team.id || team.name.replace(/\s/g, '_').toLowerCase(), team.name)}
+                             className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                             title="Excluir"
+                           >
+                             <Trash2 className="w-4 h-4" />
+                           </button>
+                        </div>
+                        <button 
+                          onClick={() => {
+                            setSelectedManagingTeam(team);
+                            setIsTeamManagementOpen(true);
+                          }}
+                          className={`w-full px-5 py-3 rounded-xl font-black text-[9px] uppercase shadow-md transition-all active:translate-y-0.5 ${
+                            team.demands > 0 ? 'bg-red-600 text-white' : 'bg-zinc-950 text-white'
+                          }`}
+                        >
+                          Mais Detalhes
+                        </button>
+                      </div>
+                    </motion.div>
+                  )) : (
+                    <div className="p-20 text-center bg-white rounded-2xl border-2 border-dashed border-zinc-200">
+                       <RefreshCcw className="w-10 h-10 text-zinc-200 animate-spin mx-auto mb-4" />
+                       <p className="font-black text-zinc-300 uppercase tracking-[0.2em] text-[9px]">Sincronizando unidades...</p>
                     </div>
                   )}
-                  {team.demands > 3 && !team.fraudAlert && (
-                    <div className="absolute top-0 right-0 bg-red-600 text-white text-[8px] font-black px-4 py-1 rounded-bl-lg animate-pulse uppercase">Alta Demanda</div>
-                  )}
-                  
-                  <div className="flex items-center gap-5">
-                    <div className={`p-4 rounded-3xl transition-transform group-hover:scale-110 ${
-                      team.status === 'OK' ? 'bg-green-100 text-green-600' : 
-                      team.status === 'ALERTA' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
-                    }`}>
-                      <Users className="w-8 h-8" />
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'agenda' && (
+              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-yellow-500 rounded-2xl flex items-center justify-center shadow-lg shadow-yellow-500/10">
+                      <Calendar className="w-6 h-6 text-zinc-950" />
                     </div>
                     <div>
-                      <h3 className="font-black text-zinc-950 text-xl uppercase tracking-tighter">{team.name}</h3>
-                      <p className="text-xs font-black text-zinc-400 uppercase flex items-center gap-1">
-                        <User className="w-3 h-3 text-zinc-300" /> {team.leader} • <MapPin className="w-3 h-3 text-zinc-300" /> {team.location}
-                      </p>
+                      <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none italic">Agenda</h2>
+                      <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Logística e compromissos oficiais</p>
                     </div>
                   </div>
-
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 flex-1 md:ml-12 text-left">
-                      <div>
-                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Contatos</p>
-                        <p className="text-2xl font-black text-zinc-900 tracking-tighter">{team.contacts || 0}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Performance</p>
-                        <p className="text-2xl font-black text-green-600 tracking-tighter">
-                          {Math.min(100, Math.round(((team.contacts || 0) / 100) * 100))}%
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Pendências</p>
-                        <p className={`text-2xl font-black tracking-tighter ${team.demands > 0 ? 'text-red-600' : 'text-green-500'}`}>{team.demands || 0}</p>
-                      </div>
-                      <div className="hidden lg:block">
-                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest" >Status</p>
-                        <span className={`inline-block mt-1 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
-                          team.status === 'OK' ? 'bg-green-500 text-white' : 
-                          team.status === 'ALERTA' ? 'bg-yellow-500 text-white' : 'bg-red-600 text-white'
-                        }`}>
-                          {team.status}
-                        </span>
-                      </div>
-                    </div>
-
-                  <div className="flex flex-col gap-2 mt-4 md:mt-0">
-                    <div className="flex gap-2">
-                       <button 
-                         onClick={() => handleCopyAccessLink(team)}
-                         className="flex-1 md:flex-none bg-blue-50 text-blue-600 p-3 rounded-xl hover:bg-blue-100 transition-colors"
-                         title="Copiar Link de Acesso"
-                       >
-                         <LogIn className="w-4 h-4" />
-                       </button>
-                       <button 
-                         onClick={() => handleEditTeam(team)}
-                         className="flex-1 md:flex-none bg-zinc-100 text-zinc-600 p-3 rounded-xl hover:bg-zinc-200 transition-colors"
-                         title="Editar Equipe"
-                       >
-                         <Edit3 className="w-4 h-4" />
-                       </button>
-                       <button 
-                         onClick={() => handleDeleteTeam(team.id || team.name.replace(/\s/g, '_').toLowerCase(), team.name)}
-                         className="flex-1 md:flex-none bg-red-50 text-red-600 p-3 rounded-xl hover:bg-red-100 transition-colors"
-                         title="Excluir Equipe"
-                       >
-                         <Trash2 className="w-4 h-4" />
-                       </button>
-                    </div>
-                    <div className="flex gap-2">
-                      <button 
-                         onClick={() => handleShowTeamHistory(team)}
-                         className="flex-1 md:flex-none bg-zinc-100 text-zinc-600 px-6 py-3 rounded-xl font-black text-xs uppercase hover:bg-zinc-200 transition-colors"
-                      >
-                         Histórico
-                      </button>
-                      <button 
-                        onClick={() => handleManualCheckin(team.id || team.name.toLowerCase(), team.leader)}
-                        className="flex-1 md:flex-none bg-yellow-100 text-yellow-700 px-6 py-3 rounded-xl font-black text-xs uppercase hover:bg-yellow-200 transition-colors flex items-center gap-2"
-                        title="Validar Ponto por Exceção"
-                      >
-                        <ShieldCheck className="w-4 h-4" /> Validar Ponto
-                      </button>
-                    </div>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => handleGenerateBriefing(team.location)}
-                        disabled={briefingLoading && briefingLocation === team.location}
-                        className="flex-1 md:flex-none bg-blue-100 text-blue-700 px-6 py-3 rounded-xl font-black text-xs uppercase hover:bg-blue-200 transition-all flex items-center gap-2 border-2 border-blue-200"
-                      >
-                        {briefingLoading && briefingLocation === team.location ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />} Briefing IA
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setSelectedManagingTeam(team);
-                          setIsTeamManagementOpen(true);
-                        }}
-                        className={`flex-1 md:flex-none px-6 py-3 rounded-xl font-black text-xs uppercase shadow-lg transition-all ${
-                          team.demands > 0 ? 'bg-red-600 text-white shadow-red-200' : 'bg-zinc-950 text-white shadow-zinc-200'
-                        }`}
-                      >
-                        Coordenar
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )) : (
-                <div className="p-20 text-center bg-white rounded-3xl border-2 border-dashed border-zinc-200">
-                   <p className="font-black text-zinc-300 uppercase tracking-widest">Carregando equipes estratégicas...</p>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-
-        {activeTab === 'agenda' && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-            <div className="flex justify-between items-center bg-white p-6 rounded-3xl border-2 border-zinc-200">
-               <div>
-                 <h2 className="text-2xl font-black uppercase text-zinc-800 tracking-tighter flex items-center gap-3">
-                   <Calendar className="w-8 h-8 text-yellow-500" /> Agenda Geral
-                 </h2>
-                 <p className="text-xs font-bold text-zinc-400 uppercase">Gestão de roteiros e compromissos</p>
-               </div>
-               <button 
-                onClick={() => {
-                  setEditingAgenda(null);
-                  setAgendaForm({ municipio: '', data: '', hora_inicio: '', hora_fim: '', motivo: '' });
-                  setIsAgendaCreateModalOpen(true);
-                }}
-                className="bg-zinc-950 text-white px-6 py-3 rounded-xl font-black text-xs uppercase flex items-center gap-2 shadow-xl hover:bg-zinc-800 transition-all"
-              >
-                <Plus className="w-4 h-4" /> Novo Compromisso
-              </button>
-            </div>
-
-            <div className="bg-white rounded-3xl border-2 border-zinc-200 p-8">
-              <h2 className="text-lg font-black uppercase text-zinc-800 tracking-tighter mb-6 flex items-center gap-3">
-                Aprovação de Sugestões Regionais
-              </h2>
-              
-              <div className="space-y-4">
-                {agendas.filter(a => a.status === 'pendente').length > 0 ? agendas.filter(a => a.status === 'pendente').map((item) => (
-                  <div key={item.id} className="bg-zinc-50 border border-zinc-200 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="flex items-center gap-6">
-                      <div className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-100 flex flex-col items-center">
-                        <span className="text-[10px] font-black uppercase text-zinc-400">{new Date(item.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
-                        <span className="text-2xl font-black text-zinc-950">{new Date(item.data).getDate()}</span>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-black uppercase tracking-tight text-zinc-950">{item.municipio}</h3>
-                        <div className="flex items-center gap-4 text-xs font-bold text-zinc-500 uppercase mt-1">
-                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {item.hora_inicio} - {item.hora_fim}</span>
-                          <span className="flex items-center gap-1"><User className="w-3 h-3" /> Sugerido por: {item.sugeridoPor}</span>
-                        </div>
-                        {item.motivo && <p className="text-[10px] text-zinc-400 font-bold uppercase mt-2">OBJETIVO: {item.motivo}</p>}
-                      </div>
-                    </div>
-                    <div className="flex gap-3 w-full md:w-auto">
-                      <button 
-                        onClick={async () => {
-                          await firestoreService.updateDocument('agenda', item.id, { status: 'negado' });
-                          alert("Agenda negada.");
-                        }}
-                        className="flex-1 md:flex-none px-6 py-3 bg-red-100 text-red-700 font-black text-xs uppercase rounded-xl hover:bg-red-200 transition-all"
-                      >
-                        Negar
-                      </button>
-                      <button 
-                        onClick={async () => {
-                          await firestoreService.updateDocument('agenda', item.id, { status: 'confirmado' });
-                          alert("Agenda confirmada com sucesso!");
-                        }}
-                        className="flex-1 md:flex-none px-6 py-3 bg-green-600 text-white font-black text-xs uppercase rounded-xl shadow-lg shadow-green-100 hover:bg-green-700 transition-all border-b-4 border-green-800 active:border-b-0 active:translate-y-1"
-                      >
-                        Confirmar Agenda
-                      </button>
-                    </div>
-                  </div>
-                )) : (
-                  <div className="p-12 border-2 border-dashed border-zinc-200 rounded-3xl text-center">
-                    <p className="font-black text-zinc-300 uppercase tracking-widest text-sm">Nenhuma sugestão de agenda pendente.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-zinc-950 rounded-3xl p-8 text-white">
-              <h3 className="text-xl font-black uppercase tracking-tighter mb-6 flex items-center gap-2">
-                <GanttChart className="w-7 h-7 text-yellow-500" /> Todos os Compromissos Confirmados
-              </h3>
-              <div className="grid grid-cols-1 gap-4">
-                {agendas.filter(a => a.status === 'confirmado').sort((a, b) => new Date(`${a.data}T${a.hora_inicio}`).getTime() - new Date(`${b.data}T${b.hora_inicio}`).getTime()).map(item => (
-                  <div 
-                    key={item.id} 
+                  <button 
                     onClick={() => {
-                      setSelectedAgenda(item);
-                      setIsAgendaDetailModalOpen(true);
+                      setEditingAgenda(null);
+                      setAgendaForm({ municipio: '', data: '', hora_inicio: '', hora_fim: '', motivo: '' });
+                      setIsAgendaCreateModalOpen(true);
                     }}
-                    className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 group cursor-pointer hover:border-yellow-500 transition-all"
+                    className="bg-zinc-950 text-white px-6 py-3.5 rounded-xl font-black text-[10px] uppercase flex items-center gap-2.5 shadow-xl shadow-zinc-200 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto"
                   >
-                    <div className="flex items-center gap-6">
-                      <div className="bg-zinc-800 p-4 rounded-2xl border border-zinc-700 flex flex-col items-center min-w-[70px] group-hover:bg-yellow-500/10 group-hover:border-yellow-500/30 transition-all text-center">
-                        <span className="text-[10px] font-black uppercase text-zinc-500 group-hover:text-yellow-500 transition-colors">{new Date(item.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
-                        <span className="text-2xl font-black text-white group-hover:text-yellow-500 transition-colors">{new Date(item.data).getDate()}</span>
+                    <Plus className="w-4 h-4 text-yellow-500" /> Agendar Evento
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2 space-y-6">
+                    <div className="bg-white border border-zinc-200 rounded-2xl p-6 lg:p-8 shadow-sm">
+                      <h3 className="text-lg font-black uppercase text-zinc-950 tracking-tighter mb-6 flex items-center gap-3 italic">
+                        Solicitações
+                      </h3>
+                      
+                      <div className="space-y-4">
+                        {agendas.filter(a => a.status === 'pendente').length > 0 ? agendas.filter(a => a.status === 'pendente').map((item) => (
+                          <motion.div key={item.id} layout className="bg-zinc-50 border border-zinc-100 rounded-2xl p-5 lg:p-6 flex flex-col md:flex-row justify-between items-center gap-6 group">
+                            <div className="flex items-center gap-6">
+                              <div className="bg-white px-4 py-3 rounded-xl shadow-sm border border-zinc-100 flex flex-col items-center min-w-[70px]">
+                                <span className="text-[8px] font-black uppercase text-zinc-400 mb-0.5">{new Date(item.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
+                                <span className="text-2xl font-black text-zinc-950 leading-none">{new Date(item.data).getDate()}</span>
+                              </div>
+                              <div className="space-y-1.5">
+                                <h3 className="text-lg font-black uppercase tracking-tight text-zinc-950 group-hover:text-yellow-600 transition-colors">{item.municipio}</h3>
+                                <div className="flex flex-wrap items-center gap-3 text-[9px] font-black text-zinc-400 tracking-widest uppercase">
+                                  <span className="flex items-center gap-1.5"><Clock className="w-2.5 h-2.5 text-yellow-500" /> {item.hora_inicio} - {item.hora_fim}</span>
+                                  <span className="flex items-center gap-1.5"><User className="w-2.5 h-2.5 text-yellow-500" /> {item.sugeridoPor}</span>
+                                </div>
+                                {item.motivo && <p className="text-[10px] text-zinc-500 font-bold bg-zinc-100 px-2.5 py-0.5 rounded-md inline-block">{item.motivo}</p>}
+                              </div>
+                            </div>
+                            <div className="flex gap-2.5 w-full md:w-auto">
+                              <button 
+                                onClick={async () => {
+                                  await firestoreService.updateDocument('agenda', item.id, { status: 'negado' });
+                                }}
+                                className="flex-1 md:flex-none px-6 py-3 bg-red-50 text-red-600 font-black text-[9px] uppercase rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                              >
+                                Negar
+                              </button>
+                              <button 
+                                onClick={async () => {
+                                  await firestoreService.updateDocument('agenda', item.id, { status: 'confirmado' });
+                                }}
+                                className="flex-1 md:flex-none px-6 py-3 bg-green-600 text-white font-black text-[9px] uppercase rounded-xl shadow-xl shadow-green-100 hover:bg-green-700 transition-all border-b-2 border-green-800 active:border-b-0 active:translate-y-0.5"
+                              >
+                                Confirmar
+                              </button>
+                            </div>
+                          </motion.div>
+                        )) : (
+                          <div className="p-12 border border-dashed border-zinc-200 rounded-xl text-center">
+                            <CheckCircle2 className="w-8 h-8 text-green-200 mx-auto mb-3" />
+                            <p className="font-black text-zinc-300 uppercase tracking-[0.15em] text-[9px]">Nenhuma solicitação pendente.</p>
+                          </div>
+                        )}
                       </div>
-                      <div className="text-left">
-                        <h4 className="text-xl font-black uppercase text-white group-hover:text-yellow-500 transition-colors">{item.municipio}</h4>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-black text-zinc-500 mt-2 uppercase tracking-widest">
-                          <span className="flex items-center gap-1.5"><Clock className="w-3 h-3" /> {item.hora_inicio} - {item.hora_fim}</span>
-                          <span className="flex items-center gap-1.5"><Users className="w-3 h-3" /> Equipe: {item.sugeridoPor}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                       <button onClick={(e) => { e.stopPropagation(); handleEditAgenda(item); }} className="p-3 bg-zinc-800 text-zinc-500 hover:text-white rounded-xl transition-all"><Edit3 className="w-4 h-4" /></button>
-                       <button onClick={(e) => { e.stopPropagation(); handleDeleteAgenda(item.id); }} className="p-3 bg-zinc-800 text-zinc-500 hover:text-red-500 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </div>
-                ))}
-                {agendas.filter(a => a.status === 'confirmado').length === 0 && (
-                   <div className="p-10 text-center border-2 border-dashed border-zinc-800 rounded-2xl">
-                     <p className="text-zinc-600 font-black uppercase text-sm">Nenhum compromisso agendado.</p>
-                   </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
 
-        {activeTab === 'finance' && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <FinanceDashboard isNested />
-          </motion.div>
-        )}
-      </main>
+                  <div className="space-y-6">
+                    <div className="bg-zinc-950 rounded-2xl p-6 lg:p-8 text-white shadow-2xl min-h-[500px] relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-6 opacity-5">
+                         <Calendar className="w-32 h-32" />
+                      </div>
+                      <h3 className="text-lg font-black uppercase tracking-tighter mb-6 italic flex items-center gap-3">
+                         Cronograma Confirmado
+                      </h3>
+                      <div className="space-y-4 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+                        {agendas.filter(a => a.status === 'confirmado').sort((a, b) => new Date(`${a.data}T${a.hora_inicio}`).getTime() - new Date(`${b.data}T${b.hora_inicio}`).getTime()).map(item => (
+                          <motion.div 
+                            key={item.id} 
+                            layout
+                            onClick={() => {
+                              setSelectedAgenda(item);
+                              setIsAgendaDetailModalOpen(true);
+                            }}
+                            className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl flex items-center gap-5 group cursor-pointer hover:border-yellow-500/50 transition-all"
+                          >
+                            <div className="flex flex-col items-center justify-center bg-zinc-800 w-12 h-12 rounded-xl shrink-0 group-hover:bg-yellow-500 transition-colors">
+                              <span className="text-[8px] font-black uppercase text-zinc-500 group-hover:text-zinc-950 leading-none mb-0.5">{new Date(item.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
+                              <span className="text-xl font-black text-white group-hover:text-zinc-950 leading-none">{new Date(item.data).getDate()}</span>
+                            </div>
+                            <div className="flex-1 overflow-hidden">
+                              <h4 className="text-base font-black uppercase text-white truncate italic group-hover:text-yellow-500 transition-colors leading-none">{item.municipio}</h4>
+                              <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mt-1.5 flex items-center gap-2">
+                                <Clock className="w-2.5 h-2.5" /> {item.hora_inicio}
+                              </p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-yellow-500 transition-all" />
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'finance' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <FinanceDashboard isNested />
+              </motion.div>
+            )}
+
+            {activeTab === 'notes' && (
+              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white border border-zinc-200 rounded-2xl flex items-center justify-center shadow-sm">
+                      <MessageSquare className="w-6 h-6 text-zinc-950" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none italic">Anotações Táticas</h2>
+                      <div className="flex gap-4 mt-4">
+                        <button 
+                          onClick={() => setNoteSubTab('tactical')}
+                          className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-lg transition-all ${noteSubTab === 'tactical' ? 'bg-zinc-950 text-white shadow-xl' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
+                        >
+                          Equipe (Fórum)
+                        </button>
+                        <button 
+                          onClick={() => setNoteSubTab('private')}
+                          className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-lg transition-all ${noteSubTab === 'private' ? 'bg-zinc-950 text-white shadow-xl' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
+                        >
+                          Minhas Observações
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {noteSubTab === 'private' && (
+                    <button 
+                      onClick={() => setIsAiModalOpen(true)}
+                      className="bg-yellow-500 text-zinc-950 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-zinc-950 hover:text-white transition-all flex items-center gap-2 italic"
+                    >
+                      <Plus className="w-4 h-4" /> Nova Observação
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {notes.filter(n => noteSubTab === 'private' ? n.type === 'private' : (n.type === 'tactical' || !n.type)).length > 0 ? (
+                    notes.filter(n => noteSubTab === 'private' ? n.type === 'private' : (n.type === 'tactical' || !n.type)).map((note) => (
+                      <NoteCard key={note.id} note={note} user={user} isAdmin={isAdmin} onDelete={() => firestoreService.deleteDocument('notes', note.id)} />
+                    ))
+                  ) : (
+                    <div className="col-span-full py-20 bg-white border-2 border-dashed border-zinc-200 rounded-2xl text-center">
+                      <Clock className="w-12 h-12 text-zinc-200 mx-auto mb-4" />
+                      <p className="font-black text-zinc-300 uppercase tracking-[0.2em] text-xs">Nenhuma anotação registrada nesta categoria.</p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </main>
+      </div>
 
       <AnimatePresence>
         {isAiModalOpen && (
@@ -939,7 +1282,7 @@ function CoordinatorDashboard() {
               initial={{ y: 100 }}
               animate={{ y: 0 }}
               exit={{ y: 100 }}
-              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative mb-10"
+              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative mb-10 border border-zinc-200"
             >
               <button 
                 onClick={() => {
@@ -947,48 +1290,57 @@ function CoordinatorDashboard() {
                   setAiResult(null);
                   setChaosText('');
                 }}
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-full text-zinc-500 active:bg-zinc-200"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 active:bg-zinc-200 transition-all active:scale-95"
               >
-                <X className="w-6 h-6" />
+                <X className="w-4 h-4" />
               </button>
 
               <div className="bg-yellow-500 p-6">
-                <Brain className="w-12 h-12 text-zinc-950 mb-4" />
-                <h2 className="text-2xl font-black text-zinc-950 tracking-tighter uppercase leading-none">Organizador de Demandas</h2>
-                <p className="text-zinc-800 text-sm font-bold mt-2">Diga o que aconteceu e a IA estratégica organiza os próximos passos.</p>
+                <Brain className="w-10 h-10 text-zinc-950 mb-4" />
+                <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none italic">Análise de IA</h2>
+                <p className="text-zinc-900 text-[10px] font-black mt-2 uppercase tracking-widest leading-tight">Mapeamento Estratégico de Demandas</p>
               </div>
 
               <div className="p-6">
                 {!aiResult ? (
                   <div className="space-y-4">
-                    <label className="text-xs font-black text-zinc-400 uppercase">Relato do Coordenador</label>
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Relato de Campo</label>
                     <textarea 
                       value={chaosText}
                       onChange={(e) => setChaosText(e.target.value)}
-                      placeholder="Ex: Falei com a liderança da comunidade X, eles precisam de suporte logístico para a reunião de amanhã..."
-                      className="w-full h-40 bg-zinc-50 border-2 border-zinc-200 rounded-2xl p-4 font-bold text-zinc-800 focus:border-yellow-500 outline-none transition-all placeholder:text-zinc-300"
+                      placeholder="Descreva a situação em tempo real..."
+                      className="w-full h-40 bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-xs text-zinc-800 focus:border-yellow-500 outline-none transition-all placeholder:text-zinc-300 resize-none"
                     />
-                    <button 
-                      onClick={handleProcessCaos}
-                      disabled={isProcessing || !chaosText}
-                      className="w-full bg-zinc-950 text-yellow-500 py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 disabled:opacity-50"
-                    >
-                      {isProcessing ? <RefreshCcw className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
-                      {isProcessing ? 'PROCESSANDO...' : 'ENVIAR PARA IA'}
-                    </button>
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={handleProcessCaos}
+                        disabled={isProcessing || !chaosText}
+                        className="flex-1 bg-zinc-950 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all active:scale-95 flex items-center justify-center gap-2"
+                      >
+                        {isProcessing ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4 cursor-pointer" />}
+                        {isProcessing ? 'Processando...' : 'Analisar IA'}
+                      </button>
+                      <button 
+                        onClick={handleSaveAsPrivateNote}
+                        disabled={isProcessing || !chaosText}
+                        className="flex-1 bg-zinc-100 text-zinc-900 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" /> Salvar Nota
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                     {/* RESULTADOS DA IA */}
                     {aiResult.tarefas_logistica?.length > 0 && (
-                      <div className="bg-blue-50 p-4 rounded-2xl border-l-8 border-blue-600">
-                        <h4 className="text-blue-700 font-black text-xs uppercase mb-2 flex items-center gap-2">
-                          <Fuel className="w-4 h-4" /> Logística Detectada
+                      <div className="bg-blue-50 p-4 rounded-xl border-l-4 border-blue-600">
+                        <h4 className="text-blue-700 font-black text-[9px] uppercase mb-2 flex items-center gap-2 tracking-widest leading-none">
+                          <Fuel className="w-3.5 h-3.5" /> Logística
                         </h4>
-                        <ul className="space-y-1">
+                        <ul className="space-y-1.5">
                           {aiResult.tarefas_logistica.map((t: string, i: number) => (
-                            <li key={i} className="text-sm font-bold text-zinc-800 flex items-start gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></div>
+                            <li key={i} className="text-[11px] font-bold text-zinc-800 flex items-start gap-2">
+                              <div className="w-1 h-1 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></div>
                               {t}
                             </li>
                           ))}
@@ -997,14 +1349,14 @@ function CoordinatorDashboard() {
                     )}
 
                     {aiResult.acoes_politicas?.length > 0 && (
-                      <div className="bg-green-50 p-4 rounded-2xl border-l-8 border-green-600">
-                        <h4 className="text-green-700 font-black text-xs uppercase mb-2 flex items-center gap-2">
-                          <Brain className="w-4 h-4" /> Ações Planejadas
+                      <div className="bg-green-50 p-4 rounded-xl border-l-4 border-green-600">
+                        <h4 className="text-green-700 font-black text-[9px] uppercase mb-2 flex items-center gap-2 tracking-widest leading-none">
+                          <Brain className="w-3.5 h-3.5" /> Ações Planejadas
                         </h4>
-                        <ul className="space-y-1">
+                        <ul className="space-y-1.5">
                           {aiResult.acoes_politicas.map((t: string, i: number) => (
-                            <li key={i} className="text-sm font-bold text-zinc-800 flex items-start gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></div>
+                            <li key={i} className="text-[11px] font-bold text-zinc-800 flex items-start gap-2">
+                              <div className="w-1 h-1 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></div>
                               {t}
                             </li>
                           ))}
@@ -1013,14 +1365,14 @@ function CoordinatorDashboard() {
                     )}
 
                     {aiResult.alertas_crise?.length > 0 && (
-                      <div className="bg-red-50 p-4 rounded-2xl border-l-8 border-red-600">
-                        <h4 className="text-red-700 font-black text-xs uppercase mb-2 flex items-center gap-2">
-                          <AlertTriangle className="w-4 h-4" /> Alertas de Risco
+                      <div className="bg-red-50 p-4 rounded-xl border-l-4 border-red-600">
+                        <h4 className="text-red-700 font-black text-[9px] uppercase mb-2 flex items-center gap-2 tracking-widest leading-none">
+                          <AlertTriangle className="w-3.5 h-3.5" /> Alertas
                         </h4>
-                        <ul className="space-y-1">
+                        <ul className="space-y-1.5">
                           {aiResult.alertas_crise.map((t: string, i: number) => (
-                            <li key={i} className="text-sm font-bold text-red-900 flex items-start gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-red-600 mt-1.5 flex-shrink-0"></div>
+                            <li key={i} className="text-[11px] font-bold text-red-900 flex items-start gap-2">
+                              <div className="w-1 h-1 rounded-full bg-red-600 mt-1.5 flex-shrink-0"></div>
                               {t}
                             </li>
                           ))}
@@ -1035,15 +1387,25 @@ function CoordinatorDashboard() {
                         setChaosText('');
                         alert('Demandas delegadas com sucesso!');
                       }}
-                      className="w-full bg-green-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl"
+                      className="w-full bg-green-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/10 hover:bg-green-700 transition-all mb-2"
                     >
                       CONFIRMAR DELEGAÇÃO
                     </button>
                     <button 
-                      onClick={() => setAiResult(null)}
-                      className="w-full text-zinc-400 font-bold text-xs uppercase py-2"
+                      onClick={() => {
+                        const summary = Array.isArray(aiResult.summary) ? aiResult.summary.join('. ') : aiResult.summary;
+                        setChaosText(`${aiResult.title}: ${summary}`);
+                        handleSaveAsPrivateNote();
+                      }}
+                      className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all"
                     >
-                      Voltar e Ajustar Relato
+                      Salvar como Nota Pessoal
+                    </button>
+                    <button 
+                      onClick={() => setAiResult(null)}
+                      className="w-full text-zinc-400 font-black text-[8px] uppercase py-2 tracking-widest hover:text-zinc-600 transition-colors"
+                    >
+                      Ajustar Relato
                     </button>
                   </div>
                 )}
@@ -1060,72 +1422,72 @@ function CoordinatorDashboard() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
           >
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative"
-            >
-              <button 
-                onClick={() => setIsUrgencyModalOpen(false)}
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-full text-zinc-500"
+              <motion.div 
+                initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+                className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
               >
-                <X className="w-6 h-6" />
-              </button>
+                <button 
+                  onClick={() => setIsUrgencyModalOpen(false)}
+                  className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 z-10"
+                >
+                  <X className="w-4 h-4" />
+                </button>
 
-              <div className={`p-6 border-b-4 ${selectedUrgency.type === 'combustivel' ? 'bg-blue-600 border-blue-800' : selectedUrgency.type === 'demanda' ? 'bg-yellow-500 border-yellow-700' : 'bg-red-600 border-red-800'}`}>
-                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">{selectedUrgency.title}</h2>
-                <p className="text-white/60 text-[10px] font-black mt-2 uppercase tracking-widest">SOLICITADO POR: {selectedUrgency.leaderName} ({selectedUrgency.team})</p>
-              </div>
-
-              <div className="p-6 space-y-6">
-                <div>
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block mb-2">Relato do Campo</label>
-                  <p className="p-4 bg-zinc-50 border border-zinc-100 rounded-2xl text-sm font-medium text-zinc-700 italic">
-                    "{selectedUrgency.description}"
-                  </p>
+                <div className={`p-6 ${selectedUrgency.type === 'combustivel' ? 'bg-blue-600' : selectedUrgency.type === 'demanda' ? 'bg-yellow-500' : 'bg-red-600'}`}>
+                  <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">{selectedUrgency.title}</h2>
+                  <p className="text-white/70 text-[9px] font-black mt-2 uppercase tracking-widest leading-none">{selectedUrgency.leaderName} • {selectedUrgency.team}</p>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Sua Observação Estratégica (Feedback)</label>
-                  <textarea 
-                    value={observation}
-                    onChange={(e) => setObservation(e.target.value)}
-                    placeholder="Deixe uma orientação para o líder de campo..."
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-zinc-950 transition-all h-28"
-                  />
+                <div className="p-6 space-y-6">
+                  <div>
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block mb-2 leading-none italic">Relato de Campo</label>
+                    <p className="p-4 bg-zinc-50 border border-zinc-100 rounded-xl text-xs font-bold text-zinc-700 italic leading-relaxed">
+                      "{selectedUrgency.description}"
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block leading-none italic">Feedback Estratégico</label>
+                    <textarea 
+                      value={observation}
+                      onChange={(e) => setObservation(e.target.value)}
+                      placeholder="Oriente o líder regional..."
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-xs text-zinc-800 outline-none focus:border-zinc-950 transition-all h-28 resize-none placeholder:text-zinc-300"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <button 
+                      onClick={async () => {
+                        await firestoreService.updateDocument('urgencies', selectedUrgency.id, {
+                          status: 'negado',
+                          observation,
+                          updatedAt: Date.now()
+                        });
+                        setIsUrgencyModalOpen(false);
+                        alert("Solicitação Negada.");
+                      }}
+                      className="bg-red-50 text-red-600 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest border border-red-100 hover:bg-red-600 hover:text-white transition-all shadow-sm shadow-red-500/5 active:scale-95"
+                    >
+                      Negar
+                    </button>
+                    <button 
+                      onClick={async () => {
+                        await firestoreService.updateDocument('urgencies', selectedUrgency.id, {
+                          status: 'aprovado',
+                          observation,
+                          updatedAt: Date.now()
+                        });
+                        setIsUrgencyModalOpen(false);
+                        alert("Solicitação Aprovada!");
+                      }}
+                      className="bg-green-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/10 hover:bg-zinc-950 transition-all active:scale-95"
+                    >
+                      Aprovar
+                    </button>
+                  </div>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <button 
-                    onClick={async () => {
-                      await firestoreService.updateDocument('urgencies', selectedUrgency.id, {
-                        status: 'negado',
-                        observation,
-                        updatedAt: Date.now()
-                      });
-                      setIsUrgencyModalOpen(false);
-                      alert("Solicitação Negada.");
-                    }}
-                    className="bg-red-600 text-white py-4 rounded-xl font-black text-xs shadow-lg uppercase border-b-4 border-red-800 active:border-b-0 active:translate-y-1"
-                  >
-                    Negar Solicitação
-                  </button>
-                  <button 
-                    onClick={async () => {
-                      await firestoreService.updateDocument('urgencies', selectedUrgency.id, {
-                        status: 'aprovado',
-                        observation,
-                        updatedAt: Date.now()
-                      });
-                      setIsUrgencyModalOpen(false);
-                      alert("Solicitação Aprovada!");
-                    }}
-                    className="bg-green-600 text-white py-4 rounded-xl font-black text-xs shadow-lg uppercase border-b-4 border-green-800 active:border-b-0 active:translate-y-1"
-                  >
-                    Aprovar Agora
-                  </button>
-                </div>
-              </div>
-            </motion.div>
+              </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1143,171 +1505,172 @@ function CoordinatorDashboard() {
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
             >
               <button 
                 onClick={() => {
                   setIsTeamModalOpen(false);
                   setTeamCreationStep('form');
                 }}
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
-                <X className="w-6 h-6" />
+                <X className="w-4 h-4" />
               </button>
 
-              <div className="bg-zinc-950 p-6 border-b-4 border-yellow-500 text-left">
-                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
-                  {teamCreationStep === 'form' ? (isEditMode ? 'Editar Equipe Regional' : 'Cadastrar Equipe Regional') : 'Equipe Criada com Sucesso'}
+              <div className="bg-zinc-950 p-6">
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">
+                  {teamCreationStep === 'form' ? (isEditMode ? 'Editar Unidade' : 'Cadastrar Unidade') : 'Unidade Ativada'}
                 </h2>
-                <p className="text-zinc-400 text-xs font-bold mt-2 uppercase tracking-widest">
-                  {teamCreationStep === 'form' ? (isEditMode ? 'Ajuste os dados estratégicos' : 'Defina o líder e a base estratégica') : 'Link de acesso gerado para o líder'}
+                <p className="text-zinc-400 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">
+                  {teamCreationStep === 'form' ? (isEditMode ? 'Ajuste de Inteligência' : 'Definição de Base Estratégica') : 'Credencial Digital Gerada'}
                 </p>
               </div>
 
               {teamCreationStep === 'form' ? (
-                <form onSubmit={handleCreateTeam} className="p-6 space-y-4 text-left">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome da Equipe</label>
+                <form onSubmit={handleCreateTeam} className="p-6 space-y-4 text-left font-sans">
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Identificação da Equipe</label>
                     <input 
                       required
                       type="text" 
                       value={newTeam.name}
                       onChange={(e) => setNewTeam({...newTeam, name: e.target.value})}
-                      placeholder="Ex: Equipe Central"
+                      placeholder="Ex: Tropa de Elite"
                       disabled={isEditMode}
-                      className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all disabled:opacity-50"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all disabled:opacity-50 placeholder:text-zinc-300"
                     />
                   </div>
                   
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 text-left block">Líder Regional (Nome Completo)</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 text-left block">Responsável Regional</label>
                     <input 
                       required
                       type="text" 
                       value={newTeam.leader}
                       onChange={(e) => setNewTeam({...newTeam, leader: e.target.value})}
-                      placeholder="Ex: Sargento Garcia"
-                      className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                      placeholder="Nome Completo"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-left">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">E-mail do Líder</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                    <div className="space-y-1.5">
+                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">E-mail Corporativo</label>
                       <input 
                         required
                         type="email" 
                         value={newTeam.leaderEmail}
                         onChange={(e) => setNewTeam({...newTeam, leaderEmail: e.target.value})}
-                        placeholder="lider@exemplo.com"
+                        placeholder="lider@sistema.org"
                         disabled={isEditMode}
-                        className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all disabled:opacity-50"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all disabled:opacity-50 placeholder:text-zinc-300"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">WhatsApp do Líder</label>
+                    <div className="space-y-1.5">
+                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">WhatsApp</label>
                       <input 
                         required
                         type="tel" 
                         value={newTeam.leaderPhone}
                         onChange={(e) => setNewTeam({...newTeam, leaderPhone: e.target.value})}
                         placeholder="(00) 00000-0000"
-                        className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-left">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Localidade / Base</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                    <div className="space-y-1.5">
+                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Base / Polo</label>
                       <input 
                         required
                         type="text" 
                         value={newTeam.location}
                         onChange={(e) => setNewTeam({...newTeam, location: e.target.value})}
-                        placeholder="Ex: Boa Vista"
-                        className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                        placeholder="Ex: Boa Vista - Polo Sul"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Endereço do Líder</label>
+                    <div className="space-y-1.5">
+                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Endereço Físico</label>
                       <input 
                         required
                         type="text" 
                         value={newTeam.leaderAddress}
                         onChange={(e) => setNewTeam({...newTeam, leaderAddress: e.target.value})}
-                        placeholder="Rua, Bairro..."
-                        className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                        placeholder="Logradouro completo"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Observações do Coordenador</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Briefing Estratégico</label>
                     <textarea 
                       value={newTeam.observations}
                       onChange={(e) => setNewTeam({...newTeam, observations: e.target.value})}
-                      placeholder="Informações adicionais..."
+                      placeholder="Diretrizes e observações cruciais..."
                       maxLength={1000}
-                      className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 placeholder:text-zinc-300 resize-none"
                     />
-                    <div className="text-[9px] font-black text-zinc-400 text-right mt-1">{newTeam.observations?.length || 0}/1000</div>
                   </div>
                   
                   <button 
                     type="submit"
-                    className="w-full bg-zinc-950 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-zinc-200 border-b-4 border-zinc-800 active:border-b-0 active:translate-y-1 transition-all mt-4"
+                    className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-zinc-950/10 hover:bg-zinc-900 transition-all active:scale-[0.98] mt-2 italic"
                   >
-                    {isEditMode ? 'SALVAR ALTERAÇÕES' : 'SALVAR EQUIPE ESTRATÉGICA'}
+                    {isEditMode ? 'SALVAR ALTERAÇÕES' : 'EFETIVAR CADASTRO'}
                   </button>
                 </form>
               ) : (
                 <div className="p-8 space-y-6 text-center">
-                  <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-green-50">
-                    <CheckCircle2 className="w-10 h-10" />
+                  <div className="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-2 border border-green-100">
+                    <CheckCircle2 className="w-8 h-8" />
                   </div>
-                  <h3 className="text-xl font-black text-zinc-900 uppercase leading-tight">Credenciais Geradas!</h3>
-                  <p className="text-zinc-500 text-sm font-bold">
-                    Copie o link abaixo e envie para o Líder {newTeam.leader}. Este link contém o acesso direto ao sistema.
+                  <h3 className="text-xl font-black text-zinc-900 uppercase tracking-tighter italic">Credenciais Geradas</h3>
+                  <p className="text-zinc-500 text-xs font-bold leading-relaxed px-4">
+                    Transmita o link de segurança abaixo para <span className="text-zinc-950">{newTeam.leader}</span>. Acesso imediato e restrito via Token Único.
                   </p>
                   
-                  <div className="bg-zinc-50 p-4 rounded-2xl border-2 border-zinc-100 break-all text-xs font-mono font-bold text-blue-600 select-all">
+                  <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-100 break-all text-[9px] font-mono font-black text-blue-600 select-all italic">
                     {createdTeamLink}
                   </div>
 
-                  <button 
-                    onClick={() => {
-                      navigator.clipboard.writeText(createdTeamLink);
-                      alert("Link copiado!");
-                    }}
-                    className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-100 border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all"
-                  >
-                    Copiar Link de Acesso
-                  </button>
-                  
-                  <button 
-                    onClick={() => {
-                      setIsTeamModalOpen(false);
-                      setTeamCreationStep('form');
-                      setNewTeam({
-                        name: '',
-                        leader: '',
-                        leaderEmail: '',
-                        leaderPhone: '',
-                        leaderAddress: '',
-                        location: '',
-                        status: 'OK',
-                        contacts: 0,
-                        fuel: 0,
-                        demands: 0,
-                        allocated: 0,
-                        spent: 0
-                      });
-                    }}
-                    className="w-full bg-zinc-100 text-zinc-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest"
-                  >
-                    Fechar e Voltar
-                  </button>
+                  <div className="space-y-3">
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(createdTeamLink);
+                        alert("Link copiado!");
+                      }}
+                      className="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-95"
+                    >
+                      Copiar Link de Segurança
+                    </button>
+                    
+                    <button 
+                      onClick={() => {
+                        setIsTeamModalOpen(false);
+                        setTeamCreationStep('form');
+                        setNewTeam({
+                          name: '',
+                          leader: '',
+                          leaderEmail: '',
+                          leaderPhone: '',
+                          leaderAddress: '',
+                          location: '',
+                          status: 'OK',
+                          contacts: 0,
+                          fuel: 0,
+                          demands: 0,
+                          allocated: 0,
+                          spent: 0
+                        });
+                      }}
+                      className="w-full bg-zinc-100 text-zinc-500 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all"
+                    >
+                      Fechar
+                    </button>
+                  </div>
                 </div>
               )}
             </motion.div>
@@ -1324,84 +1687,84 @@ function CoordinatorDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
             >
               <button 
                 onClick={() => setIsAgendaCreateModalOpen(false)}
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
-                <X className="w-6 h-6" />
+                <X className="w-4 h-4" />
               </button>
 
-              <div className="bg-yellow-500 p-6 border-b-4 border-yellow-700">
-                <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none">
-                  {editingAgenda ? 'Editar Compromisso' : 'Novo Compromisso Oficial'}
+              <div className="bg-yellow-500 p-6">
+                <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none italic">
+                  {editingAgenda ? 'Editar Evento' : 'Novo Evento Estratégico'}
                 </h2>
-                <p className="text-zinc-800 text-[10px] font-black mt-2 uppercase tracking-widest">Defina o roteiro estratégico da campanha</p>
+                <p className="text-zinc-900 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Cronograma Oficial de Campanha</p>
               </div>
 
               <form onSubmit={handleCreateOrUpdateAgenda} className="p-6 space-y-4 text-left">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Município / Local</label>
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Localidade / Município</label>
                   <input 
                     required
                     type="text" 
                     value={agendaForm.municipio}
                     onChange={(e) => setAgendaForm({...agendaForm, municipio: e.target.value})}
-                    placeholder="Ex: Cantá / Centro"
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                    placeholder="Ex: Boa Vista / Centro"
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
                   />
                 </div>
                 
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Data do Compromisso</label>
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Data da Operação</label>
                   <input 
                     required
                     type="date" 
                     value={agendaForm.data}
                     onChange={(e) => setAgendaForm({...agendaForm, data: e.target.value})}
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Início</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Início</label>
                     <input 
                       required
                       type="time" 
                       value={agendaForm.hora_inicio}
                       onChange={(e) => setAgendaForm({...agendaForm, hora_inicio: e.target.value})}
-                      className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Fim</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Fim</label>
                     <input 
                       required
                       type="time" 
                       value={agendaForm.hora_fim}
                       onChange={(e) => setAgendaForm({...agendaForm, hora_fim: e.target.value})}
-                      className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Objetivo / Atividade</label>
-                  <textarea 
-                    value={agendaForm.motivo}
-                    onChange={(e) => setAgendaForm({...agendaForm, motivo: e.target.value})}
-                    placeholder="Ex: Comício na praça central ou reunião com lideranças..."
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24"
-                  />
+                <div className="space-y-1.5">
+                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Objetivo / Atividade</label>
+                   <textarea 
+                     value={agendaForm.motivo}
+                     onChange={(e) => setAgendaForm({...agendaForm, motivo: e.target.value})}
+                     placeholder="Breve descrição do objetivo..."
+                     className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 resize-none placeholder:text-zinc-300"
+                   />
                 </div>
                 
                 <button 
                   type="submit"
-                  className="w-full bg-zinc-950 text-white py-5 rounded-2xl font-black text-lg shadow-xl border-b-4 border-zinc-800 active:border-b-0 active:translate-y-1 transition-all mt-4"
+                  className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl border-zinc-950 hover:bg-zinc-900 transition-all mt-2 italic"
                 >
-                  {editingAgenda ? 'SALVAR ALTERAÇÕES' : 'CONFIRMAR COMPROMISSO'}
+                  {editingAgenda ? 'ATUALIZAR CRONOGRAMA' : 'PUBLICAR EVENTO'}
                 </button>
               </form>
             </motion.div>
@@ -1623,42 +1986,42 @@ function CoordinatorDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative"
             >
               <button 
                 onClick={() => {
                    setIsVoterEditModalOpen(false);
                    setSelectedVoter(null);
                 }} 
-                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 transition-all"
+                className="absolute top-5 right-5 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 transition-all"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
-              <div className="bg-zinc-950 p-8 border-b-4 border-yellow-500 text-left">
-                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">
+              <div className="bg-zinc-950 p-6 border-b-4 border-yellow-500 text-left">
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
                   Editar Eleitor
                 </h2>
-                <p className="text-zinc-400 text-xs font-bold mt-2 uppercase tracking-widest">Base de dados da equipe {selectedManagingTeam?.name}</p>
+                <p className="text-zinc-400 text-[10px] font-bold mt-2 uppercase tracking-widest">Base de dados da equipe {selectedManagingTeam?.name}</p>
               </div>
-              <form onSubmit={handleVoterEditSubmit} className="p-8 space-y-4 text-left">
+              <form onSubmit={handleVoterEditSubmit} className="p-6 space-y-4 text-left">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
-                  <input required type="text" value={voterEditForm.name} onChange={e => setVoterEditForm({...voterEditForm, name: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="Digite o nome..." />
+                  <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
+                  <input required type="text" value={voterEditForm.name} onChange={e => setVoterEditForm({...voterEditForm, name: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="Digite o nome..." />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Telefone / WhatsApp</label>
-                  <input type="text" value={voterEditForm.phone} onChange={e => setVoterEditForm({...voterEditForm, phone: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="(00) 00000-0000" />
+                  <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Telefone / WhatsApp</label>
+                  <input type="text" value={voterEditForm.phone} onChange={e => setVoterEditForm({...voterEditForm, phone: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="(00) 00000-0000" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Endereço / Referência</label>
-                  <input type="text" value={voterEditForm.address} onChange={e => setVoterEditForm({...voterEditForm, address: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="Rua, Bairro, N..." />
+                  <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Endereço / Referência</label>
+                  <input type="text" value={voterEditForm.address} onChange={e => setVoterEditForm({...voterEditForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="Rua, Bairro, N..." />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Observações Estratégicas</label>
-                  <textarea value={voterEditForm.observations} onChange={e => setVoterEditForm({...voterEditForm, observations: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold h-24" placeholder="Ex: Prioritário, transporte necessário..."></textarea>
+                  <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Observações Estratégicas</label>
+                  <textarea value={voterEditForm.observations} onChange={e => setVoterEditForm({...voterEditForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm h-24" placeholder="Ex: Prioritário, transporte necessário..."></textarea>
                 </div>
                 
-                <button type="submit" className="w-full bg-zinc-950 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-zinc-200 mt-4 active:scale-95 transition-all">
+                <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-base shadow-xl shadow-zinc-200 mt-2 active:scale-95 transition-all">
                   SALVAR ALTERAÇÕES
                 </button>
               </form>
@@ -1675,33 +2038,33 @@ function CoordinatorDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative"
             >
               <button 
                 onClick={() => setIsProfileModalOpen(false)} 
-                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 z-10"
+                className="absolute top-5 right-5 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 z-10"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
-              <div className="bg-zinc-950 p-10 border-b-4 border-yellow-500 text-left">
-                <div className="flex items-center gap-6">
+              <div className="bg-zinc-950 p-6 border-b-4 border-yellow-500 text-left">
+                <div className="flex items-center gap-4">
                    <div className="relative group">
-                      <div className="w-20 h-20 bg-zinc-800 rounded-3xl flex items-center justify-center border-2 border-zinc-700 overflow-hidden">
+                      <div className="w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center border-2 border-zinc-700 overflow-hidden">
                          {profileData?.photoUrl ? (
                            <img src={profileData.photoUrl} alt="Perfil" className="w-full h-full object-cover" />
                          ) : (
-                           <User className="w-10 h-10 text-zinc-600" />
+                           <User className="w-8 h-8 text-zinc-600" />
                          )}
                       </div>
-                      <button className="absolute -bottom-2 -right-2 bg-yellow-500 p-2 rounded-xl text-zinc-950 shadow-lg hover:scale-110 transition-all">
-                         <Camera className="w-4 h-4" />
+                      <button className="absolute -bottom-1 -right-1 bg-yellow-500 p-1.5 rounded-lg text-zinc-950 shadow-lg hover:scale-110 transition-all">
+                         <Camera className="w-3.5 h-3.5" />
                       </button>
                    </div>
                    <div>
-                      <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">
+                      <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
                         Meu Perfil
                       </h2>
-                      <p className="text-yellow-500 text-[10px] font-black mt-2 uppercase tracking-widest">Acesso de Coordenação Geral</p>
+                      <p className="text-yellow-500 text-[8px] font-black mt-2 uppercase tracking-widest">Acesso de Coordenação Geral</p>
                    </div>
                 </div>
               </div>
@@ -1723,22 +2086,22 @@ function CoordinatorDashboard() {
                     alert("Erro ao atualizar perfil: " + err.message);
                   }
                 }} 
-                className="p-10 space-y-4 text-left font-sans"
+                className="p-6 space-y-3.5 text-left font-sans"
               >
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
-                  <input defaultValue={profileData?.name} name="name" type="text" className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="Seu nome real..." />
+                  <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
+                  <input defaultValue={profileData?.name} name="name" type="text" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="Seu nome real..." />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Telefone Profissional</label>
-                  <input defaultValue={profileData?.phone} name="phone" type="text" className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="(00) 00000-0000" />
+                  <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Telefone Profissional</label>
+                  <input defaultValue={profileData?.phone} name="phone" type="text" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="(00) 00000-0000" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Cargo / Biografia</label>
-                  <textarea defaultValue={profileData?.bio} name="bio" className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold h-24" placeholder="Ex: Coordenador de Logística e Transmissão..."></textarea>
+                  <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Cargo / Biografia</label>
+                  <textarea defaultValue={profileData?.bio} name="bio" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm h-24" placeholder="Ex: Coordenador de Logística e Transmissão..."></textarea>
                 </div>
                 
-                <button type="submit" className="w-full bg-zinc-950 text-white py-5 rounded-3xl font-black text-lg shadow-xl shadow-zinc-200 mt-4 active:scale-95 transition-all">
+                <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-base shadow-xl shadow-zinc-200 mt-2 active:scale-95 transition-all">
                   SALVAR CONFIGURAÇÕES
                 </button>
               </form>
@@ -1944,9 +2307,16 @@ function CaboDashboard() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [queueCount, setQueueCount] = useState(0);
   const [isLocating, setIsLocating] = useState(false);
-  const [activeTab, setActiveTab] = useState<'equipe' | 'logistica' | 'ouvidoria' | 'financeiro'>('logistica');
+  const [activeTab, setActiveTab] = useState<'equipe' | 'logistica' | 'ouvidoria' | 'financeiro' | 'notas'>('logistica');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   
+  // Notas State
+  const [notes, setNotes] = useState<any[]>([]);
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [noteText, setNoteText] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessingNote, setIsProcessingNote] = useState(false);
+
   // Finance State for Leader
   const [teamTransactions, setTeamTransactions] = useState<any[]>([]);
   const [isSignReceiptModalOpen, setIsSignReceiptModalOpen] = useState(false);
@@ -2037,10 +2407,19 @@ function CaboDashboard() {
         console.error("Erro ao escutar agendas do líder:", err);
       });
 
+      const notesQuery = query(collection(db, 'notes'), where('leaderId', '==', user.uid), orderBy('createdAt', 'desc'));
+      const unsubNotes = onSnapshot(notesQuery, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setNotes(data);
+      }, (err) => {
+        console.error("Erro ao escutar notas:", err);
+      });
+
       return () => {
         unsubProfile();
         unsubVoters();
         unsubAgendas();
+        unsubNotes();
         if (unsubTx) unsubTx();
       };
     }
@@ -2308,287 +2687,374 @@ function CaboDashboard() {
     }
   };
 
+  const startVoiceNote = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Seu navegador não suporta reconhecimento de voz direto. Por favor, digite sua nota.");
+      setIsNoteModalOpen(true);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'pt-BR';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setIsRecording(true);
+      setIsNoteModalOpen(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      const speechToText = event.results[0][0].transcript;
+      setNoteText(speechToText);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Erro no reconhecimento de voz:", event.error);
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognition.start();
+  };
+
+  const handleNoteSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!user || !noteText.trim()) return;
+
+    setIsProcessingNote(true);
+    try {
+      const processedNote = await processarNotaAudio(noteText);
+      const noteId = `note_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      await firestoreService.setDocument('notes', noteId, {
+        id: noteId,
+        text: processedNote,
+        originalText: noteText,
+        leaderId: user.uid,
+        leaderName: profileData.name,
+        team: profileData.zone,
+        type: 'tactical',
+        createdAt: Date.now()
+      });
+      setNoteText('');
+      setIsNoteModalOpen(false);
+    } catch (error) {
+      console.error("Erro ao salvar nota:", error);
+      alert("Erro ao salvar nota.");
+    } finally {
+      setIsProcessingNote(false);
+    }
+  };
+
+  const handleDeleteNote = async (id: string) => {
+    if (confirm("Deseja excluir esta nota?")) {
+      await firestoreService.deleteDocument('notes', id);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans pb-32">
+    <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans selection:bg-yellow-500 selection:text-zinc-950 flex overflow-hidden">
       
-      {/* HEADER FIXO - CABO (WIDER ON DESKTOP) */}
-      <header className="sticky top-0 z-50 bg-neutral-950/80 backdrop-blur-xl border-b border-white/5 p-4">
-        <div className="max-w-5xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div 
-              onClick={() => setIsProfileModalOpen(true)}
-              className="bg-zinc-100 p-2 rounded-full cursor-pointer hover:bg-yellow-500 hover:text-white transition-all"
-            >
-              <User className="w-5 h-5 text-zinc-500" />
+      {/* SIDEBAR - DESKTOP ONLY */}
+      <aside className="hidden lg:flex w-72 bg-zinc-950 border-r border-white/5 flex-col flex-shrink-0 relative z-20">
+        <div className="p-6 border-b border-white/5 bg-gradient-to-br from-zinc-900 to-black">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-yellow-500 p-2.5 rounded-xl shadow-lg shadow-yellow-500/10">
+              <ShieldCheck className="w-6 h-6 text-zinc-950" />
             </div>
             <div>
-              <h1 className="text-lg lg:text-xl font-black text-zinc-950 flex items-center gap-2 uppercase tracking-tighter text-left">
-                 {profileData.name || user?.displayName || 'LÍDER'} {profileData.zone ? `(${profileData.zone})` : ''}
-              </h1>
-              <p className="text-[10px] lg:text-xs font-bold text-zinc-400 text-left uppercase">CABO ELEITORAL - LÍDER DE RUA</p>
+              <h2 className="text-lg font-black text-white tracking-tighter leading-none italic uppercase">Rede Águia</h2>
+              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-1">Líder Regional</p>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 rounded-full border-2 transition-all ${
+
+          <div className="bg-white/5 rounded-2xl p-5 border border-white/5 backdrop-blur-sm relative overflow-hidden group">
+            <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-all">
+              <User className="w-16 h-16" />
+            </div>
+            <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">Perfil Ativo</p>
+            <h3 className="text-xs font-black text-white uppercase truncate">
+              {profileData.name || user?.displayName || 'LÍDER'}
+            </h3>
+            <p className="text-[8px] font-bold text-yellow-500 mt-2 uppercase tracking-tighter">
+              {profileData.zone || 'SETOR NÃO DEFINIDO'}
+            </p>
+          </div>
+        </div>
+
+        <nav className="flex-1 p-5 space-y-1.5 overflow-y-auto custom-scrollbar">
+          {[
+            { id: 'logistica', label: 'Painel Tático', icon: <MapPin className="w-4 h-4" /> },
+            { id: 'equipe', label: 'Base de Eleitores', icon: <Users className="w-4 h-4" /> },
+            { id: 'financeiro', label: 'Operacional Financeiro', icon: <Wallet className="w-4 h-4" /> },
+            { id: 'notas', label: 'Notas de Voz', icon: <Mic className="w-4 h-4" /> },
+            { id: 'ouvidoria', label: 'Feed de Atividade', icon: <History className="w-4 h-4" /> }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all group ${
+                activeTab === tab.id 
+                ? 'bg-yellow-500 text-zinc-950 shadow-xl shadow-yellow-500/10' 
+                : 'text-zinc-500 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <span className={`${activeTab === tab.id ? 'text-zinc-950' : 'text-zinc-600 group-hover:text-yellow-500'} transition-colors`}>
+                {tab.icon}
+              </span>
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="p-5 border-t border-white/5">
+          <button 
+            onClick={logout}
+            className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-red-500/10 text-red-500 font-black text-[9px] uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all shadow-lg"
+          >
+            <LogOut className="w-3.5 h-3.5" /> Desligar Terminal
+          </button>
+        </div>
+      </aside>
+
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* TOP BAR */}
+        <header className="h-16 bg-neutral-950/80 backdrop-blur-xl border-b border-white/5 px-6 lg:px-10 flex items-center justify-between flex-shrink-0 relative z-30">
+          <div className="flex items-center gap-3 lg:hidden">
+            <ShieldCheck className="w-6 h-6 text-yellow-500" />
+            <h1 className="font-black text-base uppercase tracking-tighter italic">Líder Águia</h1>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-3">
+             <div className="bg-yellow-500/10 text-yellow-500 px-4 py-2 rounded-full border border-yellow-500/20 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></div>
+                Setor: {profileData.zone || 'Identificando...'}
+             </div>
+          </div>
+
+          <div className="flex items-center gap-3 lg:gap-4">
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${
                 isOnline 
-                ? 'bg-green-50 border-green-600 text-green-700' 
-                : 'bg-orange-50 border-orange-600 text-orange-700'
+                ? 'bg-green-500/10 border-green-500/20 text-green-500' 
+                : 'bg-orange-500/10 border-orange-500/20 text-orange-500'
             }`}>
-              {isOnline ? <Wifi className="w-4 h-4" /> : <CloudOff className="w-4 h-4" />}
-              <span className="text-[10px] lg:text-xs font-black uppercase tracking-tight">
-                {isOnline ? 'Online' : 'Offline'}
+              {isOnline ? <Wifi className="w-4 h-4 animate-pulse" /> : <CloudOff className="w-4 h-4" />}
+              <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">
+                {isOnline ? 'Conexão Segura' : 'Modo Offline Ativo'}
               </span>
             </div>
-            
+
             <button 
               onClick={() => setIsProfileModalOpen(true)}
-              className="p-2 bg-zinc-100 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all"
-              title="Configurar Perfil"
+              className="p-3 bg-zinc-900 border border-white/5 rounded-2xl text-zinc-400 hover:bg-zinc-800 hover:text-yellow-500 transition-all shadow-xl"
             >
               <Settings className="w-5 h-5" />
             </button>
-            
-            <button 
-              onClick={logout}
-              className="p-2 bg-zinc-100 rounded-lg text-zinc-500 hover:bg-red-600 hover:text-white transition-all"
-              title="Sair do Sistema"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="p-4 md:p-8 space-y-6 max-w-5xl mx-auto">
-        
-        {activeTab === 'logistica' ? (
-          <>
-            {isLocating && (
-              <div className="bg-zinc-950 text-white p-4 rounded-2xl text-center animate-pulse flex items-center justify-center gap-3 font-black text-xs uppercase shadow-xl">
-                <RefreshCcw className="w-5 h-5 animate-spin" /> Validando GPS e Segurança de Campo...
-              </div>
-            )}
+        {/* SCROLLABLE MAIN CONTENT */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-12 custom-scrollbar pb-32 lg:pb-12 bg-gradient-to-b from-[#0A0A0A] to-zinc-950">
+          <div className="max-w-6xl mx-auto space-y-10">
+            
+            {activeTab === 'logistica' ? (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
+                {isLocating && (
+                  <div className="bg-yellow-500/10 border-2 border-yellow-500/20 text-yellow-500 p-6 rounded-3xl text-center flex items-center justify-center gap-4 font-black text-xs uppercase tracking-[0.2em] shadow-2xl">
+                    <RefreshCcw className="w-6 h-6 animate-spin" /> Verificando Assinatura de GPS e Segurança de Campo...
+                  </div>
+                )}
 
-            {/* GRID DE BOTÕES GIGANTES - RESPONSIVO (2 colunas mobile, 4 colunas desktop) */}
-            {teamData?.observations && (
-              <section className="bg-yellow-50 border-2 border-yellow-200 rounded-3xl p-6 shadow-sm mb-6 text-left relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10">
-                  <StickyNote className="w-16 h-16 text-yellow-600 rotate-12" />
-                </div>
-                <h3 className="text-yellow-800 font-black text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2">
-                  <StickyNote className="w-4 h-4" /> Orientações da Coordenação
-                </h3>
-                <p className="text-yellow-900 font-bold text-sm leading-relaxed whitespace-pre-wrap">
-                  {teamData.observations}
-                </p>
-              </section>
-            )}
+                {teamData?.observations && (
+                  <section className="bg-white border-2 border-zinc-100 rounded-[2.5rem] p-10 shadow-sm relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-all pointer-events-none">
+                      <StickyNote className="w-32 h-32 text-zinc-900 rotate-12" />
+                    </div>
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="bg-zinc-950 p-3 rounded-2xl"><StickyNote className="w-6 h-6 text-yellow-500" /></div>
+                      <h3 className="text-zinc-950 font-black text-xl uppercase tracking-tighter italic">Comunicações da Central</h3>
+                    </div>
+                    <p className="text-zinc-600 font-bold text-lg leading-relaxed whitespace-pre-wrap pl-2 border-l-4 border-yellow-500">
+                      {teamData.observations}
+                    </p>
+                  </section>
+                )}
 
-            <section className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
-              <motion.button 
-                whileTap={{ scale: 0.95 }}
-                onClick={() => processAction('ponto')}
-                className="aspect-square bg-neutral-900 text-white rounded-2xl p-4 lg:p-6 flex flex-col items-center justify-center gap-4 shadow-xl border border-white/5 hover:border-yellow-500/50 hover:bg-neutral-800 transition-all group relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <Camera className="w-12 h-12" />
-                </div>
-                <div className="bg-yellow-500/10 p-4 rounded-xl group-hover:bg-yellow-500/20 transition-all">
-                  <Camera className="w-8 h-8 lg:w-10 lg:h-10 text-yellow-500" />
-                </div>
-                <span className="font-black text-xs lg:text-sm uppercase tracking-widest leading-none text-center">
-                  Bater Ponto<br/><span className="text-[9px] text-zinc-500 mt-1 block tracking-normal">GEOLOCALIZAÇÃO</span>
-                </span>
-              </motion.button>
-
-              <motion.button 
-                whileTap={{ scale: 0.95 }} 
-                onClick={() => processAction('eleitor')}
-                className="aspect-square bg-neutral-900 text-white rounded-2xl p-4 lg:p-6 flex flex-col items-center justify-center gap-4 shadow-xl border border-white/5 hover:border-blue-500/50 hover:bg-neutral-800 transition-all group relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <UserPlus className="w-12 h-12" />
-                </div>
-                <div className="bg-blue-500/10 p-4 rounded-xl group-hover:bg-blue-500/20 transition-all">
-                  <UserPlus className="w-8 h-8 lg:w-10 lg:h-10 text-blue-500" />
-                </div>
-                <span className="font-black text-xs lg:text-sm uppercase tracking-widest leading-none text-center">
-                  Novo Eleitor<br/><span className="text-[9px] text-zinc-500 mt-1 block tracking-normal">FIDELIZAÇÃO</span>
-                </span>
-              </motion.button>
-
-              <motion.button 
-                whileTap={{ scale: 0.95 }}
-                onClick={() => processAction('agenda')}
-                className="aspect-square bg-neutral-900 text-white rounded-2xl p-4 lg:p-6 flex flex-col items-center justify-center gap-4 shadow-xl border border-white/5 hover:border-emerald-500/50 hover:bg-neutral-800 transition-all group relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <Calendar className="w-12 h-12" />
-                </div>
-                <div className="bg-emerald-500/10 p-4 rounded-xl group-hover:bg-emerald-500/20 transition-all">
-                  <Calendar className="w-8 h-8 lg:w-10 lg:h-10 text-emerald-500" />
-                </div>
-                <span className="font-black text-xs lg:text-sm uppercase tracking-widest leading-none text-center">
-                  Sugerir Agenda<br/><span className="text-[9px] text-zinc-500 mt-1 block tracking-normal">PLANEJAMENTO</span>
-                </span>
-              </motion.button>
-
-              <motion.button 
-                whileTap={{ scale: 0.95 }}
-                onClick={() => processAction('combustivel')}
-                className="aspect-square bg-neutral-900 text-white rounded-2xl p-4 lg:p-6 flex flex-col items-center justify-center gap-4 shadow-xl border border-white/5 hover:border-orange-500/50 hover:bg-neutral-800 transition-all group relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <Fuel className="w-12 h-12" />
-                </div>
-                <div className="bg-orange-500/10 p-4 rounded-xl group-hover:bg-orange-500/20 transition-all">
-                  <Fuel className="w-8 h-8 lg:w-10 lg:h-10 text-orange-500" />
-                </div>
-                <span className="font-black text-xs lg:text-sm uppercase tracking-widest leading-none text-center">
-                  Combustível<br/><span className="text-[9px] text-zinc-500 mt-1 block tracking-normal">SUPORTE</span>
-                </span>
-              </motion.button>
-
-              <motion.button 
-                whileTap={{ scale: 0.95 }}
-                onClick={() => processAction('demanda')}
-                className="aspect-square bg-neutral-900 text-white rounded-2xl p-4 lg:p-6 flex flex-col items-center justify-center gap-4 shadow-xl border border-white/5 hover:border-purple-500/50 hover:bg-neutral-800 transition-all group relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <StickyNote className="w-12 h-12" />
-                </div>
-                <div className="bg-purple-500/10 p-4 rounded-xl group-hover:bg-purple-500/20 transition-all">
-                  <StickyNote className="w-8 h-8 lg:w-10 lg:h-10 text-purple-500" />
-                </div>
-                <span className="font-black text-xs lg:text-sm uppercase tracking-widest leading-none text-center">
-                  Ouvidoria<br/><span className="text-[9px] text-zinc-500 mt-1 block tracking-normal">DEMANDAS</span>
-                </span>
-              </motion.button>
-            </section>
-
-            {/* HISTÓRICO DE SOLICITAÇÕES */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {myRequests.length > 0 && (
-                <section className="bg-white border-2 border-zinc-200 rounded-[2rem] p-6 shadow-sm overflow-hidden flex flex-col h-full">
-                  <h3 className="text-zinc-500 font-black text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <RefreshCcw className="w-4 h-4" /> Minhas Solicitações
-                  </h3>
-                  <div className="space-y-3 flex-1">
-                    {myRequests.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5).map(req => (
-                      <div key={req.id} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${
-                            req.type === 'combustivel' ? 'bg-blue-100 text-blue-600' : 
-                            req.type === 'demanda' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
-                          }`}>
-                            {req.type === 'combustivel' ? <Fuel className="w-4 h-4" /> : <StickyNote className="w-4 h-4" />}
-                          </div>
-                          <div className="text-left">
-                            <p className="font-black text-zinc-800 text-[10px] uppercase leading-none mb-1">{req.title}</p>
-                            <p className="text-[9px] text-zinc-400 font-bold uppercase">{new Date(req.createdAt).toLocaleDateString()}</p>
-                            {req.observation && (
-                              <p className="text-[10px] text-blue-600 font-black mt-1 italic">OBS: "{req.observation}"</p>
-                            )}
-                          </div>
-                        </div>
-                        <span className={`text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-tighter ${
-                          req.status === 'aprovado' ? 'bg-green-100 text-green-700' : 
-                          req.status === 'negado' ? 'bg-red-100 text-red-700' : 'bg-zinc-200 text-zinc-500'
-                        }`}>
-                          {req.status}
+                <section className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
+                  {[
+                    { id: 'ponto', label: 'Assinar Ponto', sub: 'GEOLOCALIZAÇÃO', icon: <Camera className="w-8 h-8 lg:w-10 lg:h-10" />, color: 'yellow' },
+                    { id: 'eleitor', label: 'Cadastrar Eleitor', sub: 'EXPANSÃO DE BASE', icon: <UserPlus className="w-8 h-8 lg:w-10 lg:h-10" />, color: 'blue' },
+                    { id: 'agenda', label: 'Sugerir Agenda', sub: 'MISSÕES LOCAIS', icon: <Calendar className="w-8 h-8 lg:w-10 lg:h-10" />, color: 'emerald' },
+                    { id: 'combustivel', label: 'Suporte / Fuel', sub: 'RECURSOS', icon: <Fuel className="w-8 h-8 lg:w-10 lg:h-10" />, color: 'orange' },
+                    { id: 'demanda', label: 'Ouvidoria / Feed', sub: 'PROBLEMAS', icon: <StickyNote className="w-8 h-8 lg:w-10 lg:h-10" />, color: 'purple' }
+                  ].map(action => (
+                    <motion.button 
+                      key={action.id}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => processAction(action.id as any)}
+                      className={`aspect-square bg-zinc-900 text-white rounded-[2.5rem] p-6 lg:p-8 flex flex-col items-center justify-center gap-6 shadow-2xl border border-white/5 hover:bg-zinc-800 transition-all group relative overflow-hidden`}
+                    >
+                      <div className={`absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity`}>
+                        {action.icon}
+                      </div>
+                      <div className={`bg-${action.color}-500/10 p-5 rounded-2xl group-hover:bg-${action.color}-500/20 transition-all shadow-inner`}>
+                        <div className={`text-${action.color}-500`}>{action.icon}</div>
+                      </div>
+                      <div className="text-center">
+                        <span className="font-black text-sm lg:text-base uppercase tracking-widest leading-none block">
+                          {action.label}
+                        </span>
+                        <span className="text-[9px] font-black text-zinc-500 mt-2 block tracking-[0.2em] uppercase opacity-60">
+                          {action.sub}
                         </span>
                       </div>
-                    ))}
-                  </div>
+                    </motion.button>
+                  ))}
                 </section>
-              )}
 
-              {myAgendas.length > 0 && (
-                <section className="bg-white border-2 border-zinc-200 rounded-[2rem] p-6 shadow-sm overflow-hidden flex flex-col h-full">
-                  <h3 className="text-zinc-500 font-black text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <Calendar className="w-4 h-4" /> Minha Agenda Sugerida
-                  </h3>
-                  <div className="space-y-3 flex-1">
-                    {myAgendas.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5).map(agenda => (
-                      <div key={agenda.id} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${
-                            agenda.status === 'confirmado' ? 'bg-green-100 text-green-600' : 
-                            agenda.status === 'negado' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'
-                          }`}>
-                            <Calendar className="w-4 h-4" />
-                          </div>
-                          <div className="text-left">
-                            <p className="font-black text-zinc-800 text-[10px] uppercase leading-none mb-1">{agenda.municipio}</p>
-                            <p className="text-[9px] text-zinc-400 font-bold uppercase">{new Date(agenda.data).toLocaleDateString()} • {agenda.hora_inicio}</p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <span className={`text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-tighter ${
-                            agenda.status === 'confirmado' ? 'bg-green-100 text-green-700' : 
-                            agenda.status === 'negado' ? 'bg-red-100 text-red-700' : 'bg-zinc-200 text-zinc-500'
-                          }`}>
-                            {agenda.status === 'confirmado' ? 'Aprovada' : agenda.status === 'negado' ? 'Negada' : 'Pendente'}
-                          </span>
-                          {agenda.status === 'pendente' && (
-                            <button 
-                              onClick={async () => {
-                                if(window.confirm("Cancelar esta sugestão?")) {
-                                  await firestoreService.deleteDocument('agenda', agenda.id);
-                                }
-                              }}
-                              className="text-[8px] font-bold text-red-400 uppercase hover:text-red-600"
-                            >
-                              Cancelar
-                            </button>
-                          )}
-                        </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-12">
+                  {myRequests.length > 0 && (
+                    <section className="bg-white border-2 border-zinc-100 rounded-[2.5rem] p-10 shadow-sm overflow-hidden flex flex-col h-full group">
+                      <div className="flex justify-between items-center mb-8">
+                        <h3 className="text-zinc-950 font-black text-lg uppercase tracking-tighter flex items-center gap-3 italic">
+                          <div className="bg-zinc-100 p-2 rounded-xl group-hover:bg-zinc-950 group-hover:text-white transition-all"><RefreshCcw className="w-5 h-5 text-zinc-400 group-hover:text-yellow-500" /></div>
+                          Fluxo de Suporte
+                        </h3>
+                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Últimas 5</span>
                       </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-            </div>
+                      <div className="space-y-4 flex-1">
+                        {myRequests.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5).map(req => (
+                          <motion.div 
+                            key={req.id} 
+                            initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                            className="p-5 bg-zinc-50 rounded-3xl border border-zinc-100 flex items-center justify-between gap-6 hover:bg-zinc-100 transition-all group/item"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className={`p-4 rounded-2xl shadow-sm ${
+                                req.type === 'combustivel' ? 'bg-blue-100 text-blue-600' : 
+                                req.type === 'demanda' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
+                              }`}>
+                                {req.type === 'combustivel' ? <Fuel className="w-5 h-5" /> : <StickyNote className="w-5 h-5" />}
+                              </div>
+                              <div className="text-left">
+                                <p className="font-black text-zinc-950 text-xs uppercase leading-none mb-2 tracking-tight group-hover/item:text-blue-600 transition-colors">{req.title}</p>
+                                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">{new Date(req.createdAt).toLocaleDateString()} • {new Date(req.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                              </div>
+                            </div>
+                            <span className={`text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-sm ${
+                              req.status === 'aprovado' ? 'bg-green-100 text-green-700' : 
+                              req.status === 'negado' ? 'bg-red-100 text-red-700' : 'bg-white text-zinc-400 border border-zinc-200'
+                            }`}>
+                              {req.status}
+                            </span>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
 
-            {/* FILA DE SINCRONIZAÇÃO E MOTIVAÇÃO - SIDE BY SIDE ON DESKTOP */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-              <section className="bg-white border-2 border-dashed border-zinc-300 rounded-3xl p-6 lg:p-8 text-center flex flex-col items-center justify-center">
-                <div className="bg-zinc-100 p-4 rounded-full relative mb-3">
-                  <RefreshCcw className={`w-8 h-8 text-zinc-400 ${queueCount > 0 ? 'animate-spin-slow' : ''}`} />
-                  {queueCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-zinc-950 text-white text-xs font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-md">
-                      {queueCount}
-                    </span>
+                  {myAgendas.length > 0 && (
+                    <section className="bg-white border-2 border-zinc-100 rounded-[2.5rem] p-10 shadow-sm overflow-hidden flex flex-col h-full group">
+                      <div className="flex justify-between items-center mb-8">
+                        <h3 className="text-zinc-950 font-black text-lg uppercase tracking-tighter flex items-center gap-3 italic">
+                          <div className="bg-zinc-100 p-2 rounded-xl group-hover:bg-zinc-950 group-hover:text-white transition-all"><Calendar className="w-5 h-5 text-zinc-400 group-hover:text-emerald-500" /></div>
+                          Monitor de Agenda
+                        </h3>
+                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Ativas</span>
+                      </div>
+                      <div className="space-y-4 flex-1">
+                        {myAgendas.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5).map(agenda => (
+                          <motion.div 
+                            key={agenda.id} 
+                            initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                            className="p-5 bg-zinc-50 rounded-3xl border border-zinc-100 flex items-center justify-between gap-6 hover:bg-zinc-100 transition-all group/item"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className={`p-4 rounded-2xl shadow-sm ${
+                                agenda.status === 'confirmado' ? 'bg-green-100 text-green-600' : 
+                                agenda.status === 'negado' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'
+                              }`}>
+                                <Calendar className="w-5 h-5" />
+                              </div>
+                              <div className="text-left">
+                                <p className="font-black text-zinc-950 text-xs uppercase leading-none mb-2 tracking-tight">{agenda.municipio}</p>
+                                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">{new Date(agenda.data).toLocaleDateString()} • {agenda.hora_inicio}</p>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                              <span className={`text-[9px] font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-sm ${
+                                agenda.status === 'confirmado' ? 'bg-green-100 text-green-700' : 
+                                agenda.status === 'negado' ? 'bg-red-100 text-red-700' : 'bg-white text-orange-600 border border-orange-100'
+                              }`}>
+                                {agenda.status === 'confirmado' ? 'APROVADA' : agenda.status === 'negado' ? 'NEGADA' : 'PENDENTE'}
+                              </span>
+                              {agenda.status === 'pendente' && (
+                                <button 
+                                  onClick={async () => {
+                                    if(window.confirm("Abortar sugestão estratégica?")) {
+                                      await firestoreService.deleteDocument('agenda', agenda.id);
+                                    }
+                                  }}
+                                  className="text-[9px] font-black text-red-500 hover:text-red-700 uppercase tracking-widest underline transition-colors"
+                                >
+                                  Cancelar
+                                </button>
+                              )}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </section>
                   )}
                 </div>
-                <h3 className="text-zinc-700 font-black text-base lg:text-lg tracking-tight">{queueCount} Registros na Fila</h3>
-                <p className="text-zinc-400 text-[10px] font-bold mt-1 uppercase">
-                  {isOnline ? 'Pronto para sincronizar com o comitê central' : 'Guardando dados localmente (sem sinal)'}
-                </p>
-                {isOnline && queueCount > 0 && (
-                  <button 
-                    onClick={syncOfflineQueue}
-                    className="mt-6 text-xs font-black bg-zinc-950 text-white px-8 py-3 rounded-full uppercase shadow-lg active:scale-95 transition-transform"
-                  >
-                    Sincronizar Agora
-                  </button>
-                )}
-              </section>
 
-              <div className="bg-blue-600 p-8 lg:p-10 rounded-3xl flex flex-col justify-center relative overflow-hidden shadow-2xl">
-                <ShieldCheck className="absolute -right-4 -bottom-4 w-32 h-32 text-blue-500 opacity-20 rotate-12" />
-                <p className="text-blue-100 font-black text-lg lg:text-xl uppercase italic leading-tight text-left relative z-10">
-                  "A semente da vitória é plantada no bairro. Valorize cada aperto de mão."
-                </p>
-                <div className="mt-4 flex items-center gap-2 relative z-10">
-                   <div className="w-10 h-1 bg-white rounded-full"></div>
-                   <span className="text-white text-[10px] font-black uppercase tracking-widest">Estratégia Águia</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <section className="bg-zinc-950 text-white rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden group border border-white/5">
+                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent"></div>
+                    <div className="bg-zinc-900/50 p-4 rounded-full relative mb-6 w-max mx-auto shadow-inner border border-white/5">
+                      <RefreshCcw className={`w-10 h-10 text-yellow-500 ${queueCount > 0 ? 'animate-spin-slow' : ''}`} />
+                      {queueCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-yellow-500 text-zinc-950 text-xs font-black w-8 h-8 flex items-center justify-center rounded-full border-4 border-zinc-950 shadow-2xl">
+                          {queueCount}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-center relative z-10">
+                      <h3 className="text-white font-black text-2xl tracking-tighter uppercase italic">{queueCount} Pacotes Offline</h3>
+                      <p className="text-zinc-500 text-[10px] font-black mt-3 uppercase tracking-[0.3em]">
+                        {isOnline ? 'Conexão estável com o terminal central' : 'Armazenamento local criptografado (sem rede)'}
+                      </p>
+                      {isOnline && queueCount > 0 && (
+                        <button 
+                          onClick={syncOfflineQueue}
+                          className="mt-10 w-full bg-yellow-500 text-zinc-950 py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-xl hover:bg-white transition-all active:scale-95"
+                        >
+                          Sincronizar Terminal
+                        </button>
+                      )}
+                    </div>
+                  </section>
+
+                  <div className="bg-blue-600 p-10 rounded-[2.5rem] flex flex-col justify-center relative overflow-hidden shadow-2xl group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-transparent opacity-20"></div>
+                    <ShieldCheck className="absolute -right-8 -bottom-8 w-48 h-48 text-white/10 rotate-12 group-hover:rotate-6 transition-all duration-500" />
+                    <p className="text-white font-black text-2xl lg:text-3xl uppercase italic leading-tight text-left relative z-10 tracking-tighter">
+                      "A vitória é o resultado do trabalho silencioso em cada bairro."
+                    </p>
+                    <div className="mt-8 flex items-center gap-4 relative z-10">
+                       <div className="w-16 h-1 bg-white/30 rounded-full overflow-hidden">
+                          <motion.div initial={{ x: -100 }} animate={{ x: 0 }} transition={{ duration: 2, repeat: Infinity }} className="w-full h-full bg-white"></motion.div>
+                       </div>
+                       <span className="text-blue-100 text-[10px] font-black uppercase tracking-[0.3em] opacity-80">Comando Estratégico Águia</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </>
-        ) : activeTab === 'equipe' ? (
+              </motion.div>
+            ) : activeTab === 'equipe' ? (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <div className="bg-white p-8 rounded-[2.5rem] border-2 border-zinc-200 shadow-xl text-center">
               <Users className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -2735,7 +3201,7 @@ function CaboDashboard() {
               </section>
             </div>
           </motion.div>
-        ) : (
+        ) : activeTab === 'ouvidoria' ? (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <div className="bg-white p-8 rounded-[2.5rem] border-2 border-zinc-200 shadow-xl text-center">
               <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -2751,8 +3217,39 @@ function CaboDashboard() {
               </button>
             </div>
           </motion.div>
+        ) : (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+            <div className="bg-white p-8 rounded-[2.5rem] border-2 border-zinc-200 shadow-xl">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
+                <div className="text-left text-zinc-950">
+                  <h2 className="text-2xl font-black uppercase tracking-tighter italic">Notas Estratégicas</h2>
+                  <p className="text-zinc-500 font-medium text-sm">Registre impressões, nomes e lembretes rápidos via áudio.</p>
+                </div>
+                <button 
+                  onClick={startVoiceNote}
+                  className="flex items-center gap-3 bg-zinc-950 text-white px-8 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all shadow-xl active:scale-95 group"
+                >
+                  <Mic className="w-5 h-5 text-yellow-500 group-hover:text-zinc-950" />
+                  Gravar Nova Nota
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {notes.length > 0 ? notes.map((note) => (
+                  <NoteCard key={note.id} note={note} user={user} isAdmin={false} onDelete={() => handleDeleteNote(note.id)} />
+                )) : (
+                  <div className="col-span-full p-20 border-2 border-dashed border-zinc-200 rounded-[2.5rem] text-center">
+                    <Mic className="w-12 h-12 text-zinc-200 mx-auto mb-4" />
+                    <p className="font-black text-zinc-300 uppercase tracking-[0.2em] text-xs">Seu diário estratégico está vazio.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
         )}
-      </main>
+          </div>
+        </main>
+      </div>
 
       <AnimatePresence>
         {isProfileModalOpen && (
@@ -2947,7 +3444,7 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
             >
               <button 
                 onClick={() => {
@@ -2956,34 +3453,34 @@ function CaboDashboard() {
                    setEditingVoterId(null);
                    setVoterForm({ name: '', phone: '', address: '', observations: '' });
                 }} 
-                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 transition-all"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
-                <X className="w-6 h-6" />
+                <X className="w-4 h-4" />
               </button>
-              <div className="bg-zinc-950 p-8 border-b-4 border-yellow-500 text-left">
-                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">
-                  {isEditingVoter ? 'Editar Cadastro' : 'Novo Cadastro'}
+              <div className="bg-zinc-950 p-6">
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">
+                  {isEditingVoter ? 'Editar Registro' : 'Novo Alistamento'}
                 </h2>
-                <p className="text-zinc-400 text-xs font-bold mt-2 uppercase tracking-widest">Base de dados estratégica</p>
+                <p className="text-zinc-400 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Inteligência Territorial e Base de Dados</p>
               </div>
-              <form onSubmit={handleVoterSubmit} className="p-8 space-y-4 text-left">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
-                  <input required type="text" value={voterForm.name} onChange={e => setVoterForm({...voterForm, name: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="Digite o nome..." />
+              <form onSubmit={handleVoterSubmit} className="p-6 space-y-4 text-left">
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo do Cidadão</label>
+                  <input required type="text" value={voterForm.name} onChange={e => setVoterForm({...voterForm, name: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Digite identificação oficial..." />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Telefone / WhatsApp</label>
-                  <input type="text" value={voterForm.phone} onChange={e => setVoterForm({...voterForm, phone: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="(00) 00000-0000" />
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">WhatsApp / Terminal Celular</label>
+                  <input type="text" value={voterForm.phone} onChange={e => setVoterForm({...voterForm, phone: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="(00) 00000-0000" />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Endereço / Referência</label>
-                  <input type="text" value={voterForm.address} onChange={e => setVoterForm({...voterForm, address: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="Rua, Número, Bairro..." />
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Localização Operacional</label>
+                  <input type="text" value={voterForm.address} onChange={e => setVoterForm({...voterForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Rua, Bairro ou Referência..." />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Observações Privadas</label>
-                  <textarea value={voterForm.observations} onChange={e => setVoterForm({...voterForm, observations: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold h-24" placeholder="Detalhes importantes sobre este contato..." />
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Observações Técnicas de Campo</label>
+                  <textarea value={voterForm.observations} onChange={e => setVoterForm({...voterForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Histórico de engajamento ou demandas específicas..." />
                 </div>
-                <button type="submit" className="w-full bg-zinc-950 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-zinc-200 border-b-4 border-zinc-800 active:border-b-0 active:translate-y-1 transition-all mt-4">CONFIRMAR CADASTRO</button>
+                <button type="submit" className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-zinc-950/10 hover:bg-zinc-900 transition-all active:scale-[0.98] mt-2 italic">EFETIVAR REGISTRO TÁTICO</button>
               </form>
             </motion.div>
           </motion.div>
@@ -2999,23 +3496,28 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
             >
-              <button onClick={() => setIsFuelModalOpen(false)} className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500"><X className="w-6 h-6" /></button>
-              <div className="bg-blue-600 p-8 border-b-4 border-blue-800 text-left">
-                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">Vale Combustível</h2>
-                <p className="text-blue-200 text-xs font-bold mt-2 uppercase tracking-widest">Requisição oficial de suporte</p>
+              <button 
+                onClick={() => setIsFuelModalOpen(false)} 
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <div className="bg-blue-600 p-6">
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">Logística de Suporte</h2>
+                <p className="text-blue-200 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Requisição Oficial de Combustível</p>
               </div>
-              <form onSubmit={handleFuelSubmit} className="p-8 space-y-4 text-left">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Quantidade Solicitada (Litros)</label>
-                  <input required type="number" value={fuelForm.amount} onChange={e => setFuelForm({...fuelForm, amount: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-2xl" placeholder="0" />
+              <form onSubmit={handleFuelSubmit} className="p-6 space-y-4 text-left">
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Volume Necessário (Operação em Litros)</label>
+                  <input required type="number" value={fuelForm.amount} onChange={e => setFuelForm({...fuelForm, amount: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-2xl text-zinc-900 outline-none focus:border-blue-500 transition-all placeholder:text-zinc-300" placeholder="0" />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Motivo / Roteiro planejado</label>
-                  <textarea required value={fuelForm.reason} onChange={e => setFuelForm({...fuelForm, reason: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold h-32" placeholder="Ex: Atendimento na comunidade rural X..." />
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Roteiro Planejado e Justificativa</label>
+                  <textarea required value={fuelForm.reason} onChange={e => setFuelForm({...fuelForm, reason: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-blue-500 transition-all h-32 resize-none placeholder:text-zinc-300" placeholder="Descreva o trajeto e comunidades atendidas..." />
                 </div>
-                <button type="submit" className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-blue-100 border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all mt-4">ENVIAR SOLICITAÇÃO</button>
+                <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-[0.98] mt-2 italic">ENVIAR REQUISIÇÃO</button>
               </form>
             </motion.div>
           </motion.div>
@@ -3031,23 +3533,28 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
             >
-              <button onClick={() => setIsDemandModalOpen(false)} className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500"><X className="w-6 h-6" /></button>
-              <div className="bg-yellow-500 p-8 border-b-4 border-yellow-700 text-left">
-                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">Registrar Demanda</h2>
-                <p className="text-yellow-100 text-xs font-bold mt-2 uppercase tracking-widest">Demanda comunitária / social</p>
+              <button 
+                onClick={() => setIsDemandModalOpen(false)} 
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <div className="bg-yellow-500 p-6">
+                <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none italic">Demanda Territorial</h2>
+                <p className="text-zinc-900 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Monitoramento de Necessidades Sociais</p>
               </div>
-              <form onSubmit={handleDemandSubmit} className="p-8 space-y-4 text-left">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Título da Demanda</label>
-                  <input required type="text" value={demandForm.title} onChange={e => setDemandForm({...demandForm, title: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="Ex: Problema na Iluminação Pública" />
+              <form onSubmit={handleDemandSubmit} className="p-6 space-y-4 text-left">
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Natureza da Demanda</label>
+                  <input required type="text" value={demandForm.title} onChange={e => setDemandForm({...demandForm, title: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-600 transition-all placeholder:text-zinc-300" placeholder="Ex: Saneamento, Saúde, Infraestrutura..." />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Descrição Detalhada</label>
-                  <textarea required value={demandForm.description} onChange={e => setDemandForm({...demandForm, description: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold h-40" placeholder="Descreva o que os eleitores estão solicitando..." />
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Briefing Detalhado</label>
+                  <textarea required value={demandForm.description} onChange={e => setDemandForm({...demandForm, description: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-600 transition-all h-32 resize-none placeholder:text-zinc-300" placeholder="Descreva a urgência e o impacto na comunidade..." />
                 </div>
-                <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-5 rounded-2xl font-black text-lg shadow-xl shadow-yellow-100 border-b-4 border-yellow-700 active:border-b-0 active:translate-y-1 transition-all mt-4">ENVIAR DEMANDA AO COORDENADOR</button>
+                <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-yellow-500/10 hover:bg-yellow-600 transition-all active:scale-[0.98] mt-2 italic">ENVIAR PARA COORDENAÇÃO</button>
               </form>
             </motion.div>
           </motion.div>
@@ -3063,53 +3570,53 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
-              className="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl relative p-12 text-zinc-950"
+              className="bg-white w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl relative p-8 md:p-12 text-zinc-950 border border-zinc-200"
             >
               <button 
                 onClick={() => setIsExpenseVoucherModalOpen(false)}
-                className="absolute top-8 right-8 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 print:hidden"
+                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95 print:hidden"
               >
-                <X className="w-6 h-6" />
+                <X className="w-4 h-4" />
               </button>
 
-              <div className="border-4 border-red-100 p-8 rounded-[2rem] space-y-8 relative">
+              <div className="border border-zinc-200 p-6 md:p-8 rounded-xl space-y-6 md:space-y-8 relative">
                 <div className="flex justify-between items-start">
                    <div className="flex items-center gap-3">
-                      <div className="bg-red-600 p-2 rounded-lg"><DollarSign className="text-white w-6 h-6" /></div>
+                      <div className="bg-red-600 p-2 rounded-lg"><DollarSign className="text-white w-5 h-5 md:w-6 md:h-6" /></div>
                       <div>
-                        <h3 className="font-black text-xl leading-none">VOUCHER DE DESPESA</h3>
-                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comprovante de Saída de Recurso</p>
+                        <h3 className="font-black text-lg md:text-xl leading-none italic uppercase tracking-tighter">VOUCHER DE GASTO</h3>
+                        <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comprovante de Saída Operacional</p>
                       </div>
                    </div>
                    <div className="text-right">
-                      <p className="text-[10px] font-black text-zinc-400 uppercase">Token</p>
-                      <p className="font-mono text-sm font-bold uppercase">{selectedExpenseForVoucher.id.split('_').pop()}</p>
+                      <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">ID Operação</p>
+                      <p className="font-mono text-xs font-black uppercase text-zinc-950">{selectedExpenseForVoucher.id.split('_').pop()}</p>
                    </div>
                 </div>
 
-                <div className="space-y-6">
-                   <div className="bg-zinc-50 p-6 rounded-2xl border-2 border-zinc-100">
-                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Detalhes do Gasto</p>
-                      <div className="flex justify-between items-end">
+                <div className="space-y-4 md:space-y-6">
+                   <div className="bg-zinc-50 p-6 rounded-xl border border-zinc-100">
+                      <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">Discriminação</p>
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                          <div>
-                            <p className="text-2xl font-black">{selectedExpenseForVoucher.description}</p>
-                            <p className="text-xs font-bold text-zinc-500 italic mt-1">Finalidade: {selectedExpenseForVoucher.purpose}</p>
-                            <p className="text-[10px] font-black text-zinc-400 uppercase mt-4">Data/Hora: {new Date(selectedExpenseForVoucher.date).toLocaleString('pt-BR')}</p>
+                            <p className="text-xl font-black text-zinc-950 leading-tight uppercase italic">{selectedExpenseForVoucher.description}</p>
+                            <p className="text-[10px] font-bold text-zinc-500 italic mt-1">Finalidade: {selectedExpenseForVoucher.purpose}</p>
+                            <p className="text-[8px] font-black text-zinc-400 uppercase mt-4 tracking-widest">Data/Hora: {new Date(selectedExpenseForVoucher.date).toLocaleString('pt-BR')}</p>
                          </div>
-                         <div className="text-right">
-                            <p className="text-3xl font-black text-red-600">R$ {selectedExpenseForVoucher.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                         <div className="text-left md:text-right w-full md:w-auto">
+                            <p className="text-2xl md:text-3xl font-black text-red-600 tracking-tighter">R$ {selectedExpenseForVoucher.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                          </div>
                       </div>
                    </div>
 
-                   <div className="bg-zinc-50 p-6 rounded-2xl border-2 border-zinc-100">
-                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Equipe Responsável</p>
-                      <p className="text-lg font-black">{selectedExpenseForVoucher.team}</p>
-                      <p className="text-xs font-bold text-zinc-500">Líder: {profileData.name}</p>
+                   <div className="bg-zinc-50 p-6 rounded-xl border border-zinc-100">
+                      <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">Unidade Responsável</p>
+                      <p className="text-base font-black text-zinc-950 uppercase italic tracking-tight">{selectedExpenseForVoucher.team}</p>
+                      <p className="text-[10px] font-bold text-zinc-500 mt-0.5">Líder: {profileData.name}</p>
                    </div>
 
-                   <p className="text-[10px] font-medium leading-relaxed text-zinc-400 text-center uppercase tracking-widest pt-8">
-                      Documento gerado eletronicamente através do Sistema Águia
+                   <p className="text-[8px] font-black leading-relaxed text-zinc-400 text-center uppercase tracking-[0.2em] pt-4">
+                      Protocolo Digital Gerado via Rede Águia
                    </p>
                 </div>
               </div>
@@ -3117,9 +3624,9 @@ function CaboDashboard() {
               <div className="mt-8 flex justify-end gap-3 print:hidden">
                  <button 
                    onClick={() => window.print()}
-                   className="flex items-center gap-2 bg-zinc-950 text-white px-8 py-4 rounded-2xl font-black text-sm uppercase hover:bg-zinc-800 transition-all shadow-xl shadow-zinc-200"
+                   className="flex items-center gap-2 bg-zinc-950 text-white px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-900 transition-all shadow-xl shadow-zinc-200 italic"
                  >
-                   <Printer className="w-5 h-5" /> Imprimir / Salvar PDF
+                   <Printer className="w-4 h-4" /> Gerar Documento (PDF)
                  </button>
               </div>
             </motion.div>
@@ -3136,73 +3643,73 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
-              className="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl relative p-12 text-zinc-950"
+              className="bg-white w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl relative p-8 md:p-12 text-zinc-950 border border-zinc-200"
             >
               <button 
                 onClick={() => setIsSignReceiptModalOpen(false)}
-                className="absolute top-8 right-8 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 print:hidden"
+                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95 print:hidden"
               >
-                <X className="w-6 h-6" />
+                <X className="w-4 h-4" />
               </button>
 
-              <div className="border-4 border-zinc-200 p-8 rounded-[2rem] space-y-8 relative">
+              <div className="border border-zinc-200 p-6 md:p-8 rounded-xl space-y-6 md:space-y-8 relative">
                 <div className="flex justify-between items-start">
                    <div className="flex items-center gap-3">
-                      <div className="bg-zinc-950 p-2 rounded-lg"><ShieldCheck className="text-yellow-500 w-6 h-6" /></div>
+                      <div className="bg-zinc-950 p-2 rounded-lg"><ShieldCheck className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" /></div>
                       <div>
-                        <h3 className="font-black text-xl leading-none">SISTEMA ÁGUIA</h3>
-                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comprovante de Transferência Digital</p>
+                        <h3 className="font-black text-lg md:text-xl leading-none italic uppercase tracking-tighter">PROTOCOLO ÁGUIA</h3>
+                        <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comprovante de Transferência Digital</p>
                       </div>
                    </div>
                    <div className="text-right">
-                      <p className="text-[10px] font-black text-zinc-400 uppercase">Nº Documento</p>
-                      <p className="font-mono text-sm font-bold">{selectedTxToSign.id.split('_').pop()?.toUpperCase()}</p>
+                      <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Nº Doc</p>
+                      <p className="font-mono text-xs font-black text-zinc-950">{selectedTxToSign.id.split('_').pop()?.toUpperCase()}</p>
                    </div>
                 </div>
 
                 <div className="space-y-6">
-                   <div className="bg-zinc-50 p-6 rounded-2xl border-2 border-zinc-100">
-                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Beneficiário e Valor</p>
-                      <div className="flex justify-between items-end">
+                   <div className="bg-zinc-50 p-6 rounded-xl border border-zinc-100">
+                      <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">Beneficiário e Valor</p>
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                          <div>
-                            <p className="text-2xl font-black">{selectedTxToSign.team}</p>
-                            <p className="text-xs font-bold text-zinc-500 italic mt-1">Finalidade: {selectedTxToSign.purpose || 'Uso Operacional'}</p>
+                            <p className="text-xl font-black text-zinc-950 leading-tight uppercase italic">{selectedTxToSign.team}</p>
+                            <p className="text-[10px] font-bold text-zinc-500 italic mt-1">Finalidade: {selectedTxToSign.purpose || 'Uso Operacional'}</p>
                          </div>
-                         <div className="text-right">
-                            <p className="text-3xl font-black text-zinc-950">R$ {selectedTxToSign.amount.toLocaleString()}</p>
+                         <div className="text-left md:text-right w-full md:w-auto">
+                            <p className="text-2xl md:text-3xl font-black text-zinc-950 tracking-tighter italic">R$ {selectedTxToSign.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                          </div>
                       </div>
                    </div>
 
-                   <p className="text-sm font-medium leading-relaxed text-zinc-600 text-justify">
-                      Eu, líder da equipe regional <strong>{selectedTxToSign.team}</strong>, declaro para os devidos fins que recebi nesta data ({new Date(selectedTxToSign.date).toLocaleDateString('pt-BR')}) a importância acima discriminada, comprometendo-me a realizar a prestação de contas conforme as diretrizes do Sistema Águia.
+                   <p className="text-[11px] font-medium leading-relaxed text-zinc-600 text-justify bg-zinc-50/50 p-4 rounded-xl border border-zinc-100">
+                      Eu, líder da equipe regional <strong className="text-zinc-950 font-black">{selectedTxToSign.team}</strong>, declaro ter recebido em {new Date(selectedTxToSign.date).toLocaleDateString('pt-BR')} a importância acima, comprometendo-me com as diretrizes táticas do sistema.
                    </p>
 
-                   <div className="pt-12 grid grid-cols-2 gap-12">
-                      <div className="text-center border-t-2 border-zinc-200 pt-4">
-                         <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Origem / Coordenação</p>
-                         <p className="font-bold text-sm tracking-tighter">Assinado Eletronicamente</p>
+                   <div className="pt-8 grid grid-cols-2 gap-8">
+                      <div className="text-center border-t border-zinc-200 pt-4">
+                         <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest mb-1">Origem Operacional</p>
+                         <p className="font-black text-[9px] uppercase tracking-tighter text-zinc-950">Validado Eletronicamente</p>
                       </div>
-                      <div className="text-center border-t-2 border-zinc-200 pt-4">
-                         <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Destinatário / Líder</p>
-                         <p className="text-zinc-300 font-bold text-sm italic tracking-tighter">Assinatura Pendente</p>
+                      <div className="text-center border-t border-zinc-200 pt-4">
+                         <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest mb-1">Receptor / Líder</p>
+                         <p className="text-zinc-400 font-bold text-[9px] italic uppercase">Assinatura Pendente</p>
                       </div>
                    </div>
                 </div>
               </div>
 
-              <div className="mt-8 flex justify-end gap-3 print:hidden">
+              <div className="mt-8 flex flex-col md:flex-row justify-end gap-3 print:hidden">
                  <button 
                    onClick={() => window.print()}
-                   className="flex items-center gap-2 bg-zinc-100 text-zinc-600 px-6 py-3 rounded-xl font-black text-xs uppercase hover:bg-zinc-200 transition-all"
+                   className="flex items-center justify-center gap-2 bg-zinc-100 text-zinc-600 px-6 py-4 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-zinc-200 transition-all font-sans"
                  >
                    <Printer className="w-4 h-4" /> Imprimir Recibo
                  </button>
                  <button 
                    onClick={() => handleSignReceipt(selectedTxToSign)}
-                   className="bg-green-600 text-white px-8 py-3 rounded-xl font-black text-xs uppercase hover:bg-green-500 transition-all shadow-xl shadow-green-100"
+                   className="bg-green-600 text-white px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-green-700 transition-all shadow-xl shadow-green-100 italic"
                  >
-                   Confirmar Recebimento e Assinar
+                   Confirmar e Assinar
                  </button>
               </div>
             </motion.div>
@@ -3219,27 +3726,32 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
             >
-              <button onClick={() => setIsExpenseModalOpen(false)} className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500"><X className="w-6 h-6" /></button>
-              <div className="bg-red-600 p-8 border-b-4 border-red-800 text-left">
-                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">Registrar Gasto</h2>
-                <p className="text-red-100 text-xs font-bold mt-2 uppercase tracking-widest">Controle de Saídas da Equipe</p>
+              <button 
+                onClick={() => setIsExpenseModalOpen(false)} 
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <div className="bg-red-600 p-6">
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">Controle de Saídas</h2>
+                <p className="text-red-100 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Registro de Despesa da Equipe</p>
               </div>
-              <form onSubmit={handleExpenseSubmit} className="p-8 space-y-4 text-left">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Descrição</label>
-                  <input required type="text" value={expenseForm.description} onChange={e => setExpenseForm({...expenseForm, description: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="O que foi pago?" />
+              <form onSubmit={handleExpenseSubmit} className="p-6 space-y-4 text-left">
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Descrição do Gasto</label>
+                  <input required type="text" value={expenseForm.description} onChange={e => setExpenseForm({...expenseForm, description: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" placeholder="Ex: Alimentação Equipe Campo..." />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Finalidade / Categoria</label>
-                  <input required type="text" value={expenseForm.purpose} onChange={e => setExpenseForm({...expenseForm, purpose: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" placeholder="Ex: Alimentação, Combustível Extra..." />
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Finalidade / Categoria Operacional</label>
+                  <input required type="text" value={expenseForm.purpose} onChange={e => setExpenseForm({...expenseForm, purpose: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" placeholder="Ex: Logística, Emergência, Apoio..." />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Valor (R$)</label>
-                  <input required type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-2xl" placeholder="0,00" />
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Montante (Valores em R$)</label>
+                  <input required type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-2xl text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" placeholder="0,00" />
                 </div>
-                <button type="submit" className="w-full bg-red-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-red-100 border-b-4 border-red-800 active:border-b-0 active:translate-y-1 transition-all mt-4">CONFIRMAR GASTO</button>
+                <button type="submit" className="w-full bg-red-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-red-500/10 hover:bg-red-700 transition-all active:scale-[0.98] mt-2 italic">EFETIVAR SAÍDA</button>
               </form>
             </motion.div>
           </motion.div>
@@ -3255,80 +3767,151 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
             >
-              <button onClick={() => setIsAgendaModalOpen(false)} className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500"><X className="w-6 h-6" /></button>
-              <div className="bg-orange-500 p-8 border-b-4 border-orange-700 text-left">
-                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">Sugerir Agenda</h2>
-                <p className="text-orange-100 text-xs font-bold mt-2 uppercase tracking-widest">Roteirizador Amazônico</p>
+              <button 
+                onClick={() => setIsAgendaModalOpen(false)} 
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <div className="bg-orange-500 p-6">
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">Logística Proativa</h2>
+                <p className="text-orange-100 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Proposta de Itinerário Estratégico</p>
               </div>
-              <form onSubmit={handleAgendaSubmit} className="p-8 space-y-4 text-left">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Município / Local</label>
+              <form onSubmit={handleAgendaSubmit} className="p-6 space-y-4 text-left">
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Local Operacional (Município)</label>
                   <select 
                     required 
                     value={agendaForm.municipio} 
                     onChange={e => setAgendaForm({...agendaForm, municipio: e.target.value})}
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold"
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all"
                   >
-                    <option value="">Selecione o Município</option>
+                    <option value="" className="font-black">Selecione localidade...</option>
                     {["Boa Vista", "Pacaraima", "Rorainópolis", "Uiramutã", "Cantá", "Alto Alegre", "Mucajaí", "Amajari", "Bonfim", "Normandia", "Caracaraí", "Iracema", "Bonfim", "São João da Baliza", "São Luiz", "Caroebe"].map(m => (
-                      <option key={m} value={m}>{m}</option>
+                      <option key={m} value={m} className="font-bold">{m}</option>
                     ))}
                   </select>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Data do Compromisso</label>
-                  <input required type="date" value={agendaForm.data} onChange={e => setAgendaForm({...agendaForm, data: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" />
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Data da Missão Sugerida</label>
+                  <input required type="date" value={agendaForm.data} onChange={e => setAgendaForm({...agendaForm, data: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Hora Início</label>
-                    <input required type="time" value={agendaForm.hora_inicio} onChange={e => setAgendaForm({...agendaForm, hora_inicio: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" />
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Horário Início</label>
+                    <input required type="time" value={agendaForm.hora_inicio} onChange={e => setAgendaForm({...agendaForm, hora_inicio: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all" />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Hora Fim</label>
-                    <input required type="time" value={agendaForm.hora_fim} onChange={e => setAgendaForm({...agendaForm, hora_fim: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold" />
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Horário Fim</label>
+                    <input required type="time" value={agendaForm.hora_fim} onChange={e => setAgendaForm({...agendaForm, hora_fim: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all" />
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Motivo / Objetivo</label>
-                  <textarea required value={agendaForm.motivo} onChange={e => setAgendaForm({...agendaForm, motivo: e.target.value})} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold h-24" placeholder="Ex: Reunião com Tuxauas da região..." />
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block leading-none">Justificativa e Objetivos Táticos</label>
+                  <textarea required value={agendaForm.motivo} onChange={e => setAgendaForm({...agendaForm, motivo: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-orange-500 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Descreva os objetivos da diligência..." />
                 </div>
-                <button type="submit" className="w-full bg-orange-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-orange-100 border-b-4 border-orange-700 active:border-b-0 active:translate-y-1 transition-all mt-4">ENVIAR SUGESTÃO</button>
+                <button type="submit" className="w-full bg-orange-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-orange-500/10 hover:bg-orange-700 transition-all active:scale-[0.98] mt-2 italic">ENVIAR PROPOSTA</button>
               </form>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* FOOTER NAVEGAÇÃO - RESPONSIVO (Larger buttons on tablet/PC) */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-neutral-950/80 backdrop-blur-xl border-t border-white/5 z-50 pb-safe">
-        <div className="max-w-5xl mx-auto flex justify-around items-center p-3">
-          {[
-            { id: 'equipe', label: 'Membros', icon: <Users className="w-5 h-5 md:w-6 md:h-6" /> },
-            { id: 'logistica', label: 'Logística', icon: <MapPin className="w-5 h-5 md:w-6 md:h-6" /> },
-            { id: 'ouvidoria', label: 'Feed', icon: <History className="w-5 h-5 md:w-6 md:h-6" /> },
-            { id: 'financeiro', label: 'Finance', icon: <Wallet className="w-5 h-5 md:w-6 md:h-6" /> }
-          ].map(tab => (
-            <button 
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex flex-col items-center gap-1.5 px-6 py-2 rounded-2xl transition-all ${
-                activeTab === tab.id 
-                ? 'text-yellow-500' 
-                : 'text-zinc-500 hover:text-zinc-300'
-              }`}
+      {/* MODAL: GRAVAR NOTA */}
+      <AnimatePresence>
+        {isNoteModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative border border-zinc-200"
             >
-              <div className={`p-2 rounded-xl transition-all ${activeTab === tab.id ? 'bg-yellow-500/10 shadow-[0_0_15px_rgba(234,179,8,0.1)]' : ''}`}>
-                {tab.icon}
+              <button 
+                onClick={() => setIsNoteModalOpen(false)} 
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <div className="bg-zinc-950 p-6 flex items-center gap-4">
+                <div className={`p-3 rounded-xl ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-zinc-800'}`}>
+                  <Mic className={`w-6 h-6 ${isRecording ? 'text-white' : 'text-zinc-500'}`} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none italic">Anotação Tática</h2>
+                  <p className="text-zinc-500 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">
+                    {isRecording ? 'Escutando relato...' : 'Transcrição ou Digitação'}
+                  </p>
+                </div>
               </div>
-              <span className={`text-[9px] font-black uppercase tracking-widest ${activeTab === tab.id ? 'opacity-100' : 'opacity-60'}`}>
-                {tab.label}
-              </span>
-            </button>
-          ))}
-        </div>
+              <div className="p-6 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Conteúdo da Nota</label>
+                  <textarea 
+                    value={noteText}
+                    onChange={e => setNoteText(e.target.value)}
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 text-sm h-48 outline-none focus:border-yellow-500 transition-all resize-none"
+                    placeholder="O que você está pensando? Ou continue gravando..."
+                  />
+                </div>
+                
+                <div className="flex gap-3">
+                  {!isRecording ? (
+                    <button 
+                      onClick={startVoiceNote}
+                      className="flex-1 bg-zinc-100 text-zinc-900 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Mic className="w-4 h-4" /> REINICIAR VOZ
+                    </button>
+                  ) : (
+                    <div className="flex-1 bg-red-100 text-red-600 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
+                       <div className="w-2 h-2 rounded-full bg-red-600 animate-ping"></div> ESCUTANDO...
+                    </div>
+                  )}
+                  <button 
+                    onClick={() => handleNoteSubmit()}
+                    disabled={isProcessingNote || !noteText.trim()}
+                    className={`flex-1 ${isProcessingNote ? 'bg-zinc-400' : 'bg-yellow-500'} text-zinc-950 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 italic`}
+                  >
+                    {isProcessingNote ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                    {isProcessingNote ? 'PROCESSANDO...' : 'SALVAR NOTA'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MOBILE BOTTOM NAV */}
+      <nav className="lg:hidden fixed bottom-6 left-6 right-6 h-20 bg-neutral-950/90 backdrop-blur-xl border border-white/10 rounded-full flex items-center justify-around px-4 z-50 shadow-2xl">
+        {[
+          { id: 'logistica', label: 'Tático', icon: <MapPin className="w-5 h-5" /> },
+          { id: 'equipe', label: 'Equipe', icon: <Users className="w-5 h-5" /> },
+          { id: 'notas', label: 'Notas', icon: <Mic className="w-5 h-5" /> },
+          { id: 'financeiro', label: 'Caixa', icon: <Wallet className="w-5 h-5" /> },
+          { id: 'ouvidoria', label: 'Feed', icon: <History className="w-5 h-5" /> }
+        ].map(tab => (
+          <button 
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`flex flex-col items-center gap-1 transition-all ${
+              activeTab === tab.id 
+              ? 'text-yellow-500 scale-110' 
+              : 'text-zinc-500'
+            }`}
+          >
+            <div className={`p-2 rounded-xl transition-all ${activeTab === tab.id ? 'bg-yellow-500/10' : ''}`}>
+              {tab.icon}
+            </div>
+            <span className="text-[8px] font-black uppercase tracking-[0.1em]">
+              {tab.label}
+            </span>
+          </button>
+        ))}
       </nav>
     </div>
   );
