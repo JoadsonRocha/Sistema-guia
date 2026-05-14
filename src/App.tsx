@@ -115,11 +115,11 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white border border-zinc-200 rounded-[2rem] p-6 shadow-sm hover:border-yellow-500/50 transition-all flex flex-col h-full text-left"
+      className="bg-white border border-zinc-200 rounded-sm p-6 shadow-sm hover:border-yellow-500/50 transition-all flex flex-col h-full text-left"
     >
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-2">
-          <span className={`text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-widest leading-none ${note.type === 'private' ? 'bg-zinc-100 text-zinc-500' : 'bg-zinc-950 text-white'}`}>
+          <span className={`text-[8px] font-black px-3 py-1 rounded-sm uppercase tracking-widest leading-none ${note.type === 'private' ? 'bg-zinc-100 text-zinc-500' : 'bg-zinc-950 text-white'}`}>
             {note.type === 'private' ? 'Pessoal' : (note.team || 'Campo')}
           </span>
           {note.type === 'private' && <Lock className="w-3 h-3 text-zinc-400" />}
@@ -127,7 +127,7 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
         <div className="flex items-center gap-2">
           <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">{new Date(note.createdAt).toLocaleDateString()}</span>
           {(isAdmin || note.leaderId === user?.uid || note.authorId === user?.uid) && (
-             <button onClick={onDelete} className="text-zinc-300 hover:text-red-500 transition-colors p-1 hover:bg-red-50 rounded-lg">
+             <button onClick={onDelete} className="text-zinc-300 hover:text-red-500 transition-colors p-1 hover:bg-red-50 rounded-sm">
                <Trash2 className="w-3.5 h-3.5" />
              </button>
           )}
@@ -139,7 +139,7 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
       <div className="mt-auto">
         <div className="pt-4 border-t border-zinc-50 flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-yellow-500 flex items-center justify-center font-black text-[10px] text-zinc-950 shadow-sm border border-white">
+            <div className="w-8 h-8 rounded-sm bg-yellow-500 flex items-center justify-center font-black text-[10px] text-zinc-950 shadow-sm border border-white">
               {(note.leaderName || note.authorName || 'U').charAt(0)}
             </div>
             <div className="text-left">
@@ -151,7 +151,7 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
           
           <button 
             onClick={() => setShowComments(!showComments)}
-            className={`flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest transition-all px-3 py-1.5 rounded-lg ${showComments ? 'bg-zinc-950 text-white' : 'text-zinc-400 hover:text-yellow-600'}`}
+            className={`flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest transition-all px-3 py-1.5 rounded-sm ${showComments ? 'bg-zinc-950 text-white' : 'text-zinc-400 hover:text-yellow-600'}`}
           >
             <MessageSquare className="w-3 h-3" /> {comments.length}
           </button>
@@ -167,7 +167,7 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
             >
               <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                 {comments.length > 0 ? comments.map((comment) => (
-                  <div key={comment.id} className="bg-zinc-50/50 p-4 rounded-2xl border border-zinc-100 group/msg">
+                  <div key={comment.id} className="bg-zinc-50/50 p-4 rounded-sm border border-zinc-100 group/msg">
                     <div className="flex justify-between items-center mb-1.5">
                       <span className="text-[8px] font-black text-zinc-950 uppercase tracking-tighter">{comment.authorName}</span>
                       <span className="text-[7px] font-bold text-zinc-400 uppercase">{new Date(comment.createdAt).toLocaleTimeString().slice(0, 5)}</span>
@@ -185,11 +185,11 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Comentar..."
-                  className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-[10px] font-bold text-zinc-800 outline-none focus:border-yellow-500 shadow-inner"
+                  className="flex-1 bg-zinc-50 border border-zinc-200 rounded-sm px-4 py-3 text-[10px] font-bold text-zinc-800 outline-none focus:border-yellow-500 shadow-inner"
                 />
                 <button 
                   disabled={isSubmitting || !newComment.trim()}
-                  className="bg-zinc-950 text-white p-3 rounded-xl active:scale-95 disabled:opacity-50 shadow-lg"
+                  className="bg-zinc-950 text-white p-3 rounded-sm active:scale-95 disabled:opacity-50 shadow-lg"
                   type="submit"
                 >
                   <Send className="w-4 h-4" />
@@ -842,7 +842,7 @@ function CoordinatorDashboard() {
       <aside className="hidden lg:flex w-72 flex-col bg-white border-r border-zinc-200 py-8 px-6 overflow-y-auto">
         <div className="mb-10 px-2">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-zinc-950 rounded-md shadow-lg">
+            <div className="p-2 bg-zinc-950 rounded-sm shadow-lg">
               <ShieldCheck className="w-5 h-5 text-yellow-500" />
             </div>
             <div>
@@ -871,7 +871,7 @@ function CoordinatorDashboard() {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id as any)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-sm text-xs font-bold transition-all ${
                 activeTab === item.id 
                 ? 'bg-yellow-500 text-zinc-950 shadow-md' 
                 : 'text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100'
@@ -888,7 +888,7 @@ function CoordinatorDashboard() {
         <div className="mt-8 space-y-2">
           <button 
             onClick={() => setIsAiModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2.5 bg-zinc-950 text-white p-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg"
+            className="w-full flex items-center justify-center gap-2.5 bg-zinc-950 text-white p-3.5 rounded-sm text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg"
           >
             <Brain className="w-4 h-4 text-yellow-500" /> Nova Tarefa IA
           </button>
@@ -896,13 +896,13 @@ function CoordinatorDashboard() {
           <div className="pt-6 border-t border-zinc-100 space-y-1">
             <button 
               onClick={() => setIsProfileModalOpen(true)}
-              className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-xs font-bold text-zinc-400 hover:text-zinc-950 hover:bg-zinc-100 transition-all"
+              className="w-full flex items-center gap-4 px-4 py-3 rounded-sm text-xs font-bold text-zinc-400 hover:text-zinc-950 hover:bg-zinc-100 transition-all"
             >
               <Settings className="w-4 h-4" /> Configurações
             </button>
             <button 
               onClick={logout}
-              className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 transition-all"
+              className="w-full flex items-center gap-4 px-4 py-3 rounded-sm text-xs font-bold text-red-500 hover:bg-red-50 transition-all"
             >
               <LogOut className="w-4 h-4" /> Sair do Sistema
             </button>
@@ -924,7 +924,7 @@ function CoordinatorDashboard() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Pesquisar zonas, líderes ou demandas..."
-                className="w-full bg-zinc-100 border-none rounded-lg py-2 pl-11 pr-4 text-xs font-medium text-zinc-900 placeholder:text-zinc-500 focus:ring-1 focus:ring-yellow-500/20 outline-none transition-all"
+                className="w-full bg-zinc-100 border-none rounded-sm py-2 pl-11 pr-4 text-xs font-medium text-zinc-900 placeholder:text-zinc-500 focus:ring-1 focus:ring-yellow-500/20 outline-none transition-all"
               />
 
               {/* SEARCH RESULTS PANEL */}
@@ -934,7 +934,7 @@ function CoordinatorDashboard() {
                     initial={{ opacity: 0, y: 10 }} 
                     animate={{ opacity: 1, y: 0 }} 
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-200 rounded-xl shadow-2xl z-50 max-h-96 overflow-y-auto p-2"
+                    className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-200 rounded-sm shadow-2xl z-50 max-h-96 overflow-y-auto p-2"
                   >
                     {totalResults > 0 ? (
                       <div className="p-1 space-y-3">
@@ -942,8 +942,8 @@ function CoordinatorDashboard() {
                           <div>
                             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-2 mb-1">Equipes / Zonas</p>
                             {searchResults.teams.map(t => (
-                              <button key={t.id} onClick={() => { setActiveTab('teams'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-lg transition-colors text-left">
-                                <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center"><Users className="w-4 h-4 text-zinc-900" /></div>
+                              <button key={t.id} onClick={() => { setActiveTab('teams'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-sm transition-colors text-left">
+                                <div className="w-8 h-8 rounded-sm bg-zinc-100 flex items-center justify-center"><Users className="w-4 h-4 text-zinc-900" /></div>
                                 <div>
                                   <p className="text-xs font-bold text-zinc-900 uppercase">{t.zone}</p>
                                   <p className="text-[10px] text-zinc-500 uppercase">{t.leaderName}</p>
@@ -957,8 +957,8 @@ function CoordinatorDashboard() {
                           <div>
                             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-2 mb-1">Agenda / Demandas</p>
                             {searchResults.agendas.map(a => (
-                              <button key={a.id} onClick={() => { setActiveTab('agenda'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-lg transition-colors text-left">
-                                <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center"><Calendar className="w-4 h-4 text-zinc-900" /></div>
+                              <button key={a.id} onClick={() => { setActiveTab('agenda'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-sm transition-colors text-left">
+                                <div className="w-8 h-8 rounded-sm bg-zinc-100 flex items-center justify-center"><Calendar className="w-4 h-4 text-zinc-900" /></div>
                                 <div>
                                   <p className="text-xs font-bold text-zinc-900 uppercase">{a.motivo}</p>
                                   <p className="text-[10px] text-zinc-500 uppercase">{a.municipio} • {a.data}</p>
@@ -972,8 +972,8 @@ function CoordinatorDashboard() {
                           <div>
                             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-2 mb-1">Notas Táticas</p>
                             {searchResults.notes.map(n => (
-                              <button key={n.id} onClick={() => { setActiveTab('notes'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-lg transition-colors text-left">
-                                <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center"><MessageSquare className="w-4 h-4 text-zinc-900" /></div>
+                              <button key={n.id} onClick={() => { setActiveTab('notes'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-sm transition-colors text-left">
+                                <div className="w-8 h-8 rounded-sm bg-zinc-100 flex items-center justify-center"><MessageSquare className="w-4 h-4 text-zinc-900" /></div>
                                 <div>
                                   <p className="text-[10px] text-zinc-800 font-medium italic line-clamp-1">"{n.text}"</p>
                                   <p className="text-[8px] text-zinc-400 font-black uppercase tracking-widest leading-none mt-1">{n.leaderName} • {n.team}</p>
@@ -994,7 +994,7 @@ function CoordinatorDashboard() {
               </AnimatePresence>
             </div>
             <div className="lg:hidden flex items-center gap-2">
-              <div className="p-1.5 bg-zinc-950 rounded-md">
+              <div className="p-1.5 bg-zinc-950 rounded-sm">
                 <ShieldCheck className="w-4 h-4 text-yellow-500" />
               </div>
               <h1 className="text-base font-black text-zinc-950 uppercase italic leading-none">ÁGUIA</h1>
@@ -1002,8 +1002,8 @@ function CoordinatorDashboard() {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2.5 px-3 h-10 bg-zinc-50 rounded-lg border border-zinc-100">
-               <div className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse"></div>
+            <div className="hidden sm:flex items-center gap-2.5 px-3 h-10 bg-zinc-50 rounded-sm border border-zinc-100">
+               <div className="w-1.5 h-1.5 bg-red-600 rounded-sm animate-pulse"></div>
                <span className="text-[9px] font-black text-zinc-900 uppercase tracking-widest">SINALIZADOR ATIVO</span>
             </div>
             
@@ -1011,9 +1011,9 @@ function CoordinatorDashboard() {
 
             <button 
               onClick={() => setIsProfileModalOpen(true)}
-              className="flex items-center gap-2.5 hover:bg-zinc-50 p-1 rounded-full transition-all"
+              className="flex items-center gap-2.5 hover:bg-zinc-50 p-1 rounded-sm transition-all"
             >
-              <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center font-black text-xs text-zinc-950 overflow-hidden shadow-sm border border-zinc-200">
+              <div className="w-8 h-8 rounded-sm bg-yellow-500 flex items-center justify-center font-black text-xs text-zinc-950 overflow-hidden shadow-sm border border-zinc-200">
                 {profileData?.photoURL ? (
                   <img src={profileData.photoURL} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
@@ -1044,7 +1044,7 @@ function CoordinatorDashboard() {
               <motion.section 
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-zinc-950 rounded-2xl p-6 shadow-2xl border border-yellow-500/30 overflow-hidden relative"
+                className="bg-zinc-950 rounded-sm p-6 shadow-2xl border border-yellow-500/30 overflow-hidden relative"
               >
                 <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
                   <ShieldCheck className="w-40 h-40 text-yellow-500" />
@@ -1052,7 +1052,7 @@ function CoordinatorDashboard() {
                 
                 <div className="flex items-center justify-between mb-4 relative z-10">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-yellow-500 rounded-lg">
+                    <div className="p-2 bg-yellow-500 rounded-sm">
                       <Zap className="w-5 h-5 text-zinc-950" />
                     </div>
                     <div>
@@ -1076,11 +1076,11 @@ function CoordinatorDashboard() {
                       value={newDailyOrder}
                       onChange={(e) => setNewDailyOrder(e.target.value)}
                       placeholder="Digite a diretiva central para todas as equipes..."
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-xs font-bold text-white outline-none focus:border-yellow-500 min-h-[120px]"
+                      className="w-full bg-white/5 border border-white/10 rounded-sm p-4 text-xs font-bold text-white outline-none focus:border-yellow-500 min-h-[120px]"
                     />
                     <button 
                       onClick={handleUpdateDailyOrder}
-                      className="bg-yellow-500 text-zinc-950 px-6 py-2.5 rounded-xl font-black text-[10px] uppercase shadow-lg shadow-yellow-500/20 active:scale-95 transition-all"
+                      className="bg-yellow-500 text-zinc-950 px-6 py-2.5 rounded-sm font-black text-[10px] uppercase shadow-lg shadow-yellow-500/20 active:scale-95 transition-all"
                     >
                       Transmitir para Unidades
                     </button>
@@ -1112,17 +1112,17 @@ function CoordinatorDashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     onClick={stat.action}
-                    className="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm hover:shadow-md hover:border-yellow-500/50 transition-all cursor-pointer group"
+                    className="bg-white border border-zinc-200 p-5 rounded-sm shadow-sm hover:shadow-md hover:border-yellow-500/50 transition-all cursor-pointer group"
                   >
                     <div className="flex justify-between items-start mb-3">
-                      <div className={`p-2 bg-zinc-50 rounded-lg group-hover:bg-yellow-500 transition-colors`}>
+                      <div className={`p-2 bg-zinc-50 rounded-sm group-hover:bg-yellow-500 transition-colors`}>
                         {i === 0 && <Target className="w-4 h-4 text-zinc-400 group-hover:text-zinc-950" />}
                         {i === 1 && <Users className="w-4 h-4 text-zinc-400 group-hover:text-zinc-950" />}
                         {i === 2 && <Calendar className="w-4 h-4 text-zinc-400 group-hover:text-zinc-950" />}
                         {i === 3 && <DollarSign className="w-4 h-4 text-zinc-400 group-hover:text-zinc-950" />}
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-[7px] font-black py-0.5 px-2 bg-green-100 text-green-700 rounded-md uppercase tracking-widest border border-green-100">Estável</span>
+                        <span className="text-[7px] font-black py-0.5 px-2 bg-green-100 text-green-700 rounded-sm uppercase tracking-widest border border-green-100">Estável</span>
                       </div>
                     </div>
                     <p className="text-xl font-black tracking-tighter text-zinc-950 mb-0.5 leading-none">{stat.value}</p>
@@ -1141,14 +1141,14 @@ function CoordinatorDashboard() {
 
                   <div className="w-full lg:w-72 space-y-6">
 
-                    <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-sm">
+                    <div className="bg-white border border-zinc-200 rounded-sm p-5 shadow-sm">
                       <h3 className="text-sm font-black uppercase tracking-tighter text-zinc-950 mb-4 flex items-center gap-2 italic">
                         < Zap className="w-3.5 h-3.5 text-yellow-500" /> Atividade Recente
                       </h3>
                       <div className="space-y-4">
                         {teams.slice(0, 3).map((team, i) => (
                           <div key={i} className="flex gap-2.5">
-                            <div className="w-7 h-7 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0">
+                            <div className="w-7 h-7 rounded-sm bg-zinc-100 flex items-center justify-center shrink-0">
                               <Users className="w-3.5 h-3.5 text-zinc-500" />
                             </div>
                             <div>
@@ -1192,7 +1192,7 @@ function CoordinatorDashboard() {
                         spent: 0
                       });
                     }}
-                    className="bg-yellow-500 text-zinc-950 px-6 py-3.5 rounded-xl font-black text-[10px] uppercase flex items-center justify-center gap-2.5 shadow-lg shadow-yellow-500/10 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto"
+                    className="bg-yellow-500 text-zinc-950 px-6 py-3.5 rounded-sm font-black text-[10px] uppercase flex items-center justify-center gap-2.5 shadow-lg shadow-yellow-500/10 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto"
                   >
                     <Plus className="w-4 h-4 text-zinc-950" /> Cadastrar Nova Unidade
                   </button>
@@ -1203,16 +1203,16 @@ function CoordinatorDashboard() {
                     <motion.div 
                       key={team.id || team.name} 
                       layout
-                      className={`bg-white border ${team.fraudAlert ? 'border-red-600 shadow-md animate-pulse' : 'border-zinc-200'} rounded-2xl p-5 lg:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:border-zinc-300 transition-all group relative`}
+                      className={`bg-white border ${team.fraudAlert ? 'border-red-600 shadow-md animate-pulse' : 'border-zinc-200'} rounded-sm p-5 lg:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:border-zinc-300 transition-all group relative`}
                     >
                       {team.fraudAlert && (
-                        <div className="absolute top-0 right-8 bg-red-600 text-white text-[8px] font-black px-6 py-1.5 rounded-b-xl uppercase flex items-center gap-1.5 shadow-lg z-10">
+                        <div className="absolute top-0 right-8 bg-red-600 text-white text-[8px] font-black px-6 py-1.5 rounded-sm uppercase flex items-center gap-1.5 shadow-lg z-10">
                           <AlertTriangle className="w-3 h-3" /> Alerta Crítico
                         </div>
                       )}
                       
                       <div className="flex items-center gap-5 min-w-[240px]">
-                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-transform group-hover:rotate-3 ${
+                        <div className={`w-14 h-14 rounded-sm flex items-center justify-center transition-transform group-hover:rotate-3 ${
                           team.status === 'OK' ? 'bg-green-50 text-green-600' : 
                           team.status === 'ALERTA' ? 'bg-yellow-50 text-yellow-600' : 'bg-red-50 text-red-600'
                         }`}>
@@ -1248,7 +1248,7 @@ function CoordinatorDashboard() {
                         </div>
                         <div>
                            <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1 leading-none">Status</p>
-                           <span className={`inline-flex items-center gap-1.5 text-[8px] font-black px-3 py-1 rounded-lg uppercase tracking-widest border ${
+                           <span className={`inline-flex items-center gap-1.5 text-[8px] font-black px-3 py-1 rounded-sm uppercase tracking-widest border ${
                             team.status === 'OK' ? 'bg-green-50 text-green-700 border-green-100' : 
                             team.status === 'ALERTA' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' : 'bg-red-50 text-red-700 border-red-100'
                           }`}>
@@ -1262,21 +1262,21 @@ function CoordinatorDashboard() {
                         <div className="flex gap-1.5">
                            <button 
                              onClick={() => handleCopyAccessLink(team)}
-                             className="p-3 bg-zinc-50 text-zinc-500 rounded-xl hover:bg-zinc-950 hover:text-white transition-all shadow-sm"
+                             className="p-3 bg-zinc-50 text-zinc-500 rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-sm"
                              title="Copiar Credenciais"
                            >
                              <LogIn className="w-4 h-4" />
                            </button>
                            <button 
                              onClick={() => handleEditTeam(team)}
-                             className="p-3 bg-zinc-100 text-zinc-600 rounded-xl hover:bg-zinc-950 hover:text-white transition-all shadow-md active:scale-95"
+                             className="p-3 bg-zinc-100 text-zinc-600 rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-md active:scale-95"
                              title="Editar Unidade"
                            >
                              <Edit3 className="w-4 h-4" />
                            </button>
                            <button 
                              onClick={() => handleDeleteTeam(team.id || team.name.replace(/\s/g, '_').toLowerCase(), team.name)}
-                             className="p-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all shadow-md active:scale-95"
+                             className="p-3 bg-red-600 text-white rounded-sm hover:bg-red-700 transition-all shadow-md active:scale-95"
                              title="Excluir"
                            >
                              <Trash2 className="w-4 h-4" />
@@ -1287,7 +1287,7 @@ function CoordinatorDashboard() {
                             setSelectedManagingTeam(team);
                             setIsTeamManagementOpen(true);
                           }}
-                          className={`w-full px-5 py-3 rounded-xl font-black text-[9px] uppercase shadow-md transition-all active:translate-y-0.5 ${
+                          className={`w-full px-5 py-3 rounded-sm font-black text-[9px] uppercase shadow-md transition-all active:translate-y-0.5 ${
                             team.demands > 0 ? 'bg-red-600 text-white' : 'bg-zinc-950 text-white'
                           }`}
                         >
@@ -1296,7 +1296,7 @@ function CoordinatorDashboard() {
                       </div>
                     </motion.div>
                   )) : (
-                    <div className="p-20 text-center bg-white rounded-2xl border-2 border-dashed border-zinc-200">
+                    <div className="p-20 text-center bg-white rounded-sm border-2 border-dashed border-zinc-200">
                        <RefreshCcw className="w-10 h-10 text-zinc-200 animate-spin mx-auto mb-4" />
                        <p className="font-black text-zinc-300 uppercase tracking-[0.2em] text-[9px]">Sincronizando unidades...</p>
                     </div>
@@ -1309,7 +1309,7 @@ function CoordinatorDashboard() {
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-yellow-500 rounded-2xl flex items-center justify-center shadow-lg shadow-yellow-500/10">
+                    <div className="w-12 h-12 bg-yellow-500 rounded-sm flex items-center justify-center shadow-lg shadow-yellow-500/10">
                       <Calendar className="w-6 h-6 text-zinc-950" />
                     </div>
                     <div>
@@ -1323,7 +1323,7 @@ function CoordinatorDashboard() {
                       setAgendaForm({ municipio: '', data: '', hora_inicio: '', hora_fim: '', motivo: '' });
                       setIsAgendaCreateModalOpen(true);
                     }}
-                    className="bg-zinc-950 text-white px-6 py-3.5 rounded-xl font-black text-[10px] uppercase flex items-center gap-2.5 shadow-xl shadow-zinc-200 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto"
+                    className="bg-zinc-950 text-white px-6 py-3.5 rounded-sm font-black text-[10px] uppercase flex items-center gap-2.5 shadow-xl shadow-zinc-200 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto"
                   >
                     <Plus className="w-4 h-4 text-yellow-500" /> Agendar Evento
                   </button>
@@ -1331,16 +1331,16 @@ function CoordinatorDashboard() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white border border-zinc-200 rounded-2xl p-6 lg:p-8 shadow-sm">
+                    <div className="bg-white border border-zinc-200 rounded-sm p-6 lg:p-8 shadow-sm">
                       <h3 className="text-lg font-black uppercase text-zinc-950 tracking-tighter mb-6 flex items-center gap-3 italic">
                         Solicitações
                       </h3>
                       
                       <div className="space-y-4">
                         {agendas.filter(a => a.status === 'pendente').length > 0 ? agendas.filter(a => a.status === 'pendente').map((item) => (
-                          <motion.div key={item.id} layout className="bg-zinc-50 border border-zinc-100 rounded-2xl p-5 lg:p-6 flex flex-col md:flex-row justify-between items-center gap-6 group">
+                          <motion.div key={item.id} layout className="bg-zinc-50 border border-zinc-100 rounded-sm p-5 lg:p-6 flex flex-col md:flex-row justify-between items-center gap-6 group">
                             <div className="flex items-center gap-6">
-                              <div className="bg-white px-4 py-3 rounded-xl shadow-sm border border-zinc-100 flex flex-col items-center min-w-[70px]">
+                              <div className="bg-white px-4 py-3 rounded-sm shadow-sm border border-zinc-100 flex flex-col items-center min-w-[70px]">
                                 <span className="text-[8px] font-black uppercase text-zinc-400 mb-0.5">{new Date(item.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
                                 <span className="text-2xl font-black text-zinc-950 leading-none">{new Date(item.data).getDate()}</span>
                               </div>
@@ -1350,7 +1350,7 @@ function CoordinatorDashboard() {
                                   <span className="flex items-center gap-1.5"><Clock className="w-2.5 h-2.5 text-yellow-500" /> {item.hora_inicio} - {item.hora_fim}</span>
                                   <span className="flex items-center gap-1.5"><User className="w-2.5 h-2.5 text-yellow-500" /> {item.sugeridoPor}</span>
                                 </div>
-                                {item.motivo && <p className="text-[10px] text-zinc-500 font-bold bg-zinc-100 px-2.5 py-0.5 rounded-md inline-block">{item.motivo}</p>}
+                                {item.motivo && <p className="text-[10px] text-zinc-500 font-bold bg-zinc-100 px-2.5 py-0.5 rounded-sm inline-block">{item.motivo}</p>}
                               </div>
                             </div>
                             <div className="flex gap-2.5 w-full md:w-auto">
@@ -1358,7 +1358,7 @@ function CoordinatorDashboard() {
                                 onClick={async () => {
                                   await firestoreService.updateDocument('agenda', item.id, { status: 'negado' });
                                 }}
-                                className="flex-1 md:flex-none px-6 py-3 bg-red-50 text-red-600 font-black text-[9px] uppercase rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                                className="flex-1 md:flex-none px-6 py-3 bg-red-50 text-red-600 font-black text-[9px] uppercase rounded-sm hover:bg-red-600 hover:text-white transition-all shadow-sm"
                               >
                                 Negar
                               </button>
@@ -1366,14 +1366,14 @@ function CoordinatorDashboard() {
                                 onClick={async () => {
                                   await firestoreService.updateDocument('agenda', item.id, { status: 'confirmado' });
                                 }}
-                                className="flex-1 md:flex-none px-6 py-3 bg-green-600 text-white font-black text-[9px] uppercase rounded-xl shadow-xl shadow-green-100 hover:bg-green-700 transition-all border-b-2 border-green-800 active:border-b-0 active:translate-y-0.5"
+                                className="flex-1 md:flex-none px-6 py-3 bg-green-600 text-white font-black text-[9px] uppercase rounded-sm shadow-xl shadow-green-100 hover:bg-green-700 transition-all border-b-2 border-green-800 active:border-b-0 active:translate-y-0.5"
                               >
                                 Confirmar
                               </button>
                             </div>
                           </motion.div>
                         )) : (
-                          <div className="p-12 border border-dashed border-zinc-200 rounded-xl text-center">
+                          <div className="p-12 border border-dashed border-zinc-200 rounded-sm text-center">
                             <CheckCircle2 className="w-8 h-8 text-green-200 mx-auto mb-3" />
                             <p className="font-black text-zinc-300 uppercase tracking-[0.15em] text-[9px]">Nenhuma solicitação pendente.</p>
                           </div>
@@ -1383,7 +1383,7 @@ function CoordinatorDashboard() {
                   </div>
 
                   <div className="space-y-6">
-                    <div className="bg-zinc-950 rounded-2xl p-6 lg:p-8 text-white shadow-2xl min-h-[500px] relative overflow-hidden">
+                    <div className="bg-zinc-950 rounded-sm p-6 lg:p-8 text-white shadow-2xl min-h-[500px] relative overflow-hidden">
                       <div className="absolute top-0 right-0 p-6 opacity-5">
                          <Calendar className="w-32 h-32" />
                       </div>
@@ -1399,9 +1399,9 @@ function CoordinatorDashboard() {
                               setSelectedAgenda(item);
                               setIsAgendaDetailModalOpen(true);
                             }}
-                            className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl flex items-center gap-5 group cursor-pointer hover:border-yellow-500/50 transition-all"
+                            className="bg-zinc-900 border border-zinc-800 p-4 rounded-sm flex items-center gap-5 group cursor-pointer hover:border-yellow-500/50 transition-all"
                           >
-                            <div className="flex flex-col items-center justify-center bg-zinc-800 w-12 h-12 rounded-xl shrink-0 group-hover:bg-yellow-500 transition-colors">
+                            <div className="flex flex-col items-center justify-center bg-zinc-800 w-12 h-12 rounded-sm shrink-0 group-hover:bg-yellow-500 transition-colors">
                               <span className="text-[8px] font-black uppercase text-zinc-500 group-hover:text-zinc-950 leading-none mb-0.5">{new Date(item.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
                               <span className="text-xl font-black text-white group-hover:text-zinc-950 leading-none">{new Date(item.data).getDate()}</span>
                             </div>
@@ -1435,7 +1435,7 @@ function CoordinatorDashboard() {
                           alert("Gerando relatório... O download iniciará em instantes.");
                         }
                       }}
-                      className="bg-white border border-zinc-200 text-zinc-950 px-4 py-3.5 rounded-xl font-black text-[10px] uppercase flex items-center justify-center gap-2.5 shadow-sm hover:bg-zinc-50 transition-all"
+                      className="bg-white border border-zinc-200 text-zinc-950 px-4 py-3.5 rounded-sm font-black text-[10px] uppercase flex items-center justify-center gap-2.5 shadow-sm hover:bg-zinc-50 transition-all"
                     >
                       <FileDown className="w-4 h-4" /> Exportar PDF
                     </button>
@@ -1444,7 +1444,7 @@ function CoordinatorDashboard() {
 
                 <div className="grid grid-cols-1 gap-4">
                   {attendance.length > 0 ? (
-                    <div className="bg-white border border-zinc-200 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="bg-white border border-zinc-200 rounded-sm overflow-hidden shadow-sm">
                       <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="bg-zinc-50 border-b border-zinc-200">
@@ -1459,7 +1459,7 @@ function CoordinatorDashboard() {
                             <tr key={entry.id} className="hover:bg-zinc-50/50 transition-colors">
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center font-black text-white text-[10px] overflow-hidden border-2 border-zinc-100">
+                                  <div className="w-10 h-10 rounded-sm bg-zinc-900 flex items-center justify-center font-black text-white text-[10px] overflow-hidden border-2 border-zinc-100">
                                     {entry.leaderPhoto ? (
                                       <img src={entry.leaderPhoto} alt={entry.leaderName} className="w-full h-full object-cover" />
                                     ) : (
@@ -1493,7 +1493,7 @@ function CoordinatorDashboard() {
                                 )}
                               </td>
                               <td className="p-4 text-right">
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 text-green-700 text-[9px] font-black uppercase tracking-widest border border-green-100">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-green-50 text-green-700 text-[9px] font-black uppercase tracking-widest border border-green-100">
                                   <CheckCircle2 className="w-2.5 h-2.5" /> Validado
                                 </span>
                               </td>
@@ -1503,7 +1503,7 @@ function CoordinatorDashboard() {
                       </table>
                     </div>
                   ) : (
-                    <div className="py-20 bg-white border-2 border-dashed border-zinc-200 rounded-2xl text-center">
+                    <div className="py-20 bg-white border-2 border-dashed border-zinc-200 rounded-sm text-center">
                       <Clock className="w-12 h-12 text-zinc-200 mx-auto mb-4" />
                       <p className="font-black text-zinc-300 uppercase tracking-[0.2em] text-xs">Nenhum registro de ponto encontrado.</p>
                     </div>
@@ -1522,7 +1522,7 @@ function CoordinatorDashboard() {
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white border border-zinc-200 rounded-2xl flex items-center justify-center shadow-sm">
+                    <div className="w-12 h-12 bg-white border border-zinc-200 rounded-sm flex items-center justify-center shadow-sm">
                       <MessageSquare className="w-6 h-6 text-zinc-950" />
                     </div>
                     <div>
@@ -1530,13 +1530,13 @@ function CoordinatorDashboard() {
                       <div className="flex gap-4 mt-4">
                         <button 
                           onClick={() => setNoteSubTab('tactical')}
-                          className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-lg transition-all ${noteSubTab === 'tactical' ? 'bg-zinc-950 text-white shadow-xl' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
+                          className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-sm transition-all ${noteSubTab === 'tactical' ? 'bg-zinc-950 text-white shadow-xl' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
                         >
                           Equipe (Fórum)
                         </button>
                         <button 
                           onClick={() => setNoteSubTab('private')}
-                          className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-lg transition-all ${noteSubTab === 'private' ? 'bg-zinc-950 text-white shadow-xl' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
+                          className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-sm transition-all ${noteSubTab === 'private' ? 'bg-zinc-950 text-white shadow-xl' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
                         >
                           Minhas Observações
                         </button>
@@ -1547,7 +1547,7 @@ function CoordinatorDashboard() {
                   {noteSubTab === 'private' && (
                     <button 
                       onClick={() => setIsAiModalOpen(true)}
-                      className="bg-yellow-500 text-zinc-950 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-zinc-950 hover:text-white transition-all flex items-center gap-2 italic"
+                      className="bg-yellow-500 text-zinc-950 px-6 py-3 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-zinc-950 hover:text-white transition-all flex items-center gap-2 italic"
                     >
                       <Plus className="w-4 h-4" /> Nova Observação
                     </button>
@@ -1560,7 +1560,7 @@ function CoordinatorDashboard() {
                       <NoteCard key={note.id} note={note} user={user} isAdmin={isAdmin} currentUserName={profileData?.name} onDelete={() => firestoreService.deleteDocument('notes', note.id)} />
                     ))
                   ) : (
-                    <div className="col-span-full py-20 bg-white border-2 border-dashed border-zinc-200 rounded-2xl text-center">
+                    <div className="col-span-full py-20 bg-white border-2 border-dashed border-zinc-200 rounded-sm text-center">
                       <Clock className="w-12 h-12 text-zinc-200 mx-auto mb-4" />
                       <p className="font-black text-zinc-300 uppercase tracking-[0.2em] text-xs">Nenhuma anotação registrada nesta categoria.</p>
                     </div>
@@ -1580,20 +1580,20 @@ function CoordinatorDashboard() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   {/* FORM ADD MATERIAL */}
-                  <div className="lg:col-span-1 bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm h-fit">
+                  <div className="lg:col-span-1 bg-white border border-zinc-200 rounded-sm p-6 shadow-sm h-fit">
                     <h3 className="text-sm font-black uppercase text-zinc-900 mb-6 flex items-center gap-2 italic">
                       <Plus className="w-4 h-4 text-yellow-500" /> Novo Lote
                     </h3>
                     <form onSubmit={handleAddMaterial} className="space-y-4">
                       <div className="space-y-1.5 text-left">
                         <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Descrição do Material</label>
-                        <input name="name" type="text" placeholder="Ex: Santinho 55000" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-xs" />
+                        <input name="name" type="text" placeholder="Ex: Santinho 55000" className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-xs" />
                       </div>
                       <div className="space-y-1.5 text-left">
                         <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Quantidade Total</label>
-                        <input name="qty" type="number" placeholder="Ex: 5000" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-xs" />
+                        <input name="qty" type="number" placeholder="Ex: 5000" className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-xs" />
                       </div>
-                      <button className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                      <button className="w-full bg-zinc-950 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">
                         Registrar Entrada
                       </button>
                     </form>
@@ -1602,15 +1602,15 @@ function CoordinatorDashboard() {
                   {/* MATERIAL LIST */}
                   <div className="lg:col-span-2 space-y-4">
                     {materials.map(m => (
-                      <div key={m.id} className="bg-white border border-zinc-200 rounded-2xl p-6 flex items-center justify-between group hover:border-yellow-500/30 transition-all">
+                      <div key={m.id} className="bg-white border border-zinc-200 rounded-sm p-6 flex items-center justify-between group hover:border-yellow-500/30 transition-all">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-zinc-50 rounded-xl flex items-center justify-center">
+                          <div className="w-12 h-12 bg-zinc-50 rounded-sm flex items-center justify-center">
                             <Package className="w-6 h-6 text-zinc-400 group-hover:text-yellow-600 transition-colors" />
                           </div>
                           <div>
                             <h4 className="font-black text-zinc-900 uppercase tracking-tight italic">{m.name}</h4>
                             <div className="mt-1 flex items-center gap-3">
-                              <div className="h-1.5 w-32 bg-zinc-100 rounded-full overflow-hidden">
+                              <div className="h-1.5 w-32 bg-zinc-100 rounded-sm overflow-hidden">
                                 <div 
                                   className="h-full bg-yellow-500" 
                                   style={{ width: `${Math.min(100, (m.current / m.total) * 100)}%` }}
@@ -1621,10 +1621,10 @@ function CoordinatorDashboard() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <button onClick={() => handleUpdateMaterial(m.id, -100)} className="w-10 h-10 border border-zinc-100 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors">
+                          <button onClick={() => handleUpdateMaterial(m.id, -100)} className="w-10 h-10 border border-zinc-100 rounded-sm flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors">
                             -100
                           </button>
-                          <button onClick={() => handleUpdateMaterial(m.id, 100)} className="w-10 h-10 border border-zinc-100 rounded-lg flex items-center justify-center text-green-500 hover:bg-green-50 transition-colors">
+                          <button onClick={() => handleUpdateMaterial(m.id, 100)} className="w-10 h-10 border border-zinc-100 rounded-sm flex items-center justify-center text-green-500 hover:bg-green-50 transition-colors">
                             +100
                           </button>
                         </div>
@@ -1646,17 +1646,17 @@ function CoordinatorDashboard() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                   {/* QUICK ADD */}
-                  <div className="lg:col-span-1 bg-zinc-950 rounded-2xl p-6 shadow-2xl text-white">
+                  <div className="lg:col-span-1 bg-zinc-950 rounded-sm p-6 shadow-2xl text-white">
                     <h3 className="text-[11px] font-black uppercase tracking-widest text-yellow-500 mb-6">Mapear Parceiro</h3>
                     <form onSubmit={handleAddPartner} className="space-y-4">
-                      <input name="name" className="w-full bg-white/10 border-none rounded-xl p-4 text-[11px] font-bold" placeholder="Nome do Influenciador/Líder" />
-                      <input name="role" className="w-full bg-white/10 border-none rounded-xl p-4 text-[11px] font-bold" placeholder="Cargo/Representação" />
-                      <select name="status" className="w-full bg-white/10 border-none rounded-xl p-4 text-[11px] font-bold outline-none">
+                      <input name="name" className="w-full bg-white/10 border-none rounded-sm p-4 text-[11px] font-bold" placeholder="Nome do Influenciador/Líder" />
+                      <input name="role" className="w-full bg-white/10 border-none rounded-sm p-4 text-[11px] font-bold" placeholder="Cargo/Representação" />
+                      <select name="status" className="w-full bg-white/10 border-none rounded-sm p-4 text-[11px] font-bold outline-none">
                         <option value="frio" className="text-zinc-950">❄️ Relacionamento Frio</option>
                         <option value="morno" className="text-zinc-950">🔥 Em Negociação</option>
                         <option value="quente" className="text-zinc-950">💎 Apoio Confirmado</option>
                       </select>
-                      <button className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">
+                      <button className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">
                         Incluir no CRM
                       </button>
                     </form>
@@ -1665,9 +1665,9 @@ function CoordinatorDashboard() {
                   {/* LIST */}
                   <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
                     {partners.map(p => (
-                      <div key={p.id} className="bg-white border border-zinc-200 rounded-2xl p-5 flex items-center justify-between group">
+                      <div key={p.id} className="bg-white border border-zinc-200 rounded-sm p-5 flex items-center justify-between group">
                         <div className="flex items-center gap-4">
-                          <div className={`w-12 h-12 rounded-full flex items-center justify-center border-4 ${
+                          <div className={`w-12 h-12 rounded-sm flex items-center justify-center border-4 ${
                             p.status === 'quente' ? 'bg-yellow-50 border-yellow-200' : 
                             p.status === 'morno' ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200'
                           }`}>
@@ -1682,7 +1682,7 @@ function CoordinatorDashboard() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${
+                          <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-sm ${
                             p.status === 'quente' ? 'bg-yellow-500 text-zinc-950 shadow-lg' : 
                             p.status === 'morno' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
                           }`}>
@@ -1706,7 +1706,7 @@ function CoordinatorDashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                   <div className="lg:col-span-3 bg-white border border-zinc-200 rounded-3xl p-8 shadow-sm">
+                   <div className="lg:col-span-3 bg-white border border-zinc-200 rounded-sm p-8 shadow-sm">
                       <div className="mb-8">
                         <h3 className="text-sm font-black uppercase tracking-tighter italic text-zinc-950">Volume por Zona de Atuação</h3>
                         <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comparativo de solicitações em campo</p>
@@ -1726,7 +1726,7 @@ function CoordinatorDashboard() {
                               content={({ active, payload }) => {
                                 if (active && payload && payload.length) {
                                   return (
-                                    <div className="bg-zinc-950 p-3 rounded-xl shadow-2xl border border-white/10">
+                                    <div className="bg-zinc-950 p-3 rounded-sm shadow-2xl border border-white/10">
                                       <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest">{payload[0].payload.name}</p>
                                       <p className="text-xl font-black text-white mt-1">{payload[0].value} Demandas</p>
                                     </div>
@@ -1746,7 +1746,7 @@ function CoordinatorDashboard() {
                    </div>
 
                    <div className="lg:col-span-1 space-y-4">
-                      <div className="bg-zinc-950 rounded-2xl p-6 text-white text-center">
+                      <div className="bg-zinc-950 rounded-sm p-6 text-white text-center">
                         <Activity className="w-10 h-10 text-yellow-500 mx-auto mb-4" />
                         <h4 className="text-lg font-black uppercase italic tracking-tighter">Foco Estratégico</h4>
                         <p className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mt-2 leading-relaxed">
@@ -1754,7 +1754,7 @@ function CoordinatorDashboard() {
                         </p>
                       </div>
 
-                      <div className="bg-white border border-zinc-200 rounded-2xl p-6">
+                      <div className="bg-white border border-zinc-200 rounded-sm p-6">
                         <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-950 mb-4">Métricas de Pressão</h4>
                         <div className="space-y-4">
                           {demandsSummary.map(d => (
@@ -1763,7 +1763,7 @@ function CoordinatorDashboard() {
                                 <span className="text-[10px] font-black uppercase text-zinc-600 italic leading-none">{d.name}</span>
                                 <span className="text-[9px] font-black text-zinc-400">{d.value}</span>
                               </div>
-                              <div className="h-1 bg-zinc-50 rounded-full overflow-hidden">
+                              <div className="h-1 bg-zinc-50 rounded-sm overflow-hidden">
                                 <div 
                                   className="h-full bg-zinc-950" 
                                   style={{ width: `${(d.value / Math.max(...demandsSummary.map(i => i.value))) * 100}%` }}
@@ -1793,7 +1793,7 @@ function CoordinatorDashboard() {
               initial={{ y: 100 }}
               animate={{ y: 0 }}
               exit={{ y: 100 }}
-              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative mb-10 border border-zinc-200"
+              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative mb-10 border border-zinc-200"
             >
               <button 
                 onClick={() => {
@@ -1801,7 +1801,7 @@ function CoordinatorDashboard() {
                   setAiResult(null);
                   setChaosText('');
                 }}
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 active:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 active:bg-zinc-200 transition-all active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1820,13 +1820,13 @@ function CoordinatorDashboard() {
                       value={chaosText}
                       onChange={(e) => setChaosText(e.target.value)}
                       placeholder="Descreva a situação em tempo real..."
-                      className="w-full h-40 bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-xs text-zinc-800 focus:border-yellow-500 outline-none transition-all placeholder:text-zinc-300 resize-none"
+                      className="w-full h-40 bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-xs text-zinc-800 focus:border-yellow-500 outline-none transition-all placeholder:text-zinc-300 resize-none"
                     />
                     <div className="flex flex-col gap-3 font-sans">
                       <button 
                         onClick={handleProcessCaos}
                         disabled={isProcessing || !chaosText}
-                        className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all active:scale-95 flex items-center justify-center gap-2"
+                        className="w-full bg-zinc-950 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all active:scale-95 flex items-center justify-center gap-2"
                       >
                         {isProcessing ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4 cursor-pointer text-yellow-500" />}
                         {isProcessing ? 'Processando Inteligência...' : 'Analisar com IA'}
@@ -1836,14 +1836,14 @@ function CoordinatorDashboard() {
                         <button 
                           onClick={() => handleSaveNote('tactical')}
                           disabled={isProcessing || !chaosText}
-                          className="flex-1 bg-yellow-500 text-zinc-950 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2 italic"
+                          className="flex-1 bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2 italic"
                         >
                           <MessageSquare className="w-4 h-4" /> Postar no Fórum
                         </button>
                         <button 
                           onClick={() => handleSaveNote('private')}
                           disabled={isProcessing || !chaosText}
-                          className="flex-1 bg-zinc-100 text-zinc-900 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+                          className="flex-1 bg-zinc-100 text-zinc-900 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center gap-2"
                         >
                           <Plus className="w-4 h-4" /> Salvar Privado
                         </button>
@@ -1854,14 +1854,14 @@ function CoordinatorDashboard() {
                   <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                     {/* RESULTADOS DA IA */}
                     {aiResult.tarefas_logistica?.length > 0 && (
-                      <div className="bg-blue-50 p-4 rounded-xl border-l-4 border-blue-600">
+                      <div className="bg-blue-50 p-4 rounded-sm border-l-4 border-blue-600">
                         <h4 className="text-blue-700 font-black text-[9px] uppercase mb-2 flex items-center gap-2 tracking-widest leading-none">
                           <Fuel className="w-3.5 h-3.5" /> Logística
                         </h4>
                         <ul className="space-y-1.5">
                           {aiResult.tarefas_logistica.map((t: string, i: number) => (
                             <li key={i} className="text-[11px] font-bold text-zinc-800 flex items-start gap-2">
-                              <div className="w-1 h-1 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></div>
+                              <div className="w-1 h-1 rounded-sm bg-blue-500 mt-1.5 flex-shrink-0"></div>
                               {t}
                             </li>
                           ))}
@@ -1870,14 +1870,14 @@ function CoordinatorDashboard() {
                     )}
 
                     {aiResult.acoes_politicas?.length > 0 && (
-                      <div className="bg-green-50 p-4 rounded-xl border-l-4 border-green-600">
+                      <div className="bg-green-50 p-4 rounded-sm border-l-4 border-green-600">
                         <h4 className="text-green-700 font-black text-[9px] uppercase mb-2 flex items-center gap-2 tracking-widest leading-none">
                           <Brain className="w-3.5 h-3.5" /> Ações Planejadas
                         </h4>
                         <ul className="space-y-1.5">
                           {aiResult.acoes_politicas.map((t: string, i: number) => (
                             <li key={i} className="text-[11px] font-bold text-zinc-800 flex items-start gap-2">
-                              <div className="w-1 h-1 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></div>
+                              <div className="w-1 h-1 rounded-sm bg-green-500 mt-1.5 flex-shrink-0"></div>
                               {t}
                             </li>
                           ))}
@@ -1886,14 +1886,14 @@ function CoordinatorDashboard() {
                     )}
 
                     {aiResult.alertas_crise?.length > 0 && (
-                      <div className="bg-red-50 p-4 rounded-xl border-l-4 border-red-600">
+                      <div className="bg-red-50 p-4 rounded-sm border-l-4 border-red-600">
                         <h4 className="text-red-700 font-black text-[9px] uppercase mb-2 flex items-center gap-2 tracking-widest leading-none">
                           <AlertTriangle className="w-3.5 h-3.5" /> Alertas
                         </h4>
                         <ul className="space-y-1.5">
                           {aiResult.alertas_crise.map((t: string, i: number) => (
                             <li key={i} className="text-[11px] font-bold text-red-900 flex items-start gap-2">
-                              <div className="w-1 h-1 rounded-full bg-red-600 mt-1.5 flex-shrink-0"></div>
+                              <div className="w-1 h-1 rounded-sm bg-red-600 mt-1.5 flex-shrink-0"></div>
                               {t}
                             </li>
                           ))}
@@ -1908,7 +1908,7 @@ function CoordinatorDashboard() {
                         setChaosText('');
                         alert('Demandas delegadas com sucesso!');
                       }}
-                      className="w-full bg-green-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/10 hover:bg-green-700 transition-all mb-2"
+                      className="w-full bg-green-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/10 hover:bg-green-700 transition-all mb-2"
                     >
                       CONFIRMAR DELEGAÇÃO
                     </button>
@@ -1919,7 +1919,7 @@ function CoordinatorDashboard() {
                           setChaosText(`${aiResult.title}: ${summary}`);
                           handleSaveNote('tactical');
                         }}
-                        className="flex-1 bg-yellow-500 text-zinc-950 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all italic flex items-center justify-center gap-2"
+                        className="flex-1 bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all italic flex items-center justify-center gap-2"
                       >
                         <MessageSquare className="w-4 h-4" /> Postar no Fórum
                       </button>
@@ -1929,7 +1929,7 @@ function CoordinatorDashboard() {
                           setChaosText(`${aiResult.title}: ${summary}`);
                           handleSaveNote('private');
                         }}
-                        className="flex-1 bg-zinc-950 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
+                        className="flex-1 bg-zinc-950 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
                       >
                         <Lock className="w-4 h-4" /> Salvar Privado
                       </button>
@@ -1957,11 +1957,11 @@ function CoordinatorDashboard() {
           >
               <motion.div 
                 initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-                className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
+                className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-zinc-200"
               >
                 <button 
                   onClick={() => setIsUrgencyModalOpen(false)}
-                  className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 z-10"
+                  className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 z-10"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1974,7 +1974,7 @@ function CoordinatorDashboard() {
                 <div className="p-6 space-y-6">
                   <div>
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block mb-2 leading-none italic">Relato de Campo</label>
-                    <p className="p-4 bg-zinc-50 border border-zinc-100 rounded-xl text-xs font-bold text-zinc-700 italic leading-relaxed">
+                    <p className="p-4 bg-zinc-50 border border-zinc-100 rounded-sm text-xs font-bold text-zinc-700 italic leading-relaxed">
                       "{selectedUrgency.description}"
                     </p>
                   </div>
@@ -1985,7 +1985,7 @@ function CoordinatorDashboard() {
                       value={observation}
                       onChange={(e) => setObservation(e.target.value)}
                       placeholder="Oriente o líder regional..."
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-xs text-zinc-800 outline-none focus:border-zinc-950 transition-all h-28 resize-none placeholder:text-zinc-300"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-xs text-zinc-800 outline-none focus:border-zinc-950 transition-all h-28 resize-none placeholder:text-zinc-300"
                     />
                   </div>
                   
@@ -2000,7 +2000,7 @@ function CoordinatorDashboard() {
                         setIsUrgencyModalOpen(false);
                         alert("Solicitação Negada.");
                       }}
-                      className="bg-red-50 text-red-600 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest border border-red-100 hover:bg-red-600 hover:text-white transition-all shadow-sm shadow-red-500/5 active:scale-95"
+                      className="bg-red-50 text-red-600 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest border border-red-100 hover:bg-red-600 hover:text-white transition-all shadow-sm shadow-red-500/5 active:scale-95"
                     >
                       Negar
                     </button>
@@ -2014,7 +2014,7 @@ function CoordinatorDashboard() {
                         setIsUrgencyModalOpen(false);
                         alert("Solicitação Aprovada!");
                       }}
-                      className="bg-green-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/10 hover:bg-zinc-950 transition-all active:scale-95"
+                      className="bg-green-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/10 hover:bg-zinc-950 transition-all active:scale-95"
                     >
                       Aprovar
                     </button>
@@ -2038,14 +2038,15 @@ function CoordinatorDashboard() {
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
+              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative"
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
             >
               <button 
                 onClick={() => {
                   setIsTeamModalOpen(false);
                   setTeamCreationStep('form');
                 }}
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2070,7 +2071,7 @@ function CoordinatorDashboard() {
                       onChange={(e) => setNewTeam({...newTeam, name: e.target.value})}
                       placeholder="Ex: Tropa de Elite"
                       disabled={isEditMode}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all disabled:opacity-50 placeholder:text-zinc-300"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all disabled:opacity-50 placeholder:text-zinc-300"
                     />
                   </div>
                   
@@ -2082,7 +2083,7 @@ function CoordinatorDashboard() {
                       value={newTeam.leader}
                       onChange={(e) => setNewTeam({...newTeam, leader: e.target.value})}
                       placeholder="Nome Completo"
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
                     />
                   </div>
 
@@ -2096,7 +2097,7 @@ function CoordinatorDashboard() {
                         onChange={(e) => setNewTeam({...newTeam, leaderEmail: e.target.value})}
                         placeholder="lider@sistema.org"
                         disabled={isEditMode}
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all disabled:opacity-50 placeholder:text-zinc-300"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all disabled:opacity-50 placeholder:text-zinc-300"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -2107,7 +2108,7 @@ function CoordinatorDashboard() {
                         value={newTeam.leaderPhone}
                         onChange={(e) => setNewTeam({...newTeam, leaderPhone: e.target.value})}
                         placeholder="(00) 00000-0000"
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
                       />
                     </div>
                   </div>
@@ -2121,7 +2122,7 @@ function CoordinatorDashboard() {
                         value={newTeam.location}
                         onChange={(e) => setNewTeam({...newTeam, location: e.target.value})}
                         placeholder="Ex: Boa Vista - Polo Sul"
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -2132,7 +2133,7 @@ function CoordinatorDashboard() {
                         value={newTeam.leaderAddress}
                         onChange={(e) => setNewTeam({...newTeam, leaderAddress: e.target.value})}
                         placeholder="Logradouro completo"
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
                       />
                     </div>
                   </div>
@@ -2144,20 +2145,20 @@ function CoordinatorDashboard() {
                       onChange={(e) => setNewTeam({...newTeam, observations: e.target.value})}
                       placeholder="Diretrizes e observações cruciais..."
                       maxLength={1000}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 placeholder:text-zinc-300 resize-none"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 placeholder:text-zinc-300 resize-none"
                     />
                   </div>
                   
                   <button 
                     type="submit"
-                    className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-zinc-950/10 hover:bg-zinc-900 transition-all active:scale-[0.98] mt-2 italic"
+                    className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-zinc-950/10 hover:bg-zinc-900 transition-all active:scale-[0.98] mt-2 italic"
                   >
                     {isEditMode ? 'SALVAR ALTERAÇÕES' : 'EFETIVAR CADASTRO'}
                   </button>
                 </form>
               ) : (
                 <div className="p-8 space-y-6 text-center">
-                  <div className="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-2 border border-green-100">
+                  <div className="w-16 h-16 bg-green-50 text-green-600 rounded-sm flex items-center justify-center mx-auto mb-2 border border-green-100">
                     <CheckCircle2 className="w-8 h-8" />
                   </div>
                   <h3 className="text-xl font-black text-zinc-900 uppercase tracking-tighter italic">Credenciais Geradas</h3>
@@ -2165,7 +2166,7 @@ function CoordinatorDashboard() {
                     Transmita o link de segurança abaixo para <span className="text-zinc-950">{newTeam.leader}</span>. Acesso imediato e restrito via Token Único.
                   </p>
                   
-                  <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-100 break-all text-[9px] font-mono font-black text-blue-600 select-all italic">
+                  <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100 break-all text-[9px] font-mono font-black text-blue-600 select-all italic">
                     {createdTeamLink}
                   </div>
 
@@ -2175,7 +2176,7 @@ function CoordinatorDashboard() {
                         navigator.clipboard.writeText(createdTeamLink);
                         alert("Link copiado!");
                       }}
-                      className="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-95"
+                      className="w-full bg-blue-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-95"
                     >
                       Copiar Link de Segurança
                     </button>
@@ -2199,7 +2200,7 @@ function CoordinatorDashboard() {
                           spent: 0
                         });
                       }}
-                      className="w-full bg-zinc-100 text-zinc-500 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all"
+                      className="w-full bg-zinc-100 text-zinc-500 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all"
                     >
                       Fechar
                     </button>
@@ -2220,11 +2221,11 @@ function CoordinatorDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
+              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-zinc-200"
             >
               <button 
                 onClick={() => setIsAgendaCreateModalOpen(false)}
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2245,7 +2246,7 @@ function CoordinatorDashboard() {
                     value={agendaForm.municipio}
                     onChange={(e) => setAgendaForm({...agendaForm, municipio: e.target.value})}
                     placeholder="Ex: Boa Vista / Centro"
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
                   />
                 </div>
                 
@@ -2256,7 +2257,7 @@ function CoordinatorDashboard() {
                     type="date" 
                     value={agendaForm.data}
                     onChange={(e) => setAgendaForm({...agendaForm, data: e.target.value})}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
                   />
                 </div>
 
@@ -2268,7 +2269,7 @@ function CoordinatorDashboard() {
                       type="time" 
                       value={agendaForm.hora_inicio}
                       onChange={(e) => setAgendaForm({...agendaForm, hora_inicio: e.target.value})}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -2278,7 +2279,7 @@ function CoordinatorDashboard() {
                       type="time" 
                       value={agendaForm.hora_fim}
                       onChange={(e) => setAgendaForm({...agendaForm, hora_fim: e.target.value})}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
                     />
                   </div>
                 </div>
@@ -2289,13 +2290,13 @@ function CoordinatorDashboard() {
                      value={agendaForm.motivo}
                      onChange={(e) => setAgendaForm({...agendaForm, motivo: e.target.value})}
                      placeholder="Breve descrição do objetivo..."
-                     className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 resize-none placeholder:text-zinc-300"
+                     className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 resize-none placeholder:text-zinc-300"
                    />
                 </div>
                 
                 <button 
                   type="submit"
-                  className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl border-zinc-950 hover:bg-zinc-900 transition-all mt-2 italic"
+                  className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl border-zinc-950 hover:bg-zinc-900 transition-all mt-2 italic"
                 >
                   {editingAgenda ? 'ATUALIZAR CRONOGRAMA' : 'PUBLICAR EVENTO'}
                 </button>
@@ -2314,11 +2315,11 @@ function CoordinatorDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 50 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 50 }}
-              className="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-2xl rounded-sm overflow-hidden shadow-2xl relative"
             >
               <button 
                 onClick={() => setIsBriefingModalOpen(false)}
-                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200"
+                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -2337,7 +2338,7 @@ function CoordinatorDashboard() {
               <div className="p-8 bg-white border-t border-zinc-100 flex gap-4">
                 <button 
                   onClick={() => setIsBriefingModalOpen(false)}
-                  className="flex-1 bg-zinc-950 text-white py-5 rounded-2xl font-black text-lg shadow-xl"
+                  className="flex-1 bg-zinc-950 text-white py-5 rounded-sm font-black text-lg shadow-xl"
                 >
                   ENTENDIDO, COPIAR PARA O CANDIDATO
                 </button>
@@ -2356,7 +2357,7 @@ function CoordinatorDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.95, y: 40 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 40 }}
-              className="bg-white w-full max-w-4xl rounded-[3rem] overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]"
+              className="bg-white w-full max-w-4xl rounded-sm overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]"
             >
               <button 
                 onClick={() => {
@@ -2364,7 +2365,7 @@ function CoordinatorDashboard() {
                   setSelectedManagingTeam(null);
                   setManagingTeamVoters([]);
                 }} 
-                className="absolute top-8 right-8 bg-zinc-100 p-3 rounded-full text-zinc-500 hover:bg-zinc-200 transition-all z-10"
+                className="absolute top-8 right-8 bg-zinc-100 p-3 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all z-10"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -2372,7 +2373,7 @@ function CoordinatorDashboard() {
               <div className="bg-zinc-950 p-10 border-b-8 border-yellow-500 text-left">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                   <div className="flex items-center gap-6">
-                    <div className="bg-yellow-500 text-zinc-950 w-20 h-20 rounded-3xl flex items-center justify-center font-black text-3xl shadow-lg shadow-yellow-500/20">
+                    <div className="bg-yellow-500 text-zinc-950 w-20 h-20 rounded-sm flex items-center justify-center font-black text-3xl shadow-lg shadow-yellow-500/20">
                       {selectedManagingTeam.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -2386,13 +2387,13 @@ function CoordinatorDashboard() {
                   <div className="flex gap-2">
                      <button 
                        onClick={() => handleEditTeam(selectedManagingTeam)}
-                       className="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-zinc-700 hover:bg-zinc-700 shadow-lg"
+                       className="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest border border-zinc-700 hover:bg-zinc-700 shadow-lg"
                      >
                        Editar Equipe
                      </button>
                      <button 
                        onClick={() => handleDeleteTeam(selectedManagingTeam.id || selectedManagingTeam.name.toLowerCase(), selectedManagingTeam.name)}
-                       className="bg-red-950/30 text-red-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-red-900/20 hover:bg-red-900/40"
+                       className="bg-red-950/30 text-red-500 px-4 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest border border-red-900/20 hover:bg-red-900/40"
                      >
                        Excluir Equipe
                      </button>
@@ -2403,10 +2404,10 @@ function CoordinatorDashboard() {
               <div className="flex-1 overflow-y-auto p-10">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                   <div className="lg:col-span-1 space-y-8">
-                     <div className="bg-zinc-50 p-6 rounded-[2rem] border-2 border-zinc-100">
+                     <div className="bg-zinc-50 p-6 rounded-sm border-2 border-zinc-100">
                         <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4">Líder e Contato</p>
                         <div className="flex items-center gap-4 mb-6">
-                           <div className="bg-zinc-200 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-zinc-600">
+                           <div className="bg-zinc-200 w-12 h-12 rounded-sm flex items-center justify-center font-black text-zinc-600">
                               {selectedManagingTeam.leader.charAt(0).toUpperCase()}
                            </div>
                            <div className="text-left font-sans">
@@ -2428,11 +2429,11 @@ function CoordinatorDashboard() {
                      </div>
 
                      <div className="grid grid-cols-2 gap-4 font-sans">
-                        <div className="bg-green-50 p-6 rounded-3xl border border-green-100 text-center">
+                        <div className="bg-green-50 p-6 rounded-sm border border-green-100 text-center">
                            <p className="text-2xl font-black text-green-700 leading-none">{managingTeamVoters.length}</p>
                            <p className="text-[8px] font-black text-green-600 uppercase tracking-widest mt-2">Membros</p>
                         </div>
-                        <div className="bg-zinc-900 p-6 rounded-3xl text-center">
+                        <div className="bg-zinc-900 p-6 rounded-sm text-center">
                            <p className="text-2xl font-black text-yellow-500 leading-none">ATIVO</p>
                            <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mt-2">Status</p>
                         </div>
@@ -2442,16 +2443,16 @@ function CoordinatorDashboard() {
                   <div className="lg:col-span-2 text-left font-sans">
                      <div className="flex justify-between items-center mb-6">
                         <h3 className="text-xl font-black text-zinc-950 uppercase tracking-tighter flex items-center gap-3">
-                           Membros Cadastrados <span className="bg-zinc-100 text-zinc-400 px-3 py-1 rounded-full text-xs">{managingTeamVoters.length}</span>
+                           Membros Cadastrados <span className="bg-zinc-100 text-zinc-400 px-3 py-1 rounded-sm text-xs">{managingTeamVoters.length}</span>
                         </h3>
                      </div>
 
                      <div className="space-y-3">
                         {managingTeamVoters.length > 0 ? (
                           managingTeamVoters.sort((a,b) => a.name.localeCompare(b.name)).map((vx) => (
-                           <div key={vx.id} className="group bg-white p-5 rounded-3xl border-2 border-zinc-100 hover:border-yellow-500 transition-all flex items-center justify-between shadow-sm">
+                           <div key={vx.id} className="group bg-white p-5 rounded-sm border-2 border-zinc-100 hover:border-yellow-500 transition-all flex items-center justify-between shadow-sm">
                               <div className="flex items-center gap-4">
-                                 <div className="bg-zinc-100 group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg">
+                                 <div className="bg-zinc-100 group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors w-12 h-12 rounded-sm flex items-center justify-center font-black text-lg">
                                     {vx.name.charAt(0).toUpperCase()}
                                  </div>
                                  <div>
@@ -2465,7 +2466,7 @@ function CoordinatorDashboard() {
                                       const cleanPhone = vx.phone.replace(/\D/g, '');
                                       window.open(`https://wa.me/55${cleanPhone}`, '_blank');
                                    }}
-                                   className="p-3 bg-zinc-50 rounded-xl text-zinc-400 hover:text-green-600 hover:bg-green-50 transition-all"
+                                   className="p-3 bg-zinc-50 rounded-sm text-zinc-400 hover:text-green-600 hover:bg-green-50 transition-all"
                                  >
                                     <Phone className="w-4 h-4" />
                                  </button>
@@ -2480,7 +2481,7 @@ function CoordinatorDashboard() {
                                       setSelectedVoter(vx);
                                       setIsVoterEditModalOpen(true);
                                    }}
-                                   className="p-3 bg-zinc-50 rounded-xl text-zinc-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                                   className="p-3 bg-zinc-50 rounded-sm text-zinc-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
                                  >
                                     <Edit3 className="w-4 h-4" />
                                  </button>
@@ -2495,14 +2496,14 @@ function CoordinatorDashboard() {
                                          }
                                       }
                                    }}
-                                   className="p-3 bg-red-600 text-white rounded-xl hover:bg-red-700 shadow-md transition-all active:scale-95"
+                                   className="p-3 bg-red-600 text-white rounded-sm hover:bg-red-700 shadow-md transition-all active:scale-95"
                                  >
                                     <Trash2 className="w-4 h-4" />
                                  </button>
                               </div>
                            </div>
                         ))) : (
-                           <div className="py-20 text-center bg-zinc-50 rounded-[3rem] border-2 border-dashed border-zinc-200">
+                           <div className="py-20 text-center bg-zinc-50 rounded-sm border-2 border-dashed border-zinc-200">
                               <p className="font-black text-zinc-300 uppercase tracking-widest italic">Nenhum eleitor registrado por este líder ainda.</p>
                            </div>
                         )}
@@ -2524,14 +2525,14 @@ function CoordinatorDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative"
             >
               <button 
                 onClick={() => {
                    setIsVoterEditModalOpen(false);
                    setSelectedVoter(null);
                 }} 
-                className="absolute top-5 right-5 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 transition-all"
+                className="absolute top-5 right-5 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2544,22 +2545,22 @@ function CoordinatorDashboard() {
               <form onSubmit={handleVoterEditSubmit} className="p-6 space-y-4 text-left">
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
-                  <input required type="text" value={voterEditForm.name} onChange={e => setVoterEditForm({...voterEditForm, name: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="Digite o nome..." />
+                  <input required type="text" value={voterEditForm.name} onChange={e => setVoterEditForm({...voterEditForm, name: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Digite o nome..." />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Telefone / WhatsApp</label>
-                  <input type="text" value={voterEditForm.phone} onChange={e => setVoterEditForm({...voterEditForm, phone: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="(00) 00000-0000" />
+                  <input type="text" value={voterEditForm.phone} onChange={e => setVoterEditForm({...voterEditForm, phone: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="(00) 00000-0000" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Endereço / Referência</label>
-                  <input type="text" value={voterEditForm.address} onChange={e => setVoterEditForm({...voterEditForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="Rua, Bairro, N..." />
+                  <input type="text" value={voterEditForm.address} onChange={e => setVoterEditForm({...voterEditForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Rua, Bairro, N..." />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Observações Estratégicas</label>
-                  <textarea value={voterEditForm.observations} onChange={e => setVoterEditForm({...voterEditForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm h-24" placeholder="Ex: Prioritário, transporte necessário..."></textarea>
+                  <textarea value={voterEditForm.observations} onChange={e => setVoterEditForm({...voterEditForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm h-24" placeholder="Ex: Prioritário, transporte necessário..."></textarea>
                 </div>
                 
-                <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-base shadow-xl shadow-zinc-200 mt-2 active:scale-95 transition-all">
+                <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-sm font-black text-base shadow-xl shadow-zinc-200 mt-2 active:scale-95 transition-all">
                   SALVAR ALTERAÇÕES
                 </button>
               </form>
@@ -2576,25 +2577,25 @@ function CoordinatorDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative"
             >
               <button 
                 onClick={() => setIsProfileModalOpen(false)} 
-                className="absolute top-5 right-5 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 z-10"
+                className="absolute top-5 right-5 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 z-10"
               >
                 <X className="w-5 h-5" />
               </button>
               <div className="bg-zinc-950 p-6 border-b-4 border-yellow-500 text-left">
                 <div className="flex items-center gap-4">
                    <div className="relative group">
-                      <div className="w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center border-2 border-zinc-700 overflow-hidden">
+                      <div className="w-16 h-16 bg-zinc-800 rounded-sm flex items-center justify-center border-2 border-zinc-700 overflow-hidden">
                          {profileData?.photoUrl ? (
                            <img src={profileData.photoUrl} alt="Perfil" className="w-full h-full object-cover" />
                          ) : (
                            <User className="w-8 h-8 text-zinc-600" />
                          )}
                       </div>
-                      <label className="absolute -bottom-1 -right-1 bg-yellow-500 p-1.5 rounded-lg text-zinc-950 shadow-lg hover:scale-110 transition-all cursor-pointer">
+                      <label className="absolute -bottom-1 -right-1 bg-yellow-500 p-1.5 rounded-sm text-zinc-950 shadow-lg hover:scale-110 transition-all cursor-pointer">
                          <Camera className="w-3.5 h-3.5" />
                          <input 
                            type="file" 
@@ -2661,24 +2662,24 @@ function CoordinatorDashboard() {
                     name="photoUrl" 
                     onChange={(e) => setProfileData((prev: any) => ({ ...prev, photoUrl: e.target.value }))}
                     type="text" 
-                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" 
+                    className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" 
                     placeholder="https://..." 
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
-                  <input defaultValue={profileData?.name} name="name" type="text" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="Seu nome real..." />
+                  <input defaultValue={profileData?.name} name="name" type="text" className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Seu nome real..." />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Telefone Profissional</label>
-                  <input defaultValue={profileData?.phone} name="phone" type="text" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="(00) 00000-0000" />
+                  <input defaultValue={profileData?.phone} name="phone" type="text" className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="(00) 00000-0000" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Cargo / Biografia</label>
-                  <textarea defaultValue={profileData?.bio} name="bio" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm h-24" placeholder="Ex: Coordenador de Logística e Transmissão..."></textarea>
+                  <textarea defaultValue={profileData?.bio} name="bio" className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm h-24" placeholder="Ex: Coordenador de Logística e Transmissão..."></textarea>
                 </div>
                 
-                <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-base shadow-xl shadow-zinc-200 mt-2 active:scale-95 transition-all">
+                <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-sm font-black text-base shadow-xl shadow-zinc-200 mt-2 active:scale-95 transition-all">
                   SALVAR CONFIGURAÇÕES
                 </button>
 
@@ -2688,7 +2689,7 @@ function CoordinatorDashboard() {
                     <button 
                       type="button"
                       onClick={handleResetSystem}
-                      className="w-full bg-red-50 text-red-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest border border-red-100 hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                      className="w-full bg-red-50 text-red-600 py-3 rounded-sm font-black text-xs uppercase tracking-widest border border-red-100 hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
                     >
                       <Trash2 className="w-4 h-4" /> Zerar Tudo do Zero
                     </button>
@@ -2709,7 +2710,7 @@ function CoordinatorDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-2xl rounded-sm overflow-hidden shadow-2xl relative"
             >
               <button 
                 onClick={() => setIsAgendaDetailModalOpen(false)}
@@ -2720,7 +2721,7 @@ function CoordinatorDashboard() {
 
               <div className="bg-zinc-950 p-12 text-left">
                 <div className="flex items-center gap-6">
-                   <div className="w-20 h-20 bg-yellow-500 rounded-3xl flex flex-col items-center justify-center text-zinc-950 text-center">
+                   <div className="w-20 h-20 bg-yellow-500 rounded-sm flex flex-col items-center justify-center text-zinc-950 text-center">
                       <span className="text-[10px] font-black uppercase leading-none">{new Date(selectedAgenda.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
                       <span className="text-3xl font-black">{new Date(selectedAgenda.data).getDate()}</span>
                    </div>
@@ -2745,7 +2746,7 @@ function CoordinatorDashboard() {
                    </div>
                 </div>
 
-                <div className="bg-zinc-50 p-8 rounded-3xl border-2 border-zinc-100">
+                <div className="bg-zinc-50 p-8 rounded-sm border-2 border-zinc-100">
                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Objetivo Estratégico</p>
                    <p className="text-xl font-bold text-zinc-700 leading-relaxed italic">
                       "{selectedAgenda.motivo || 'Nenhum motivo detalhado informado.'}"
@@ -2753,14 +2754,14 @@ function CoordinatorDashboard() {
                 </div>
 
                 <div className="flex items-center gap-4 pt-4">
-                   <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl flex items-center gap-3 flex-1 border border-blue-100">
+                   <div className="p-4 bg-blue-50 text-blue-600 rounded-sm flex items-center gap-3 flex-1 border border-blue-100">
                       <Users className="w-6 h-6" />
                       <div>
                          <p className="text-[10px] font-black uppercase tracking-tighter">Mobilização</p>
                          <p className="text-sm font-bold">Equipe e Membros</p>
                       </div>
                    </div>
-                   <div className="p-4 bg-green-50 text-green-600 rounded-2xl flex items-center gap-3 flex-1 border border-green-100">
+                   <div className="p-4 bg-green-50 text-green-600 rounded-sm flex items-center gap-3 flex-1 border border-green-100">
                       <CheckCircle2 className="w-6 h-6" />
                       <div>
                          <p className="text-[10px] font-black uppercase tracking-tighter">Status</p>
@@ -2782,7 +2783,7 @@ function CoordinatorDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-2xl rounded-sm overflow-hidden shadow-2xl relative"
             >
               <button 
                 onClick={() => setIsHistoryModalOpen(false)}
@@ -2800,19 +2801,19 @@ function CoordinatorDashboard() {
 
               <div className="p-10 space-y-6 text-left max-h-[60vh] overflow-y-auto">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-                   <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                   <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100">
                       <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Contatos</p>
                       <p className="text-xl font-black">{selectedHistoryTeam.contacts || 0}</p>
                    </div>
-                   <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                   <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100">
                       <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest text-center">Alocado</p>
                       <p className="text-xl font-black text-blue-600">R$ {selectedHistoryTeam.allocated || 0}</p>
                    </div>
-                   <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                   <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100">
                       <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest text-center">Gasto</p>
                       <p className="text-xl font-black text-red-600">R$ {selectedHistoryTeam.spent || 0}</p>
                    </div>
-                   <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                   <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100">
                       <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest text-center">Ponto</p>
                       <p className="text-sm font-black text-green-600">OK (98%)</p>
                    </div>
@@ -2821,7 +2822,7 @@ function CoordinatorDashboard() {
                 <div className="space-y-3">
                    <h3 className="text-xs font-black uppercase text-zinc-400 tracking-widest">Últimas Movimentações Financeiras</h3>
                    {teamHistory.length > 0 ? teamHistory.map((tx: any) => (
-                     <div key={tx.id} className="p-4 bg-white border border-zinc-100 rounded-xl flex justify-between items-center shadow-sm">
+                     <div key={tx.id} className="p-4 bg-white border border-zinc-100 rounded-sm flex justify-between items-center shadow-sm">
                         <div className="text-left">
                            <p className="text-sm font-black uppercase text-zinc-800">{tx.description || 'Movimentação sem descrição'}</p>
                            <p className="text-[10px] text-zinc-500 italic">{tx.purpose || 'Uso operacional'}</p>
@@ -2844,7 +2845,7 @@ function CoordinatorDashboard() {
       </AnimatePresence>
 
       {/* MOBILE BOTTOM NAV - COORDINATOR */}
-      <nav className="lg:hidden fixed bottom-6 left-6 right-6 h-20 bg-white/90 backdrop-blur-xl border border-zinc-200 rounded-full flex items-center justify-around px-4 z-50 shadow-2xl">
+      <nav className="lg:hidden fixed bottom-6 left-6 right-6 h-20 bg-white/90 backdrop-blur-xl border border-zinc-200 rounded-sm flex items-center justify-around px-4 z-50 shadow-2xl">
         {[
           { id: 'overview', label: 'Dash', icon: <LayoutDashboard className="w-5 h-5" /> },
           { id: 'teams', label: 'Equipes', icon: <Users className="w-5 h-5" /> },
@@ -2862,7 +2863,7 @@ function CoordinatorDashboard() {
               : 'text-zinc-400'
             }`}
           >
-            <div className={`p-2 rounded-xl transition-all ${activeTab === tab.id ? 'bg-yellow-500/10' : ''}`}>
+            <div className={`p-2 rounded-sm transition-all ${activeTab === tab.id ? 'bg-yellow-500/10' : ''}`}>
               {tab.icon}
             </div>
             <span className="text-[8px] font-black uppercase tracking-[0.1em]">
@@ -2875,7 +2876,7 @@ function CoordinatorDashboard() {
       <motion.button 
         whileTap={{ scale: 0.9 }} 
         onClick={() => setIsAiModalOpen(true)}
-        className="fixed bottom-32 right-6 w-16 h-16 bg-zinc-950 text-yellow-500 rounded-full shadow-2xl border-4 border-yellow-500 flex items-center justify-center z-[100] lg:bottom-6"
+        className="fixed bottom-32 right-6 w-16 h-16 bg-zinc-950 text-yellow-500 rounded-sm shadow-2xl border-4 border-yellow-500 flex items-center justify-center z-[100] lg:bottom-6"
       >
         <Mic className="w-8 h-8" />
       </motion.button>
@@ -3396,7 +3397,7 @@ function CaboDashboard() {
       <aside className="hidden lg:flex w-72 bg-zinc-950 border-r border-white/5 flex-col flex-shrink-0 relative z-20">
         <div className="p-6 border-b border-white/5 bg-gradient-to-br from-zinc-900 to-black">
           <div className="flex items-center gap-3 mb-6">
-            <div className="bg-yellow-500 p-2.5 rounded-xl shadow-lg shadow-yellow-500/10">
+            <div className="bg-yellow-500 p-2.5 rounded-sm shadow-lg shadow-yellow-500/10">
               <ShieldCheck className="w-6 h-6 text-zinc-950" />
             </div>
             <div>
@@ -3405,7 +3406,7 @@ function CaboDashboard() {
             </div>
           </div>
 
-          <div className="bg-white/5 rounded-2xl p-5 border border-white/5 backdrop-blur-sm relative overflow-hidden group">
+          <div className="bg-white/5 rounded-sm p-5 border border-white/5 backdrop-blur-sm relative overflow-hidden group">
             <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-all">
               <User className="w-16 h-16" />
             </div>
@@ -3430,7 +3431,7 @@ function CaboDashboard() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all group ${
+              className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-sm font-black text-[9px] uppercase tracking-widest transition-all group ${
                 activeTab === tab.id 
                 ? 'bg-yellow-500 text-zinc-950 shadow-xl shadow-yellow-500/10' 
                 : 'text-zinc-500 hover:bg-white/5 hover:text-white'
@@ -3447,7 +3448,7 @@ function CaboDashboard() {
         <div className="p-5 border-t border-white/5">
           <button 
             onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-red-500/10 text-red-500 font-black text-[9px] uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all shadow-lg"
+            className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-sm bg-red-500/10 text-red-500 font-black text-[9px] uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all shadow-lg"
           >
             <LogOut className="w-3.5 h-3.5" /> Desligar Terminal
           </button>
@@ -3463,14 +3464,14 @@ function CaboDashboard() {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
-             <div className="bg-yellow-500/10 text-yellow-500 px-4 py-2 rounded-full border border-yellow-500/20 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
+             <div className="bg-yellow-500/10 text-yellow-500 px-4 py-2 rounded-sm border border-yellow-500/20 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></div>
                 Setor: {profileData.zone || 'Identificando...'}
              </div>
           </div>
 
           <div className="flex items-center gap-3 lg:gap-4">
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-sm border transition-all ${
                 isOnline 
                 ? 'bg-green-500/10 border-green-500/20 text-green-500' 
                 : 'bg-orange-500/10 border-orange-500/20 text-orange-500'
@@ -3483,7 +3484,7 @@ function CaboDashboard() {
 
             <button 
               onClick={() => setIsProfileModalOpen(true)}
-              className="p-3 bg-zinc-900 border border-white/5 rounded-2xl text-zinc-400 hover:bg-zinc-800 hover:text-yellow-500 transition-all shadow-xl"
+              className="p-3 bg-zinc-900 border border-white/5 rounded-sm text-zinc-400 hover:bg-zinc-800 hover:text-yellow-500 transition-all shadow-xl"
             >
               <Settings className="w-5 h-5" />
             </button>
@@ -3497,22 +3498,22 @@ function CaboDashboard() {
             {activeTab === 'logistica' ? (
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
                 {isLocating && (
-                  <div className="bg-yellow-500/10 border-2 border-yellow-500/20 text-yellow-500 p-6 rounded-3xl text-center flex items-center justify-center gap-4 font-black text-xs uppercase tracking-[0.2em] shadow-2xl">
+                  <div className="bg-yellow-500/10 border-2 border-yellow-500/20 text-yellow-500 p-6 rounded-sm text-center flex items-center justify-center gap-4 font-black text-xs uppercase tracking-[0.2em] shadow-2xl">
                     <RefreshCcw className="w-6 h-6 animate-spin" /> Verificando Assinatura de GPS e Segurança de Campo...
                   </div>
                 )}
 
                 {dailyOrder?.text && (
-                  <motion.section 
+                  <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-zinc-950 border-2 border-yellow-500/50 rounded-[2.5rem] p-10 shadow-[0_0_50px_-12px_rgba(234,179,8,0.3)] relative overflow-hidden group"
+                    className="bg-zinc-950 border-2 border-yellow-500/50 rounded-sm p-10 shadow-[0_0_50px_-12px_rgba(234,179,8,0.3)] relative overflow-hidden group"
                   >
                     <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
                       <ShieldCheck className="w-32 h-32 text-yellow-500 rotate-12" />
                     </div>
                     <div className="flex items-center gap-4 mb-6">
-                      <div className="bg-yellow-500 p-3 rounded-2xl"><Zap className="w-6 h-6 text-zinc-950" /></div>
+                      <div className="bg-yellow-500 p-3 rounded-sm"><Zap className="w-6 h-6 text-zinc-950" /></div>
                       <div>
                         <h3 className="text-white font-black text-xl uppercase tracking-tighter italic">Ordem do Dia</h3>
                         <p className="text-yellow-500 text-[8px] font-black uppercase tracking-[0.2em] mt-1">Diretriz Crítica de Campo</p>
@@ -3528,12 +3529,12 @@ function CaboDashboard() {
                 )}
 
                 {teamData?.observations && (
-                  <section className="bg-white border-2 border-zinc-100 rounded-[2.5rem] p-10 shadow-sm relative overflow-hidden group">
+                  <section className="bg-white border-2 border-zinc-100 rounded-sm p-10 shadow-sm relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-all pointer-events-none">
                       <StickyNote className="w-32 h-32 text-zinc-900 rotate-12" />
                     </div>
                     <div className="flex items-center gap-4 mb-6">
-                      <div className="bg-zinc-950 p-3 rounded-2xl"><StickyNote className="w-6 h-6 text-yellow-500" /></div>
+                      <div className="bg-zinc-950 p-3 rounded-sm"><StickyNote className="w-6 h-6 text-yellow-500" /></div>
                       <h3 className="text-zinc-950 font-black text-xl uppercase tracking-tighter italic">Comunicações da Central</h3>
                     </div>
                     <p className="text-zinc-600 font-bold text-lg leading-relaxed whitespace-pre-wrap pl-2 border-l-4 border-yellow-500">
@@ -3554,12 +3555,12 @@ function CaboDashboard() {
                       key={action.id}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => processAction(action.id as any)}
-                      className={`aspect-square bg-zinc-900 text-white rounded-[2.5rem] p-6 lg:p-8 flex flex-col items-center justify-center gap-6 shadow-2xl border border-white/5 hover:bg-zinc-800 transition-all group relative overflow-hidden`}
+                      className={`aspect-square bg-zinc-900 text-white rounded-sm p-6 lg:p-8 flex flex-col items-center justify-center gap-6 shadow-2xl border border-white/5 hover:bg-zinc-800 transition-all group relative overflow-hidden`}
                     >
                       <div className={`absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity`}>
                         {action.icon}
                       </div>
-                      <div className={`bg-${action.color}-500/10 p-5 rounded-2xl group-hover:bg-${action.color}-500/20 transition-all shadow-inner`}>
+                      <div className={`bg-${action.color}-500/10 p-5 rounded-sm group-hover:bg-${action.color}-500/20 transition-all shadow-inner`}>
                         <div className={`text-${action.color}-500`}>{action.icon}</div>
                       </div>
                       <div className="text-center">
@@ -3576,10 +3577,10 @@ function CaboDashboard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-12">
                   {myRequests.length > 0 && (
-                    <section className="bg-white border-2 border-zinc-100 rounded-[2.5rem] p-10 shadow-sm overflow-hidden flex flex-col h-full group">
+                    <section className="bg-white border-2 border-zinc-100 rounded-sm p-10 shadow-sm overflow-hidden flex flex-col h-full group">
                       <div className="flex justify-between items-center mb-8">
                         <h3 className="text-zinc-950 font-black text-lg uppercase tracking-tighter flex items-center gap-3 italic">
-                          <div className="bg-zinc-100 p-2 rounded-xl group-hover:bg-zinc-950 group-hover:text-white transition-all"><RefreshCcw className="w-5 h-5 text-zinc-400 group-hover:text-yellow-500" /></div>
+                          <div className="bg-zinc-100 p-2 rounded-sm group-hover:bg-zinc-950 group-hover:text-white transition-all"><RefreshCcw className="w-5 h-5 text-zinc-400 group-hover:text-yellow-500" /></div>
                           Fluxo de Suporte
                         </h3>
                         <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Últimas 5</span>
@@ -3589,10 +3590,10 @@ function CaboDashboard() {
                           <motion.div 
                             key={req.id} 
                             initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                            className="p-5 bg-zinc-50 rounded-3xl border border-zinc-100 flex items-center justify-between gap-6 hover:bg-zinc-100 transition-all group/item"
+                            className="p-5 bg-zinc-50 rounded-sm border border-zinc-100 flex items-center justify-between gap-6 hover:bg-zinc-100 transition-all group/item"
                           >
                             <div className="flex items-center gap-4">
-                              <div className={`p-4 rounded-2xl shadow-sm ${
+                              <div className={`p-4 rounded-sm shadow-sm ${
                                 req.type === 'combustivel' ? 'bg-blue-100 text-blue-600' : 
                                 req.type === 'demanda' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
                               }`}>
@@ -3603,7 +3604,7 @@ function CaboDashboard() {
                                 <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">{new Date(req.createdAt).toLocaleDateString()} • {new Date(req.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                               </div>
                             </div>
-                            <span className={`text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-sm ${
+                            <span className={`text-[10px] font-black px-4 py-2 rounded-sm uppercase tracking-widest shadow-sm ${
                               req.status === 'aprovado' ? 'bg-green-100 text-green-700' : 
                               req.status === 'negado' ? 'bg-red-100 text-red-700' : 'bg-white text-zinc-400 border border-zinc-200'
                             }`}>
@@ -3616,10 +3617,10 @@ function CaboDashboard() {
                   )}
 
                   {myAgendas.length > 0 && (
-                    <section className="bg-white border-2 border-zinc-100 rounded-[2.5rem] p-10 shadow-sm overflow-hidden flex flex-col h-full group">
+                    <section className="bg-white border-2 border-zinc-100 rounded-sm p-10 shadow-sm overflow-hidden flex flex-col h-full group">
                       <div className="flex justify-between items-center mb-8">
                         <h3 className="text-zinc-950 font-black text-lg uppercase tracking-tighter flex items-center gap-3 italic">
-                          <div className="bg-zinc-100 p-2 rounded-xl group-hover:bg-zinc-950 group-hover:text-white transition-all"><Calendar className="w-5 h-5 text-zinc-400 group-hover:text-emerald-500" /></div>
+                          <div className="bg-zinc-100 p-2 rounded-sm group-hover:bg-zinc-950 group-hover:text-white transition-all"><Calendar className="w-5 h-5 text-zinc-400 group-hover:text-emerald-500" /></div>
                           Monitor de Agenda
                         </h3>
                         <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Ativas</span>
@@ -3629,10 +3630,10 @@ function CaboDashboard() {
                           <motion.div 
                             key={agenda.id} 
                             initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                            className="p-5 bg-zinc-50 rounded-3xl border border-zinc-100 flex items-center justify-between gap-6 hover:bg-zinc-100 transition-all group/item"
+                            className="p-5 bg-zinc-50 rounded-sm border border-zinc-100 flex items-center justify-between gap-6 hover:bg-zinc-100 transition-all group/item"
                           >
                             <div className="flex items-center gap-4">
-                              <div className={`p-4 rounded-2xl shadow-sm ${
+                              <div className={`p-4 rounded-sm shadow-sm ${
                                 agenda.status === 'confirmado' ? 'bg-green-100 text-green-600' : 
                                 agenda.status === 'negado' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'
                               }`}>
@@ -3644,7 +3645,7 @@ function CaboDashboard() {
                               </div>
                             </div>
                             <div className="flex flex-col items-end gap-2">
-                              <span className={`text-[9px] font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-sm ${
+                              <span className={`text-[9px] font-black px-4 py-2 rounded-sm uppercase tracking-widest shadow-sm ${
                                 agenda.status === 'confirmado' ? 'bg-green-100 text-green-700' : 
                                 agenda.status === 'negado' ? 'bg-red-100 text-red-700' : 'bg-white text-orange-600 border border-orange-100'
                               }`}>
@@ -3671,12 +3672,12 @@ function CaboDashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <section className="bg-zinc-950 text-white rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden group border border-white/5">
+                  <section className="bg-zinc-950 text-white rounded-sm p-10 shadow-2xl relative overflow-hidden group border border-white/5">
                     <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent"></div>
-                    <div className="bg-zinc-900/50 p-4 rounded-full relative mb-6 w-max mx-auto shadow-inner border border-white/5">
+                    <div className="bg-zinc-900/50 p-4 rounded-sm relative mb-6 w-max mx-auto shadow-inner border border-white/5">
                       <RefreshCcw className={`w-10 h-10 text-yellow-500 ${queueCount > 0 ? 'animate-spin-slow' : ''}`} />
                       {queueCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-yellow-500 text-zinc-950 text-xs font-black w-8 h-8 flex items-center justify-center rounded-full border-4 border-zinc-950 shadow-2xl">
+                        <span className="absolute -top-1 -right-1 bg-yellow-500 text-zinc-950 text-xs font-black w-8 h-8 flex items-center justify-center rounded-sm border-4 border-zinc-950 shadow-2xl">
                           {queueCount}
                         </span>
                       )}
@@ -3689,7 +3690,7 @@ function CaboDashboard() {
                       {isOnline && queueCount > 0 && (
                         <button 
                           onClick={syncOfflineQueue}
-                          className="mt-10 w-full bg-yellow-500 text-zinc-950 py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-xl hover:bg-white transition-all active:scale-95"
+                          className="mt-10 w-full bg-yellow-500 text-zinc-950 py-5 rounded-sm font-black text-sm uppercase tracking-[0.2em] shadow-xl hover:bg-white transition-all active:scale-95"
                         >
                           Sincronizar Terminal
                         </button>
@@ -3697,14 +3698,14 @@ function CaboDashboard() {
                     </div>
                   </section>
 
-                  <div className="bg-blue-600 p-10 rounded-[2.5rem] flex flex-col justify-center relative overflow-hidden shadow-2xl group">
+                  <div className="bg-blue-600 p-10 rounded-sm flex flex-col justify-center relative overflow-hidden shadow-2xl group">
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-transparent opacity-20"></div>
                     <ShieldCheck className="absolute -right-8 -bottom-8 w-48 h-48 text-white/10 rotate-12 group-hover:rotate-6 transition-all duration-500" />
                     <p className="text-white font-black text-2xl lg:text-3xl uppercase italic leading-tight text-left relative z-10 tracking-tighter">
                       "A vitória é o resultado do trabalho silencioso em cada bairro."
                     </p>
                     <div className="mt-8 flex items-center gap-4 relative z-10">
-                       <div className="w-16 h-1 bg-white/30 rounded-full overflow-hidden">
+                       <div className="w-16 h-1 bg-white/30 rounded-sm overflow-hidden">
                           <motion.div initial={{ x: -100 }} animate={{ x: 0 }} transition={{ duration: 2, repeat: Infinity }} className="w-full h-full bg-white"></motion.div>
                        </div>
                        <span className="text-blue-100 text-[10px] font-black uppercase tracking-[0.3em] opacity-80">Comando Estratégico Águia</span>
@@ -3714,7 +3715,7 @@ function CaboDashboard() {
               </motion.div>
             ) : activeTab === 'equipe' ? (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <div className="bg-white p-8 rounded-[2.5rem] border-2 border-zinc-200 shadow-xl text-center">
+            <div className="bg-white p-8 rounded-sm border-2 border-zinc-200 shadow-xl text-center">
               <Users className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
               <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Minha Equipe Regional</h2>
               <p className="text-zinc-500 font-medium text-sm">Base estratégica de eleitores fidelizados em campo.</p>
@@ -3728,10 +3729,10 @@ function CaboDashboard() {
                       setSelectedVoter(voter);
                       setIsVoterDetailOpen(true);
                     }}
-                    className="flex justify-between items-center p-5 bg-white rounded-3xl border-2 border-zinc-100 shadow-sm hover:border-yellow-500 transition-all cursor-pointer text-left"
+                    className="flex justify-between items-center p-5 bg-white rounded-sm border-2 border-zinc-100 shadow-sm hover:border-yellow-500 transition-all cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="bg-zinc-100 text-zinc-400 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg">
+                      <div className="bg-zinc-100 text-zinc-400 w-12 h-12 rounded-sm flex items-center justify-center font-black text-lg">
                         {voter.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -3742,7 +3743,7 @@ function CaboDashboard() {
                     <ChevronRight className="text-zinc-300" />
                   </motion.div>
                 )) : (
-                  <div className="p-12 border-2 border-dashed border-zinc-200 rounded-3xl text-center">
+                  <div className="p-12 border-2 border-dashed border-zinc-200 rounded-sm text-center">
                     <p className="font-black text-zinc-300 uppercase tracking-widest text-sm italic">Nenhum eleitor cadastrado ainda.</p>
                     <button 
                       onClick={() => setActiveTab('logistica')}
@@ -3757,7 +3758,7 @@ function CaboDashboard() {
           </motion.div>
         ) : activeTab === 'financeiro' ? (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <div className="bg-zinc-950 p-8 rounded-[2.5rem] border-b-8 border-green-500 text-white relative overflow-hidden shadow-2xl">
+            <div className="bg-zinc-950 p-8 rounded-sm border-b-8 border-green-500 text-white relative overflow-hidden shadow-2xl">
               <div className="absolute top-0 right-0 p-8 opacity-10">
                 <Wallet className="w-32 h-32" />
               </div>
@@ -3780,7 +3781,7 @@ function CaboDashboard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <section className="bg-white p-8 rounded-3xl border-2 border-zinc-100 shadow-sm">
+              <section className="bg-white p-8 rounded-sm border-2 border-zinc-100 shadow-sm">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-xs font-black uppercase text-zinc-400 tracking-widest flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-green-500" /> Alocações do Coordenador
@@ -3788,7 +3789,7 @@ function CaboDashboard() {
                 </div>
                 <div className="space-y-3">
                   {teamTransactions.filter(t => t.type === 'alocacao').length > 0 ? teamTransactions.filter(t => t.type === 'alocacao').map(tx => (
-                    <div key={tx.id} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex justify-between items-center">
+                    <div key={tx.id} className="p-4 bg-zinc-50 rounded-sm border border-zinc-100 flex justify-between items-center">
                       <div className="text-left">
                         <p className="font-black text-sm uppercase text-zinc-800">Recurso Recebido</p>
                         <p className="text-[10px] text-zinc-500 font-bold italic">"{tx.purpose || 'Uso em campo'}"</p>
@@ -3804,12 +3805,12 @@ function CaboDashboard() {
                               setSelectedTxToSign(tx);
                               setIsSignReceiptModalOpen(true);
                             }}
-                            className="bg-yellow-500 text-zinc-950 px-3 py-1.5 rounded-lg font-black text-[9px] uppercase shadow-lg shadow-yellow-100"
+                            className="bg-yellow-500 text-zinc-950 px-3 py-1.5 rounded-sm font-black text-[9px] uppercase shadow-lg shadow-yellow-100"
                           >
                             Assinar Recibo
                           </button>
                         ) : (
-                          <div className="bg-green-100 text-green-600 p-1.5 rounded-full" title="Recibo Assinado">
+                          <div className="bg-green-100 text-green-600 p-1.5 rounded-sm" title="Recibo Assinado">
                             <CheckCircle2 className="w-4 h-4" />
                           </div>
                         )}
@@ -3821,14 +3822,14 @@ function CaboDashboard() {
                 </div>
               </section>
 
-              <section className="bg-white p-8 rounded-3xl border-2 border-zinc-100 shadow-sm">
+              <section className="bg-white p-8 rounded-sm border-2 border-zinc-100 shadow-sm">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-xs font-black uppercase text-zinc-400 tracking-widest flex items-center gap-2">
                     <History className="w-4 h-4 text-red-500" /> Histórico de Gastos
                   </h3>
                   <button 
                     onClick={() => setIsExpenseModalOpen(true)}
-                    className="bg-zinc-950 text-white px-4 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest active:scale-95 transition-all"
+                    className="bg-zinc-950 text-white px-4 py-2 rounded-sm font-black text-[9px] uppercase tracking-widest active:scale-95 transition-all"
                   >
                     Adicionar Gasto
                   </button>
@@ -3841,7 +3842,7 @@ function CaboDashboard() {
                         setSelectedExpenseForVoucher(tx);
                         setIsExpenseVoucherModalOpen(true);
                       }}
-                      className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex justify-between items-center cursor-pointer hover:bg-zinc-100 transition-all border-l-4 border-l-red-500"
+                      className="p-4 bg-zinc-50 rounded-sm border border-zinc-100 flex justify-between items-center cursor-pointer hover:bg-zinc-100 transition-all border-l-4 border-l-red-500"
                     >
                       <div className="text-left">
                         <p className="font-black text-sm uppercase text-zinc-800">{tx.description}</p>
@@ -3868,7 +3869,7 @@ function CaboDashboard() {
               </div>
               <button 
                 onClick={() => setIsNoteModalOpen(true)}
-                className="bg-yellow-500 text-zinc-950 px-6 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all shadow-xl shadow-yellow-500/10 active:scale-95 flex items-center gap-2"
+                className="bg-yellow-500 text-zinc-950 px-6 py-3.5 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all shadow-xl shadow-yellow-500/10 active:scale-95 flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" /> Nova Nota
               </button>
@@ -3887,7 +3888,7 @@ function CaboDashboard() {
                   />
                 ))
               ) : (
-                <div className="col-span-full py-20 bg-zinc-900/50 border-2 border-dashed border-zinc-800 rounded-[2.5rem] text-center">
+                <div className="col-span-full py-20 bg-zinc-900/50 border-2 border-dashed border-zinc-800 rounded-sm text-center">
                   <MessageSquare className="w-12 h-12 text-zinc-800 mx-auto mb-4" />
                   <p className="font-black text-zinc-600 uppercase tracking-[0.2em] text-xs italic">Nenhuma comunicação tática registrada no momento.</p>
                 </div>
@@ -3896,7 +3897,7 @@ function CaboDashboard() {
           </motion.div>
         ) : (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <div className="bg-white p-8 rounded-[2.5rem] border-2 border-zinc-200 shadow-xl">
+            <div className="bg-white p-8 rounded-sm border-2 border-zinc-200 shadow-xl">
               <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
                 <div className="text-left text-zinc-950">
                   <h2 className="text-2xl font-black uppercase tracking-tighter italic">Notas Estratégicas</h2>
@@ -3904,7 +3905,7 @@ function CaboDashboard() {
                 </div>
                 <button 
                   onClick={startVoiceNote}
-                  className="flex items-center gap-3 bg-zinc-950 text-white px-8 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all shadow-xl active:scale-95 group"
+                  className="flex items-center gap-3 bg-zinc-950 text-white px-8 py-5 rounded-sm font-black text-xs uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all shadow-xl active:scale-95 group"
                 >
                   <Mic className="w-5 h-5 text-yellow-500 group-hover:text-zinc-950" />
                   Gravar Nova Nota
@@ -3915,7 +3916,7 @@ function CaboDashboard() {
                 {notes.length > 0 ? notes.map((note) => (
                   <NoteCard key={note.id} note={note} user={user} isAdmin={false} currentUserName={profileData?.name} onDelete={() => handleDeleteNote(note.id)} />
                 )) : (
-                  <div className="col-span-full p-20 border-2 border-dashed border-zinc-200 rounded-[2.5rem] text-center">
+                  <div className="col-span-full p-20 border-2 border-dashed border-zinc-200 rounded-sm text-center">
                     <Mic className="w-12 h-12 text-zinc-200 mx-auto mb-4" />
                     <p className="font-black text-zinc-300 uppercase tracking-[0.2em] text-xs">Seu diário estratégico está vazio.</p>
                   </div>
@@ -3936,11 +3937,11 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative"
             >
               <button 
                 onClick={() => setIsProfileModalOpen(false)}
-                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500"
+                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-sm text-zinc-500"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -3957,7 +3958,7 @@ function CaboDashboard() {
                     type="text" 
                     value={profileData.name}
                     onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800"
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-sm p-4 font-bold text-zinc-800"
                   />
                 </div>
                 <div className="space-y-1">
@@ -3967,20 +3968,20 @@ function CaboDashboard() {
                     placeholder="Ex: Pacaraima Centro"
                     value={profileData.zone}
                     onChange={(e) => setProfileData({...profileData, zone: e.target.value})}
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800"
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-sm p-4 font-bold text-zinc-800"
                   />
                 </div>
                 
                 <div className="flex flex-col items-center gap-4 py-4">
                   <div className="relative">
-                    <div className="w-32 h-32 rounded-[2.5rem] bg-zinc-100 border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center">
+                    <div className="w-32 h-32 rounded-sm bg-zinc-100 border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center">
                       {profileData.photoUrl ? (
                         <img src={profileData.photoUrl} alt="Preview" className="w-full h-full object-cover" />
                       ) : (
                         <Users className="w-10 h-10 text-zinc-300" />
                       )}
                     </div>
-                    <label className="absolute -bottom-2 -right-2 bg-yellow-500 text-zinc-950 p-4 rounded-2xl cursor-pointer hover:bg-zinc-950 hover:text-white transition-all shadow-xl active:scale-95 border-4 border-white">
+                    <label className="absolute -bottom-2 -right-2 bg-yellow-500 text-zinc-950 p-4 rounded-sm cursor-pointer hover:bg-zinc-950 hover:text-white transition-all shadow-xl active:scale-95 border-4 border-white">
                       <Upload className="w-5 h-5" />
                       <input 
                         type="file" 
@@ -4021,7 +4022,7 @@ function CaboDashboard() {
                     placeholder="https://link-da-sua-foto.com/perfil.jpg"
                     value={profileData.photoUrl || ''}
                     onChange={(e) => setProfileData({...profileData, photoUrl: e.target.value})}
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800"
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-sm p-4 font-bold text-zinc-800"
                   />
                 </div>
                 
@@ -4037,13 +4038,13 @@ function CaboDashboard() {
                           alert("Erro ao salvar perfil: " + err.message);
                         }
                     }}
-                    className="flex-1 bg-yellow-500 text-zinc-950 py-5 rounded-2xl font-black text-lg shadow-xl shadow-yellow-100 transition-all active:scale-95"
+                    className="flex-1 bg-yellow-500 text-zinc-950 py-5 rounded-sm font-black text-lg shadow-xl shadow-yellow-100 transition-all active:scale-95"
                   >
                     SALVAR AJUSTES
                   </button>
                   <button 
                     onClick={logout}
-                    className="bg-red-600 text-white px-8 py-5 rounded-2xl font-black text-lg shadow-xl transition-all active:scale-95"
+                    className="bg-red-600 text-white px-8 py-5 rounded-sm font-black text-lg shadow-xl transition-all active:scale-95"
                   >
                     SAIR
                   </button>
@@ -4062,37 +4063,30 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative"
             >
               <button 
                 onClick={() => {
                   setIsVoterDetailOpen(false);
                   setSelectedVoter(null);
                 }} 
-                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200 transition-all"
+                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all"
               >
                 <X className="w-6 h-6" />
               </button>
 
               <div className="bg-zinc-950 p-8 border-b-4 border-yellow-500 text-left">
                 <div className="flex items-center gap-4 mb-2">
-                   <div className="bg-yellow-500 text-zinc-950 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl">
+                   <div className="bg-yellow-500 text-zinc-950 w-12 h-12 rounded-sm flex items-center justify-center font-black text-xl">
                       {selectedVoter.name.charAt(0).toUpperCase()}
                    </div>
                    <div>
-                      <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">{selectedVoter.name}</h2>
-                      <p className="text-zinc-400 text-[10px] font-black mt-1 uppercase tracking-widest leading-none">Perfil do Eleitor Fidelizado</p>
-                   </div>
-                </div>
-              </div>
-
-              <div className="p-8 space-y-6 text-left">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                      <h2 className="te                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100">
                     <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Status</p>
                     <p className="text-sm font-black text-green-600 uppercase">Fidelizado</p>
                   </div>
-                  <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                  <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100">
                     <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Cadastro em</p>
                     <p className="text-sm font-black text-zinc-800 uppercase">{new Date(selectedVoter.createdAt).toLocaleDateString()}</p>
                   </div>
@@ -4100,7 +4094,7 @@ function CaboDashboard() {
 
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
-                    <div className="bg-blue-50 p-3 rounded-xl text-blue-600"><Phone className="w-5 h-5" /></div>
+                    <div className="bg-blue-50 p-3 rounded-sm text-blue-600"><Phone className="w-5 h-5" /></div>
                     <div className="flex-1">
                       <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Contato</p>
                       <button 
@@ -4111,13 +4105,19 @@ function CaboDashboard() {
                         className="text-lg font-black text-zinc-900 border-b-2 border-blue-500 flex items-center gap-2"
                       >
                         {selectedVoter.phone || 'Sem Telefone'}
-                        <div className="bg-green-500 w-2 h-2 rounded-full animate-pulse"></div>
+                        <div className="bg-green-50 w-2 h-2 rounded-sm animate-pulse"></div>
+                      </button>
+                    </div>
+                  </div>             className="text-lg font-black text-zinc-900 border-b-2 border-blue-500 flex items-center gap-2"
+                      >
+                        {selectedVoter.phone || 'Sem Telefone'}
+                        <div className="bg-green-500 w-2 h-2 rounded-sm animate-pulse"></div>
                       </button>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="bg-zinc-100 p-3 rounded-xl text-zinc-950"><MapPin className="w-5 h-5" /></div>
+                    <div className="bg-zinc-100 p-3 rounded-sm text-zinc-950"><MapPin className="w-5 h-5" /></div>
                     <div>
                       <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Localização / Base</p>
                       <p className="text-base font-bold text-zinc-800 leading-tight">{selectedVoter.address || 'Não informado'}</p>
@@ -4126,7 +4126,7 @@ function CaboDashboard() {
 
                   {selectedVoter.observations && (
                     <div className="flex items-start gap-4">
-                      <div className="bg-yellow-50 p-3 rounded-xl text-yellow-600"><StickyNote className="w-5 h-5" /></div>
+                      <div className="bg-yellow-50 p-3 rounded-sm text-yellow-600"><StickyNote className="w-5 h-5" /></div>
                       <div>
                         <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Observações de Campo</p>
                         <p className="text-sm font-bold text-zinc-600 italic">"{selectedVoter.observations}"</p>
@@ -4149,13 +4149,13 @@ function CaboDashboard() {
                       setIsVoterModalOpen(true);
                       setIsVoterDetailOpen(false);
                     }}
-                    className="flex items-center justify-center gap-2 bg-zinc-100 text-zinc-950 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-sm active:bg-zinc-200 transition-all"
+                    className="flex items-center justify-center gap-2 bg-zinc-100 text-zinc-950 py-4 rounded-sm font-black text-xs uppercase tracking-widest shadow-sm active:bg-zinc-200 transition-all"
                   >
                     <Settings className="w-4 h-4" /> Editar Dados
                   </button>
                   <button 
                     onClick={() => handleDeleteVoter(selectedVoter.id)}
-                    className="flex items-center justify-center gap-2 bg-red-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-md hover:bg-red-700 active:scale-95 transition-all"
+                    className="flex items-center justify-center gap-2 bg-red-600 text-white py-4 rounded-sm font-black text-xs uppercase tracking-widest shadow-md hover:bg-red-700 active:scale-95 transition-all"
                   >
                     <Trash2 className="w-4 h-4" /> Excluir Registro
                   </button>
@@ -4175,7 +4175,7 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
+              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-zinc-200"
             >
               <button 
                 onClick={() => {
@@ -4184,7 +4184,7 @@ function CaboDashboard() {
                    setEditingVoterId(null);
                    setVoterForm({ name: '', phone: '', address: '', observations: '' });
                 }} 
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -4197,28 +4197,20 @@ function CaboDashboard() {
               <form onSubmit={handleVoterSubmit} className="p-6 space-y-4 text-left">
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo do Cidadão</label>
-                  <input required type="text" value={voterForm.name} onChange={e => setVoterForm({...voterForm, name: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Digite identificação oficial..." />
+                  <input required type="text" value={voterForm.name} onChange={e => setVoterForm({...voterForm, name: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Digite identificação oficial..." />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">WhatsApp / Terminal Celular</label>
-                  <input type="text" value={voterForm.phone} onChange={e => setVoterForm({...voterForm, phone: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="(00) 00000-0000" />
+                  <input type="text" value={voterForm.phone} onChange={e => setVoterForm({...voterForm, phone: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="(00) 00000-0000" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Localização Operacional</label>
-                  <input type="text" value={voterForm.address} onChange={e => setVoterForm({...voterForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Rua, Bairro ou Referência..." />
+                  <input type="text" value={voterForm.address} onChange={e => setVoterForm({...voterForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Rua, Bairro ou Referência..." />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Observações Técnicas de Campo</label>
-                  <textarea value={voterForm.observations} onChange={e => setVoterForm({...voterForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Histórico de engajamento ou demandas específicas..." />
-                </div>
-                <button type="submit" className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-zinc-950/10 hover:bg-zinc-900 transition-all active:scale-[0.98] mt-2 italic">EFETIVAR REGISTRO TÁTICO</button>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* MODAL: PEDIR COMBUSTÍVEL */}
+                  <textarea value={voterForm.observations} onChange={e => setVoterForm({...voterForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Histórico de engajamento ou demandas específicas..." />
+                </div>       {/* MODAL: PEDIR COMBUSTÍVEL */}
       <AnimatePresence>
         {isFuelModalOpen && (
           <motion.div 
@@ -4227,11 +4219,11 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
+              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-zinc-200"
             >
               <button 
                 onClick={() => setIsFuelModalOpen(false)} 
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -4242,13 +4234,19 @@ function CaboDashboard() {
               <form onSubmit={handleFuelSubmit} className="p-6 space-y-4 text-left">
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Volume Necessário (Operação em Litros)</label>
-                  <input required type="number" value={fuelForm.amount} onChange={e => setFuelForm({...fuelForm, amount: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-2xl text-zinc-900 outline-none focus:border-blue-500 transition-all placeholder:text-zinc-300" placeholder="0" />
+                  <input required type="number" value={fuelForm.amount} onChange={e => setFuelForm({...fuelForm, amount: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-2xl text-zinc-900 outline-none focus:border-blue-500 transition-all placeholder:text-zinc-300" placeholder="0" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Roteiro Planejado e Justificativa</label>
-                  <textarea required value={fuelForm.reason} onChange={e => setFuelForm({...fuelForm, reason: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-blue-500 transition-all h-32 resize-none placeholder:text-zinc-300" placeholder="Descreva o trajeto e comunidades atendidas..." />
+                  <textarea required value={fuelForm.reason} onChange={e => setFuelForm({...fuelForm, reason: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-blue-500 transition-all h-32 resize-none placeholder:text-zinc-300" placeholder="Descreva o trajeto e comunidades atendidas..." />
                 </div>
-                <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-[0.98] mt-2 italic">ENVIAR REQUISIÇÃO</button>
+                <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-[0.98] mt-2 italic">ENVIAR REQUISIÇÃO</button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}unidades atendidas..." />
+                </div>
+                <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-[0.98] mt-2 italic">ENVIAR REQUISIÇÃO</button>
               </form>
             </motion.div>
           </motion.div>
@@ -4264,11 +4262,11 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
+              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-zinc-200"
             >
               <button 
                 onClick={() => setIsDemandModalOpen(false)} 
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -4279,13 +4277,13 @@ function CaboDashboard() {
               <form onSubmit={handleDemandSubmit} className="p-6 space-y-4 text-left">
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Natureza da Demanda</label>
-                  <input required type="text" value={demandForm.title} onChange={e => setDemandForm({...demandForm, title: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-600 transition-all placeholder:text-zinc-300" placeholder="Ex: Saneamento, Saúde, Infraestrutura..." />
+                  <input required type="text" value={demandForm.title} onChange={e => setDemandForm({...demandForm, title: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-600 transition-all placeholder:text-zinc-300" placeholder="Ex: Saneamento, Saúde, Infraestrutura..." />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Briefing Detalhado</label>
-                  <textarea required value={demandForm.description} onChange={e => setDemandForm({...demandForm, description: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-600 transition-all h-32 resize-none placeholder:text-zinc-300" placeholder="Descreva a urgência e o impacto na comunidade..." />
+                  <textarea required value={demandForm.description} onChange={e => setDemandForm({...demandForm, description: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-600 transition-all h-32 resize-none placeholder:text-zinc-300" placeholder="Descreva a urgência e o impacto na comunidade..." />
                 </div>
-                <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-yellow-500/10 hover:bg-yellow-600 transition-all active:scale-[0.98] mt-2 italic">ENVIAR PARA COORDENAÇÃO</button>
+                <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-yellow-500/10 hover:bg-yellow-600 transition-all active:scale-[0.98] mt-2 italic">ENVIAR PARA COORDENAÇÃO</button>
               </form>
             </motion.div>
           </motion.div>
@@ -4301,19 +4299,19 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
-              className="bg-white w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl relative p-8 md:p-12 text-zinc-950 border border-zinc-200"
+              className="bg-white w-full max-w-xl rounded-sm overflow-hidden shadow-2xl relative p-8 md:p-12 text-zinc-950 border border-zinc-200"
             >
               <button 
                 onClick={() => setIsExpenseVoucherModalOpen(false)}
-                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95 print:hidden"
+                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95 print:hidden"
               >
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="border border-zinc-200 p-6 md:p-8 rounded-xl space-y-6 md:space-y-8 relative">
+              <div className="border border-zinc-200 p-6 md:p-8 rounded-sm space-y-6 md:space-y-8 relative">
                 <div className="flex justify-between items-start">
                    <div className="flex items-center gap-3">
-                      <div className="bg-red-600 p-2 rounded-lg"><DollarSign className="text-white w-5 h-5 md:w-6 md:h-6" /></div>
+                      <div className="bg-red-600 p-2 rounded-sm"><DollarSign className="text-white w-5 h-5 md:w-6 md:h-6" /></div>
                       <div>
                         <h3 className="font-black text-lg md:text-xl leading-none italic uppercase tracking-tighter">VOUCHER DE GASTO</h3>
                         <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comprovante de Saída Operacional</p>
@@ -4326,7 +4324,7 @@ function CaboDashboard() {
                 </div>
 
                 <div className="space-y-4 md:space-y-6">
-                   <div className="bg-zinc-50 p-6 rounded-xl border border-zinc-100">
+                   <div className="bg-zinc-50 p-6 rounded-sm border border-zinc-100">
                       <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">Discriminação</p>
                       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                          <div>
@@ -4340,7 +4338,7 @@ function CaboDashboard() {
                       </div>
                    </div>
 
-                   <div className="bg-zinc-50 p-6 rounded-xl border border-zinc-100">
+                   <div className="bg-zinc-50 p-6 rounded-sm border border-zinc-100">
                       <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">Unidade Responsável</p>
                       <p className="text-base font-black text-zinc-950 uppercase italic tracking-tight">{selectedExpenseForVoucher.team}</p>
                       <p className="text-[10px] font-bold text-zinc-500 mt-0.5">Líder: {profileData.name}</p>
@@ -4355,7 +4353,7 @@ function CaboDashboard() {
               <div className="mt-8 flex justify-end gap-3 print:hidden">
                  <button 
                    onClick={() => window.print()}
-                   className="flex items-center gap-2 bg-zinc-950 text-white px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-900 transition-all shadow-xl shadow-zinc-200 italic"
+                   className="flex items-center gap-2 bg-zinc-950 text-white px-6 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-900 transition-all shadow-xl shadow-zinc-200 italic"
                  >
                    <Printer className="w-4 h-4" /> Gerar Documento (PDF)
                  </button>
@@ -4374,19 +4372,19 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
-              className="bg-white w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl relative p-8 md:p-12 text-zinc-950 border border-zinc-200"
+              className="bg-white w-full max-w-xl rounded-sm overflow-hidden shadow-2xl relative p-8 md:p-12 text-zinc-950 border border-zinc-200"
             >
               <button 
                 onClick={() => setIsSignReceiptModalOpen(false)}
-                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95 print:hidden"
+                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95 print:hidden"
               >
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="border border-zinc-200 p-6 md:p-8 rounded-xl space-y-6 md:space-y-8 relative">
+              <div className="border border-zinc-200 p-6 md:p-8 rounded-sm space-y-6 md:space-y-8 relative">
                 <div className="flex justify-between items-start">
                    <div className="flex items-center gap-3">
-                      <div className="bg-zinc-950 p-2 rounded-lg"><ShieldCheck className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" /></div>
+                      <div className="bg-zinc-950 p-2 rounded-sm"><ShieldCheck className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" /></div>
                       <div>
                         <h3 className="font-black text-lg md:text-xl leading-none italic uppercase tracking-tighter">PROTOCOLO ÁGUIA</h3>
                         <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comprovante de Transferência Digital</p>
@@ -4399,7 +4397,7 @@ function CaboDashboard() {
                 </div>
 
                 <div className="space-y-6">
-                   <div className="bg-zinc-50 p-6 rounded-xl border border-zinc-100">
+                   <div className="bg-zinc-50 p-6 rounded-sm border border-zinc-100">
                       <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">Beneficiário e Valor</p>
                       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                          <div>
@@ -4412,7 +4410,7 @@ function CaboDashboard() {
                       </div>
                    </div>
 
-                   <p className="text-[11px] font-medium leading-relaxed text-zinc-600 text-justify bg-zinc-50/50 p-4 rounded-xl border border-zinc-100">
+                   <p className="text-[11px] font-medium leading-relaxed text-zinc-600 text-justify bg-zinc-50/50 p-4 rounded-sm border border-zinc-100">
                       Eu, líder da equipe regional <strong className="text-zinc-950 font-black">{selectedTxToSign.team}</strong>, declaro ter recebido em {new Date(selectedTxToSign.date).toLocaleDateString('pt-BR')} a importância acima, comprometendo-me com as diretrizes táticas do sistema.
                    </p>
 
@@ -4432,13 +4430,13 @@ function CaboDashboard() {
               <div className="mt-8 flex flex-col md:flex-row justify-end gap-3 print:hidden">
                  <button 
                    onClick={() => window.print()}
-                   className="flex items-center justify-center gap-2 bg-zinc-100 text-zinc-600 px-6 py-4 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-zinc-200 transition-all font-sans"
+                   className="flex items-center justify-center gap-2 bg-zinc-100 text-zinc-600 px-6 py-4 rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-zinc-200 transition-all font-sans"
                  >
                    <Printer className="w-4 h-4" /> Imprimir Recibo
                  </button>
                  <button 
                    onClick={() => handleSignReceipt(selectedTxToSign)}
-                   className="bg-green-600 text-white px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-green-700 transition-all shadow-xl shadow-green-100 italic"
+                   className="bg-green-600 text-white px-8 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] hover:bg-green-700 transition-all shadow-xl shadow-green-100 italic"
                  >
                    Confirmar e Assinar
                  </button>
@@ -4457,11 +4455,11 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
+              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-zinc-200"
             >
               <button 
                 onClick={() => setIsExpenseModalOpen(false)} 
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -4472,17 +4470,17 @@ function CaboDashboard() {
               <form onSubmit={handleExpenseSubmit} className="p-6 space-y-4 text-left">
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Descrição do Gasto</label>
-                  <input required type="text" value={expenseForm.description} onChange={e => setExpenseForm({...expenseForm, description: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" placeholder="Ex: Alimentação Equipe Campo..." />
+                  <input required type="text" value={expenseForm.description} onChange={e => setExpenseForm({...expenseForm, description: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" placeholder="Ex: Alimentação Equipe Campo..." />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Finalidade / Categoria Operacional</label>
-                  <input required type="text" value={expenseForm.purpose} onChange={e => setExpenseForm({...expenseForm, purpose: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" placeholder="Ex: Logística, Emergência, Apoio..." />
+                  <input required type="text" value={expenseForm.purpose} onChange={e => setExpenseForm({...expenseForm, purpose: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" placeholder="Ex: Logística, Emergência, Apoio..." />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Montante (Valores em R$)</label>
-                  <input required type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-2xl text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" placeholder="0,00" />
+                  <input required type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-2xl text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" placeholder="0,00" />
                 </div>
-                <button type="submit" className="w-full bg-red-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-red-500/10 hover:bg-red-700 transition-all active:scale-[0.98] mt-2 italic">EFETIVAR SAÍDA</button>
+                <button type="submit" className="w-full bg-red-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-red-500/10 hover:bg-red-700 transition-all active:scale-[0.98] mt-2 italic">EFETIVAR SAÍDA</button>
               </form>
             </motion.div>
           </motion.div>
@@ -4498,11 +4496,11 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
+              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-zinc-200"
             >
               <button 
                 onClick={() => setIsAgendaModalOpen(false)} 
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -4517,7 +4515,7 @@ function CaboDashboard() {
                     required 
                     value={agendaForm.municipio} 
                     onChange={e => setAgendaForm({...agendaForm, municipio: e.target.value})}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all"
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all"
                   >
                     <option value="" className="font-black">Selecione localidade...</option>
                     {["Boa Vista", "Pacaraima", "Rorainópolis", "Uiramutã", "Cantá", "Alto Alegre", "Mucajaí", "Amajari", "Bonfim", "Normandia", "Caracaraí", "Iracema", "Bonfim", "São João da Baliza", "São Luiz", "Caroebe"].map(m => (
@@ -4527,23 +4525,23 @@ function CaboDashboard() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Data da Missão Sugerida</label>
-                  <input required type="date" value={agendaForm.data} onChange={e => setAgendaForm({...agendaForm, data: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all" />
+                  <input required type="date" value={agendaForm.data} onChange={e => setAgendaForm({...agendaForm, data: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Horário Início</label>
-                    <input required type="time" value={agendaForm.hora_inicio} onChange={e => setAgendaForm({...agendaForm, hora_inicio: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all" />
+                    <input required type="time" value={agendaForm.hora_inicio} onChange={e => setAgendaForm({...agendaForm, hora_inicio: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Horário Fim</label>
-                    <input required type="time" value={agendaForm.hora_fim} onChange={e => setAgendaForm({...agendaForm, hora_fim: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all" />
+                    <input required type="time" value={agendaForm.hora_fim} onChange={e => setAgendaForm({...agendaForm, hora_fim: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all" />
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block leading-none">Justificativa e Objetivos Táticos</label>
-                  <textarea required value={agendaForm.motivo} onChange={e => setAgendaForm({...agendaForm, motivo: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-orange-500 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Descreva os objetivos da diligência..." />
+                  <textarea required value={agendaForm.motivo} onChange={e => setAgendaForm({...agendaForm, motivo: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-orange-500 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Descreva os objetivos da diligência..." />
                 </div>
-                <button type="submit" className="w-full bg-orange-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-orange-500/10 hover:bg-orange-700 transition-all active:scale-[0.98] mt-2 italic">ENVIAR PROPOSTA</button>
+                <button type="submit" className="w-full bg-orange-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-orange-500/10 hover:bg-orange-700 transition-all active:scale-[0.98] mt-2 italic">ENVIAR PROPOSTA</button>
               </form>
             </motion.div>
           </motion.div>
@@ -4559,16 +4557,16 @@ function CaboDashboard() {
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative border border-zinc-200"
+              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-zinc-200"
             >
               <button 
                 onClick={() => setIsNoteModalOpen(false)} 
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
               <div className="bg-zinc-950 p-6 flex items-center gap-4">
-                <div className={`p-3 rounded-xl ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-zinc-800'}`}>
+                <div className={`p-3 rounded-sm ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-zinc-800'}`}>
                   <Mic className={`w-6 h-6 ${isRecording ? 'text-white' : 'text-zinc-500'}`} />
                 </div>
                 <div>
@@ -4584,7 +4582,7 @@ function CaboDashboard() {
                   <textarea 
                     value={noteText}
                     onChange={e => setNoteText(e.target.value)}
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800 text-sm h-48 outline-none focus:border-yellow-500 transition-all resize-none"
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-sm p-4 font-bold text-zinc-800 text-sm h-48 outline-none focus:border-yellow-500 transition-all resize-none"
                     placeholder="O que você está pensando? Ou continue gravando..."
                   />
                 </div>
@@ -4593,19 +4591,19 @@ function CaboDashboard() {
                   {!isRecording ? (
                     <button 
                       onClick={startVoiceNote}
-                      className="flex-1 bg-zinc-100 text-zinc-900 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all flex items-center justify-center gap-2"
+                      className="flex-1 bg-zinc-100 text-zinc-900 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all flex items-center justify-center gap-2"
                     >
                       <Mic className="w-4 h-4" /> REINICIAR VOZ
                     </button>
                   ) : (
-                    <div className="flex-1 bg-red-100 text-red-600 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
+                    <div className="flex-1 bg-red-100 text-red-600 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
                        <div className="w-2 h-2 rounded-full bg-red-600 animate-ping"></div> ESCUTANDO...
                     </div>
                   )}
                   <button 
                     onClick={() => handleNoteSubmit()}
                     disabled={isProcessingNote || !noteText.trim()}
-                    className={`flex-1 ${isProcessingNote ? 'bg-zinc-400' : 'bg-yellow-500'} text-zinc-950 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 italic`}
+                    className={`flex-1 ${isProcessingNote ? 'bg-zinc-400' : 'bg-yellow-500'} text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 italic`}
                   >
                     {isProcessingNote ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                     {isProcessingNote ? 'PROCESSANDO...' : 'SALVAR NOTA'}
@@ -4618,7 +4616,7 @@ function CaboDashboard() {
       </AnimatePresence>
 
       {/* MOBILE BOTTOM NAV */}
-      <nav className="lg:hidden fixed bottom-6 left-6 right-6 h-20 bg-neutral-950/90 backdrop-blur-xl border border-white/10 rounded-full flex items-center justify-around px-4 z-50 shadow-2xl">
+      <nav className="lg:hidden fixed bottom-6 left-6 right-6 h-20 bg-neutral-950/90 backdrop-blur-xl border border-white/10 rounded-sm flex items-center justify-around px-4 z-50 shadow-2xl">
         {[
           { id: 'logistica', label: 'Tático', icon: <MapPin className="w-5 h-5" /> },
           { id: 'equipe', label: 'Equipe', icon: <Users className="w-5 h-5" /> },
@@ -4635,7 +4633,7 @@ function CaboDashboard() {
               : 'text-zinc-500'
             }`}
           >
-            <div className={`p-2 rounded-xl transition-all ${activeTab === tab.id ? 'bg-yellow-500/10' : ''}`}>
+            <div className={`p-2 rounded-sm transition-all ${activeTab === tab.id ? 'bg-yellow-500/10' : ''}`}>
               {tab.icon}
             </div>
             <span className="text-[8px] font-black uppercase tracking-[0.1em]">
@@ -4764,7 +4762,7 @@ export default function App() {
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }} 
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-zinc-950 p-8 rounded-[2.5rem] shadow-2xl border border-zinc-800 relative"
+          className="max-w-md w-full bg-zinc-950 p-8 rounded-sm shadow-2xl border border-zinc-800 relative"
         >
           <Lock className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
           <h1 className="text-2xl font-black text-white tracking-tighter uppercase leading-none mb-1">Acesso Seguro</h1>
@@ -4779,14 +4777,14 @@ export default function App() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full bg-zinc-900 border border-zinc-800 text-white p-4 rounded-2xl focus:outline-none focus:border-yellow-500 transition-all font-medium"
+                className="w-full bg-zinc-900 border border-zinc-800 text-white p-4 rounded-sm focus:outline-none focus:border-yellow-500 transition-all font-medium"
                 placeholder="Mínimo 6 caracteres"
               />
             </div>
             {authError && <p className="text-red-500 text-[10px] font-black text-center">{authError}</p>}
             <button 
               type="submit"
-              className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl"
+              className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-sm uppercase tracking-widest shadow-xl"
             >
               DEFINIR NOVA SENHA
             </button>
@@ -4809,7 +4807,7 @@ export default function App() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }} 
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-md w-full bg-zinc-950 p-8 md:p-10 rounded-[2.5rem] shadow-2xl border border-zinc-800 relative overflow-hidden"
+          className="max-w-md w-full bg-zinc-950 p-8 md:p-10 rounded-sm shadow-2xl border border-zinc-800 relative overflow-hidden"
         >
           {/* Decorative Background */}
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl"></div>
@@ -4821,8 +4819,8 @@ export default function App() {
           
           <form onSubmit={handleEmailAuth} className="space-y-4 text-left relative z-10">
             {isRegistering && (
-              <div className="bg-zinc-900/50 p-1 rounded-2xl flex mb-6 border border-zinc-800">
-                <div className="flex-1 py-3 rounded-xl font-black text-[10px] tracking-widest bg-yellow-500 text-zinc-950 shadow-lg text-center uppercase">
+              <div className="bg-zinc-900/50 p-1 rounded-sm flex mb-6 border border-zinc-800">
+                <div className="flex-1 py-3 rounded-sm font-black text-[10px] tracking-widest bg-yellow-500 text-zinc-950 shadow-lg text-center uppercase">
                   Somente Coordenador
                 </div>
               </div>
@@ -4834,7 +4832,7 @@ export default function App() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full bg-zinc-900 border border-zinc-800 text-white p-4 rounded-2xl focus:outline-none focus:border-yellow-500 transition-all font-medium placeholder:text-zinc-700"
+                className="w-full bg-zinc-900 border border-zinc-800 text-white p-4 rounded-sm focus:outline-none focus:border-yellow-500 transition-all font-medium placeholder:text-zinc-700"
                 placeholder="exemplo@aguia.com"
               />
             </div>
@@ -4845,20 +4843,20 @@ export default function App() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full bg-zinc-900 border border-zinc-800 text-white p-4 rounded-2xl focus:outline-none focus:border-yellow-500 transition-all font-medium placeholder:text-zinc-700"
+                className="w-full bg-zinc-900 border border-zinc-800 text-white p-4 rounded-sm focus:outline-none focus:border-yellow-500 transition-all font-medium placeholder:text-zinc-700"
                 placeholder="••••••••"
               />
             </div>
 
             {authError && (
-              <p className="text-red-500 text-[10px] font-black uppercase text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">
+              <p className="text-red-500 text-[10px] font-black uppercase text-center bg-red-500/10 py-2 rounded-sm border border-red-500/20">
                 {authError}
               </p>
             )}
 
             <button 
               type="submit"
-              className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover:bg-yellow-400 transition-all active:scale-95"
+              className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-sm uppercase tracking-widest shadow-xl hover:bg-yellow-400 transition-all active:scale-95"
             >
               {isRegistering ? 'Criar Nova Credencial' : 'Autenticar Acesso'}
             </button>
@@ -4871,7 +4869,7 @@ export default function App() {
 
           <button 
             onClick={login}
-            className="w-full bg-zinc-900 text-zinc-300 py-4 rounded-2xl font-bold text-xs flex items-center justify-center gap-3 border border-zinc-800 hover:bg-zinc-800 transition-all relative z-10"
+            className="w-full bg-zinc-900 text-zinc-300 py-4 rounded-sm font-bold text-xs flex items-center justify-center gap-3 border border-zinc-800 hover:bg-zinc-800 transition-all relative z-10"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />

@@ -1,0 +1,324 @@
+118:      className="bg-white border border-zinc-200 rounded-none p-6 shadow-sm hover:border-yellow-500/50 transition-all flex flex-col h-full text-left"
+122:          <span className={`text-[8px] font-black px-3 py-1 rounded-none uppercase tracking-widest leading-none ${note.type === 'private' ? 'bg-zinc-100 text-zinc-500' : 'bg-zinc-950 text-white'}`}>
+130:             <button onClick={onDelete} className="text-zinc-300 hover:text-red-500 transition-colors p-1 hover:bg-red-50 rounded-none">
+142:            <div className="w-8 h-8 rounded-none bg-yellow-500 flex items-center justify-center font-black text-[10px] text-zinc-950 shadow-sm border border-white">
+154:            className={`flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest transition-all px-3 py-1.5 rounded-none ${showComments ? 'bg-zinc-950 text-white' : 'text-zinc-400 hover:text-yellow-600'}`}
+170:                  <div key={comment.id} className="bg-zinc-50/50 p-4 rounded-none border border-zinc-100 group/msg">
+188:                  className="flex-1 bg-zinc-50 border border-zinc-200 rounded-none px-4 py-3 text-[10px] font-bold text-zinc-800 outline-none focus:border-yellow-500 shadow-inner"
+192:                  className="bg-zinc-950 text-white p-3 rounded-none active:scale-95 disabled:opacity-50 shadow-lg"
+845:            <div className="p-2 bg-zinc-950 rounded-none shadow-lg">
+874:              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-none text-xs font-bold transition-all ${
+891:            className="w-full flex items-center justify-center gap-2.5 bg-zinc-950 text-white p-3.5 rounded-none text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg"
+899:              className="w-full flex items-center gap-4 px-4 py-3 rounded-none text-xs font-bold text-zinc-400 hover:text-zinc-950 hover:bg-zinc-100 transition-all"
+905:              className="w-full flex items-center gap-4 px-4 py-3 rounded-none text-xs font-bold text-red-500 hover:bg-red-50 transition-all"
+927:                className="w-full bg-zinc-100 border-none rounded-none py-2 pl-11 pr-4 text-xs font-medium text-zinc-900 placeholder:text-zinc-500 focus:ring-1 focus:ring-yellow-500/20 outline-none transition-all"
+937:                    className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-200 rounded-none shadow-2xl z-50 max-h-96 overflow-y-auto p-2"
+945:                              <button key={t.id} onClick={() => { setActiveTab('teams'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-none transition-colors text-left">
+946:                                <div className="w-8 h-8 rounded-none bg-zinc-100 flex items-center justify-center"><Users className="w-4 h-4 text-zinc-900" /></div>
+960:                              <button key={a.id} onClick={() => { setActiveTab('agenda'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-none transition-colors text-left">
+961:                                <div className="w-8 h-8 rounded-none bg-zinc-100 flex items-center justify-center"><Calendar className="w-4 h-4 text-zinc-900" /></div>
+975:                              <button key={n.id} onClick={() => { setActiveTab('notes'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-none transition-colors text-left">
+976:                                <div className="w-8 h-8 rounded-none bg-zinc-100 flex items-center justify-center"><MessageSquare className="w-4 h-4 text-zinc-900" /></div>
+997:              <div className="p-1.5 bg-zinc-950 rounded-none">
+1005:            <div className="hidden sm:flex items-center gap-2.5 px-3 h-10 bg-zinc-50 rounded-none border border-zinc-100">
+1006:               <div className="w-1.5 h-1.5 bg-red-600 rounded-none animate-pulse"></div>
+1014:              className="flex items-center gap-2.5 hover:bg-zinc-50 p-1 rounded-none transition-all"
+1016:              <div className="w-8 h-8 rounded-none bg-yellow-500 flex items-center justify-center font-black text-xs text-zinc-950 overflow-hidden shadow-sm border border-zinc-200">
+1047:                className="bg-zinc-950 rounded-none p-6 shadow-2xl border border-yellow-500/30 overflow-hidden relative"
+1055:                    <div className="p-2 bg-yellow-500 rounded-lg">
+1079:                      className="w-full bg-white/5 border border-white/10 rounded-none p-4 text-xs font-bold text-white outline-none focus:border-yellow-500 min-h-[120px]"
+1083:                      className="bg-yellow-500 text-zinc-950 px-6 py-2.5 rounded-none font-black text-[10px] uppercase shadow-lg shadow-yellow-500/20 active:scale-95 transition-all"
+1099:                      <span className="w-1 h-1 bg-zinc-700 rounded-full"></span>
+1115:                    className="bg-white border border-zinc-200 p-5 rounded-none shadow-sm hover:shadow-md hover:border-yellow-500/50 transition-all cursor-pointer group"
+1118:                      <div className={`p-2 bg-zinc-50 rounded-lg group-hover:bg-yellow-500 transition-colors`}>
+1125:                        <span className="text-[7px] font-black py-0.5 px-2 bg-green-100 text-green-700 rounded-md uppercase tracking-widest border border-green-100">Estável</span>
+1144:                    <div className="bg-white border border-zinc-200 rounded-none p-5 shadow-sm">
+1151:                            <div className="w-7 h-7 rounded-none bg-zinc-100 flex items-center justify-center shrink-0">
+1195:                    className="bg-yellow-500 text-zinc-950 px-6 py-3.5 rounded-none font-black text-[10px] uppercase flex items-center justify-center gap-2.5 shadow-lg shadow-yellow-500/10 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto"
+1206:                      className={`bg-white border ${team.fraudAlert ? 'border-red-600 shadow-md animate-pulse' : 'border-zinc-200'} rounded-none p-5 lg:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:border-zinc-300 transition-all group relative`}
+1209:                        <div className="absolute top-0 right-8 bg-red-600 text-white text-[8px] font-black px-6 py-1.5 rounded-none uppercase flex items-center gap-1.5 shadow-lg z-10">
+1215:                        <div className={`w-14 h-14 rounded-none flex items-center justify-center transition-transform group-hover:rotate-3 ${
+1251:                           <span className={`inline-flex items-center gap-1.5 text-[8px] font-black px-3 py-1 rounded-lg uppercase tracking-widest border ${
+1255:                            <div className={`w-1.5 h-1.5 rounded-full ${team.status === 'OK' ? 'bg-green-500' : team.status === 'ALERTA' ? 'bg-yellow-500' : 'bg-red-500'}`} />
+1265:                             className="p-3 bg-zinc-50 text-zinc-500 rounded-none hover:bg-zinc-950 hover:text-white transition-all shadow-sm"
+1272:                             className="p-3 bg-zinc-100 text-zinc-600 rounded-none hover:bg-zinc-950 hover:text-white transition-all shadow-md active:scale-95"
+1279:                             className="p-3 bg-red-600 text-white rounded-none hover:bg-red-700 transition-all shadow-md active:scale-95"
+1290:                          className={`w-full px-5 py-3 rounded-none font-black text-[9px] uppercase shadow-md transition-all active:translate-y-0.5 ${
+1299:                    <div className="p-20 text-center bg-white rounded-none border-2 border-dashed border-zinc-200">
+1312:                    <div className="w-12 h-12 bg-yellow-500 rounded-none flex items-center justify-center shadow-lg shadow-yellow-500/10">
+1326:                    className="bg-zinc-950 text-white px-6 py-3.5 rounded-none font-black text-[10px] uppercase flex items-center gap-2.5 shadow-xl shadow-zinc-200 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto"
+1334:                    <div className="bg-white border border-zinc-200 rounded-none p-6 lg:p-8 shadow-sm">
+1341:                          <motion.div key={item.id} layout className="bg-zinc-50 border border-zinc-100 rounded-none p-5 lg:p-6 flex flex-col md:flex-row justify-between items-center gap-6 group">
+1343:                              <div className="bg-white px-4 py-3 rounded-none shadow-sm border border-zinc-100 flex flex-col items-center min-w-[70px]">
+1353:                                {item.motivo && <p className="text-[10px] text-zinc-500 font-bold bg-zinc-100 px-2.5 py-0.5 rounded-none inline-block">{item.motivo}</p>}
+1361:                                className="flex-1 md:flex-none px-6 py-3 bg-red-50 text-red-600 font-black text-[9px] uppercase rounded-none hover:bg-red-600 hover:text-white transition-all shadow-sm"
+1369:                                className="flex-1 md:flex-none px-6 py-3 bg-green-600 text-white font-black text-[9px] uppercase rounded-none shadow-xl shadow-green-100 hover:bg-green-700 transition-all border-b-2 border-green-800 active:border-b-0 active:translate-y-0.5"
+1376:                          <div className="p-12 border border-dashed border-zinc-200 rounded-none text-center">
+1386:                    <div className="bg-zinc-950 rounded-none p-6 lg:p-8 text-white shadow-2xl min-h-[500px] relative overflow-hidden">
+1402:                            className="bg-zinc-900 border border-zinc-800 p-4 rounded-none flex items-center gap-5 group cursor-pointer hover:border-yellow-500/50 transition-all"
+1404:                            <div className="flex flex-col items-center justify-center bg-zinc-800 w-12 h-12 rounded-xl shrink-0 group-hover:bg-yellow-500 transition-colors">
+1438:                      className="bg-white border border-zinc-200 text-zinc-950 px-4 py-3.5 rounded-xl font-black text-[10px] uppercase flex items-center justify-center gap-2.5 shadow-sm hover:bg-zinc-50 transition-all"
+1447:                    <div className="bg-white border border-zinc-200 rounded-none overflow-hidden shadow-sm">
+1462:                                  <div className="w-10 h-10 rounded-none bg-zinc-900 flex items-center justify-center font-black text-white text-[10px] overflow-hidden border-2 border-zinc-100">
+1496:                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none bg-green-50 text-green-700 text-[9px] font-black uppercase tracking-widest border border-green-100">
+1506:                    <div className="py-20 bg-white border-2 border-dashed border-zinc-200 rounded-2xl text-center">
+1525:                    <div className="w-12 h-12 bg-white border border-zinc-200 rounded-none flex items-center justify-center shadow-sm">
+1533:                          className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-none transition-all ${noteSubTab === 'tactical' ? 'bg-zinc-950 text-white shadow-xl' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
+1539:                          className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-none transition-all ${noteSubTab === 'private' ? 'bg-zinc-950 text-white shadow-xl' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
+1550:                      className="bg-yellow-500 text-zinc-950 px-6 py-3 rounded-none font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-zinc-950 hover:text-white transition-all flex items-center gap-2 italic"
+1563:                    <div className="col-span-full py-20 bg-white border-2 border-dashed border-zinc-200 rounded-2xl text-center">
+1583:                  <div className="lg:col-span-1 bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm h-fit">
+1590:                        <input name="name" type="text" placeholder="Ex: Santinho 55000" className="w-full bg-zinc-50 border border-zinc-100 rounded-none p-3.5 font-bold text-xs" />
+1594:                        <input name="qty" type="number" placeholder="Ex: 5000" className="w-full bg-zinc-50 border border-zinc-100 rounded-none p-3.5 font-bold text-xs" />
+1596:                      <button className="w-full bg-zinc-950 text-white py-4 rounded-none font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+1605:                      <div key={m.id} className="bg-white border border-zinc-200 rounded-none p-6 flex items-center justify-between group hover:border-yellow-500/30 transition-all">
+1607:                          <div className="w-12 h-12 bg-zinc-50 rounded-none flex items-center justify-center">
+1613:                              <div className="h-1.5 w-32 bg-zinc-100 rounded-none overflow-hidden">
+1624:                          <button onClick={() => handleUpdateMaterial(m.id, -100)} className="w-10 h-10 border border-zinc-100 rounded-none flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors">
+1627:                          <button onClick={() => handleUpdateMaterial(m.id, 100)} className="w-10 h-10 border border-zinc-100 rounded-none flex items-center justify-center text-green-500 hover:bg-green-50 transition-colors">
+1649:                  <div className="lg:col-span-1 bg-zinc-950 rounded-none p-6 shadow-2xl text-white">
+1652:                      <input name="name" className="w-full bg-white/10 border-none rounded-none p-4 text-[11px] font-bold" placeholder="Nome do Influenciador/Líder" />
+1653:                      <input name="role" className="w-full bg-white/10 border-none rounded-none p-4 text-[11px] font-bold" placeholder="Cargo/Representação" />
+1654:                      <select name="status" className="w-full bg-white/10 border-none rounded-none p-4 text-[11px] font-bold outline-none">
+1659:                      <button className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-none font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">
+1668:                      <div key={p.id} className="bg-white border border-zinc-200 rounded-none p-5 flex items-center justify-between group">
+1670:                          <div className={`w-12 h-12 rounded-none flex items-center justify-center border-4 ${
+1685:                          <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-none ${
+1709:                   <div className="lg:col-span-3 bg-white border border-zinc-200 rounded-none p-8 shadow-sm">
+1729:                                    <div className="bg-zinc-950 p-3 rounded-xl shadow-2xl border border-white/10">
+1749:                      <div className="bg-zinc-950 rounded-none p-6 text-white text-center">
+1757:                      <div className="bg-white border border-zinc-200 rounded-none p-6">
+1766:                              <div className="h-1 bg-zinc-50 rounded-none overflow-hidden">
+1796:              className="bg-white w-full max-w-lg rounded-none overflow-hidden shadow-2xl relative mb-10 border border-zinc-200"
+1804:                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-none text-zinc-500 active:bg-zinc-200 transition-all active:scale-95"
+1823:                      className="w-full h-40 bg-zinc-50 border border-zinc-200 rounded-none p-4 font-bold text-xs text-zinc-800 focus:border-yellow-500 outline-none transition-all placeholder:text-zinc-300 resize-none"
+1829:                        className="w-full bg-zinc-950 text-white py-4 rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all active:scale-95 flex items-center justify-center gap-2"
+1839:                          className="flex-1 bg-yellow-500 text-zinc-950 py-4 rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2 italic"
+1846:                          className="flex-1 bg-zinc-100 text-zinc-900 py-4 rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+1857:                      <div className="bg-blue-50 p-4 rounded-none border-l-4 border-blue-600">
+1864:                              <div className="w-1 h-1 rounded-none bg-blue-500 mt-1.5 flex-shrink-0"></div>
+1873:                      <div className="bg-green-50 p-4 rounded-none border-l-4 border-green-600">
+1880:                              <div className="w-1 h-1 rounded-none bg-green-500 mt-1.5 flex-shrink-0"></div>
+1889:                      <div className="bg-red-50 p-4 rounded-none border-l-4 border-red-600">
+1896:                              <div className="w-1 h-1 rounded-none bg-red-600 mt-1.5 flex-shrink-0"></div>
+1911:                      className="w-full bg-green-600 text-white py-4 rounded-none font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/10 hover:bg-green-700 transition-all mb-2"
+1922:                        className="flex-1 bg-yellow-500 text-zinc-950 py-4 rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all italic flex items-center justify-center gap-2"
+1932:                        className="flex-1 bg-zinc-950 text-white py-4 rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
+1960:                className="bg-white w-full max-w-lg rounded-none overflow-hidden shadow-2xl relative border border-zinc-200"
+1964:                  className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-none text-zinc-500 z-10"
+1977:                    <p className="p-4 bg-zinc-50 border border-zinc-100 rounded-none text-xs font-bold text-zinc-700 italic leading-relaxed">
+1988:                      className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-bold text-xs text-zinc-800 outline-none focus:border-zinc-950 transition-all h-28 resize-none placeholder:text-zinc-300"
+2003:                      className="bg-red-50 text-red-600 py-4 rounded-none font-black text-[10px] uppercase tracking-widest border border-red-100 hover:bg-red-600 hover:text-white transition-all shadow-sm shadow-red-500/5 active:scale-95"
+2017:                      className="bg-green-600 text-white py-4 rounded-none font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/10 hover:bg-zinc-950 transition-all active:scale-95"
+2041:              className="bg-white w-full max-w-lg rounded-none overflow-hidden shadow-2xl relative"
+2049:                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-none text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+2074:                      className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all disabled:opacity-50 placeholder:text-zinc-300"
+2086:                      className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
+2100:                        className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all disabled:opacity-50 placeholder:text-zinc-300"
+2111:                        className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
+2125:                        className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
+2136:                        className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
+2148:                      className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 placeholder:text-zinc-300 resize-none"
+2154:                    className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-none font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-zinc-950/10 hover:bg-zinc-900 transition-all active:scale-[0.98] mt-2 italic"
+2161:                  <div className="w-16 h-16 bg-green-50 text-green-600 rounded-none flex items-center justify-center mx-auto mb-2 border border-green-100">
+2169:                  <div className="bg-zinc-50 p-4 rounded-none border border-zinc-100 break-all text-[9px] font-mono font-black text-blue-600 select-all italic">
+2179:                      className="w-full bg-blue-600 text-white py-4 rounded-none font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-95"
+2203:                      className="w-full bg-zinc-100 text-zinc-500 py-4 rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all"
+2224:              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
+2228:                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+2249:                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
+2260:                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+2272:                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+2282:                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+2293:                     className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 resize-none placeholder:text-zinc-300"
+2299:                  className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-none font-black text-[10px] uppercase tracking-[0.2em] shadow-xl border-zinc-950 hover:bg-zinc-900 transition-all mt-2 italic"
+2318:              className="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+2322:                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-none text-zinc-500 hover:bg-zinc-200"
+2341:                  className="flex-1 bg-zinc-950 text-white py-5 rounded-none font-black text-lg shadow-xl"
+2360:              className="bg-white w-full max-w-4xl rounded-none overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]"
+2368:                className="absolute top-8 right-8 bg-zinc-100 p-3 rounded-none text-zinc-500 hover:bg-zinc-200 transition-all z-10"
+2376:                    <div className="bg-yellow-500 text-zinc-950 w-20 h-20 rounded-none flex items-center justify-center font-black text-3xl shadow-lg shadow-yellow-500/20">
+2390:                       className="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-none text-[10px] font-black uppercase tracking-widest border border-zinc-700 hover:bg-zinc-700 shadow-lg"
+2396:                       className="bg-red-950/30 text-red-500 px-4 py-2 rounded-none text-[10px] font-black uppercase tracking-widest border border-red-900/20 hover:bg-red-900/40"
+2407:                     <div className="bg-zinc-50 p-6 rounded-none border-2 border-zinc-100">
+2410:                           <div className="bg-zinc-200 w-12 h-12 rounded-none flex items-center justify-center font-black text-zinc-600">
+2432:                        <div className="bg-green-50 p-6 rounded-none border border-green-100 text-center">
+2436:                        <div className="bg-zinc-900 p-6 rounded-none text-center">
+2446:                           Membros Cadastrados <span className="bg-zinc-100 text-zinc-400 px-3 py-1 rounded-none text-xs">{managingTeamVoters.length}</span>
+2453:                           <div key={vx.id} className="group bg-white p-5 rounded-none border-2 border-zinc-100 hover:border-yellow-500 transition-all flex items-center justify-between shadow-sm">
+2455:                                 <div className="bg-zinc-100 group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors w-12 h-12 rounded-none flex items-center justify-center font-black text-lg">
+2469:                                   className="p-3 bg-zinc-50 rounded-none text-zinc-400 hover:text-green-600 hover:bg-green-50 transition-all"
+2484:                                   className="p-3 bg-zinc-50 rounded-xl text-zinc-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+2499:                                   className="p-3 bg-red-600 text-white rounded-xl hover:bg-red-700 shadow-md transition-all active:scale-95"
+2506:                           <div className="py-20 text-center bg-zinc-50 rounded-none border-2 border-dashed border-zinc-200">
+2528:              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative"
+2535:                className="absolute top-5 right-5 bg-zinc-100 p-2 rounded-none text-zinc-500 hover:bg-zinc-200 transition-all"
+2548:                  <input required type="text" value={voterEditForm.name} onChange={e => setVoterEditForm({...voterEditForm, name: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-none p-3.5 font-bold text-sm" placeholder="Digite o nome..." />
+2552:                  <input type="text" value={voterEditForm.phone} onChange={e => setVoterEditForm({...voterEditForm, phone: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-none p-3.5 font-bold text-sm" placeholder="(00) 00000-0000" />
+2556:                  <input type="text" value={voterEditForm.address} onChange={e => setVoterEditForm({...voterEditForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-none p-3.5 font-bold text-sm" placeholder="Rua, Bairro, N..." />
+2560:                  <textarea value={voterEditForm.observations} onChange={e => setVoterEditForm({...voterEditForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-none p-3.5 font-bold text-sm h-24" placeholder="Ex: Prioritário, transporte necessário..."></textarea>
+2563:                <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-base shadow-xl shadow-zinc-200 mt-2 active:scale-95 transition-all">
+2580:              className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative"
+2584:                className="absolute top-5 right-5 bg-zinc-100 p-2 rounded-none text-zinc-500 hover:bg-zinc-200 z-10"
+2591:                      <div className="w-16 h-16 bg-zinc-800 rounded-none flex items-center justify-center border-2 border-zinc-700 overflow-hidden">
+2598:                      <label className="absolute -bottom-1 -right-1 bg-yellow-500 p-1.5 rounded-none text-zinc-950 shadow-lg hover:scale-110 transition-all cursor-pointer">
+2665:                    className="w-full bg-zinc-50 border border-zinc-100 rounded-none p-3.5 font-bold text-sm" 
+2671:                  <input defaultValue={profileData?.name} name="name" type="text" className="w-full bg-zinc-50 border border-zinc-100 rounded-none p-3.5 font-bold text-sm" placeholder="Seu nome real..." />
+2675:                  <input defaultValue={profileData?.phone} name="phone" type="text" className="w-full bg-zinc-50 border border-zinc-100 rounded-none p-3.5 font-bold text-sm" placeholder="(00) 00000-0000" />
+2679:                  <textarea defaultValue={profileData?.bio} name="bio" className="w-full bg-zinc-50 border border-zinc-100 rounded-none p-3.5 font-bold text-sm h-24" placeholder="Ex: Coordenador de Logística e Transmissão..."></textarea>
+2682:                <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-base shadow-xl shadow-zinc-200 mt-2 active:scale-95 transition-all">
+2692:                      className="w-full bg-red-50 text-red-600 py-3 rounded-none font-black text-xs uppercase tracking-widest border border-red-100 hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
+2713:              className="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+2717:                className="absolute top-8 right-8 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200"
+2724:                   <div className="w-20 h-20 bg-yellow-500 rounded-none flex flex-col items-center justify-center text-zinc-950 text-center">
+2749:                <div className="bg-zinc-50 p-8 rounded-none border-2 border-zinc-100">
+2757:                   <div className="p-4 bg-blue-50 text-blue-600 rounded-none flex items-center gap-3 flex-1 border border-blue-100">
+2764:                   <div className="p-4 bg-green-50 text-green-600 rounded-none flex items-center gap-3 flex-1 border border-green-100">
+2786:              className="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+2790:                className="absolute top-8 right-8 bg-zinc-100 p-2 rounded-full text-zinc-500 hover:bg-zinc-200"
+2804:                   <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+2808:                   <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+2812:                   <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+2816:                   <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+2825:                     <div key={tx.id} className="p-4 bg-white border border-zinc-100 rounded-none flex justify-between items-center shadow-sm">
+2848:      <nav className="lg:hidden fixed bottom-6 left-6 right-6 h-20 bg-white/90 backdrop-blur-xl border border-zinc-200 rounded-none flex items-center justify-around px-4 z-50 shadow-2xl">
+2866:            <div className={`p-2 rounded-xl transition-all ${activeTab === tab.id ? 'bg-yellow-500/10' : ''}`}>
+2879:        className="fixed bottom-32 right-6 w-16 h-16 bg-zinc-950 text-yellow-500 rounded-none shadow-2xl border-4 border-yellow-500 flex items-center justify-center z-[100] lg:bottom-6"
+3400:            <div className="bg-yellow-500 p-2.5 rounded-xl shadow-lg shadow-yellow-500/10">
+3409:          <div className="bg-white/5 rounded-none p-5 border border-white/5 backdrop-blur-sm relative overflow-hidden group">
+3434:              className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all group ${
+3451:            className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-none bg-red-500/10 text-red-500 font-black text-[9px] uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all shadow-lg"
+3467:             <div className="bg-yellow-500/10 text-yellow-500 px-4 py-2 rounded-none border border-yellow-500/20 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
+3468:                <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></div>
+3474:            <div className={`flex items-center gap-2 px-4 py-2 rounded-none border transition-all ${
+3487:              className="p-3 bg-zinc-900 border border-white/5 rounded-none text-zinc-400 hover:bg-zinc-800 hover:text-yellow-500 transition-all shadow-xl"
+3501:                  <div className="bg-yellow-500/10 border-2 border-yellow-500/20 text-yellow-500 p-6 rounded-none text-center flex items-center justify-center gap-4 font-black text-xs uppercase tracking-[0.2em] shadow-2xl">
+3510:                    className="bg-zinc-950 border-2 border-yellow-500/50 rounded-none p-10 shadow-[0_0_50px_-12px_rgba(234,179,8,0.3)] relative overflow-hidden group"
+3516:                      <div className="bg-yellow-500 p-3 rounded-none"><Zap className="w-6 h-6 text-zinc-950" /></div>
+3532:                  <section className="bg-white border-2 border-zinc-100 rounded-none p-10 shadow-sm relative overflow-hidden group">
+3537:                      <div className="bg-zinc-950 p-3 rounded-none"><StickyNote className="w-6 h-6 text-yellow-500" /></div>
+3558:                      className={`aspect-square bg-zinc-900 text-white rounded-none p-6 lg:p-8 flex flex-col items-center justify-center gap-6 shadow-2xl border border-white/5 hover:bg-zinc-800 transition-all group relative overflow-hidden`}
+3563:                      <div className={`bg-${action.color}-500/10 p-5 rounded-none group-hover:bg-${action.color}-500/20 transition-all shadow-inner`}>
+3580:                    <section className="bg-white border-2 border-zinc-100 rounded-[2.5rem] p-10 shadow-sm overflow-hidden flex flex-col h-full group">
+3583:                          <div className="bg-zinc-100 p-2 rounded-none group-hover:bg-zinc-950 group-hover:text-white transition-all"><RefreshCcw className="w-5 h-5 text-zinc-400 group-hover:text-yellow-500" /></div>
+3593:                            className="p-5 bg-zinc-50 rounded-3xl border border-zinc-100 flex items-center justify-between gap-6 hover:bg-zinc-100 transition-all group/item"
+3596:                              <div className={`p-4 rounded-2xl shadow-sm ${
+3607:                            <span className={`text-[10px] font-black px-4 py-2 rounded-none uppercase tracking-widest shadow-sm ${
+3620:                    <section className="bg-white border-2 border-zinc-100 rounded-[2.5rem] p-10 shadow-sm overflow-hidden flex flex-col h-full group">
+3623:                          <div className="bg-zinc-100 p-2 rounded-none group-hover:bg-zinc-950 group-hover:text-white transition-all"><Calendar className="w-5 h-5 text-zinc-400 group-hover:text-emerald-500" /></div>
+3633:                            className="p-5 bg-zinc-50 rounded-3xl border border-zinc-100 flex items-center justify-between gap-6 hover:bg-zinc-100 transition-all group/item"
+3636:                              <div className={`p-4 rounded-2xl shadow-sm ${
+3648:                              <span className={`text-[9px] font-black px-4 py-2 rounded-none uppercase tracking-widest shadow-sm ${
+3675:                  <section className="bg-zinc-950 text-white rounded-none p-10 shadow-2xl relative overflow-hidden group border border-white/5">
+3677:                    <div className="bg-zinc-900/50 p-4 rounded-none relative mb-6 w-max mx-auto shadow-inner border border-white/5">
+3680:                        <span className="absolute -top-1 -right-1 bg-yellow-500 text-zinc-950 text-xs font-black w-8 h-8 flex items-center justify-center rounded-none border-4 border-zinc-950 shadow-2xl">
+3693:                          className="mt-10 w-full bg-yellow-500 text-zinc-950 py-5 rounded-none font-black text-sm uppercase tracking-[0.2em] shadow-xl hover:bg-white transition-all active:scale-95"
+3701:                  <div className="bg-blue-600 p-10 rounded-none flex flex-col justify-center relative overflow-hidden shadow-2xl group">
+3708:                       <div className="w-16 h-1 bg-white/30 rounded-full overflow-hidden">
+3718:            <div className="bg-white p-8 rounded-none border-2 border-zinc-200 shadow-xl text-center">
+3732:                    className="flex justify-between items-center p-5 bg-white rounded-none border-2 border-zinc-100 shadow-sm hover:border-yellow-500 transition-all cursor-pointer text-left"
+3735:                      <div className="bg-zinc-100 text-zinc-400 w-12 h-12 rounded-none flex items-center justify-center font-black text-lg">
+3746:                  <div className="p-12 border-2 border-dashed border-zinc-200 rounded-none text-center">
+3761:            <div className="bg-zinc-950 p-8 rounded-none border-b-8 border-green-500 text-white relative overflow-hidden shadow-2xl">
+3784:              <section className="bg-white p-8 rounded-3xl border-2 border-zinc-100 shadow-sm">
+3792:                    <div key={tx.id} className="p-4 bg-zinc-50 rounded-none border border-zinc-100 flex justify-between items-center">
+3808:                            className="bg-yellow-500 text-zinc-950 px-3 py-1.5 rounded-lg font-black text-[9px] uppercase shadow-lg shadow-yellow-100"
+3813:                          <div className="bg-green-100 text-green-600 p-1.5 rounded-none" title="Recibo Assinado">
+3825:              <section className="bg-white p-8 rounded-3xl border-2 border-zinc-100 shadow-sm">
+3832:                    className="bg-zinc-950 text-white px-4 py-2 rounded-none font-black text-[9px] uppercase tracking-widest active:scale-95 transition-all"
+3845:                      className="p-4 bg-zinc-50 rounded-none border border-zinc-100 flex justify-between items-center cursor-pointer hover:bg-zinc-100 transition-all border-l-4 border-l-red-500"
+3872:                className="bg-yellow-500 text-zinc-950 px-6 py-3.5 rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all shadow-xl shadow-yellow-500/10 active:scale-95 flex items-center gap-2"
+3891:                <div className="col-span-full py-20 bg-zinc-900/50 border-2 border-dashed border-zinc-800 rounded-none text-center">
+3900:            <div className="bg-white p-8 rounded-none border-2 border-zinc-200 shadow-xl">
+3908:                  className="flex items-center gap-3 bg-zinc-950 text-white px-8 py-5 rounded-none font-black text-xs uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all shadow-xl active:scale-95 group"
+3919:                  <div className="col-span-full p-20 border-2 border-dashed border-zinc-200 rounded-none text-center">
+3940:              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+3944:                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-none text-zinc-500"
+3961:                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800"
+3971:                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800"
+3977:                    <div className="w-32 h-32 rounded-none bg-zinc-100 border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center">
+3984:                    <label className="absolute -bottom-2 -right-2 bg-yellow-500 text-zinc-950 p-4 rounded-none cursor-pointer hover:bg-zinc-950 hover:text-white transition-all shadow-xl active:scale-95 border-4 border-white">
+4025:                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl p-4 font-bold text-zinc-800"
+4041:                    className="flex-1 bg-yellow-500 text-zinc-950 py-5 rounded-none font-black text-lg shadow-xl shadow-yellow-100 transition-all active:scale-95"
+4047:                    className="bg-red-600 text-white px-8 py-5 rounded-none font-black text-lg shadow-xl transition-all active:scale-95"
+4066:              className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+4073:                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-none text-zinc-500 hover:bg-zinc-200 transition-all"
+4080:                   <div className="bg-yellow-500 text-zinc-950 w-12 h-12 rounded-none flex items-center justify-center font-black text-xl">
+4092:                  <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+4096:                  <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+4104:                    <div className="bg-blue-50 p-3 rounded-none text-blue-600"><Phone className="w-5 h-5" /></div>
+4115:                        <div className="bg-green-500 w-2 h-2 rounded-none animate-pulse"></div>
+4121:                    <div className="bg-zinc-100 p-3 rounded-none text-zinc-950"><MapPin className="w-5 h-5" /></div>
+4130:                      <div className="bg-yellow-50 p-3 rounded-none text-yellow-600"><StickyNote className="w-5 h-5" /></div>
+4153:                    className="flex items-center justify-center gap-2 bg-zinc-100 text-zinc-950 py-4 rounded-none font-black text-xs uppercase tracking-widest shadow-sm active:bg-zinc-200 transition-all"
+4159:                    className="flex items-center justify-center gap-2 bg-red-600 text-white py-4 rounded-none font-black text-xs uppercase tracking-widest shadow-md hover:bg-red-700 active:scale-95 transition-all"
+4179:              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
+4188:                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+4201:                  <input required type="text" value={voterForm.name} onChange={e => setVoterForm({...voterForm, name: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Digite identificação oficial..." />
+4205:                  <input type="text" value={voterForm.phone} onChange={e => setVoterForm({...voterForm, phone: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="(00) 00000-0000" />
+4209:                  <input type="text" value={voterForm.address} onChange={e => setVoterForm({...voterForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Rua, Bairro ou Referência..." />
+4213:                  <textarea value={voterForm.observations} onChange={e => setVoterForm({...voterForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Histórico de engajamento ou demandas específicas..." />
+4215:                <button type="submit" className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-none font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-zinc-950/10 hover:bg-zinc-900 transition-all active:scale-[0.98] mt-2 italic">EFETIVAR REGISTRO TÁTICO</button>
+4231:              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
+4235:                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+4246:                  <input required type="number" value={fuelForm.amount} onChange={e => setFuelForm({...fuelForm, amount: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-2xl text-zinc-900 outline-none focus:border-blue-500 transition-all placeholder:text-zinc-300" placeholder="0" />
+4250:                  <textarea required value={fuelForm.reason} onChange={e => setFuelForm({...fuelForm, reason: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-blue-500 transition-all h-32 resize-none placeholder:text-zinc-300" placeholder="Descreva o trajeto e comunidades atendidas..." />
+4252:                <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-none font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-[0.98] mt-2 italic">ENVIAR REQUISIÇÃO</button>
+4268:              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
+4272:                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+4283:                  <input required type="text" value={demandForm.title} onChange={e => setDemandForm({...demandForm, title: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-600 transition-all placeholder:text-zinc-300" placeholder="Ex: Saneamento, Saúde, Infraestrutura..." />
+4287:                  <textarea required value={demandForm.description} onChange={e => setDemandForm({...demandForm, description: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-600 transition-all h-32 resize-none placeholder:text-zinc-300" placeholder="Descreva a urgência e o impacto na comunidade..." />
+4289:                <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-none font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-yellow-500/10 hover:bg-yellow-600 transition-all active:scale-[0.98] mt-2 italic">ENVIAR PARA COORDENAÇÃO</button>
+4305:              className="bg-white w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl relative p-8 md:p-12 text-zinc-950 border border-zinc-200"
+4309:                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95 print:hidden"
+4314:              <div className="border border-zinc-200 p-6 md:p-8 rounded-xl space-y-6 md:space-y-8 relative">
+4317:                      <div className="bg-red-600 p-2 rounded-none"><DollarSign className="text-white w-5 h-5 md:w-6 md:h-6" /></div>
+4330:                   <div className="bg-zinc-50 p-6 rounded-xl border border-zinc-100">
+4344:                   <div className="bg-zinc-50 p-6 rounded-xl border border-zinc-100">
+4359:                   className="flex items-center gap-2 bg-zinc-950 text-white px-6 py-4 rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-zinc-900 transition-all shadow-xl shadow-zinc-200 italic"
+4378:              className="bg-white w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl relative p-8 md:p-12 text-zinc-950 border border-zinc-200"
+4382:                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95 print:hidden"
+4387:              <div className="border border-zinc-200 p-6 md:p-8 rounded-xl space-y-6 md:space-y-8 relative">
+4390:                      <div className="bg-zinc-950 p-2 rounded-none"><ShieldCheck className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" /></div>
+4403:                   <div className="bg-zinc-50 p-6 rounded-xl border border-zinc-100">
+4416:                   <p className="text-[11px] font-medium leading-relaxed text-zinc-600 text-justify bg-zinc-50/50 p-4 rounded-none border border-zinc-100">
+4436:                   className="flex items-center justify-center gap-2 bg-zinc-100 text-zinc-600 px-6 py-4 rounded-none font-black text-[9px] uppercase tracking-widest hover:bg-zinc-200 transition-all font-sans"
+4442:                   className="bg-green-600 text-white px-8 py-4 rounded-none font-black text-[10px] uppercase tracking-[0.2em] hover:bg-green-700 transition-all shadow-xl shadow-green-100 italic"
+4461:              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
+4465:                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+4476:                  <input required type="text" value={expenseForm.description} onChange={e => setExpenseForm({...expenseForm, description: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" placeholder="Ex: Alimentação Equipe Campo..." />
+4480:                  <input required type="text" value={expenseForm.purpose} onChange={e => setExpenseForm({...expenseForm, purpose: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" placeholder="Ex: Logística, Emergência, Apoio..." />
+4484:                  <input required type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-2xl text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" placeholder="0,00" />
+4486:                <button type="submit" className="w-full bg-red-600 text-white py-4 rounded-none font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-red-500/10 hover:bg-red-700 transition-all active:scale-[0.98] mt-2 italic">EFETIVAR SAÍDA</button>
+4502:              className="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200"
+4506:                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+4521:                    className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all"
+4531:                  <input required type="date" value={agendaForm.data} onChange={e => setAgendaForm({...agendaForm, data: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all" />
+4536:                    <input required type="time" value={agendaForm.hora_inicio} onChange={e => setAgendaForm({...agendaForm, hora_inicio: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all" />
+4540:                    <input required type="time" value={agendaForm.hora_fim} onChange={e => setAgendaForm({...agendaForm, hora_fim: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-orange-500 transition-all" />
+4545:                  <textarea required value={agendaForm.motivo} onChange={e => setAgendaForm({...agendaForm, motivo: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-none p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-orange-500 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Descreva os objetivos da diligência..." />
+4547:                <button type="submit" className="w-full bg-orange-600 text-white py-4 rounded-none font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-orange-500/10 hover:bg-orange-700 transition-all active:scale-[0.98] mt-2 italic">ENVIAR PROPOSTA</button>
+4563:              className="bg-white w-full max-w-lg rounded-none overflow-hidden shadow-2xl relative border border-zinc-200"
+4567:                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-lg text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+4572:                <div className={`p-3 rounded-none ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-zinc-800'}`}>
+4588:                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-none p-4 font-bold text-zinc-800 text-sm h-48 outline-none focus:border-yellow-500 transition-all resize-none"
+4597:                      className="flex-1 bg-zinc-100 text-zinc-900 py-4 rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all flex items-center justify-center gap-2"
+4602:                    <div className="flex-1 bg-red-100 text-red-600 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
+4603:                       <div className="w-2 h-2 rounded-full bg-red-600 animate-ping"></div> ESCUTANDO...
+4609:                    className={`flex-1 ${isProcessingNote ? 'bg-zinc-400' : 'bg-yellow-500'} text-zinc-950 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 italic`}
+4622:      <nav className="lg:hidden fixed bottom-6 left-6 right-6 h-20 bg-neutral-950/90 backdrop-blur-xl border border-white/10 rounded-full flex items-center justify-around px-4 z-50 shadow-2xl">
+4639:            <div className={`p-2 rounded-xl transition-all ${activeTab === tab.id ? 'bg-yellow-500/10' : ''}`}>
+4768:          className="max-w-md w-full bg-zinc-950 p-8 rounded-[2.5rem] shadow-2xl border border-zinc-800 relative"
+4783:                className="w-full bg-zinc-900 border border-zinc-800 text-white p-4 rounded-2xl focus:outline-none focus:border-yellow-500 transition-all font-medium"
+4790:              className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl"
+4813:          className="max-w-md w-full bg-zinc-950 p-8 md:p-10 rounded-[2.5rem] shadow-2xl border border-zinc-800 relative overflow-hidden"
+4816:          <div className="absolute -top-24 -right-24 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl"></div>
+4817:          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl"></div>
+4825:              <div className="bg-zinc-900/50 p-1 rounded-2xl flex mb-6 border border-zinc-800">
+4826:                <div className="flex-1 py-3 rounded-xl font-black text-[10px] tracking-widest bg-yellow-500 text-zinc-950 shadow-lg text-center uppercase">
+4838:                className="w-full bg-zinc-900 border border-zinc-800 text-white p-4 rounded-2xl focus:outline-none focus:border-yellow-500 transition-all font-medium placeholder:text-zinc-700"
+4849:                className="w-full bg-zinc-900 border border-zinc-800 text-white p-4 rounded-2xl focus:outline-none focus:border-yellow-500 transition-all font-medium placeholder:text-zinc-700"
+4855:              <p className="text-red-500 text-[10px] font-black uppercase text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">
+4862:              className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover:bg-yellow-400 transition-all active:scale-95"
+4875:            className="w-full bg-zinc-900 text-zinc-300 py-4 rounded-2xl font-bold text-xs flex items-center justify-center gap-3 border border-zinc-800 hover:bg-zinc-800 transition-all relative z-10"
+4895:          <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
