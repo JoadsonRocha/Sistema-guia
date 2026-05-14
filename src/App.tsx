@@ -48,13 +48,28 @@ import {
   Printer,
   Zap,
   MessageSquare,
-  Search
+  Search,
+  Package,
+  Handshake,
+  Activity,
+  Map as MapIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { processarCaos, gerarBriefingCandidato, processarNotaAudio } from './services/geminiService';
 import FinanceDashboard from './components/FinanceDashboard';
 import { useAuth } from './lib/FirebaseProvider';
 import { firestoreService } from './lib/firestoreService';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  Tooltip, 
+  ResponsiveContainer, 
+  Cell,
+  PieChart,
+  Pie
+} from 'recharts';
 import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, getDoc } from 'firebase/firestore';
 import { db, auth } from './lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from './lib/agendaLogic';
@@ -191,8 +206,16 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
 /// --- COMPONENTE: DASHBOARD DO COORDENADOR ---
 function CoordinatorDashboard() {
   const { user, login, logout, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'finance' | 'agenda' | 'notes' | 'attendance'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'finance' | 'agenda' | 'notes' | 'attendance' | 'materials' | 'partners' | 'demands'>('overview');
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
+  
+  // New States for requested features
+  const [dailyOrder, setDailyOrder] = useState<any>(null);
+  const [materials, setMaterials] = useState<any[]>([]);
+  const [partners, setPartners] = useState<any[]>([]);
+  const [demandsSummary, setDemandsSummary] = useState<any[]>([]);
+  const [isEditingDailyOrder, setIsEditingDailyOrder] = useState(false);
+  const [newDailyOrder, setNewDailyOrder] = useState('');
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [chaosText, setChaosText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -244,6 +267,71 @@ function CoordinatorDashboard() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
   const [createdTeamLink, setCreatedTeamLink] = useState('');
+
+  // Calc Demand Summary
+  useEffect(() => {
+    if (urgencies.length > 0) {
+      const summary: any = {};
+      urgencies.forEach(u => {
+        const zone = u.team || 'Geral';
+        summary[zone] = (summary[zone] || 0) + 1;
+      });
+      setDemandsSummary(Object.entries(summary).map(([name, value]) => ({ name, value })));
+    }
+  }, [urgencies]);
+
+  const handleUpdateDailyOrder = async () => {
+    try {
+      await firestoreService.setDocument('config', 'dailyOrder', {
+        text: newDailyOrder,
+        updatedAt: Date.now(),
+        updatedBy: profileData?.name || user?.email
+      });
+      setIsEditingDailyOrder(false);
+      alert("Ordem do Dia enviada para todas as unidades!");
+    } catch (err) {
+      alert("Erro ao enviar ordem: " + err);
+    }
+  };
+
+  const handleAddMaterial = async (e: any) => {
+    e.preventDefault();
+    const name = e.target.name.value;
+    const qty = parseInt(e.target.qty.value);
+    if (!name || isNaN(qty)) return;
+    
+    await firestoreService.addDocument('materials', {
+      name,
+      total: qty,
+      current: qty,
+      createdAt: Date.now()
+    });
+    e.target.reset();
+  };
+
+  const handleUpdateMaterial = async (id: string, amount: number) => {
+    const mat = materials.find(m => m.id === id);
+    if (!mat) return;
+    await firestoreService.updateDocument('materials', id, {
+      current: Math.max(0, (mat.current || 0) + amount)
+    });
+  };
+
+  const handleAddPartner = async (e: any) => {
+    e.preventDefault();
+    const name = e.target.name.value;
+    const role = e.target.role.value;
+    const status = e.target.status.value; // 'frio' | 'morno' | 'quente'
+    if (!name) return;
+
+    await firestoreService.addDocument('partners', {
+      name,
+      role,
+      status,
+      lastContact: Date.now()
+    });
+    e.target.reset();
+  };
   const [newTeam, setNewTeam] = useState({
     name: '',
     leader: '',
@@ -329,6 +417,21 @@ function CoordinatorDashboard() {
     };
     checkAndSeed();
 
+    const unsubDailyOrder = onSnapshot(doc(db, 'config', 'dailyOrder'), (snap) => {
+      if (snap.exists()) {
+        setDailyOrder(snap.data());
+        setNewDailyOrder(snap.data().text || '');
+      }
+    });
+
+    const unsubMaterials = onSnapshot(collection(db, 'materials'), (snap) => {
+      setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
+    const unsubPartners = onSnapshot(collection(db, 'partners'), (snap) => {
+      setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
     return () => {
       unsubTeams();
       unsubUrgencies();
@@ -336,6 +439,10 @@ function CoordinatorDashboard() {
       unsubAttendance();
       unsubAgendas();
       unsubNotesSnap();
+      unsubProfile();
+      unsubDailyOrder();
+      unsubMaterials();
+      unsubPartners();
     };
   }, [user, isAdmin]);
 
@@ -756,6 +863,9 @@ function CoordinatorDashboard() {
             { id: 'attendance', label: 'Audit. Ponto', icon: <Clock className="w-4 h-4" /> },
             { id: 'agenda', label: 'Mapa & Agenda', icon: <Calendar className="w-4 h-4" /> },
             { id: 'finance', label: 'Financeiro', icon: <DollarSign className="w-4 h-4" /> },
+            { id: 'materials', label: 'Materiais', icon: <Package className="w-4 h-4" /> },
+            { id: 'partners', label: 'Articulação', icon: <Handshake className="w-4 h-4" /> },
+            { id: 'demands', label: 'Demandas/Mapa', icon: <Activity className="w-4 h-4" /> },
             { id: 'notes', label: 'Anotações', icon: <MessageSquare className="w-4 h-4" /> }
           ].map((item) => (
             <button
@@ -929,6 +1039,69 @@ function CoordinatorDashboard() {
                 <h2 className="text-lg font-black text-zinc-950 tracking-tighter uppercase leading-none italic">Painel de Operações</h2>
                 <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Monitoramento estratégico em tempo real</p>
               </div>
+
+              {/* ORDEM DO DIA (DIRETIVA CENTRAL) */}
+              <motion.section 
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-zinc-950 rounded-2xl p-6 shadow-2xl border border-yellow-500/30 overflow-hidden relative"
+              >
+                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+                  <ShieldCheck className="w-40 h-40 text-yellow-500" />
+                </div>
+                
+                <div className="flex items-center justify-between mb-4 relative z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-yellow-500 rounded-lg">
+                      <Zap className="w-5 h-5 text-zinc-950" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-white uppercase tracking-tighter italic">Ordem do Dia</h3>
+                      <p className="text-[8px] font-black text-yellow-500 uppercase tracking-[0.2em]">Diretiva Central de Comando</p>
+                    </div>
+                  </div>
+                  {isAdmin && (
+                    <button 
+                      onClick={() => setIsEditingDailyOrder(!isEditingDailyOrder)}
+                      className="text-[9px] font-black text-zinc-400 uppercase tracking-widest hover:text-white transition-colors"
+                    >
+                      {isEditingDailyOrder ? 'Cancelar' : 'Editar Diretiva'}
+                    </button>
+                  )}
+                </div>
+
+                {isEditingDailyOrder ? (
+                  <div className="space-y-4 relative z-10">
+                    <textarea 
+                      value={newDailyOrder}
+                      onChange={(e) => setNewDailyOrder(e.target.value)}
+                      placeholder="Digite a diretiva central para todas as equipes..."
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-xs font-bold text-white outline-none focus:border-yellow-500 min-h-[120px]"
+                    />
+                    <button 
+                      onClick={handleUpdateDailyOrder}
+                      className="bg-yellow-500 text-zinc-950 px-6 py-2.5 rounded-xl font-black text-[10px] uppercase shadow-lg shadow-yellow-500/20 active:scale-95 transition-all"
+                    >
+                      Transmitir para Unidades
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative z-10">
+                    {dailyOrder?.text ? (
+                      <p className="text-lg font-black text-white tracking-tight leading-relaxed italic">
+                        "{dailyOrder.text}"
+                      </p>
+                    ) : (
+                      <p className="text-zinc-500 text-xs italic font-bold">Nenhuma diretiva emitida para hoje.</p>
+                    )}
+                    <div className="mt-6 flex items-center gap-4 text-[8px] font-black text-zinc-500 uppercase tracking-widest">
+                      <span>Último ajuste: {dailyOrder?.updatedAt ? new Date(dailyOrder.updatedAt).toLocaleTimeString() : '---'}</span>
+                      <span className="w-1 h-1 bg-zinc-700 rounded-full"></span>
+                      <span>Autor: {dailyOrder?.updatedBy || 'Comando'}</span>
+                    </div>
+                  </div>
+                )}
+              </motion.section>
 
               {/* STATS GRID */}
               <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1392,6 +1565,215 @@ function CoordinatorDashboard() {
                       <p className="font-black text-zinc-300 uppercase tracking-[0.2em] text-xs">Nenhuma anotação registrada nesta categoria.</p>
                     </div>
                   )}
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'materials' && (
+              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
+                  <div>
+                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none italic">Gestão de Materiais</h2>
+                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Controle de Estoque e Distribuição</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* FORM ADD MATERIAL */}
+                  <div className="lg:col-span-1 bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm h-fit">
+                    <h3 className="text-sm font-black uppercase text-zinc-900 mb-6 flex items-center gap-2 italic">
+                      <Plus className="w-4 h-4 text-yellow-500" /> Novo Lote
+                    </h3>
+                    <form onSubmit={handleAddMaterial} className="space-y-4">
+                      <div className="space-y-1.5 text-left">
+                        <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Descrição do Material</label>
+                        <input name="name" type="text" placeholder="Ex: Santinho 55000" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-xs" />
+                      </div>
+                      <div className="space-y-1.5 text-left">
+                        <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Quantidade Total</label>
+                        <input name="qty" type="number" placeholder="Ex: 5000" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-xs" />
+                      </div>
+                      <button className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                        Registrar Entrada
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* MATERIAL LIST */}
+                  <div className="lg:col-span-2 space-y-4">
+                    {materials.map(m => (
+                      <div key={m.id} className="bg-white border border-zinc-200 rounded-2xl p-6 flex items-center justify-between group hover:border-yellow-500/30 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-zinc-50 rounded-xl flex items-center justify-center">
+                            <Package className="w-6 h-6 text-zinc-400 group-hover:text-yellow-600 transition-colors" />
+                          </div>
+                          <div>
+                            <h4 className="font-black text-zinc-900 uppercase tracking-tight italic">{m.name}</h4>
+                            <div className="mt-1 flex items-center gap-3">
+                              <div className="h-1.5 w-32 bg-zinc-100 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-yellow-500" 
+                                  style={{ width: `${Math.min(100, (m.current / m.total) * 100)}%` }}
+                                />
+                              </div>
+                              <span className="text-[10px] font-black text-zinc-500 uppercase">{m.current} / {m.total}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => handleUpdateMaterial(m.id, -100)} className="w-10 h-10 border border-zinc-100 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors">
+                            -100
+                          </button>
+                          <button onClick={() => handleUpdateMaterial(m.id, 100)} className="w-10 h-10 border border-zinc-100 rounded-lg flex items-center justify-center text-green-500 hover:bg-green-50 transition-colors">
+                            +100
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'partners' && (
+              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
+                  <div>
+                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none italic">Articulação Política</h2>
+                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">CRM de Relacionamento e Parcerias</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                  {/* QUICK ADD */}
+                  <div className="lg:col-span-1 bg-zinc-950 rounded-2xl p-6 shadow-2xl text-white">
+                    <h3 className="text-[11px] font-black uppercase tracking-widest text-yellow-500 mb-6">Mapear Parceiro</h3>
+                    <form onSubmit={handleAddPartner} className="space-y-4">
+                      <input name="name" className="w-full bg-white/10 border-none rounded-xl p-4 text-[11px] font-bold" placeholder="Nome do Influenciador/Líder" />
+                      <input name="role" className="w-full bg-white/10 border-none rounded-xl p-4 text-[11px] font-bold" placeholder="Cargo/Representação" />
+                      <select name="status" className="w-full bg-white/10 border-none rounded-xl p-4 text-[11px] font-bold outline-none">
+                        <option value="frio" className="text-zinc-950">❄️ Relacionamento Frio</option>
+                        <option value="morno" className="text-zinc-950">🔥 Em Negociação</option>
+                        <option value="quente" className="text-zinc-950">💎 Apoio Confirmado</option>
+                      </select>
+                      <button className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">
+                        Incluir no CRM
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* LIST */}
+                  <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {partners.map(p => (
+                      <div key={p.id} className="bg-white border border-zinc-200 rounded-2xl p-5 flex items-center justify-between group">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center border-4 ${
+                            p.status === 'quente' ? 'bg-yellow-50 border-yellow-200' : 
+                            p.status === 'morno' ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200'
+                          }`}>
+                            <Handshake className={`w-6 h-6 ${
+                              p.status === 'quente' ? 'text-yellow-600' : 
+                              p.status === 'morno' ? 'text-orange-600' : 'text-blue-600'
+                            }`} />
+                          </div>
+                          <div>
+                            <h4 className="font-black text-zinc-900 uppercase leading-none tracking-tight italic">{p.name}</h4>
+                            <p className="text-[9px] font-bold text-zinc-400 mt-1 uppercase tracking-widest">{p.role}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${
+                            p.status === 'quente' ? 'bg-yellow-500 text-zinc-950 shadow-lg' : 
+                            p.status === 'morno' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            {p.status === 'quente' ? 'CONSOLIDADO' : p.status === 'morno' ? 'EM TRATATIVA' : 'MAPEADO'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'demands' && (
+              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
+                  <div>
+                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none italic">Mapa de Calor: Ouvidoria</h2>
+                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Concentração de Demandas por Região</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                   <div className="lg:col-span-3 bg-white border border-zinc-200 rounded-3xl p-8 shadow-sm">
+                      <div className="mb-8">
+                        <h3 className="text-sm font-black uppercase tracking-tighter italic text-zinc-950">Volume por Zona de Atuação</h3>
+                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comparativo de solicitações em campo</p>
+                      </div>
+                      
+                      <div className="h-[400px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={demandsSummary}>
+                            <XAxis 
+                              dataKey="name" 
+                              axisLine={false} 
+                              tickLine={false} 
+                              tick={{ fontSize: 9, fontWeight: 900, fill: '#71717a' }}
+                            />
+                            <Tooltip 
+                              cursor={{ fill: '#f4f4f5' }}
+                              content={({ active, payload }) => {
+                                if (active && payload && payload.length) {
+                                  return (
+                                    <div className="bg-zinc-950 p-3 rounded-xl shadow-2xl border border-white/10">
+                                      <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest">{payload[0].payload.name}</p>
+                                      <p className="text-xl font-black text-white mt-1">{payload[0].value} Demandas</p>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              }}
+                            />
+                            <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                              {demandsSummary.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#18181b' : '#fbbf24'} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                   </div>
+
+                   <div className="lg:col-span-1 space-y-4">
+                      <div className="bg-zinc-950 rounded-2xl p-6 text-white text-center">
+                        <Activity className="w-10 h-10 text-yellow-500 mx-auto mb-4" />
+                        <h4 className="text-lg font-black uppercase italic tracking-tighter">Foco Estratégico</h4>
+                        <p className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mt-2 leading-relaxed">
+                          A Região com maior concentração requer visita imediata do candidato.
+                        </p>
+                      </div>
+
+                      <div className="bg-white border border-zinc-200 rounded-2xl p-6">
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-950 mb-4">Métricas de Pressão</h4>
+                        <div className="space-y-4">
+                          {demandsSummary.map(d => (
+                            <div key={d.name}>
+                              <div className="flex justify-between items-center mb-1.5">
+                                <span className="text-[10px] font-black uppercase text-zinc-600 italic leading-none">{d.name}</span>
+                                <span className="text-[9px] font-black text-zinc-400">{d.value}</span>
+                              </div>
+                              <div className="h-1 bg-zinc-50 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-zinc-950" 
+                                  style={{ width: `${(d.value / Math.max(...demandsSummary.map(i => i.value))) * 100}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                   </div>
                 </div>
               </motion.div>
             )}
@@ -2468,8 +2850,8 @@ function CoordinatorDashboard() {
           { id: 'teams', label: 'Equipes', icon: <Users className="w-5 h-5" /> },
           { id: 'attendance', label: 'Ponto', icon: <Clock className="w-5 h-5" /> },
           { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-5 h-5" /> },
-          { id: 'finance', label: 'Money', icon: <DollarSign className="w-5 h-5" /> },
-          { id: 'notes', label: 'Notas', icon: <MessageSquare className="w-5 h-5" /> }
+          { id: 'materials', label: 'Materia', icon: <Package className="w-5 h-5" /> },
+          { id: 'demands', label: 'Mapa', icon: <Activity className="w-5 h-5" /> }
         ].map(tab => (
           <button 
             key={tab.id}
@@ -2547,6 +2929,7 @@ function CaboDashboard() {
   const [isLocating, setIsLocating] = useState(false);
   const [activeTab, setActiveTab] = useState<'equipe' | 'logistica' | 'ouvidoria' | 'financeiro' | 'notas'>('logistica');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [dailyOrder, setDailyOrder] = useState<any>(null);
   
   // Notas State
   const [notes, setNotes] = useState<any[]>([]);
@@ -2656,12 +3039,17 @@ function CaboDashboard() {
         console.error("Erro ao escutar notas:", err);
       });
 
+      const unsubDailyOrder = onSnapshot(doc(db, 'config', 'dailyOrder'), (snap) => {
+        if (snap.exists()) setDailyOrder(snap.data());
+      });
+
       return () => {
         unsubProfile();
         unsubVoters();
         unsubAgendas();
         unsubNotes();
         if (unsubTx) unsubTx();
+        unsubDailyOrder();
       };
     }
   }, [user]);
@@ -3112,6 +3500,31 @@ function CaboDashboard() {
                   <div className="bg-yellow-500/10 border-2 border-yellow-500/20 text-yellow-500 p-6 rounded-3xl text-center flex items-center justify-center gap-4 font-black text-xs uppercase tracking-[0.2em] shadow-2xl">
                     <RefreshCcw className="w-6 h-6 animate-spin" /> Verificando Assinatura de GPS e Segurança de Campo...
                   </div>
+                )}
+
+                {dailyOrder?.text && (
+                  <motion.section 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-zinc-950 border-2 border-yellow-500/50 rounded-[2.5rem] p-10 shadow-[0_0_50px_-12px_rgba(234,179,8,0.3)] relative overflow-hidden group"
+                  >
+                    <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                      <ShieldCheck className="w-32 h-32 text-yellow-500 rotate-12" />
+                    </div>
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="bg-yellow-500 p-3 rounded-2xl"><Zap className="w-6 h-6 text-zinc-950" /></div>
+                      <div>
+                        <h3 className="text-white font-black text-xl uppercase tracking-tighter italic">Ordem do Dia</h3>
+                        <p className="text-yellow-500 text-[8px] font-black uppercase tracking-[0.2em] mt-1">Diretriz Crítica de Campo</p>
+                      </div>
+                    </div>
+                    <p className="text-white font-black text-2xl leading-relaxed italic border-l-4 border-yellow-500 pl-6">
+                      "{dailyOrder.text}"
+                    </p>
+                    <div className="mt-8 flex items-center gap-3 text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+                       <Clock className="w-3.5 h-3.5" /> Atualizado às {new Date(dailyOrder.updatedAt).toLocaleTimeString()}
+                    </div>
+                  </motion.section>
                 )}
 
                 {teamData?.observations && (
