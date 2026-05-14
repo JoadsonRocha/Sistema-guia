@@ -51,6 +51,8 @@
         "leaderId": { "type": "string" },
         "team": { "type": "string" },
         "location": { "type": "object", "properties": { "lat": { "type": "number" }, "lng": { "type": "number" } } },
+        "referredBy": { "type": "string", "description": "Person who referred this voter" },
+        "tags": { "type": "array", "items": { "type": "string" }, "description": "Tags for filtering" },
         "createdAt": { "type": "number" }
       },
       "required": ["name", "leaderId"]

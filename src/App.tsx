@@ -206,7 +206,7 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
 /// --- COMPONENTE: DASHBOARD DO COORDENADOR ---
 function CoordinatorDashboard() {
   const { user, login, logout, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'finance' | 'agenda' | 'notes' | 'attendance' | 'materials' | 'partners' | 'demands'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'voters' | 'finance' | 'agenda' | 'notes' | 'attendance' | 'materials' | 'partners' | 'demands'>('overview');
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
   
   // New States for requested features
@@ -248,8 +248,20 @@ function CoordinatorDashboard() {
   const [selectedManagingTeam, setSelectedManagingTeam] = useState<any>(null);
   const [managingTeamVoters, setManagingTeamVoters] = useState<any[]>([]);
   const [selectedVoter, setSelectedVoter] = useState<any>(null);
+  const [allVoters, setAllVoters] = useState<any[]>([]);
+  const [voterFilterTags, setVoterFilterTags] = useState<string[]>([]);
+  const [voterSearch, setVoterSearch] = useState('');
+  const [voterFilterReferredBy, setVoterFilterReferredBy] = useState('');
+  const [currentEditTag, setCurrentEditTag] = useState('');
   const [isVoterEditModalOpen, setIsVoterEditModalOpen] = useState(false);
-  const [voterEditForm, setVoterEditForm] = useState({ name: '', phone: '', address: '', observations: '' });
+  const [voterEditForm, setVoterEditForm] = useState<{
+    name: string;
+    phone: string;
+    address: string;
+    observations: string;
+    referredBy: string;
+    tags: string[];
+  }>({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [] });
 
   // Briefing State
   const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
@@ -590,6 +602,34 @@ function CoordinatorDashboard() {
     }
   }, [selectedManagingTeam, isAdmin]);
 
+  // Sincronizar todos os eleitores para o coordenador (Tab Eleitores)
+  useEffect(() => {
+    if (activeTab === 'voters' && isAdmin) {
+      const votersRef = collection(db, 'voters');
+      const unsub = onSnapshot(votersRef, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setAllVoters(data);
+      });
+      return () => unsub();
+    }
+  }, [activeTab, isAdmin]);
+
+  const filteredVoters = allVoters.filter(voter => {
+    const matchesSearch = !voterSearch || 
+      voter.name?.toLowerCase().includes(voterSearch.toLowerCase()) || 
+      voter.phone?.includes(voterSearch);
+    
+    const matchesReferredBy = !voterFilterReferredBy || 
+      voter.referredBy?.toLowerCase().includes(voterFilterReferredBy.toLowerCase());
+
+    const matchesTags = voterFilterTags.length === 0 || 
+      voterFilterTags.every((tag: string) => voter.tags?.includes(tag));
+
+    return matchesSearch && matchesReferredBy && matchesTags;
+  });
+
+  const availableTags = Array.from(new Set(allVoters.flatMap(v => v.tags || [])));
+
   const handleProcessCaos = async () => {
     setIsProcessing(true);
     setAiResult(null);
@@ -860,6 +900,7 @@ function CoordinatorDashboard() {
           {[
             { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
             { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
+            { id: 'voters', label: 'Eleitores Geral', icon: <Target className="w-4 h-4" /> },
             { id: 'attendance', label: 'Audit. Ponto', icon: <Clock className="w-4 h-4" /> },
             { id: 'agenda', label: 'Mapa & Agenda', icon: <Calendar className="w-4 h-4" /> },
             { id: 'finance', label: 'Financeiro', icon: <DollarSign className="w-4 h-4" /> },
@@ -1301,6 +1342,160 @@ function CoordinatorDashboard() {
                        <p className="font-black text-zinc-300 uppercase tracking-[0.2em] text-[9px]">Sincronizando unidades...</p>
                     </div>
                   )}
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'voters' && (
+              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-zinc-950 rounded-sm flex items-center justify-center shadow-lg">
+                      <Target className="w-6 h-6 text-yellow-500" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Base de Eleitores</h2>
+                      <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Gestão centralizada de segmentação e influência</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* FILTERS */}
+                <div className="bg-white border border-zinc-200 rounded-sm p-6 shadow-sm space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Pesquisar por Nome/Telefone</label>
+                      <div className="relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                        <input 
+                          type="text" 
+                          value={voterSearch}
+                          onChange={e => setVoterSearch(e.target.value)}
+                          className="w-full bg-zinc-50 border border-zinc-100 rounded-sm py-3 pl-10 pr-4 text-xs font-bold text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+                          placeholder="Ex: João Silva ou 119..."
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Filtrar por Quem Indicou</label>
+                      <div className="relative">
+                        <Handshake className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                        <input 
+                          type="text" 
+                          value={voterFilterReferredBy}
+                          onChange={e => setVoterFilterReferredBy(e.target.value)}
+                          className="w-full bg-zinc-50 border border-zinc-100 rounded-sm py-3 pl-10 pr-4 text-xs font-bold text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+                          placeholder="Nome do indicador..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Filtrar por Tags (Segmentação)</label>
+                    <div className="flex flex-wrap gap-2">
+                       {availableTags.length > 0 ? availableTags.map(tag => (
+                         <button
+                           key={tag}
+                           onClick={() => {
+                             if (voterFilterTags.includes(tag)) {
+                               setVoterFilterTags(voterFilterTags.filter(t => t !== tag));
+                             } else {
+                               setVoterFilterTags([...voterFilterTags, tag]);
+                             }
+                           }}
+                           className={`px-3 py-1.5 rounded-sm text-[9px] font-black uppercase transition-all border ${
+                             voterFilterTags.includes(tag)
+                             ? 'bg-yellow-500 border-yellow-600 text-zinc-950 shadow-md'
+                             : 'bg-zinc-100 border-zinc-200 text-zinc-500 hover:bg-zinc-200'
+                           }`}
+                         >
+                           {tag}
+                         </button>
+                       )) : (
+                         <p className="text-[10px] text-zinc-400 italic">Nenhuma tag cadastrada ainda.</p>
+                       )}
+                       {voterFilterTags.length > 0 && (
+                         <button 
+                           onClick={() => setVoterFilterTags([])}
+                           className="text-[9px] font-black text-red-600 uppercase tracking-widest ml-2 flex items-center gap-1"
+                         >
+                           <X className="w-3 h-3" /> Limpar Filtros
+                         </button>
+                       )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* TABLE/LIST */}
+                <div className="bg-white border border-zinc-200 rounded-sm shadow-sm overflow-hidden min-h-[400px]">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-zinc-50 border-b border-zinc-200">
+                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Eleitor</th>
+                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Indicado Por</th>
+                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Tags</th>
+                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Equipe / Líder</th>
+                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400 text-right">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-100">
+                      {filteredVoters.length > 0 ? filteredVoters.map((voter) => (
+                        <tr key={voter.id} className="hover:bg-zinc-50/50 transition-colors">
+                          <td className="p-4">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-black text-zinc-950 uppercase leading-none">{voter.name}</span>
+                              <span className="text-[10px] font-bold text-zinc-400 mt-1">{voter.phone}</span>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-xs font-bold text-zinc-600 uppercase">{voter.referredBy || '---'}</span>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex flex-wrap gap-1">
+                              {voter.tags?.map((tag: string) => (
+                                <span key={tag} className="bg-yellow-500/10 text-yellow-700 px-2 py-0.5 rounded-sm text-[8px] font-black uppercase">
+                                  {tag}
+                                </span>
+                              )) || <span className="text-zinc-300">---</span>}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-black text-zinc-900 uppercase leading-none">{voter.team}</span>
+                              <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-1">{voter.leaderName}</span>
+                            </div>
+                          </td>
+                          <td className="p-4 text-right">
+                             <button 
+                               onClick={() => {
+                                 setSelectedVoter(voter);
+                                 setVoterEditForm({
+                                   name: voter.name,
+                                   phone: voter.phone,
+                                   address: voter.address,
+                                   observations: voter.observations || '',
+                                   referredBy: voter.referredBy || '',
+                                   tags: voter.tags || []
+                                 });
+                                 setIsVoterEditModalOpen(true);
+                               }}
+                               className="p-2 text-zinc-400 hover:text-zinc-950 transition-colors"
+                             >
+                               <Edit3 className="w-4 h-4" />
+                             </button>
+                          </td>
+                        </tr>
+                      )) : (
+                        <tr>
+                          <td colSpan={5} className="p-20 text-center">
+                            <Search className="w-8 h-8 text-zinc-200 mx-auto mb-3" />
+                            <p className="font-black text-zinc-300 uppercase tracking-widest text-[10px]">Nenhum eleitor encontrado com estes filtros.</p>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </motion.div>
             )}
@@ -2558,6 +2753,55 @@ function CoordinatorDashboard() {
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Observações Estratégicas</label>
                   <textarea value={voterEditForm.observations} onChange={e => setVoterEditForm({...voterEditForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm h-24" placeholder="Ex: Prioritário, transporte necessário..."></textarea>
                 </div>
+
+                <div className="space-y-1">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Indicado por (Referência)</label>
+                  <input type="text" value={voterEditForm.referredBy} onChange={e => setVoterEditForm({...voterEditForm, referredBy: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Nome de quem o indicou..." />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Tags de Segmentação</label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {voterEditForm.tags?.map(tag => (
+                      <span key={tag} className="bg-yellow-500/10 text-yellow-600 px-3 py-1 rounded-sm text-[9px] font-black uppercase flex items-center gap-2">
+                        {tag}
+                        <button type="button" onClick={() => setVoterEditForm({...voterEditForm, tags: voterEditForm.tags.filter(t => t !== tag)})}>
+                          <X className="w-2 h-2" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={currentEditTag} 
+                      onChange={e => setCurrentEditTag(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (currentEditTag.trim() && !voterEditForm.tags.includes(currentEditTag.trim())) {
+                            setVoterEditForm({...voterEditForm, tags: [...voterEditForm.tags, currentEditTag.trim()]});
+                            setCurrentEditTag('');
+                          }
+                        }
+                      }}
+                      className="flex-1 bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" 
+                      placeholder="Adicionar tag (Enter)..." 
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        if (currentEditTag.trim() && !voterEditForm.tags.includes(currentEditTag.trim())) {
+                          setVoterEditForm({...voterEditForm, tags: [...voterEditForm.tags, currentEditTag.trim()]});
+                          setCurrentEditTag('');
+                        }
+                      }}
+                      className="bg-zinc-950 text-white px-4 rounded-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
                 
                 <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-sm font-black text-base shadow-xl shadow-zinc-200 mt-2 active:scale-95 transition-all">
                   SALVAR ALTERAÇÕES
@@ -2948,7 +3192,15 @@ function CaboDashboard() {
   const [expenseForm, setExpenseForm] = useState({ amount: '', description: '', purpose: '' });
   
   const [isVoterModalOpen, setIsVoterModalOpen] = useState(false);
-  const [voterForm, setVoterForm] = useState({ name: '', phone: '', address: '', observations: '' });
+  const [voterForm, setVoterForm] = useState<{
+    name: string;
+    phone: string;
+    address: string;
+    observations: string;
+    referredBy: string;
+    tags: string[];
+  }>({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [] });
+  const [currentTag, setCurrentTag] = useState('');
 
   const [isFuelModalOpen, setIsFuelModalOpen] = useState(false);
   const [fuelForm, setFuelForm] = useState({ amount: '', reason: '' });
@@ -3167,6 +3419,7 @@ function CaboDashboard() {
           team: profileData.zone || "Base",
           createdAt: Date.now(),
           registeredBy: user.email || user.uid,
+          createdBy: user.uid,
           location: null
         };
         await firestoreService.setDocument('voters', `voter_${Date.now()}`, payload);
@@ -3176,7 +3429,7 @@ function CaboDashboard() {
       setIsVoterModalOpen(false);
       setIsEditingVoter(false);
       setEditingVoterId(null);
-      setVoterForm({ name: '', phone: '', address: '', observations: '' });
+      setVoterForm({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [] });
     } catch (err: any) {
       alert("Erro ao salvar: " + err.message);
     }
@@ -4116,6 +4369,32 @@ function CaboDashboard() {
                     </div>
                   </div>
 
+                  {selectedVoter.referredBy && (
+                    <div className="flex items-start gap-4">
+                      <div className="bg-purple-50 p-3 rounded-sm text-purple-600"><Handshake className="w-5 h-5" /></div>
+                      <div>
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Indicado por</p>
+                        <p className="text-base font-bold text-zinc-800 leading-tight">{selectedVoter.referredBy}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedVoter.tags && selectedVoter.tags.length > 0 && (
+                    <div className="flex items-start gap-4">
+                      <div className="bg-zinc-100 p-3 rounded-sm text-zinc-950"><Target className="w-5 h-5" /></div>
+                      <div>
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Tags de Segmentação</p>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {selectedVoter.tags.map((tag: string) => (
+                            <span key={tag} className="bg-yellow-500/20 text-zinc-950 border border-yellow-500/30 px-2 py-0.5 rounded-sm text-[8px] font-black uppercase tracking-widest">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-start gap-4">
                     <div className="bg-zinc-100 p-3 rounded-sm text-zinc-950"><MapPin className="w-5 h-5" /></div>
                     <div>
@@ -4142,7 +4421,9 @@ function CaboDashboard() {
                         name: selectedVoter.name,
                         phone: selectedVoter.phone,
                         address: selectedVoter.address,
-                        observations: selectedVoter.observations
+                        observations: selectedVoter.observations || '',
+                        referredBy: selectedVoter.referredBy || '',
+                        tags: selectedVoter.tags || []
                       });
                       setEditingVoterId(selectedVoter.id);
                       setIsEditingVoter(true);
@@ -4207,6 +4488,55 @@ function CaboDashboard() {
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Localização Operacional</label>
                   <input type="text" value={voterForm.address} onChange={e => setVoterForm({...voterForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Rua, Bairro ou Referência..." />
                 </div>
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Indicado por (Referência)</label>
+                  <input type="text" value={voterForm.referredBy} onChange={e => setVoterForm({...voterForm, referredBy: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Nome de quem o indicou..." />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Tags de Segmentação</label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {voterForm.tags.map(tag => (
+                      <span key={tag} className="bg-yellow-500/10 text-yellow-600 px-3 py-1 rounded-sm text-[9px] font-black uppercase flex items-center gap-2">
+                        {tag}
+                        <button type="button" onClick={() => setVoterForm({...voterForm, tags: voterForm.tags.filter(t => t !== tag)})}>
+                          <X className="w-2 h-2" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={currentTag} 
+                      onChange={e => setCurrentTag(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (currentTag.trim() && !voterForm.tags.includes(currentTag.trim())) {
+                            setVoterForm({...voterForm, tags: [...voterForm.tags, currentTag.trim()]});
+                            setCurrentTag('');
+                          }
+                        }
+                      }}
+                      className="flex-1 bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" 
+                      placeholder="Adicionar tag (Enter)..." 
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        if (currentTag.trim() && !voterForm.tags.includes(currentTag.trim())) {
+                          setVoterForm({...voterForm, tags: [...voterForm.tags, currentTag.trim()]});
+                          setCurrentTag('');
+                        }
+                      }}
+                      className="bg-zinc-950 text-white px-4 rounded-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Observações Técnicas de Campo</label>
                   <textarea value={voterForm.observations} onChange={e => setVoterForm({...voterForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Histórico de engajamento ou demandas específicas..." />
