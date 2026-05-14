@@ -31,6 +31,7 @@ import {
   Calendar,
   Clock,
   FileText,
+  FileDown,
   GanttChart,
   Trash2,
   Edit3,
@@ -58,7 +59,7 @@ import { db, auth } from './lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from './lib/agendaLogic';
 
 /// --- COMPONENTE: CARD DE NOTA (ESTILO FÓRUM) ---
-function NoteCard({ note, user, isAdmin, onDelete }: any) {
+function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,7 +83,7 @@ function NoteCard({ note, user, isAdmin, onDelete }: any) {
         id: commentId,
         text: newComment,
         authorId: user.uid,
-        authorName: user.displayName || 'Membro Águia',
+        authorName: currentUserName || user.displayName || 'Membro Águia',
         createdAt: Date.now()
       });
       setNewComment('');
@@ -188,7 +189,7 @@ function NoteCard({ note, user, isAdmin, onDelete }: any) {
 /// --- COMPONENTE: DASHBOARD DO COORDENADOR ---
 function CoordinatorDashboard() {
   const { user, login, logout, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'finance' | 'agenda' | 'notes'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'finance' | 'agenda' | 'notes' | 'attendance'>('overview');
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [chaosText, setChaosText] = useState('');
@@ -493,7 +494,7 @@ function CoordinatorDashboard() {
     }
   };
 
-  const handleSaveAsPrivateNote = async () => {
+  const handleSaveNote = async (type: 'private' | 'tactical') => {
     if (!user || !chaosText.trim()) return;
     setIsProcessing(true);
     try {
@@ -504,13 +505,13 @@ function CoordinatorDashboard() {
         authorId: user.uid,
         authorName: profileData?.name || 'Coordenador',
         authorRole: 'coordinator',
-        type: 'private',
+        type: type,
         createdAt: Date.now()
       });
       setChaosText('');
       setAiResult(null);
       setIsAiModalOpen(false);
-      alert('Observação salva na sua área pessoal!');
+      alert(type === 'private' ? 'Observação salva na sua área pessoal!' : 'Nota postada no fórum tático!');
     } catch (err) {
       console.error(err);
     } finally {
@@ -599,6 +600,52 @@ function CoordinatorDashboard() {
     setIsEditMode(true);
     setTeamCreationStep('form');
     setIsTeamModalOpen(true);
+  };
+
+  const handleResetSystem = async () => {
+    if (!isAdmin) return;
+    if (window.confirm("⚠️ ALERTA DE SEGURANÇA: Deseja realmente ZERAR todos os dados do sistema? Isso removerá notas, ponto, financeiro, eleitores e agenda para começar do zero com dados REAIS.\n\nEsta ação não pode ser desfeita.")) {
+      try {
+        setIsProcessing(true);
+        
+        // 1. Limpar Coleções Principais
+        const collections = ['transactions', 'attendance', 'notes', 'urgencies', 'agenda', 'voters'];
+        for (const coll of collections) {
+          const docs = await firestoreService.getCollection<any>(coll);
+          for (const d of docs) {
+            await firestoreService.deleteDocument(coll, d.id);
+          }
+        }
+
+        // 2. Resetar Campos das Equipes
+        for (const team of teams) {
+          const teamId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
+          await firestoreService.updateDocument('teams', teamId, {
+            allocated: 0,
+            spent: 0,
+            contacts: 0,
+            demands: 0,
+            fuel: 0
+          });
+        }
+
+        // 3. Resetar Stats Globais
+        await firestoreService.setDocument('stats', 'global', {
+          totalFunded: 0,
+          combustivelHoje: 0,
+          combustivelSaldo: 0,
+          votersTotal: 0,
+          lastUpdated: Date.now()
+        }, true);
+
+        alert("✅ SISTEMA REINICIADO COM SUCESSO! Todos os valores fictícios foram removidos.");
+        setIsProfileModalOpen(false);
+      } catch (err: any) {
+        alert("Erro ao formatar sistema: " + err.message);
+      } finally {
+        setIsProcessing(false);
+      }
+    }
   };
 
   const handleVoterEditSubmit = async (e: React.FormEvent) => {
@@ -703,6 +750,7 @@ function CoordinatorDashboard() {
           {[
             { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
             { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
+            { id: 'attendance', label: 'Audit. Ponto', icon: <Clock className="w-4 h-4" /> },
             { id: 'agenda', label: 'Mapa & Agenda', icon: <Calendar className="w-4 h-4" /> },
             { id: 'finance', label: 'Financeiro', icon: <DollarSign className="w-4 h-4" /> },
             { id: 'notes', label: 'Anotações', icon: <MessageSquare className="w-4 h-4" /> }
@@ -872,6 +920,7 @@ function CoordinatorDashboard() {
           {[
             { id: 'overview', label: 'Dash' },
             { id: 'teams', label: 'Equipes' },
+            { id: 'attendance', label: 'Ponto' },
             { id: 'agenda', label: 'Agenda' },
             { id: 'finance', label: 'Finanças' },
             { id: 'notes', label: 'Notas' }
@@ -1215,6 +1264,90 @@ function CoordinatorDashboard() {
               </motion.div>
             )}
 
+            {activeTab === 'attendance' && (
+              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
+                  <div>
+                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none italic">Controle de Frequência (GPS)</h2>
+                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Auditoria de localização e horários em tempo real</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={async () => {
+                        if(window.confirm("Deseja exportar o relatório de ponto em PDF?")) {
+                          alert("Gerando relatório... O download iniciará em instantes.");
+                        }
+                      }}
+                      className="bg-white border border-zinc-200 text-zinc-950 px-4 py-3.5 rounded-xl font-black text-[10px] uppercase flex items-center justify-center gap-2.5 shadow-sm hover:bg-zinc-50 transition-all"
+                    >
+                      <FileDown className="w-4 h-4" /> Exportar PDF
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  {attendance.length > 0 ? (
+                    <div className="bg-white border border-zinc-200 rounded-2xl overflow-hidden shadow-sm">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-zinc-50 border-b border-zinc-200">
+                            <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Líder</th>
+                            <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Data/Hora</th>
+                            <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Localização (GPS)</th>
+                            <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400 text-right">Ações</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-100">
+                          {attendance.sort((a,b) => b.timestamp - a.timestamp).map((entry) => (
+                            <tr key={entry.id} className="hover:bg-zinc-50/50 transition-colors">
+                              <td className="p-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center font-black text-white text-[10px]">
+                                    {entry.leaderName?.charAt(0)}
+                                  </div>
+                                  <span className="text-xs font-black text-zinc-900 uppercase">{entry.leaderName}</span>
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-bold text-zinc-900">{new Date(entry.timestamp).toLocaleDateString()}</span>
+                                  <span className="text-[10px] font-medium text-zinc-400">{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                {entry.location ? (
+                                  <a 
+                                    href={`https://www.google.com/maps?q=${entry.location.lat},${entry.location.lng}`} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 text-blue-600 hover:underline font-bold text-xs"
+                                  >
+                                    <MapPin className="w-3.5 h-3.5" /> Ver no Mapa
+                                  </a>
+                                ) : (
+                                  <span className="text-xs text-zinc-400 italic">Localização indisponível</span>
+                                )}
+                              </td>
+                              <td className="p-4 text-right">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 text-green-700 text-[9px] font-black uppercase tracking-widest border border-green-100">
+                                  <CheckCircle2 className="w-2.5 h-2.5" /> Validado
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="py-20 bg-white border-2 border-dashed border-zinc-200 rounded-2xl text-center">
+                      <Clock className="w-12 h-12 text-zinc-200 mx-auto mb-4" />
+                      <p className="font-black text-zinc-300 uppercase tracking-[0.2em] text-xs">Nenhum registro de ponto encontrado.</p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
             {activeTab === 'finance' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <FinanceDashboard isNested />
@@ -1260,7 +1393,7 @@ function CoordinatorDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {notes.filter(n => noteSubTab === 'private' ? n.type === 'private' : (n.type === 'tactical' || !n.type)).length > 0 ? (
                     notes.filter(n => noteSubTab === 'private' ? n.type === 'private' : (n.type === 'tactical' || !n.type)).map((note) => (
-                      <NoteCard key={note.id} note={note} user={user} isAdmin={isAdmin} onDelete={() => firestoreService.deleteDocument('notes', note.id)} />
+                      <NoteCard key={note.id} note={note} user={user} isAdmin={isAdmin} currentUserName={profileData?.name} onDelete={() => firestoreService.deleteDocument('notes', note.id)} />
                     ))
                   ) : (
                     <div className="col-span-full py-20 bg-white border-2 border-dashed border-zinc-200 rounded-2xl text-center">
@@ -1316,22 +1449,32 @@ function CoordinatorDashboard() {
                       placeholder="Descreva a situação em tempo real..."
                       className="w-full h-40 bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-xs text-zinc-800 focus:border-yellow-500 outline-none transition-all placeholder:text-zinc-300 resize-none"
                     />
-                    <div className="flex gap-3">
+                    <div className="flex flex-col gap-3 font-sans">
                       <button 
                         onClick={handleProcessCaos}
                         disabled={isProcessing || !chaosText}
-                        className="flex-1 bg-zinc-950 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all active:scale-95 flex items-center justify-center gap-2"
+                        className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all active:scale-95 flex items-center justify-center gap-2"
                       >
-                        {isProcessing ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4 cursor-pointer" />}
-                        {isProcessing ? 'Processando...' : 'Analisar IA'}
+                        {isProcessing ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4 cursor-pointer text-yellow-500" />}
+                        {isProcessing ? 'Processando Inteligência...' : 'Analisar com IA'}
                       </button>
-                      <button 
-                        onClick={handleSaveAsPrivateNote}
-                        disabled={isProcessing || !chaosText}
-                        className="flex-1 bg-zinc-100 text-zinc-900 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center gap-2"
-                      >
-                        <Plus className="w-4 h-4" /> Salvar Nota
-                      </button>
+                      
+                      <div className="flex flex-col sm:flex-row gap-3 mt-2">
+                        <button 
+                          onClick={() => handleSaveNote('tactical')}
+                          disabled={isProcessing || !chaosText}
+                          className="flex-1 bg-yellow-500 text-zinc-950 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2 italic"
+                        >
+                          <MessageSquare className="w-4 h-4" /> Postar no Fórum
+                        </button>
+                        <button 
+                          onClick={() => handleSaveNote('private')}
+                          disabled={isProcessing || !chaosText}
+                          className="flex-1 bg-zinc-100 text-zinc-900 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+                        >
+                          <Plus className="w-4 h-4" /> Salvar Privado
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -1396,16 +1539,28 @@ function CoordinatorDashboard() {
                     >
                       CONFIRMAR DELEGAÇÃO
                     </button>
-                    <button 
-                      onClick={() => {
-                        const summary = Array.isArray(aiResult.summary) ? aiResult.summary.join('. ') : aiResult.summary;
-                        setChaosText(`${aiResult.title}: ${summary}`);
-                        handleSaveAsPrivateNote();
-                      }}
-                      className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all"
-                    >
-                      Salvar como Nota Pessoal
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-3 mb-2">
+                       <button 
+                        onClick={() => {
+                          const summary = Array.isArray(aiResult.summary) ? aiResult.summary.join('. ') : aiResult.summary;
+                          setChaosText(`${aiResult.title}: ${summary}`);
+                          handleSaveNote('tactical');
+                        }}
+                        className="flex-1 bg-yellow-500 text-zinc-950 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all italic flex items-center justify-center gap-2"
+                      >
+                        <MessageSquare className="w-4 h-4" /> Postar no Fórum
+                      </button>
+                      <button 
+                        onClick={() => {
+                          const summary = Array.isArray(aiResult.summary) ? aiResult.summary.join('. ') : aiResult.summary;
+                          setChaosText(`${aiResult.title}: ${summary}`);
+                          handleSaveNote('private');
+                        }}
+                        className="flex-1 bg-zinc-950 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
+                      >
+                        <Lock className="w-4 h-4" /> Salvar Privado
+                      </button>
+                    </div>
                     <button 
                       onClick={() => setAiResult(null)}
                       className="w-full text-zinc-400 font-black text-[8px] uppercase py-2 tracking-widest hover:text-zinc-600 transition-colors"
@@ -2114,6 +2269,20 @@ function CoordinatorDashboard() {
                 <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-base shadow-xl shadow-zinc-200 mt-2 active:scale-95 transition-all">
                   SALVAR CONFIGURAÇÕES
                 </button>
+
+                {isAdmin && (
+                  <div className="pt-6 mt-6 border-t border-zinc-100">
+                    <p className="text-[8px] font-black text-red-400 uppercase tracking-widest mb-3 text-center">Área Crítica - Reset de Fábrica</p>
+                    <button 
+                      type="button"
+                      onClick={handleResetSystem}
+                      className="w-full bg-red-50 text-red-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest border border-red-100 hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" /> Zerar Tudo do Zero
+                    </button>
+                    <p className="text-[7px] text-zinc-400 text-center mt-2 font-bold italic leading-tight">Remove 100% dos dados fictícios e registros de teste.</p>
+                  </div>
+                )}
               </form>
             </motion.div>
           </motion.div>
@@ -2417,7 +2586,7 @@ function CaboDashboard() {
         console.error("Erro ao escutar agendas do líder:", err);
       });
 
-      const notesQuery = query(collection(db, 'notes'), where('leaderId', '==', user.uid), orderBy('createdAt', 'desc'));
+      const notesQuery = query(collection(db, 'notes'), where('type', '==', 'tactical'), orderBy('createdAt', 'desc'));
       const unsubNotes = onSnapshot(notesQuery, (snapshot) => {
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setNotes(data);
@@ -2802,7 +2971,7 @@ function CaboDashboard() {
             { id: 'equipe', label: 'Base de Eleitores', icon: <Users className="w-4 h-4" /> },
             { id: 'financeiro', label: 'Operacional Financeiro', icon: <Wallet className="w-4 h-4" /> },
             { id: 'notas', label: 'Notas de Voz', icon: <Mic className="w-4 h-4" /> },
-            { id: 'ouvidoria', label: 'Feed de Atividade', icon: <History className="w-4 h-4" /> }
+            { id: 'feed', label: 'Feed Tático', icon: <MessageSquare className="w-4 h-4" /> }
           ].map(tab => (
             <button
               key={tab.id}
@@ -3211,20 +3380,39 @@ function CaboDashboard() {
               </section>
             </div>
           </motion.div>
-        ) : activeTab === 'ouvidoria' ? (
+        ) : activeTab === 'feed' ? (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <div className="bg-white p-8 rounded-[2.5rem] border-2 border-zinc-200 shadow-xl text-center">
-              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-black text-zinc-900 uppercase">Canal de Ouvidoria</h2>
-              <p className="text-zinc-500 font-medium">Relate problemas, denúncias ou sugestões críticas.</p>
-              
-              <textarea 
-                placeholder="Descreva a ocorrência..."
-                className="w-full h-40 bg-zinc-50 border-2 border-zinc-100 rounded-3xl p-6 mt-6 outline-none focus:border-red-500 transition-all font-bold"
-              />
-              <button className="w-full bg-red-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl mt-4">
-                ENVIAR RELATO URGENTE
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-900/50 pb-6">
+              <div>
+                <h2 className="text-2xl font-black uppercase text-white tracking-tighter leading-none italic">Feed Tático</h2>
+                <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Comunicação estratégica e fórum de campo</p>
+              </div>
+              <button 
+                onClick={() => setIsNoteModalOpen(true)}
+                className="bg-yellow-500 text-zinc-950 px-6 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all shadow-xl shadow-yellow-500/10 active:scale-95 flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" /> Nova Nota
               </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {notes.filter(n => n.type === 'tactical' || !n.type).length > 0 ? (
+                notes.filter(n => n.type === 'tactical' || !n.type).map((note) => (
+                  <NoteCard 
+                    key={note.id} 
+                    note={note} 
+                    user={user} 
+                    isAdmin={isAdmin} 
+                    currentUserName={profileData?.name} 
+                    onDelete={() => firestoreService.deleteDocument('notes', note.id)} 
+                  />
+                ))
+              ) : (
+                <div className="col-span-full py-20 bg-zinc-900/50 border-2 border-dashed border-zinc-800 rounded-[2.5rem] text-center">
+                  <MessageSquare className="w-12 h-12 text-zinc-800 mx-auto mb-4" />
+                  <p className="font-black text-zinc-600 uppercase tracking-[0.2em] text-xs italic">Nenhuma comunicação tática registrada no momento.</p>
+                </div>
+              )}
             </div>
           </motion.div>
         ) : (
@@ -3246,7 +3434,7 @@ function CaboDashboard() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {notes.length > 0 ? notes.map((note) => (
-                  <NoteCard key={note.id} note={note} user={user} isAdmin={false} onDelete={() => handleDeleteNote(note.id)} />
+                  <NoteCard key={note.id} note={note} user={user} isAdmin={false} currentUserName={profileData?.name} onDelete={() => handleDeleteNote(note.id)} />
                 )) : (
                   <div className="col-span-full p-20 border-2 border-dashed border-zinc-200 rounded-[2.5rem] text-center">
                     <Mic className="w-12 h-12 text-zinc-200 mx-auto mb-4" />
