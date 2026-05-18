@@ -118,43 +118,45 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white border border-zinc-200 rounded-sm p-6 shadow-sm hover:border-yellow-500/50 transition-all flex flex-col h-full text-left dark:bg-zinc-900 dark:border-white/10 dark:text-white"
+      className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:border-yellow-500/50 transition-all flex flex-col h-full text-left relative overflow-hidden group"
     >
-      <div className="flex justify-between items-start mb-4">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 blur-3xl -mr-16 -mt-16 group-hover:bg-yellow-500/10 transition-colors pointer-events-none opacity-0 dark:opacity-100" />
+      
+      <div className="flex justify-between items-start mb-4 relative z-10">
         <div className="flex items-center gap-2">
-          <span className={`text-[8px] font-black px-3 py-1 rounded-sm uppercase tracking-widest leading-none ${note.type === 'private' ? 'bg-zinc-100 text-zinc-500' : 'bg-zinc-950 text-white'}`}>
+          <span className={`text-[8px] font-black px-3 py-1 rounded-sm uppercase tracking-widest leading-none ${note.type === 'private' ? 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)]' : 'bg-zinc-950 text-white'}`}>
             {note.type === 'private' ? 'Pessoal' : (note.team || 'Campo')}
           </span>
-          {note.type === 'private' && <Lock className="w-3 h-3 text-zinc-400" />}
+          {note.type === 'private' && <Lock className="w-3 h-3 text-[var(--text-secondary)] opacity-50" />}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">{new Date(note.createdAt).toLocaleDateString()}</span>
+          <span className="text-[8px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">{new Date(note.createdAt).toLocaleDateString()}</span>
           {(isAdmin || note.leaderId === user?.uid || note.authorId === user?.uid) && (
-             <button onClick={onDelete} className="text-zinc-300 hover:text-red-500 transition-colors p-1 hover:bg-red-50 rounded-sm">
+             <button onClick={onDelete} className="text-zinc-300 hover:text-red-500 transition-colors p-1 hover:bg-red-500/10 rounded-sm">
                <Trash2 className="w-3.5 h-3.5" />
              </button>
           )}
         </div>
       </div>
 
-      <p className="text-zinc-800 font-bold text-sm leading-relaxed mb-6 whitespace-pre-wrap">"{note.text}"</p>
+      <p className="text-[var(--text-primary)] font-bold text-sm leading-relaxed mb-6 whitespace-pre-wrap relative z-10">"{note.text}"</p>
 
-      <div className="mt-auto">
-        <div className="pt-4 border-t border-zinc-50 flex items-center justify-between mb-4">
+      <div className="mt-auto relative z-10">
+        <div className="pt-4 border-t border-[var(--border-color)] flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-sm bg-yellow-500 flex items-center justify-center font-black text-[10px] text-zinc-950 shadow-sm border border-white">
+            <div className="w-9 h-9 rounded-sm bg-yellow-500 flex items-center justify-center font-black text-[11px] text-zinc-950 shadow-sm border border-white/20">
               {(note.leaderName || note.authorName || 'U').charAt(0)}
             </div>
             <div className="text-left">
-              <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest leading-none">Registrado por</p>
-              <p className="text-[9px] font-black text-zinc-900 uppercase tracking-tight mt-1 leading-none">{note.leaderName || note.authorName}</p>
-              <p className="text-[8px] font-bold text-yellow-600 uppercase tracking-widest mt-1 leading-none">{note.teamName || note.team || (note.authorRole === 'coordinator' ? 'Liderança' : 'Campo')}</p>
+              <p className="text-[7px] font-black text-[var(--text-secondary)] uppercase tracking-widest leading-none">Registrado por</p>
+              <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tight mt-1 leading-none">{note.leaderName || note.authorName}</p>
+              <p className="text-[8px] font-bold text-yellow-600 dark:text-yellow-500 uppercase tracking-widest mt-1.5 leading-none">{note.teamName || note.team || (note.authorRole === 'coordinator' ? 'Liderança' : 'Campo')}</p>
             </div>
           </div>
           
           <button 
             onClick={() => setShowComments(!showComments)}
-            className={`flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest transition-all px-3 py-1.5 rounded-sm ${showComments ? 'bg-zinc-950 text-white' : 'text-zinc-400 hover:text-yellow-600'}`}
+            className={`flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest transition-all px-3 py-1.5 rounded-sm border ${showComments ? 'bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)]' : 'text-[var(--text-secondary)] border-[var(--border-color)] hover:border-yellow-600 hover:text-yellow-600'}`}
           >
             <MessageSquare className="w-3 h-3" /> {comments.length}
           </button>
@@ -170,15 +172,15 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
             >
               <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                 {comments.length > 0 ? comments.map((comment) => (
-                  <div key={comment.id} className="bg-zinc-50/50 p-4 rounded-sm border border-zinc-100 group/msg">
+                  <div key={comment.id} className="bg-[var(--bg-tertiary)]/50 p-4 rounded-sm border border-[var(--border-color)] group/msg">
                     <div className="flex justify-between items-center mb-1.5">
-                      <span className="text-[8px] font-black text-zinc-950 uppercase tracking-tighter">{comment.authorName}</span>
-                      <span className="text-[7px] font-bold text-zinc-400 uppercase">{new Date(comment.createdAt).toLocaleTimeString().slice(0, 5)}</span>
+                      <span className="text-[8px] font-black text-[var(--text-primary)] uppercase tracking-tighter">{comment.authorName}</span>
+                      <span className="text-[7px] font-bold text-[var(--text-secondary)] uppercase">{new Date(comment.createdAt).toLocaleTimeString().slice(0, 5)}</span>
                     </div>
-                    <p className="text-[11px] font-medium text-zinc-600 leading-relaxed">{comment.text}</p>
+                    <p className="text-[11px] font-medium text-[var(--text-secondary)] leading-relaxed">{comment.text}</p>
                   </div>
                 )) : (
-                  <p className="text-[8px] font-black text-zinc-300 uppercase text-center py-4 tracking-widest">Nenhum comentário ainda.</p>
+                  <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase text-center py-4 tracking-widest opacity-50">Nenhum comentário ainda.</p>
                 )}
               </div>
               
@@ -188,11 +190,11 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Comentar..."
-                  className="flex-1 bg-zinc-50 border border-zinc-200 rounded-sm px-4 py-3 text-[10px] font-bold text-zinc-800 outline-none focus:border-yellow-500 shadow-inner"
+                  className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm px-4 py-3 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-yellow-500 shadow-inner transition-colors"
                 />
                 <button 
                   disabled={isSubmitting || !newComment.trim()}
-                  className="bg-zinc-950 text-white p-3 rounded-sm active:scale-95 disabled:opacity-50 shadow-lg"
+                  className="bg-yellow-500 text-zinc-950 p-3 rounded-sm active:scale-95 disabled:opacity-50 shadow-lg hover:bg-yellow-400 transition-colors"
                   type="submit"
                 >
                   <Send className="w-4 h-4" />
@@ -500,28 +502,32 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       label: 'Equipes Ativas', 
       value: teams.length, 
       sub: 'Gestão de Líderes', 
-      color: 'text-zinc-900',
+      color: 'text-[var(--text-primary)]',
+      iconColor: 'bg-zinc-100 dark:bg-zinc-800',
       action: () => setActiveTab('teams')
     },
     { 
       label: 'Contatos Base', 
       value: teams.reduce((acc, t) => acc + (t.contacts || 0), 0), 
       sub: 'Monitoramento Real', 
-      color: 'text-green-700',
+      color: 'text-emerald-600 dark:text-emerald-500',
+      iconColor: 'bg-emerald-50 dark:bg-emerald-500/10',
       action: () => setActiveTab('teams')
     },
     { 
       label: 'Agenda Pendente', 
       value: agendas.filter(a => a.status === 'pendente').length, 
       sub: 'Compromissos Hoje', 
-      color: 'text-blue-600',
+      color: 'text-blue-600 dark:text-blue-400',
+      iconColor: 'bg-blue-50 dark:bg-blue-500/10',
       action: () => setActiveTab('agenda')
     },
     { 
       label: 'Recursos Totais', 
       value: `R$ ${teams.reduce((acc, t) => acc + (t.allocated || 0), 0).toLocaleString()}`, 
       sub: 'Gestão Financeira', 
-      color: 'text-yellow-600',
+      color: 'text-yellow-600 dark:text-yellow-500',
+      iconColor: 'bg-yellow-50 dark:bg-yellow-500/10',
       action: () => setActiveTab('finance')
     },
   ];
@@ -880,26 +886,26 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
   };
 
   return (
-    <div className="flex h-screen bg-[#F9FAFB] text-zinc-900 font-sans overflow-hidden dark:bg-zinc-950 dark:text-zinc-100 transition-colors duration-300">
+    <div className="flex h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans overflow-hidden transition-colors duration-300">
       {/* SIDEBAR - DESKTOP */}
-      <aside className="hidden lg:flex w-72 flex-col bg-white border-r border-zinc-200 py-8 px-6 overflow-y-auto dark:bg-zinc-950 dark:border-white/10 shrink-0">
+      <aside className="hidden lg:flex w-72 flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-color)] py-8 px-6 overflow-y-auto shrink-0 relative z-40 shadow-[2px_0_10px_rgba(0,0,0,0.02)] dark:shadow-none">
         <div className="mb-10 px-2">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-zinc-950 rounded-sm shadow-lg">
+            <div className="p-2.5 bg-zinc-950 rounded-sm shadow-xl border border-white/5">
               <ShieldCheck className="w-5 h-5 text-yellow-500" />
             </div>
             <div>
-              <h1 className="text-base font-black tracking-tighter text-zinc-950 uppercase leading-none">
+              <h1 className="text-base font-black tracking-tighter text-[var(--text-primary)] uppercase leading-none">
                 ÁGUIA
               </h1>
-              <p className="text-[8px] font-black text-yellow-600 uppercase tracking-widest mt-1">
+              <p className="text-[8px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-[0.2em] mt-1.5">
                 Estratégia 2026
               </p>
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1">
+        <nav className="flex-1 space-y-1.5">
           {[
             { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
             { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
@@ -915,13 +921,13 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id as any)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-sm text-xs font-bold transition-all ${
+              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-sm text-xs font-black uppercase tracking-tight transition-all group ${
                 activeTab === item.id 
-                ? 'bg-yellow-500 text-zinc-950 shadow-md' 
-                : 'text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100'
+                ? 'bg-yellow-500 text-zinc-950 shadow-lg shadow-yellow-500/20' 
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]'
               }`}
             >
-              <div className={activeTab === item.id ? 'text-zinc-950' : 'text-zinc-400 group-hover:text-zinc-600'}>
+              <div className={`transition-colors ${activeTab === item.id ? 'text-zinc-950' : 'text-[var(--text-secondary)] group-hover:text-yellow-600'}`}>
                 {item.icon}
               </div>
               {item.label}
@@ -936,17 +942,16 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
           >
             <Brain className="w-4 h-4 text-yellow-500" /> Nova Tarefa IA
           </button>
-          
-          <div className="pt-6 border-t border-zinc-100 space-y-1">
+          <div className="pt-6 border-t border-[var(--border-color)] space-y-1">
             <button 
               onClick={() => setIsProfileModalOpen(true)}
-              className="w-full flex items-center gap-4 px-4 py-3 rounded-sm text-xs font-bold text-zinc-400 hover:text-zinc-950 hover:bg-zinc-100 transition-all"
+              className="w-full flex items-center gap-4 px-4 py-3 rounded-sm text-xs font-black text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all uppercase tracking-tight"
             >
               <Settings className="w-4 h-4" /> Configurações
             </button>
             <button 
               onClick={logout}
-              className="w-full flex items-center gap-4 px-4 py-3 rounded-sm text-xs font-bold text-red-500 hover:bg-red-50 transition-all"
+              className="w-full flex items-center gap-4 px-4 py-3 rounded-sm text-xs font-black text-red-500 hover:bg-red-500/10 transition-all uppercase tracking-tight"
             >
               <LogOut className="w-4 h-4" /> Sair do Sistema
             </button>
@@ -955,9 +960,9 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       </aside>
 
       {/* MAIN VIEWPORT */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#F9FAFB] dark:bg-[#09090b] overflow-hidden relative">
+      <div className="flex-1 flex flex-col min-w-0 bg-[var(--bg-primary)] overflow-hidden relative transition-colors duration-300">
         {/* TOP BAR / COMMAND CENTER */}
-        <header className="h-16 bg-white border-b border-zinc-200 flex items-center justify-between px-6 z-30 shrink-0 dark:bg-zinc-950 dark:border-white/10">
+        <header className="h-16 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] flex items-center justify-between px-6 z-30 shrink-0 transition-colors duration-300">
           <div className="flex items-center gap-6 flex-1">
             <div className="relative w-full max-w-sm hidden md:block">
               <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
@@ -968,7 +973,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Pesquisar zonas, líderes ou demandas..."
-                className="w-full bg-zinc-100 border-none rounded-sm py-2 pl-11 pr-4 text-xs font-medium text-zinc-900 placeholder:text-zinc-500 focus:ring-1 focus:ring-yellow-500/20 outline-none transition-all dark:bg-zinc-900 dark:text-white"
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-2.5 pl-11 pr-4 text-[11px] font-black uppercase tracking-tight text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] placeholder:opacity-50 focus:ring-1 focus:ring-yellow-500/40 outline-none transition-all shadow-inner"
               />
 
               {/* SEARCH RESULTS PANEL */}
@@ -978,7 +983,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     initial={{ opacity: 0, y: 10 }} 
                     animate={{ opacity: 1, y: 0 }} 
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-200 rounded-sm shadow-2xl z-50 max-h-96 overflow-y-auto p-2 dark:bg-zinc-900 dark:border-white/10"
+                    className="absolute top-full left-0 right-0 mt-4 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm shadow-2xl z-50 max-h-96 overflow-y-auto p-2 transition-colors duration-300"
                   >
                     {totalResults > 0 ? (
                       <div className="p-1 space-y-3">
@@ -1048,7 +1053,8 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2.5 bg-zinc-100 rounded-sm text-zinc-500 hover:bg-yellow-500 hover:text-zinc-950 transition-all dark:bg-zinc-900 dark:text-zinc-400"
+              className="p-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-sm text-zinc-500 dark:text-zinc-400 hover:bg-yellow-500 hover:text-zinc-950 active:scale-90 transition-all border border-zinc-200 dark:border-zinc-700"
+              title={theme === 'dark' ? "Ativar Modo Claro" : "Ativar Modo Escuro"}
             >
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
@@ -1091,30 +1097,29 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                 <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Monitoramento estratégico em tempo real</p>
               </div>
 
-              {/* ORDEM DO DIA (DIRETIVA CENTRAL) */}
               <motion.section 
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-zinc-950 rounded-sm p-6 shadow-2xl border border-yellow-500/30 overflow-hidden relative"
+                className="bg-zinc-950 rounded-sm p-6 shadow-2xl border border-yellow-500/30 overflow-hidden relative group dark:bg-zinc-950"
               >
-                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none group-hover:scale-110 transition-transform duration-700">
                   <ShieldCheck className="w-40 h-40 text-yellow-500" />
                 </div>
                 
-                <div className="flex items-center justify-between mb-4 relative z-10">
+                <div className="flex items-center justify-between mb-4 relative z-10 transition-transform">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-yellow-500 rounded-sm">
+                    <div className="p-2.5 bg-yellow-500 rounded-sm shadow-lg shadow-yellow-500/20">
                       <Zap className="w-5 h-5 text-zinc-950" />
                     </div>
                     <div>
                       <h3 className="text-sm font-black text-white uppercase tracking-tighter">Ordem do Dia</h3>
-                      <p className="text-[8px] font-black text-yellow-500 uppercase tracking-[0.2em]">Diretiva Central de Comando</p>
+                      <p className="text-[8px] font-black text-yellow-500 uppercase tracking-[0.2em] opacity-80">Diretiva Central de Comando</p>
                     </div>
                   </div>
                   {isAdmin && (
                     <button 
                       onClick={() => setIsEditingDailyOrder(!isEditingDailyOrder)}
-                      className="text-[9px] font-black text-zinc-400 uppercase tracking-widest hover:text-white transition-colors"
+                      className="text-[9px] font-black text-zinc-400 uppercase tracking-widest hover:text-white transition-colors border border-white/10 px-3 py-1.5 rounded-sm hover:bg-white/5"
                     >
                       {isEditingDailyOrder ? 'Cancelar' : 'Editar Diretiva'}
                     </button>
@@ -1127,11 +1132,11 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                       value={newDailyOrder}
                       onChange={(e) => setNewDailyOrder(e.target.value)}
                       placeholder="Digite a diretiva central para todas as equipes..."
-                      className="w-full bg-white/5 border border-white/10 rounded-sm p-4 text-xs font-bold text-white outline-none focus:border-yellow-500 min-h-[120px]"
+                      className="w-full bg-white/5 border border-white/10 rounded-sm p-4 text-xs font-bold text-white outline-none focus:border-yellow-500 min-h-[120px] transition-colors"
                     />
                     <button 
                       onClick={handleUpdateDailyOrder}
-                      className="bg-yellow-500 text-zinc-950 px-6 py-2.5 rounded-sm font-black text-[10px] uppercase shadow-lg shadow-yellow-500/20 active:scale-95 transition-all"
+                      className="bg-yellow-500 text-zinc-950 px-6 py-2.5 rounded-sm font-black text-[10px] uppercase shadow-lg shadow-yellow-500/20 active:scale-95 transition-all hover:bg-yellow-400"
                     >
                       Transmitir para Unidades
                     </button>
@@ -1139,16 +1144,16 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                 ) : (
                   <div className="relative z-10">
                     {dailyOrder?.text ? (
-                      <p className="text-lg font-black text-white tracking-tight leading-relaxed">
+                      <p className="text-lg font-black text-white tracking-tight leading-relaxed max-w-3xl">
                         "{dailyOrder.text}"
                       </p>
                     ) : (
-                      <p className="text-zinc-500 text-xs font-bold">Nenhuma diretiva emitida para hoje.</p>
+                      <p className="text-zinc-500 text-xs font-bold italic">Nenhuma diretiva emitida para hoje.</p>
                     )}
-                    <div className="mt-6 flex items-center gap-4 text-[8px] font-black text-zinc-500 uppercase tracking-widest">
-                      <span>Último ajuste: {dailyOrder?.updatedAt ? new Date(dailyOrder.updatedAt).toLocaleTimeString() : '---'}</span>
-                      <span className="w-1 h-1 bg-zinc-700 rounded-full"></span>
-                      <span>Autor: {dailyOrder?.updatedBy || 'Comando'}</span>
+                    <div className="mt-6 flex items-center gap-4 text-[8px] font-black text-zinc-500 uppercase tracking-widest bg-white/5 w-fit px-4 py-2 rounded-full border border-white/10 shadow-inner">
+                      <span className="flex items-center gap-2"><Clock className="w-3 h-3 text-yellow-500" /> {dailyOrder?.updatedAt ? new Date(dailyOrder.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '---'}</span>
+                      <span className="w-1.5 h-1.5 bg-yellow-500/30 rounded-full"></span>
+                      <span className="flex items-center gap-2"><User className="w-3 h-3 text-yellow-500" /> {dailyOrder?.updatedBy || 'Comando'}</span>
                     </div>
                   </div>
                 )}
@@ -1163,24 +1168,24 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     onClick={stat.action}
-                    className="bg-white border border-zinc-200 p-5 rounded-sm shadow-sm hover:shadow-md hover:border-yellow-500/50 transition-all cursor-pointer group dark:bg-zinc-900 dark:border-white/10"
+                    className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:border-yellow-500/50 transition-all cursor-pointer group"
                   >
                     <div className="flex justify-between items-start mb-3">
-                      <div className={`p-2 bg-zinc-50 rounded-sm group-hover:bg-yellow-500 transition-colors`}>
-                        {i === 0 && <Target className="w-4 h-4 text-zinc-400 group-hover:text-zinc-950" />}
-                        {i === 1 && <Users className="w-4 h-4 text-zinc-400 group-hover:text-zinc-950" />}
-                        {i === 2 && <Calendar className="w-4 h-4 text-zinc-400 group-hover:text-zinc-950" />}
-                        {i === 3 && <DollarSign className="w-4 h-4 text-zinc-400 group-hover:text-zinc-950" />}
+                      <div className={`p-2.5 rounded-sm group-hover:bg-yellow-500 transition-colors ${(stat as any).iconColor || 'bg-[var(--bg-tertiary)]'}`}>
+                        {i === 0 && <Target className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
+                        {i === 1 && <Users className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
+                        {i === 2 && <Calendar className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
+                        {i === 3 && <DollarSign className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-[7px] font-black py-0.5 px-2 bg-green-100 text-green-700 rounded-sm uppercase tracking-widest border border-green-100">Estável</span>
+                        <span className="text-[7px] font-black py-0.5 px-2 bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 rounded-sm uppercase tracking-widest border border-green-200/50 dark:border-green-500/20">Fluxo Normal</span>
                       </div>
                     </div>
-                    <p className="text-xl font-black tracking-tighter text-zinc-950 mb-0.5 leading-none">{stat.value}</p>
-                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.1em]">{stat.label}</p>
-                    <div className="mt-4 pt-3 border-t border-zinc-50 flex items-center justify-between">
-                      <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">{stat.sub}</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-zinc-300 group-hover:text-yellow-500 group-hover:translate-x-0.5 transition-all" />
+                    <p className={`text-2xl font-black tracking-tighter mb-0.5 leading-none ${stat.color || 'text-[var(--text-primary)]'}`}>{stat.value}</p>
+                    <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-[0.1em]">{stat.label}</p>
+                    <div className="mt-5 pt-3 border-t border-[var(--border-color)] flex items-center justify-between">
+                      <span className="text-[8px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">{stat.sub}</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-yellow-500 group-hover:translate-x-0.5 transition-all" />
                     </div>
                   </motion.div>
                 ))}
@@ -1192,19 +1197,19 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
                   <div className="w-full lg:w-72 space-y-6">
 
-                    <div className="bg-white border border-zinc-200 rounded-sm p-5 shadow-sm">
-                      <h3 className="text-sm font-black uppercase tracking-tighter text-zinc-950 mb-4 flex items-center gap-2">
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-5 shadow-[var(--shadow-sm)]">
+                      <h3 className="text-sm font-black uppercase tracking-tighter text-[var(--text-primary)] mb-4 flex items-center gap-2">
                         < Zap className="w-3.5 h-3.5 text-yellow-500" /> Atividade Recente
                       </h3>
                       <div className="space-y-4">
-                        {teams.slice(0, 3).map((team, i) => (
-                          <div key={i} className="flex gap-2.5">
-                            <div className="w-7 h-7 rounded-sm bg-zinc-100 flex items-center justify-center shrink-0">
-                              <Users className="w-3.5 h-3.5 text-zinc-500" />
+                        {teams.slice(0, 4).map((team, i) => (
+                          <div key={i} className="flex gap-3 group/item cursor-default">
+                            <div className="w-8 h-8 rounded-sm bg-[var(--bg-tertiary)] flex items-center justify-center shrink-0 border border-[var(--border-color)] group-hover/item:border-yellow-500/30 transition-colors">
+                              <Users className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover/item:text-yellow-500 transition-colors" />
                             </div>
                             <div>
-                              <p className="text-[9px] font-black text-zinc-900 uppercase leading-none">{team.name}</p>
-                              <p className="text-[7.5px] font-bold text-zinc-400 mt-1 uppercase tracking-tight">Status OK • {10 + i}m atrás</p>
+                              <p className="text-[9px] font-black text-[var(--text-primary)] uppercase leading-none">{team.name}</p>
+                              <p className="text-[8px] font-bold text-[var(--text-secondary)] mt-1.5 uppercase tracking-widest opacity-70">Status OK • {10 + i}m atrás</p>
                             </div>
                           </div>
                         ))}
@@ -1217,10 +1222,10 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
             {activeTab === 'teams' && (
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 border-b border-zinc-200 pb-6">
+                <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Gestão de Equipes</h2>
-                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Controle tático de recursos e unidades</p>
+                    <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Gestão de Equipes</h2>
+                    <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-2">Controle tático de recursos e unidades</p>
                   </div>
                   <button 
                     onClick={() => {
@@ -1254,80 +1259,82 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     <motion.div 
                       key={team.id || team.name} 
                       layout
-                      className={`bg-white border ${team.fraudAlert ? 'border-red-600 shadow-md animate-pulse' : 'border-zinc-200'} rounded-sm p-5 lg:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:border-zinc-300 transition-all group relative`}
+                      className={`bg-[var(--bg-secondary)] border ${team.fraudAlert ? 'border-red-600 shadow-[var(--shadow-md)] animate-pulse' : 'border-[var(--border-color)]'} rounded-sm p-5 lg:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:shadow-[var(--shadow-md)] hover:border-yellow-500/30 transition-all group relative overflow-hidden`}
                     >
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 blur-3xl -mr-16 -mt-16 group-hover:bg-yellow-500/10 transition-colors pointer-events-none opacity-0 dark:opacity-100" />
+                      
                       {team.fraudAlert && (
                         <div className="absolute top-0 right-8 bg-red-600 text-white text-[8px] font-black px-6 py-1.5 rounded-sm uppercase flex items-center gap-1.5 shadow-lg z-10">
                           <AlertTriangle className="w-3 h-3" /> Alerta Crítico
                         </div>
                       )}
                       
-                      <div className="flex items-center gap-5 min-w-[240px]">
-                        <div className={`w-14 h-14 rounded-sm flex items-center justify-center transition-transform group-hover:rotate-3 ${
-                          team.status === 'OK' ? 'bg-green-50 text-green-600' : 
-                          team.status === 'ALERTA' ? 'bg-yellow-50 text-yellow-600' : 'bg-red-50 text-red-600'
+                      <div className="flex items-center gap-5 min-w-[240px] relative z-10">
+                        <div className={`w-14 h-14 rounded-sm flex items-center justify-center transition-transform group-hover:rotate-3 shadow-inner ${
+                          team.status === 'OK' ? 'bg-emerald-500/10 text-emerald-500' : 
+                          team.status === 'ALERTA' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-red-500/10 text-red-500'
                         }`}>
                           <Users className="w-7 h-7" />
                         </div>
-                        <div className="space-y-0.5">
-                          <h3 className="font-black text-zinc-950 text-xl uppercase tracking-tighter leading-none">{team.name}</h3>
-                          <div className="flex flex-col gap-0.5 pt-1">
-                            <p className="text-[9px] font-black text-zinc-400 uppercase flex items-center gap-1.5 tracking-widest">
+                        <div className="space-y-1">
+                          <h3 className="font-black text-[var(--text-primary)] text-xl uppercase tracking-tighter leading-none">{team.name}</h3>
+                          <div className="flex flex-col gap-1 pt-1 opacity-70">
+                            <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-2 tracking-widest leading-none">
                               <User className="w-2.5 h-2.5 text-yellow-500" /> Líder: {team.leader}
                             </p>
-                            <p className="text-[9px] font-black text-zinc-400 uppercase flex items-center gap-1.5 tracking-widest">
+                            <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-2 tracking-widest leading-none">
                               <MapPin className="w-2.5 h-2.5 text-yellow-500" /> Base: {team.location}
                             </p>
                           </div>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 flex-1 text-left">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 flex-1 text-left relative z-10">
                         <div>
-                          <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-0.5 leading-none">Contatos</p>
-                          <p className="text-2xl font-black text-zinc-950 tracking-tighter">{team.contacts || 0}</p>
+                          <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Contatos</p>
+                          <p className="text-2xl font-black text-[var(--text-primary)] tracking-tighter">{team.contacts || 0}</p>
                         </div>
                         <div>
-                          <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-0.5 leading-none">Engajamento</p>
-                          <p className="text-2xl font-black text-green-600 tracking-tighter leading-none">
+                          <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Engajamento</p>
+                          <p className="text-2xl font-black text-emerald-600 dark:text-emerald-500 tracking-tighter leading-none">
                             {Math.min(100, Math.round(((team.contacts || 0) / 100) * 100))}%
                           </p>
                         </div>
                         <div>
-                          <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-0.5 leading-none">Alertas</p>
-                          <p className={`text-2xl font-black tracking-tighter leading-none ${team.demands > 0 ? 'text-red-600' : 'text-zinc-200'}`}>{team.demands || 0}</p>
+                          <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Alertas</p>
+                          <p className={`text-2xl font-black tracking-tighter leading-none ${team.demands > 0 ? 'text-red-600' : 'text-[var(--bg-tertiary)] opacity-30 dark:opacity-10'}`}>{team.demands || 0}</p>
                         </div>
                         <div>
-                           <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1 leading-none">Status</p>
-                           <span className={`inline-flex items-center gap-1.5 text-[8px] font-black px-3 py-1 rounded-sm uppercase tracking-widest border ${
-                            team.status === 'OK' ? 'bg-green-50 text-green-700 border-green-100' : 
-                            team.status === 'ALERTA' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' : 'bg-red-50 text-red-700 border-red-100'
+                           <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-2 leading-none opacity-60">Status de Rede</p>
+                           <span className={`inline-flex items-center gap-1.5 text-[8px] font-black px-3 py-1.5 rounded-sm uppercase tracking-widest border transition-colors ${
+                            team.status === 'OK' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border-emerald-500/20' : 
+                            team.status === 'ALERTA' ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-500 border-yellow-500/20' : 'bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20'
                           }`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${team.status === 'OK' ? 'bg-green-500' : team.status === 'ALERTA' ? 'bg-yellow-500' : 'bg-red-500'}`} />
+                            <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${team.status === 'OK' ? 'bg-emerald-500' : team.status === 'ALERTA' ? 'bg-yellow-500' : 'bg-red-500'}`} />
                             {team.status}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex flex-row lg:flex-col gap-2 justify-end">
-                        <div className="flex gap-1.5">
+                      <div className="flex flex-row lg:flex-col gap-2 justify-end relative z-10">
+                        <div className="flex gap-2">
                            <button 
                              onClick={() => handleCopyAccessLink(team)}
-                             className="p-3 bg-zinc-50 text-zinc-500 rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-sm"
+                             className="p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)]"
                              title="Copiar Credenciais"
                            >
                              <LogIn className="w-4 h-4" />
                            </button>
                            <button 
                              onClick={() => handleEditTeam(team)}
-                             className="p-3 bg-zinc-100 text-zinc-600 rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-md active:scale-95"
+                             className="p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)]"
                              title="Editar Unidade"
                            >
                              <Edit3 className="w-4 h-4" />
                            </button>
                            <button 
                              onClick={() => handleDeleteTeam(team.id || team.name.replace(/\s/g, '_').toLowerCase(), team.name)}
-                             className="p-3 bg-red-600 text-white rounded-sm hover:bg-red-700 transition-all shadow-md active:scale-95"
+                             className="p-3 bg-red-600 text-white rounded-sm hover:bg-red-700 transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-red-600/20"
                              title="Excluir"
                            >
                              <Trash2 className="w-4 h-4" />
@@ -1338,11 +1345,11 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                             setSelectedManagingTeam(team);
                             setIsTeamManagementOpen(true);
                           }}
-                          className={`w-full px-5 py-3 rounded-sm font-black text-[9px] uppercase shadow-md transition-all active:translate-y-0.5 ${
-                            team.demands > 0 ? 'bg-red-600 text-white' : 'bg-zinc-950 text-white'
+                          className={`w-full px-6 py-3.5 rounded-sm font-black text-[10px] uppercase shadow-lg transition-all active:translate-y-0.5 whitespace-nowrap hover:scale-[1.02] ${
+                            team.demands > 0 ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-zinc-950 text-white hover:bg-zinc-800'
                           }`}
                         >
-                          Mais Detalhes
+                          Gerenciar Equipe
                         </button>
                       </div>
                     </motion.div>
@@ -1628,10 +1635,10 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
             {activeTab === 'attendance' && (
               <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Controle de Frequência (GPS)</h2>
-                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Auditoria de localização e horários em tempo real</p>
+                    <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Controle de Frequência (GPS)</h2>
+                    <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">Auditoria de localização e horários em tempo real para unidades de campo</p>
                   </div>
                   <div className="flex gap-3">
                     <button 
@@ -1640,77 +1647,79 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                           alert("Gerando relatório... O download iniciará em instantes.");
                         }
                       }}
-                      className="bg-white border border-zinc-200 text-zinc-950 px-4 py-3.5 rounded-sm font-black text-[10px] uppercase flex items-center justify-center gap-2.5 shadow-sm hover:bg-zinc-50 transition-all"
+                      className="bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-primary)] px-5 py-3.5 rounded-sm font-black text-[10px] uppercase flex items-center justify-center gap-3 shadow-[var(--shadow-sm)] hover:bg-[var(--bg-tertiary)] transition-all active:scale-95"
                     >
-                      <FileDown className="w-4 h-4" /> Exportar PDF
+                      <FileDown className="w-4 h-4" /> Exportar Relatório PDF
                     </button>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">
                   {attendance.length > 0 ? (
-                    <div className="bg-white border border-zinc-200 rounded-sm overflow-hidden shadow-sm">
-                      <table className="w-full text-left border-collapse">
-                        <thead>
-                          <tr className="bg-zinc-50 border-b border-zinc-200">
-                            <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Líder</th>
-                            <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Data/Hora</th>
-                            <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Localização (GPS)</th>
-                            <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400 text-right">Ações</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-zinc-100">
-                          {attendance.sort((a,b) => b.timestamp - a.timestamp).map((entry) => (
-                            <tr key={entry.id} className="hover:bg-zinc-50/50 transition-colors">
-                              <td className="p-4">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-sm bg-zinc-900 flex items-center justify-center font-black text-white text-[10px] overflow-hidden border-2 border-zinc-100">
-                                    {entry.leaderPhoto ? (
-                                      <img src={entry.leaderPhoto} alt={entry.leaderName} className="w-full h-full object-cover" />
-                                    ) : (
-                                      entry.leaderName?.charAt(0)
-                                    )}
-                                  </div>
-                                  <div className="flex flex-col">
-                                    <span className="text-xs font-black text-zinc-900 uppercase leading-none">{entry.leaderName}</span>
-                                    <span className="text-[9px] font-bold text-yellow-600 uppercase tracking-widest mt-1 leading-none">{entry.teamName || 'Equipe não ident.'}</span>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="p-4">
-                                <div className="flex flex-col">
-                                  <span className="text-xs font-bold text-zinc-900">{new Date(entry.timestamp).toLocaleDateString()}</span>
-                                  <span className="text-[10px] font-medium text-zinc-400">{new Date(entry.timestamp).toLocaleTimeString()}</span>
-                                </div>
-                              </td>
-                              <td className="p-4">
-                                {entry.location ? (
-                                  <a 
-                                    href={`https://www.google.com/maps?q=${entry.location.lat},${entry.location.lng}`} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-2 text-blue-600 hover:underline font-bold text-xs"
-                                  >
-                                    <MapPin className="w-3.5 h-3.5" /> Ver no Mapa
-                                  </a>
-                                ) : (
-                                  <span className="text-xs text-zinc-400">Localização indisponível</span>
-                                )}
-                              </td>
-                              <td className="p-4 text-right">
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-green-50 text-green-700 text-[9px] font-black uppercase tracking-widest border border-green-100">
-                                  <CheckCircle2 className="w-2.5 h-2.5" /> Validado
-                                </span>
-                              </td>
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm overflow-hidden shadow-[var(--shadow-sm)]">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="bg-[var(--bg-tertiary)] border-b border-[var(--border-color)]">
+                              <th className="p-5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60">Agente de Campo</th>
+                              <th className="p-5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60">Registro Temporal</th>
+                              <th className="p-5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60">Geolocalização</th>
+                              <th className="p-5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60 text-right">Validação</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-[var(--border-color)]">
+                            {attendance.sort((a,b) => b.timestamp - a.timestamp).map((entry) => (
+                              <tr key={entry.id} className="hover:bg-[var(--bg-tertiary)]/50 transition-colors group/row">
+                                <td className="p-5">
+                                  <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-sm bg-zinc-950 flex items-center justify-center font-black text-white text-[10px] overflow-hidden border border-[var(--border-color)] group-hover/row:border-yellow-500/30 shadow-inner">
+                                      {entry.leaderPhoto ? (
+                                        <img src={entry.leaderPhoto} alt={entry.leaderName} className="w-full h-full object-cover" />
+                                      ) : (
+                                        <span className="text-yellow-500">{entry.leaderName?.charAt(0)}</span>
+                                      )}
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="text-xs font-black text-[var(--text-primary)] uppercase leading-none">{entry.leaderName}</span>
+                                      <span className="text-[9px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-widest mt-2 leading-none">{entry.teamName || 'Equipe Alpha'}</span>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="p-5">
+                                  <div className="flex flex-col">
+                                    <span className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-tight">{new Date(entry.timestamp).toLocaleDateString()}</span>
+                                    <span className="text-[10px] font-bold text-[var(--text-secondary)] mt-1 opacity-60">{new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                                  </div>
+                                </td>
+                                <td className="p-5">
+                                  {entry.location ? (
+                                    <a 
+                                      href={`https://www.google.com/maps?q=${entry.location.lat},${entry.location.lng}`} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-2.5 px-3 py-2 rounded-sm bg-blue-500/5 text-blue-600 dark:text-blue-400 font-black text-[10px] uppercase hover:bg-blue-500/10 transition-colors border border-blue-500/10"
+                                    >
+                                      <MapPin className="w-3.5 h-3.5" /> Ver Coordenadas
+                                    </a>
+                                  ) : (
+                                    <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase opacity-30 italic">GPS Não Sincronizado</span>
+                                  )}
+                                </td>
+                                <td className="p-5 text-right">
+                                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 text-[9px] font-black uppercase tracking-widest border border-emerald-500/20 shadow-inner">
+                                    <CheckCircle2 className="w-3 h-3" /> Validado
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   ) : (
-                    <div className="py-20 bg-white border-2 border-dashed border-zinc-200 rounded-sm text-center">
-                      <Clock className="w-12 h-12 text-zinc-200 mx-auto mb-4" />
-                      <p className="font-black text-zinc-300 uppercase tracking-[0.2em] text-xs">Nenhum registro de ponto encontrado.</p>
+                    <div className="py-24 bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-sm text-center grayscale opacity-40">
+                      <Clock className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
+                      <p className="font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] text-xs">Aguardando registros de check-in...</p>
                     </div>
                   )}
                 </div>
@@ -1725,23 +1734,23 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
             {activeTab === 'notes' && (
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white border border-zinc-200 rounded-sm flex items-center justify-center shadow-sm">
-                      <MessageSquare className="w-6 h-6 text-zinc-950" />
+                    <div className="w-12 h-12 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm flex items-center justify-center shadow-inner">
+                      <MessageSquare className="w-6 h-6 text-[var(--text-primary)]" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Anotações Táticas</h2>
-                      <div className="flex gap-4 mt-4">
+                      <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Anotações Táticas</h2>
+                      <div className="flex gap-4 mt-5">
                         <button 
                           onClick={() => setNoteSubTab('tactical')}
-                          className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-sm transition-all ${noteSubTab === 'tactical' ? 'bg-zinc-950 text-white shadow-xl' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
+                          className={`text-[9px] font-black uppercase tracking-widest px-6 py-2.5 rounded-sm transition-all border ${noteSubTab === 'tactical' ? 'bg-zinc-950 text-white border-zinc-950 shadow-xl dark:bg-yellow-500 dark:text-zinc-950 dark:border-yellow-500' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-yellow-500'}`}
                         >
                           Equipe (Fórum)
                         </button>
                         <button 
                           onClick={() => setNoteSubTab('private')}
-                          className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-sm transition-all ${noteSubTab === 'private' ? 'bg-zinc-950 text-white shadow-xl' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
+                          className={`text-[9px] font-black uppercase tracking-widest px-6 py-2.5 rounded-sm transition-all border ${noteSubTab === 'private' ? 'bg-zinc-950 text-white border-zinc-950 shadow-xl dark:bg-yellow-500 dark:text-zinc-950 dark:border-yellow-500' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-yellow-500'}`}
                         >
                           Minhas Observações
                         </button>
@@ -1752,7 +1761,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                   {noteSubTab === 'private' && (
                     <button 
                       onClick={() => setIsAiModalOpen(true)}
-                      className="bg-yellow-500 text-zinc-950 px-6 py-3 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-zinc-950 hover:text-white transition-all flex items-center gap-2"
+                      className="bg-yellow-500 text-zinc-950 px-8 py-3.5 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-yellow-400 active:scale-95 transition-all flex items-center gap-3"
                     >
                       <Plus className="w-4 h-4" /> Nova Observação
                     </button>
@@ -1765,9 +1774,9 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                       <NoteCard key={note.id} note={note} user={user} isAdmin={isAdmin} currentUserName={profileData?.name} onDelete={() => firestoreService.deleteDocument('notes', note.id)} />
                     ))
                   ) : (
-                    <div className="col-span-full py-20 bg-white border-2 border-dashed border-zinc-200 rounded-sm text-center">
-                      <Clock className="w-12 h-12 text-zinc-200 mx-auto mb-4" />
-                      <p className="font-black text-zinc-300 uppercase tracking-[0.2em] text-xs">Nenhuma anotação registrada nesta categoria.</p>
+                    <div className="col-span-full py-24 bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-sm text-center grayscale opacity-40">
+                      <Clock className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
+                      <p className="font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] text-xs">Aguardando novos feeds táticos...</p>
                     </div>
                   )}
                 </div>
@@ -1776,126 +1785,142 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
             {activeTab === 'materials' && (
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Gestão de Materiais</h2>
-                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Controle de Estoque e Distribuição</p>
+                    <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none font-sans">Gestão de Materiais</h2>
+                    <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">Controle tático de suprimentos e distribuição regional</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                   {/* FORM ADD MATERIAL */}
-                  <div className="lg:col-span-1 bg-white border border-zinc-200 rounded-sm p-6 shadow-sm h-fit">
-                    <h3 className="text-sm font-black uppercase text-zinc-900 mb-6 flex items-center gap-2">
-                      <Plus className="w-4 h-4 text-yellow-500" /> Novo Lote
+                  <div className="lg:col-span-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-8 shadow-[var(--shadow-sm)] h-fit relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                      <Package className="w-32 h-32" />
+                    </div>
+                    <h3 className="text-xs font-black uppercase text-[var(--text-primary)] mb-8 flex items-center gap-3 relative z-10">
+                      <div className="p-2 bg-yellow-500 rounded-sm shadow-lg shadow-yellow-500/20"><Plus className="w-4 h-4 text-zinc-950" /></div> Registrador de Lote
                     </h3>
-                    <form onSubmit={handleAddMaterial} className="space-y-4">
-                      <div className="space-y-1.5 text-left">
-                        <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Descrição do Material</label>
-                        <input name="name" type="text" placeholder="Ex: Santinho 55000" className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-xs" />
+                    <form onSubmit={handleAddMaterial} className="space-y-6 relative z-10">
+                      <div className="space-y-2 text-left">
+                        <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Descrição do Material</label>
+                        <input name="name" type="text" placeholder="Ex: Santinho 55000" className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors" />
                       </div>
-                      <div className="space-y-1.5 text-left">
-                        <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Quantidade Total</label>
-                        <input name="qty" type="number" placeholder="Ex: 5000" className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-xs" />
+                      <div className="space-y-2 text-left">
+                        <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Quantidade Total</label>
+                        <input name="qty" type="number" placeholder="Ex: 5000" className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors" />
                       </div>
-                      <button className="w-full bg-zinc-950 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">
-                        Registrar Entrada
+                      <button className="w-full bg-zinc-950 text-white dark:bg-yellow-500 dark:text-zinc-950 py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-yellow-400">
+                        Autenticar Entrada
                       </button>
                     </form>
                   </div>
 
                   {/* MATERIAL LIST */}
                   <div className="lg:col-span-2 space-y-4">
-                    {materials.map(m => (
-                      <div key={m.id} className="bg-white border border-zinc-200 rounded-sm p-6 flex items-center justify-between group hover:border-yellow-500/30 transition-all">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-zinc-50 rounded-sm flex items-center justify-center">
-                            <Package className="w-6 h-6 text-zinc-400 group-hover:text-yellow-600 transition-colors" />
+                    {materials.length > 0 ? materials.map(m => (
+                      <div key={m.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 flex items-center justify-between group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)]">
+                        <div className="flex items-center gap-5">
+                          <div className="w-14 h-14 bg-[var(--bg-tertiary)] rounded-sm flex items-center justify-center border border-[var(--border-color)] shadow-inner group-hover/mat:border-yellow-500/30">
+                            <Package className={`w-6 h-6 ${(m.current / m.total) < 0.2 ? 'text-red-500 animate-pulse' : 'text-[var(--text-secondary)]'} group-hover:text-yellow-600 transition-colors`} />
                           </div>
                           <div>
-                            <h4 className="font-black text-zinc-900 uppercase tracking-tight">{m.name}</h4>
-                            <div className="mt-1 flex items-center gap-3">
-                              <div className="h-1.5 w-32 bg-zinc-100 rounded-sm overflow-hidden">
-                                <div 
-                                  className="h-full bg-yellow-500" 
-                                  style={{ width: `${Math.min(100, (m.current / m.total) * 100)}%` }}
+                            <h4 className="font-black text-[var(--text-primary)] text-sm uppercase tracking-tight font-sans">{m.name}</h4>
+                            <div className="mt-2.5 flex items-center gap-4">
+                              <div className="h-1.5 w-40 bg-[var(--bg-tertiary)] rounded-full overflow-hidden border border border-[var(--border-color)]">
+                                <motion.div 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${Math.min(100, (m.current / m.total) * 100)}%` }}
+                                  className={`h-full ${(m.current / m.total) < 0.2 ? 'bg-red-500' : 'bg-yellow-500'}`} 
                                 />
                               </div>
-                              <span className="text-[10px] font-black text-zinc-500 uppercase">{m.current} / {m.total}</span>
+                              <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest leading-none">{m.current} <span className="opacity-40">/ {m.total}</span></span>
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <button onClick={() => handleUpdateMaterial(m.id, -100)} className="w-10 h-10 border border-zinc-100 rounded-sm flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors">
+                          <button onClick={() => handleUpdateMaterial(m.id, -100)} className="w-11 h-11 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-red-500 hover:bg-red-500/10 transition-all active:scale-95 text-xs font-black">
                             -100
                           </button>
-                          <button onClick={() => handleUpdateMaterial(m.id, 100)} className="w-10 h-10 border border-zinc-100 rounded-sm flex items-center justify-center text-green-500 hover:bg-green-50 transition-colors">
+                          <button onClick={() => handleUpdateMaterial(m.id, 100)} className="w-11 h-11 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-emerald-500 hover:bg-emerald-500/10 transition-all active:scale-95 text-xs font-black">
                             +100
                           </button>
                         </div>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="py-24 text-center bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-sm grayscale opacity-30">
+                        <Package className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
+                        <p className="text-[var(--text-secondary)] font-black uppercase tracking-[0.2em] text-[10px]">Estoque Vazio: Aguardando remessa.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
             )}
-
-            {activeTab === 'partners' && (
+             {activeTab === 'partners' && (
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Articulação Política</h2>
-                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">CRM de Relacionamento e Parcerias</p>
+                    <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Articulação Política</h2>
+                    <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">CRM de Relacionamento e Mobilização</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                   {/* QUICK ADD */}
-                  <div className="lg:col-span-1 bg-zinc-950 rounded-sm p-6 shadow-2xl text-white">
-                    <h3 className="text-[11px] font-black uppercase tracking-widest text-yellow-500 mb-6">Mapear Parceiro</h3>
-                    <form onSubmit={handleAddPartner} className="space-y-4">
-                      <input name="name" className="w-full bg-white/10 border-none rounded-sm p-4 text-[11px] font-bold" placeholder="Nome do Influenciador/Líder" />
-                      <input name="role" className="w-full bg-white/10 border-none rounded-sm p-4 text-[11px] font-bold" placeholder="Cargo/Representação" />
-                      <select name="status" className="w-full bg-white/10 border-none rounded-sm p-4 text-[11px] font-bold outline-none">
+                  <div className="lg:col-span-1 bg-zinc-950 rounded-sm p-8 shadow-2xl text-white relative h-fit dark:bg-zinc-900 border border-white/5">
+                    <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
+                      <Handshake className="w-24 h-24 text-yellow-500" />
+                    </div>
+                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-yellow-500 mb-8 relative z-10">Mapear Aliado</h3>
+                    <form onSubmit={handleAddPartner} className="space-y-5 relative z-10">
+                      <input name="name" required className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" placeholder="Nome do Influenciador/Líder" />
+                      <input name="role" className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" placeholder="Cargo/Representação" />
+                      <select name="status" className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none cursor-pointer">
                         <option value="frio" className="text-zinc-950">❄️ Relacionamento Frio</option>
                         <option value="morno" className="text-zinc-950">🔥 Em Negociação</option>
                         <option value="quente" className="text-zinc-950">💎 Apoio Confirmado</option>
                       </select>
-                      <button className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">
-                        Incluir no CRM
+                      <button className="w-full bg-yellow-500 text-zinc-950 py-4.5 rounded-sm font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-yellow-500/20 hover:bg-yellow-400">
+                        Incluir no COMANDO
                       </button>
                     </form>
                   </div>
 
                   {/* LIST */}
-                  <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {partners.map(p => (
-                      <div key={p.id} className="bg-white border border-zinc-200 rounded-sm p-5 flex items-center justify-between group">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-12 h-12 rounded-sm flex items-center justify-center border-4 ${
-                            p.status === 'quente' ? 'bg-yellow-50 border-yellow-200' : 
-                            p.status === 'morno' ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200'
+                  <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {partners.length > 0 ? partners.map(p => (
+                      <div key={p.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 flex items-center justify-between group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)]">
+                        <div className="flex items-center gap-5">
+                          <div className={`w-14 h-14 rounded-sm flex items-center justify-center border-2 shadow-inner ${
+                            p.status === 'quente' ? 'bg-yellow-500/10 border-yellow-500/20' : 
+                            p.status === 'morno' ? 'bg-orange-500/10 border-orange-500/20' : 'bg-blue-500/10 border-blue-500/20'
                           }`}>
-                            <Handshake className={`w-6 h-6 ${
-                              p.status === 'quente' ? 'text-yellow-600' : 
-                              p.status === 'morno' ? 'text-orange-600' : 'text-blue-600'
+                            <Handshake className={`w-7 h-7 ${
+                              p.status === 'quente' ? 'text-yellow-500' : 
+                              p.status === 'morno' ? 'text-orange-500' : 'text-blue-500'
                             }`} />
                           </div>
                           <div>
-                            <h4 className="font-black text-zinc-900 uppercase leading-none tracking-tight">{p.name}</h4>
-                            <p className="text-[9px] font-bold text-zinc-400 mt-1 uppercase tracking-widest">{p.role}</p>
+                            <h4 className="font-black text-[var(--text-primary)] uppercase leading-none tracking-tight text-sm font-sans">{p.name}</h4>
+                            <p className="text-[9px] font-black text-[var(--text-secondary)] mt-2 uppercase tracking-widest opacity-60 font-mono">{p.role}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-sm ${
-                            p.status === 'quente' ? 'bg-yellow-500 text-zinc-950 shadow-lg' : 
-                            p.status === 'morno' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+                          <span className={`text-[8px] font-black uppercase tracking-widest px-3.5 py-2 rounded-sm shadow-sm ${
+                            p.status === 'quente' ? 'bg-yellow-500 text-zinc-950' : 
+                            p.status === 'morno' ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
                           }`}>
-                            {p.status === 'quente' ? 'CONSOLIDADO' : p.status === 'morno' ? 'EM TRATATIVA' : 'MAPEADO'}
+                            {p.status === 'quente' ? '💎 CONSOLIDADO' : p.status === 'morno' ? '🔥 TRATATIVA' : '❄️ MAPEADO'}
                           </span>
                         </div>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="col-span-full py-24 text-center bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-sm grayscale opacity-30">
+                        <Handshake className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
+                        <p className="text-[var(--text-secondary)] font-black uppercase tracking-[0.2em] text-[10px]">Sem Parceiros: Inicie o mapeamento regional.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -1903,46 +1928,46 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
             {activeTab === 'demands' && (
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Mapa de Calor: Ouvidoria</h2>
-                    <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Concentração de Demandas por Região</p>
+                    <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Mapeamento Geográfico</h2>
+                    <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">Concentração de Demandas e Pressão Política por Zona</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                   <div className="lg:col-span-3 bg-white border border-zinc-200 rounded-sm p-8 shadow-sm">
-                      <div className="mb-8">
-                        <h3 className="text-sm font-black uppercase tracking-tighter text-zinc-950">Volume por Zona de Atuação</h3>
-                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comparativo de solicitações em campo</p>
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                   <div className="lg:col-span-3 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-10 shadow-[var(--shadow-sm)]">
+                      <div className="mb-10">
+                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[var(--text-primary)]">Volume Operacional por Zona</h3>
+                        <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-2 opacity-50">Análise quantitativa de solicitações em campo</p>
                       </div>
                       
-                      <div className="h-[400px] w-full">
+                      <div className="h-[420px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart data={demandsSummary}>
                             <XAxis 
                               dataKey="name" 
                               axisLine={false} 
                               tickLine={false} 
-                              tick={{ fontSize: 9, fontWeight: 900, fill: '#71717a' }}
+                              tick={{ fontSize: 9, fontWeight: 900, fill: 'var(--text-secondary)' }}
                             />
                             <Tooltip 
-                              cursor={{ fill: '#f4f4f5' }}
+                              cursor={{ fill: 'var(--bg-tertiary)' }}
                               content={({ active, payload }) => {
                                 if (active && payload && payload.length) {
                                   return (
-                                    <div className="bg-zinc-950 p-3 rounded-sm shadow-2xl border border-white/10">
-                                      <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest">{payload[0].payload.name}</p>
-                                      <p className="text-xl font-black text-white mt-1">{payload[0].value} Demandas</p>
+                                    <div className="bg-zinc-950 p-4 rounded-sm shadow-2xl border border-white/10 dark:bg-zinc-900">
+                                      <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest mb-1">{payload[0].payload.name}</p>
+                                      <p className="text-xl font-black text-white">{payload[0].value} <span className="text-[10px] opacity-50">Demandas</span></p>
                                     </div>
                                   );
                                 }
                                 return null;
                               }}
                             />
-                            <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                            <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={40}>
                               {demandsSummary.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#18181b' : '#fbbf24'} />
+                                <Cell key={`cell-${index}`} fill={index % 2 === 0 ? 'var(--text-primary)' : '#fbbf24'} />
                               ))}
                             </Bar>
                           </BarChart>
@@ -1950,32 +1975,36 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                       </div>
                    </div>
 
-                   <div className="lg:col-span-1 space-y-4">
-                      <div className="bg-zinc-950 rounded-sm p-6 text-white text-center">
-                        <Activity className="w-10 h-10 text-yellow-500 mx-auto mb-4" />
+                   <div className="lg:col-span-1 space-y-6">
+                      <div className="bg-zinc-950 rounded-sm p-8 text-white text-center relative overflow-hidden dark:bg-zinc-900 border border-white/5">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-yellow-500"></div>
+                        <Activity className="w-10 h-10 text-yellow-500 mx-auto mb-5 animate-pulse" />
                         <h4 className="text-lg font-black uppercase tracking-tighter">Foco Estratégico</h4>
-                        <p className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mt-2 leading-relaxed">
-                          A Região com maior concentração requer visita imediata do candidato.
+                        <p className="text-zinc-500 text-[9px] font-black uppercase tracking-[0.2em] mt-3 leading-relaxed opacity-70">
+                          A Zona com maior volume operacional requer revisão de logística imediata.
                         </p>
                       </div>
 
-                      <div className="bg-white border border-zinc-200 rounded-sm p-6">
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-950 mb-4">Métricas de Pressão</h4>
-                        <div className="space-y-4">
-                          {demandsSummary.map(d => (
-                            <div key={d.name}>
-                              <div className="flex justify-between items-center mb-1.5">
-                                <span className="text-[10px] font-black uppercase text-zinc-600 leading-none">{d.name}</span>
-                                <span className="text-[9px] font-black text-zinc-400">{d.value}</span>
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-8 shadow-[var(--shadow-sm)]">
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-primary)] mb-8 border-b border-[var(--border-color)] pb-3">Pressão por Unidade</h4>
+                        <div className="space-y-6">
+                          {demandsSummary.length > 0 ? demandsSummary.map(d => (
+                            <div key={d.name} className="group/stat">
+                              <div className="flex justify-between items-center mb-2.5">
+                                <span className="text-[10px] font-black uppercase text-[var(--text-primary)] leading-none font-sans group-hover/stat:text-yellow-600 transition-colors">{d.name}</span>
+                                <span className="text-[9px] font-black text-[var(--text-secondary)] opacity-50 uppercase">{d.value} REQS</span>
                               </div>
-                              <div className="h-1 bg-zinc-50 rounded-sm overflow-hidden">
-                                <div 
-                                  className="h-full bg-zinc-950" 
-                                  style={{ width: `${(d.value / Math.max(...demandsSummary.map(i => i.value))) * 100}%` }}
+                              <div className="h-1.5 bg-[var(--bg-tertiary)] rounded-full overflow-hidden border border-[var(--border-color)] shadow-inner">
+                                <motion.div 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${(d.value / Math.max(...demandsSummary.map(i => i.value))) * 100}%` }}
+                                  className="h-full bg-[var(--text-primary)] group-hover/stat:bg-yellow-500 transition-colors" 
                                 />
                               </div>
                             </div>
-                          ))}
+                          )) : (
+                            <p className="text-center py-10 text-[var(--text-secondary)] text-[10px] font-black uppercase opacity-40">Aguardando dados...</p>
+                          )}
                         </div>
                       </div>
                    </div>
@@ -3446,41 +3475,41 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     const referrers = Object.keys(groupedByReferrer).sort();
 
     return (
-      <div className="bg-zinc-950 rounded-sm border border-white/5 overflow-hidden w-full min-h-[500px] p-8">
+      <div className="bg-[var(--bg-secondary)] rounded-sm border border-[var(--border-color)] overflow-hidden w-full min-h-[500px] p-8 shadow-[var(--shadow-sm)]">
         <div className="max-w-4xl mx-auto space-y-12">
-          <div className="flex justify-between items-center border-b border-white/10 pb-6">
+          <div className="flex justify-between items-center border-b border-[var(--border-color)] pb-8">
             <div>
-              <h3 className="text-xl font-black text-white uppercase tracking-tighter">Fluxo de Indicações</h3>
-              <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">Mapeamento hierárquico de influência regional</p>
+              <h3 className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tighter">Fluxo de Indicações</h3>
+              <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">Mapeamento hierárquico de influência regional</p>
             </div>
-            <div className="bg-yellow-500/10 border border-yellow-500/20 px-4 py-2 rounded-sm">
-              <span className="text-[10px] font-black text-yellow-500 uppercase tracking-widest">{voters.length} Eleitores Mapeados</span>
+            <div className="bg-yellow-500/10 border border-yellow-500/20 px-4 py-2.5 rounded-sm shadow-sm">
+              <span className="text-[10px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-widest">{voters.length} Eleitores Mapeados</span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-8">
             {referrers.map((referrer) => (
-              <div key={referrer} className="space-y-4">
+              <div key={referrer} className="space-y-5">
                 <button 
                   onClick={() => toggleReferrer(referrer)}
-                  className="w-full flex items-center justify-between text-left group"
+                  className="w-full flex items-center justify-between text-left group transition-all"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="bg-zinc-900 p-2 rounded-sm border border-zinc-800 group-hover:border-yellow-500/30 transition-colors">
-                      <Handshake className={`w-4 h-4 transition-colors ${expandedReferrers.includes(referrer) ? 'text-yellow-500' : 'text-zinc-400'}`} />
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2.5 rounded-sm border transition-all ${expandedReferrers.includes(referrer) ? 'bg-yellow-500 border-yellow-500 shadow-lg shadow-yellow-500/20' : 'bg-[var(--bg-tertiary)] border-[var(--border-color)] group-hover:border-yellow-500/30'}`}>
+                      <Handshake className={`w-4 h-4 transition-colors ${expandedReferrers.includes(referrer) ? 'text-zinc-950' : 'text-[var(--text-secondary)]'}`} />
                     </div>
                     <div>
-                      <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] block">Indicador / Referência</span>
-                      <h4 className="text-sm font-black text-white uppercase tracking-tight group-hover:text-yellow-500 transition-colors">{referrer}</h4>
+                      <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] block opacity-60">Pilar de Referência</span>
+                      <h4 className={`text-sm font-black uppercase tracking-tight transition-colors ${expandedReferrers.includes(referrer) ? 'text-yellow-600 dark:text-yellow-500' : 'text-[var(--text-primary)] group-hover:text-yellow-600'}`}>{referrer}</h4>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{groupedByReferrer[referrer].length} {groupedByReferrer[referrer].length === 1 ? 'eleitor' : 'eleitores'}</span>
+                  <div className="flex items-center gap-6">
+                    <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-60">{groupedByReferrer[referrer].length} {groupedByReferrer[referrer].length === 1 ? 'eleitor' : 'eleitores'}</span>
                     <motion.div
                       animate={{ rotate: expandedReferrers.includes(referrer) ? 180 : 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <ChevronDown className="w-4 h-4 text-zinc-600 group-hover:text-yellow-500" />
+                      <ChevronDown className={`w-4 h-4 transition-colors ${expandedReferrers.includes(referrer) ? 'text-yellow-500' : 'text-[var(--text-secondary)] group-hover:text-yellow-500'}`} />
                     </motion.div>
                   </div>
                 </button>
@@ -3494,32 +3523,32 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                       transition={{ duration: 0.3, ease: 'easeInOut' }}
                       className="overflow-hidden"
                     >
-                      <div className="ml-6 pl-6 border-l-2 border-zinc-900 space-y-3 pb-2">
+                      <div className="ml-6 pl-6 border-l-2 border-[var(--border-color)] space-y-3 pb-2 pt-2">
                         {groupedByReferrer[referrer].map((voter: any) => (
                           <motion.div 
                             key={voter.id}
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             onClick={() => { setSelectedVoter(voter); setIsVoterDetailOpen(true); }}
-                            className="group flex items-center justify-between p-4 bg-zinc-900/30 rounded-sm border border-white/5 hover:border-yellow-500/50 hover:bg-zinc-900/50 transition-all cursor-pointer"
+                            className="group flex items-center justify-between p-4 bg-[var(--bg-tertiary)]/50 rounded-sm border border-[var(--border-color)] hover:border-yellow-500/50 hover:bg-[var(--bg-tertiary)] transition-all cursor-pointer shadow-sm"
                           >
                             <div className="flex items-center gap-4">
-                              <div className="w-8 h-8 bg-zinc-950 font-black text-xs text-yellow-500 flex items-center justify-center rounded-sm border border-white/10 group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors">
+                              <div className="w-8 h-8 bg-[var(--bg-secondary)] font-black text-xs text-yellow-500 flex items-center justify-center rounded-sm border border-[var(--border-color)] group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors shadow-inner">
                                 {voter.name.charAt(0)}
                               </div>
                               <div>
-                                <p className="text-xs font-black text-zinc-200 uppercase tracking-tight group-hover:text-white transition-colors">{voter.name}</p>
-                                <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">{voter.phone}</p>
+                                <p className="text-xs font-black text-[var(--text-primary)] uppercase tracking-tight group-hover:text-yellow-600 dark:group-hover:text-yellow-500 transition-colors">{voter.name}</p>
+                                <p className="text-[9px] text-[var(--text-secondary)] font-bold uppercase tracking-widest mt-1 opacity-60">{voter.phone}</p>
                               </div>
                             </div>
 
                             <div className="flex items-center gap-2">
-                              {voter.tags?.map((tag: string) => (
-                                <span key={tag} className="text-[7px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded-sm font-black uppercase tracking-widest">
+                              {voter.tags?.slice(0, 2).map((tag: string) => (
+                                <span key={tag} className="text-[7px] bg-[var(--bg-primary)] text-[var(--text-secondary)] px-2 py-0.5 rounded-sm font-black uppercase tracking-widest border border-[var(--border-color)]">
                                   {tag}
                                 </span>
                               ))}
-                              <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-yellow-500 transition-all" />
+                              <ChevronRight className="w-4 h-4 text-[var(--text-secondary)] opacity-30 group-hover:text-yellow-500 group-hover:translate-x-1 group-hover:opacity-100 transition-all" />
                             </div>
                           </motion.div>
                         ))}
@@ -3532,9 +3561,9 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
           </div>
 
           {voters.length === 0 && (
-            <div className="py-20 text-center border-2 border-dashed border-zinc-900 rounded-sm">
-              <Users className="w-12 h-12 text-zinc-800 mx-auto mb-4" />
-              <p className="text-zinc-500 font-black uppercase tracking-widest text-xs">Nenhuma rede de indicações capturada.</p>
+            <div className="py-24 text-center border-2 border-dashed border-[var(--border-color)] rounded-sm grayscale opacity-30">
+              <Users className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
+              <p className="text-[var(--text-secondary)] font-black uppercase tracking-[0.2em] text-[10px]">Silêncio Radar: Nenhuma rede capturada.</p>
             </div>
           )}
         </div>
@@ -3788,30 +3817,32 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
   };
 
   return (
-    <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-yellow-500 selection:text-zinc-950 flex overflow-hidden dark:bg-[#0A0A0A] dark:text-zinc-100 transition-colors duration-300">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans selection:bg-yellow-500 selection:text-zinc-950 flex overflow-hidden transition-colors duration-300">
       
       {/* SIDEBAR - DESKTOP ONLY */}
-      <aside className="hidden lg:flex w-72 bg-white border-r border-zinc-200 flex-col flex-shrink-0 relative z-20 dark:bg-zinc-950 dark:border-white/5">
-        <div className="p-6 border-b border-zinc-200 bg-zinc-50 dark:bg-gradient-to-br dark:from-zinc-900 dark:to-black dark:border-white/5">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-yellow-500 p-2.5 rounded-sm shadow-lg shadow-yellow-500/10">
+      <aside className="hidden lg:flex w-72 bg-[var(--bg-secondary)] border-r border-[var(--border-color)] flex-col flex-shrink-0 relative z-20">
+        <div className="p-6 border-b border-[var(--border-color)] bg-[var(--bg-tertiary)] group/profile relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 blur-3xl -mr-16 -mt-16 group-hover/profile:bg-yellow-500/10 transition-colors pointer-events-none" />
+          
+          <div className="flex items-center gap-3 mb-6 relative z-10">
+            <div className="bg-yellow-500 p-2.5 rounded-sm shadow-xl shadow-yellow-500/10 border border-white/20">
               <ShieldCheck className="w-6 h-6 text-zinc-950" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-white tracking-tighter leading-none uppercase">Rede Águia</h2>
-              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-1">Líder Regional</p>
+              <h2 className="text-lg font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase">Rede Águia</h2>
+              <p className="text-[9px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-widest mt-1.5 opacity-80">Líder Regional</p>
             </div>
           </div>
 
-          <div className="bg-white/5 rounded-sm p-5 border border-white/5 backdrop-blur-sm relative overflow-hidden group">
+          <div className="bg-[var(--bg-secondary)] rounded-sm p-5 border border-[var(--border-color)] shadow-[var(--shadow-sm)] relative overflow-hidden group">
             <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-all">
               <User className="w-16 h-16" />
             </div>
-            <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">Perfil Ativo</p>
-            <h3 className="text-xs font-black text-white uppercase truncate">
+            <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1.5">Perfil Ativo</p>
+            <h3 className="text-xs font-black text-[var(--text-primary)] uppercase truncate">
               {profileData.name || user?.displayName || 'LÍDER'}
             </h3>
-            <p className="text-[8px] font-bold text-yellow-500 mt-2 uppercase tracking-tighter">
+            <p className="text-[8px] font-bold text-yellow-600 dark:text-yellow-500 mt-2 uppercase tracking-widest">
               {profileData.zone || 'SETOR NÃO DEFINIDO'}
             </p>
           </div>
@@ -3828,13 +3859,13 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-sm font-black text-[9px] uppercase tracking-widest transition-all group ${
+              className={`w-full flex items-center gap-3 px-5 py-4 rounded-sm font-black text-[9px] uppercase tracking-widest transition-all group ${
                 activeTab === tab.id 
-                ? 'bg-yellow-500 text-zinc-950 shadow-xl shadow-yellow-500/10' 
-                : 'text-zinc-500 hover:bg-white/5 hover:text-white'
+                ? 'bg-yellow-500 text-zinc-950 shadow-xl shadow-yellow-500/20' 
+                : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]'
               }`}
             >
-              <span className={`${activeTab === tab.id ? 'text-zinc-950' : 'text-zinc-600 group-hover:text-yellow-500'} transition-colors`}>
+              <span className={`${activeTab === tab.id ? 'text-zinc-950' : 'text-[var(--text-secondary)] group-hover:text-yellow-600'} transition-colors`}>
                 {tab.icon}
               </span>
               {tab.label}
@@ -3854,10 +3885,10 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
 
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* TOP BAR */}
-        <header className="h-16 bg-white border-b border-zinc-200 px-6 lg:px-10 flex items-center justify-between flex-shrink-0 relative z-30 dark:bg-neutral-950/80 dark:backdrop-blur-xl dark:border-white/5">
+        <header className="h-16 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] px-6 lg:px-10 flex items-center justify-between flex-shrink-0 relative z-30 transition-colors duration-300">
           <div className="flex items-center gap-3 lg:hidden">
             <ShieldCheck className="w-6 h-6 text-yellow-500" />
-            <h1 className="font-black text-base uppercase tracking-tighter text-zinc-950 dark:text-white">Líder Águia</h1>
+            <h1 className="font-black text-base uppercase tracking-tighter text-[var(--text-primary)]">Líder Águia</h1>
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
@@ -3870,7 +3901,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
           <div className="flex items-center gap-3 lg:gap-4">
             <button 
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-3 bg-zinc-900 border border-white/5 rounded-sm text-zinc-400 hover:bg-zinc-800 hover:text-yellow-500 transition-all shadow-xl"
+              className="p-3 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm text-[var(--text-secondary)] hover:bg-yellow-500 hover:text-zinc-950 active:scale-90 transition-all shadow-xl"
             >
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
@@ -3888,7 +3919,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
 
             <button 
               onClick={() => setIsProfileModalOpen(true)}
-              className="p-3 bg-zinc-900 border border-white/5 rounded-sm text-zinc-400 hover:bg-zinc-800 hover:text-yellow-500 transition-all shadow-xl"
+              className="p-3 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm text-[var(--text-secondary)] hover:bg-yellow-500 hover:text-zinc-950 active:scale-95 transition-all shadow-[var(--shadow-sm)]"
             >
               <Settings className="w-5 h-5" />
             </button>
@@ -3896,7 +3927,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         </header>
 
         {/* SCROLLABLE MAIN CONTENT */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-12 custom-scrollbar pb-32 lg:pb-12 bg-[#F9FAFB] dark:bg-gradient-to-b dark:from-[#0A0A0A] dark:to-zinc-950">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-12 custom-scrollbar pb-32 lg:pb-12 bg-[var(--bg-primary)] transition-colors duration-300">
           <div className="max-w-6xl mx-auto space-y-10">
             
             {activeTab === 'logistica' ? (
@@ -3911,23 +3942,23 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-zinc-950 border-2 border-yellow-500/50 rounded-sm p-10 shadow-[0_0_50px_-12px_rgba(234,179,8,0.3)] relative overflow-hidden group"
+                    className="bg-zinc-950 border-2 border-yellow-500/50 rounded-sm p-10 shadow-[var(--shadow-md)] relative overflow-hidden group"
                   >
-                    <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-700">
                       <ShieldCheck className="w-32 h-32 text-yellow-500 rotate-12" />
                     </div>
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className="bg-yellow-500 p-3 rounded-sm"><Zap className="w-6 h-6 text-zinc-950" /></div>
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="bg-yellow-500 p-3 rounded-sm shadow-lg shadow-yellow-500/20"><Zap className="w-6 h-6 text-zinc-950" /></div>
                       <div>
                         <h3 className="text-white font-black text-xl uppercase tracking-tighter">Ordem do Dia</h3>
-                        <p className="text-yellow-500 text-[8px] font-black uppercase tracking-[0.2em] mt-1">Diretriz Crítica de Campo</p>
+                        <p className="text-yellow-500 text-[8px] font-black uppercase tracking-[0.2em] mt-1 opacity-80">Diretriz Crítica de Campo</p>
                       </div>
                     </div>
-                    <p className="text-white font-black text-2xl leading-relaxed border-l-4 border-yellow-500 pl-6">
+                    <p className="text-white font-black text-2xl leading-relaxed border-l-4 border-yellow-500 pl-8 max-w-4xl italic">
                       "{dailyOrder.text}"
                     </p>
-                    <div className="mt-8 flex items-center gap-3 text-[9px] font-black text-zinc-500 uppercase tracking-widest">
-                       <Clock className="w-3.5 h-3.5" /> Atualizado às {new Date(dailyOrder.updatedAt).toLocaleTimeString()}
+                    <div className="mt-10 flex items-center gap-4 text-[9px] font-black text-zinc-500 uppercase tracking-widest bg-white/5 w-fit px-4 py-2 rounded-full border border-white/5">
+                       <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-yellow-500" /> Atualizado às {new Date(dailyOrder.updatedAt).toLocaleTimeString()}</span>
                     </div>
                   </motion.div>
                 )}
@@ -3959,19 +3990,25 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                       key={action.id}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => processAction(action.id as any)}
-                      className={`aspect-square bg-zinc-900 text-white rounded-sm p-6 lg:p-8 flex flex-col items-center justify-center gap-6 shadow-2xl border border-white/5 hover:bg-zinc-800 transition-all group relative overflow-hidden`}
+                      className={`aspect-square bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-sm p-6 lg:p-8 flex flex-col items-center justify-center gap-6 shadow-[var(--shadow-md)] border border-[var(--border-color)] hover:border-yellow-500/30 transition-all group relative overflow-hidden`}
                     >
                       <div className={`absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity`}>
                         {action.icon}
                       </div>
-                      <div className={`bg-${action.color}-500/10 p-5 rounded-sm group-hover:bg-${action.color}-500/20 transition-all shadow-inner`}>
-                        <div className={`text-${action.color}-500`}>{action.icon}</div>
+                      <div className={`p-5 rounded-sm transition-all shadow-inner ${
+                        action.color === 'yellow' ? 'bg-yellow-500/10 text-yellow-500 group-hover:bg-yellow-500 group-hover:text-zinc-950' :
+                        action.color === 'blue' ? 'bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white' :
+                        action.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white' :
+                        action.color === 'orange' ? 'bg-orange-500/10 text-orange-500 group-hover:bg-orange-500 group-hover:text-white' :
+                        'bg-purple-500/10 text-purple-500 group-hover:bg-purple-500 group-hover:text-white'
+                      }`}>
+                        {action.icon}
                       </div>
-                      <div className="text-center">
-                        <span className="font-black text-sm lg:text-base uppercase tracking-widest leading-none block">
+                      <div className="text-center group-hover:scale-110 transition-transform">
+                        <span className="font-black text-xs lg:text-sm uppercase tracking-widest leading-none block">
                           {action.label}
                         </span>
-                        <span className="text-[9px] font-black text-zinc-500 mt-2 block tracking-[0.2em] uppercase opacity-60">
+                        <span className="text-[8px] font-black text-[var(--text-secondary)] mt-2.5 block tracking-[0.2em] uppercase opacity-60">
                           {action.sub}
                         </span>
                       </div>
@@ -3981,36 +4018,36 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-12">
                   {myRequests.length > 0 && (
-                    <section className="bg-white border-2 border-zinc-100 rounded-sm p-10 shadow-sm overflow-hidden flex flex-col h-full group">
+                    <section className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-10 shadow-[var(--shadow-sm)] overflow-hidden flex flex-col h-full group">
                       <div className="flex justify-between items-center mb-8">
-                        <h3 className="text-zinc-950 font-black text-lg uppercase tracking-tighter flex items-center gap-3">
-                          <div className="bg-zinc-100 p-2 rounded-sm group-hover:bg-zinc-950 group-hover:text-white transition-all"><RefreshCcw className="w-5 h-5 text-zinc-400 group-hover:text-yellow-500" /></div>
+                        <h3 className="text-[var(--text-primary)] font-black text-lg uppercase tracking-tighter flex items-center gap-3">
+                          <div className="bg-[var(--bg-tertiary)] p-2.5 rounded-sm group-hover:bg-zinc-950 group-hover:text-white transition-all shadow-inner border border-[var(--border-color)]"><RefreshCcw className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-yellow-500" /></div>
                           Fluxo de Suporte
                         </h3>
-                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Últimas 5</span>
+                        <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-60">Últimas 5</span>
                       </div>
                       <div className="space-y-4 flex-1">
                         {myRequests.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5).map(req => (
                           <motion.div 
                             key={req.id} 
                             initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                            className="p-5 bg-zinc-50 rounded-sm border border-zinc-100 flex items-center justify-between gap-6 hover:bg-zinc-100 transition-all group/item"
+                            className="p-5 bg-[var(--bg-tertiary)] rounded-sm border border-[var(--border-color)] flex items-center justify-between gap-6 hover:border-yellow-500/30 transition-all group/item"
                           >
                             <div className="flex items-center gap-4">
-                              <div className={`p-4 rounded-sm shadow-sm ${
-                                req.type === 'combustivel' ? 'bg-blue-100 text-blue-600' : 
-                                req.type === 'demanda' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
+                              <div className={`p-4 rounded-sm shadow-inner ${
+                                req.type === 'combustivel' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 
+                                req.type === 'demanda' ? 'bg-yellow-500/10 text-yellow-600' : 'bg-red-500/10 text-red-600'
                               }`}>
                                 {req.type === 'combustivel' ? <Fuel className="w-5 h-5" /> : <StickyNote className="w-5 h-5" />}
                               </div>
                               <div className="text-left">
-                                <p className="font-black text-zinc-950 text-xs uppercase leading-none mb-2 tracking-tight group-hover/item:text-blue-600 transition-colors">{req.title}</p>
-                                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">{new Date(req.createdAt).toLocaleDateString()} • {new Date(req.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                <p className="font-black text-[var(--text-primary)] text-xs uppercase leading-none mb-2 tracking-tight group-hover/item:text-yellow-600 transition-colors uppercase">{req.title}</p>
+                                <p className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-widest opacity-60">{new Date(req.createdAt).toLocaleDateString()} • {new Date(req.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                               </div>
                             </div>
-                            <span className={`text-[10px] font-black px-4 py-2 rounded-sm uppercase tracking-widest shadow-sm ${
-                              req.status === 'aprovado' ? 'bg-green-100 text-green-700' : 
-                              req.status === 'negado' ? 'bg-red-100 text-red-700' : 'bg-white text-zinc-400 border border-zinc-200'
+                            <span className={`text-[9px] font-black px-4 py-2 rounded-sm uppercase tracking-widest shadow-sm border ${
+                              req.status === 'aprovado' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-500 border-emerald-500/20' : 
+                              req.status === 'negado' ? 'bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20' : 'bg-[var(--bg-primary)] text-[var(--text-secondary)] border-[var(--border-color)]'
                             }`}>
                               {req.status}
                             </span>
@@ -4021,37 +4058,37 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                   )}
 
                   {myAgendas.length > 0 && (
-                    <section className="bg-white border-2 border-zinc-100 rounded-sm p-10 shadow-sm overflow-hidden flex flex-col h-full group dark:bg-zinc-900 dark:border-white/5">
+                    <section className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-10 shadow-[var(--shadow-sm)] overflow-hidden flex flex-col h-full group">
                       <div className="flex justify-between items-center mb-8">
-                        <h3 className="text-zinc-950 font-black text-lg uppercase tracking-tighter flex items-center gap-3">
-                          <div className="bg-zinc-100 p-2 rounded-sm group-hover:bg-zinc-950 group-hover:text-white transition-all"><Calendar className="w-5 h-5 text-zinc-400 group-hover:text-emerald-500" /></div>
+                        <h3 className="text-[var(--text-primary)] font-black text-lg uppercase tracking-tighter flex items-center gap-3">
+                          <div className="bg-[var(--bg-tertiary)] p-2.5 rounded-sm group-hover:bg-zinc-950 group-hover:text-white transition-all shadow-inner border border-[var(--border-color)]"><Calendar className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-emerald-500" /></div>
                           Monitor de Agenda
                         </h3>
-                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Ativas</span>
+                        <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-60">Ativas</span>
                       </div>
                       <div className="space-y-4 flex-1">
                         {myAgendas.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5).map(agenda => (
                           <motion.div 
                             key={agenda.id} 
                             initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                            className="p-5 bg-zinc-50 rounded-sm border border-zinc-100 flex items-center justify-between gap-6 hover:bg-zinc-100 transition-all group/item"
+                            className="p-5 bg-[var(--bg-tertiary)] rounded-sm border border-[var(--border-color)] flex items-center justify-between gap-6 hover:border-yellow-500/30 transition-all group/item"
                           >
                             <div className="flex items-center gap-4">
-                              <div className={`p-4 rounded-sm shadow-sm ${
-                                agenda.status === 'confirmado' ? 'bg-green-100 text-green-600' : 
-                                agenda.status === 'negado' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'
+                              <div className={`p-4 rounded-sm shadow-inner ${
+                                agenda.status === 'confirmado' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500' : 
+                                agenda.status === 'negado' ? 'bg-red-500/10 text-red-600' : 'bg-orange-500/10 text-orange-600'
                               }`}>
                                 <Calendar className="w-5 h-5" />
                               </div>
                               <div className="text-left">
-                                <p className="font-black text-zinc-950 text-xs uppercase leading-none mb-2 tracking-tight">{agenda.municipio}</p>
-                                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">{new Date(agenda.data).toLocaleDateString()} • {agenda.hora_inicio}</p>
+                                <p className="font-black text-[var(--text-primary)] text-xs uppercase leading-none mb-2 tracking-tight uppercase">{agenda.municipio}</p>
+                                <p className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-widest opacity-60">{new Date(agenda.data).toLocaleDateString()} • {agenda.hora_inicio}</p>
                               </div>
                             </div>
                             <div className="flex flex-col items-end gap-2">
-                              <span className={`text-[9px] font-black px-4 py-2 rounded-sm uppercase tracking-widest shadow-sm ${
-                                agenda.status === 'confirmado' ? 'bg-green-100 text-green-700' : 
-                                agenda.status === 'negado' ? 'bg-red-100 text-red-700' : 'bg-white text-orange-600 border border-orange-100'
+                              <span className={`text-[9px] font-black px-4 py-2 rounded-sm uppercase tracking-widest shadow-sm border ${
+                                agenda.status === 'confirmado' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-500 border-emerald-500/20' : 
+                                agenda.status === 'negado' ? 'bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20' : 'bg-[var(--bg-primary)] text-orange-600 border border-orange-500/20'
                               }`}>
                                 {agenda.status === 'confirmado' ? 'APROVADA' : agenda.status === 'negado' ? 'NEGADA' : 'PENDENTE'}
                               </span>
@@ -4119,31 +4156,31 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
               </motion.div>
             ) : activeTab === 'equipe' ? (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <div className="bg-white p-8 rounded-sm border-2 border-zinc-200 shadow-xl">
+            <div className="bg-[var(--bg-secondary)] p-8 rounded-sm border border-[var(--border-color)] shadow-[var(--shadow-md)]">
               <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
                 <div className="flex items-center gap-4">
-                  <div className="bg-zinc-950 p-4 rounded-sm shadow-lg">
+                  <div className="bg-zinc-950 p-4 rounded-sm shadow-xl border border-white/5">
                     <Users className="w-8 h-8 text-yellow-500" />
                   </div>
                   <div className="text-left">
-                    <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter leading-none dark:text-white">Minha Equipe Regional</h2>
-                    <p className="text-zinc-500 font-bold text-[10px] uppercase tracking-widest mt-2 dark:text-zinc-400">Base estratégica de eleitores fidelizados em campo</p>
+                    <h2 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none font-sans">Minha Equipe Regional</h2>
+                    <p className="text-[var(--text-secondary)] font-black text-[10px] uppercase tracking-[0.2em] mt-3 opacity-70">Base estratégica de eleitores fidelizados em campo</p>
                   </div>
                 </div>
                 
-                <div className="flex bg-zinc-100 p-1 rounded-sm border border-zinc-200">
+                <div className="flex bg-[var(--bg-tertiary)] p-1 rounded-sm border border-[var(--border-color)] shadow-inner">
                   <button 
                     onClick={() => setVoterViewState('list')}
-                    className={`px-6 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all ${
-                      voterViewState === 'list' ? 'bg-white text-zinc-950 shadow-md' : 'text-zinc-400 hover:text-zinc-600'
+                    className={`px-8 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all ${
+                      voterViewState === 'list' ? 'bg-yellow-500 text-zinc-950 shadow-lg' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                     }`}
                   >
                     Lista
                   </button>
                   <button 
                     onClick={() => setVoterViewState('network')}
-                    className={`px-6 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all ${
-                      voterViewState === 'network' ? 'bg-white text-zinc-950 shadow-md' : 'text-zinc-400 hover:text-zinc-600'
+                    className={`px-8 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all ${
+                      voterViewState === 'network' ? 'bg-yellow-500 text-zinc-950 shadow-lg' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                     }`}
                   >
                     Rede
@@ -4206,28 +4243,30 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                         setSelectedVoter(voter);
                         setIsVoterDetailOpen(true);
                       }}
-                      className="flex justify-between items-center p-5 bg-white rounded-sm border border-zinc-100 shadow-sm hover:border-yellow-500 hover:shadow-lg transition-all cursor-pointer text-left group dark:bg-zinc-950 dark:border-white/5"
+                      className="flex justify-between items-center p-5 bg-[var(--bg-secondary)] rounded-sm border border-[var(--border-color)] shadow-[var(--shadow-sm)] hover:border-yellow-500 hover:shadow-[var(--shadow-md)] transition-all cursor-pointer text-left group overflow-hidden relative"
                     >
-                      <div className="flex items-center gap-5">
-                        <div className="bg-zinc-100 text-zinc-400 w-14 h-14 rounded-sm flex items-center justify-center font-black text-xl group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors shadow-inner">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-500/5 blur-2xl -mr-12 -mt-12 group-hover:bg-yellow-500/10 transition-colors pointer-events-none opacity-0 dark:opacity-100" />
+                      
+                      <div className="flex items-center gap-5 relative z-10">
+                        <div className="bg-[var(--bg-tertiary)] text-[var(--text-secondary)] w-14 h-14 rounded-sm flex items-center justify-center font-black text-xl group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors shadow-inner border border-[var(--border-color)]">
                           {voter.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-black text-zinc-950 text-base uppercase tracking-tighter leading-none mb-1.5">{voter.name}</p>
+                          <p className="font-black text-[var(--text-primary)] text-base uppercase tracking-tighter leading-none mb-2">{voter.name}</p>
                           <div className="flex items-center gap-3">
-                            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">{voter.phone || 'Sem Telefone'}</p>
+                            <p className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-widest opacity-60">{voter.phone || 'Sem Telefone'}</p>
                             {voter.tags && voter.tags.length > 0 && (
-                              <div className="flex gap-1">
+                              <div className="flex gap-1.5">
                                 {voter.tags.slice(0, 2).map((tag: string) => (
-                                  <span key={tag} className="text-[8px] bg-yellow-50 text-yellow-600 px-1.5 py-0.5 rounded-sm font-black uppercase tracking-widest">{tag}</span>
+                                  <span key={tag} className="text-[7.5px] bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 px-2 py-0.5 rounded-sm font-black uppercase tracking-widest border border-yellow-500/20">{tag}</span>
                                 ))}
-                                {voter.tags.length > 2 && <span className="text-[8px] text-zinc-400 font-black">+{voter.tags.length - 2}</span>}
+                                {voter.tags.length > 2 && <span className="text-[8px] text-[var(--text-secondary)] font-black opacity-50">+{voter.tags.length - 2}</span>}
                               </div>
                             )}
                           </div>
                         </div>
                       </div>
-                      <ChevronRight className="text-zinc-200 group-hover:text-yellow-500 group-hover:translate-x-1 transition-all" />
+                      <ChevronRight className="text-[var(--text-secondary)] opacity-30 group-hover:text-yellow-500 group-hover:translate-x-1 group-hover:opacity-100 transition-all relative z-10" />
                     </motion.div>
                   )) : (
                     <div className="p-20 border-2 border-dashed border-zinc-200 rounded-sm text-center">
@@ -4252,46 +4291,46 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         ) : activeTab === 'financeiro' ? (
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <div className="bg-zinc-950 p-8 rounded-sm border-b-8 border-green-500 text-white relative overflow-hidden shadow-2xl">
-              <div className="absolute top-0 right-0 p-8 opacity-10">
-                <Wallet className="w-32 h-32" />
+            <div className="bg-zinc-950 p-10 rounded-sm border-b-[12px] border-emerald-500 text-white relative overflow-hidden shadow-2xl">
+              <div className="absolute top-0 right-0 p-10 opacity-10 pointer-events-none">
+                <Wallet className="w-48 h-48" />
               </div>
               <div className="relative z-10">
-                <p className="text-[10px] font-black uppercase text-green-500 tracking-widest mb-1">Saldo em Caixa da Equipe</p>
-                <h2 className="text-5xl font-black tracking-tighter">
+                <p className="text-[11px] font-black uppercase text-emerald-500 tracking-[0.3em] mb-3">Saldo Operacional Disponível</p>
+                <h2 className="text-6xl font-black tracking-tighter leading-none mb-10">
                   R$ {((teamData?.allocated || 0) - (teamData?.spent || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </h2>
-                <div className="flex gap-8 mt-6">
+                <div className="flex gap-12 pt-8 border-t border-white/10">
                    <div>
-                      <p className="text-[10px] font-black uppercase text-zinc-500">Recibido (Total)</p>
-                      <p className="text-lg font-black">{ (teamData?.allocated || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }</p>
+                      <p className="text-[9px] font-black uppercase text-zinc-500 tracking-widest mb-1.5">Recursos Alocados</p>
+                      <p className="text-xl font-black">{ (teamData?.allocated || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }</p>
                    </div>
                    <div>
-                      <p className="text-[10px] font-black uppercase text-zinc-500">Gasto Atual</p>
-                      <p className="text-lg font-black text-red-500">{ (teamData?.spent || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }</p>
+                      <p className="text-[9px] font-black uppercase text-zinc-500 tracking-widest mb-1.5">Despesas Processadas</p>
+                      <p className="text-xl font-black text-red-500">{ (teamData?.spent || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }</p>
                    </div>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <section className="bg-white p-8 rounded-sm border-2 border-zinc-100 shadow-sm dark:bg-zinc-900 dark:border-white/5">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xs font-black uppercase text-zinc-400 tracking-widest flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-green-500" /> Alocações do Coordenador
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <section className="bg-[var(--bg-secondary)] p-8 rounded-sm border border-[var(--border-color)] shadow-[var(--shadow-sm)]">
+                <div className="flex justify-between items-center mb-8">
+                  <h3 className="text-[10px] font-black uppercase text-[var(--text-secondary)] tracking-[0.2em] flex items-center gap-3">
+                    <TrendingUp className="w-4 h-4 text-emerald-500" /> Alocações do Comando
                   </h3>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {teamTransactions.filter(t => t.type === 'alocacao').length > 0 ? teamTransactions.filter(t => t.type === 'alocacao').map(tx => (
-                    <div key={tx.id} className="p-4 bg-zinc-50 rounded-sm border border-zinc-100 flex justify-between items-center">
+                    <div key={tx.id} className="p-5 bg-[var(--bg-tertiary)] rounded-sm border border-[var(--border-color)] flex justify-between items-center group/tx hover:border-emerald-500/30 transition-all shadow-inner">
                       <div className="text-left">
-                        <p className="font-black text-sm uppercase text-zinc-800">Recurso Recebido</p>
-                        <p className="text-[10px] text-zinc-500 font-bold">"{tx.purpose || 'Uso em campo'}"</p>
+                        <p className="font-black text-xs uppercase text-[var(--text-primary)] mb-1 group-hover/tx:text-emerald-500 transition-colors">Recurso de Campo</p>
+                        <p className="text-[9px] text-[var(--text-secondary)] font-bold uppercase tracking-tight opacity-70">"{tx.purpose || 'Logística tática'}"</p>
                       </div>
-                      <div className="text-right flex items-center gap-4">
-                        <div>
-                          <p className="font-black text-blue-600 text-sm">+ R$ {tx.amount.toLocaleString()}</p>
-                          <p className="text-[9px] text-zinc-400 font-bold">{new Date(tx.date).toLocaleDateString()}</p>
+                      <div className="text-right flex items-center gap-5">
+                        <div className="text-right">
+                          <p className="font-black text-emerald-600 dark:text-emerald-500 text-sm">+ R$ {tx.amount.toLocaleString()}</p>
+                          <p className="text-[9px] text-[var(--text-secondary)] font-bold uppercase opacity-50">{new Date(tx.date).toLocaleDateString()}</p>
                         </div>
                         {tx.receiptStatus !== 'assinado' ? (
                           <button 
@@ -4299,36 +4338,36 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                               setSelectedTxToSign(tx);
                               setIsSignReceiptModalOpen(true);
                             }}
-                            className="bg-yellow-500 text-zinc-950 px-3 py-1.5 rounded-sm font-black text-[9px] uppercase shadow-lg shadow-yellow-100"
+                            className="bg-yellow-500 text-zinc-950 px-4 py-2.5 rounded-sm font-black text-[9px] uppercase shadow-lg shadow-yellow-500/20 hover:bg-yellow-400 active:scale-95 transition-all"
                           >
-                            Assinar Recibo
+                            Assinar
                           </button>
                         ) : (
-                          <div className="bg-green-100 text-green-600 p-1.5 rounded-sm" title="Recibo Assinado">
+                          <div className="bg-emerald-500/10 text-emerald-600 p-2 rounded-sm border border-emerald-500/20 shadow-inner" title="Validado">
                             <CheckCircle2 className="w-4 h-4" />
                           </div>
                         )}
                       </div>
                     </div>
                   )) : (
-                    <p className="text-center py-10 text-zinc-300 text-[10px] font-black uppercase">Nenhuma alocação registrada.</p>
+                    <p className="text-center py-12 text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-widest opacity-40">Aguardando provisões...</p>
                   )}
                 </div>
               </section>
 
-              <section className="bg-white p-8 rounded-sm border-2 border-zinc-100 shadow-sm">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xs font-black uppercase text-zinc-400 tracking-widest flex items-center gap-2">
-                    <History className="w-4 h-4 text-red-500" /> Histórico de Gastos
+              <section className="bg-[var(--bg-secondary)] p-8 rounded-sm border border-[var(--border-color)] shadow-[var(--shadow-sm)]">
+                <div className="flex justify-between items-center mb-8">
+                  <h3 className="text-[10px] font-black uppercase text-[var(--text-secondary)] tracking-[0.2em] flex items-center gap-3">
+                    <History className="w-4 h-4 text-red-500" /> Histórico de Saídas
                   </h3>
                   <button 
                     onClick={() => setIsExpenseModalOpen(true)}
-                    className="bg-zinc-950 text-white px-4 py-2 rounded-sm font-black text-[9px] uppercase tracking-widest active:scale-95 transition-all"
+                    className="bg-zinc-950 text-white px-5 py-2.5 rounded-sm font-black text-[9px] uppercase tracking-widest active:scale-95 transition-all hover:bg-zinc-800 border border-white/5"
                   >
-                    Adicionar Gasto
+                    Novo Gasto
                   </button>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {teamTransactions.filter(t => t.type === 'gasto').length > 0 ? teamTransactions.filter(t => t.type === 'gasto').map(tx => (
                     <div 
                       key={tx.id} 
@@ -4336,19 +4375,19 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                         setSelectedExpenseForVoucher(tx);
                         setIsExpenseVoucherModalOpen(true);
                       }}
-                      className="p-4 bg-zinc-50 rounded-sm border border-zinc-100 flex justify-between items-center cursor-pointer hover:bg-zinc-100 transition-all border-l-4 border-l-red-500"
+                      className="p-5 bg-[var(--bg-tertiary)] rounded-sm border border-[var(--border-color)] flex justify-between items-center cursor-pointer hover:border-red-500/30 transition-all border-l-4 border-l-red-500 group/tx shadow-inner"
                     >
                       <div className="text-left">
-                        <p className="font-black text-sm uppercase text-zinc-800">{tx.description}</p>
-                        <p className="text-[10px] text-zinc-500 font-bold">{new Date(tx.date).toLocaleDateString()}</p>
+                        <p className="font-black text-xs uppercase text-[var(--text-primary)] mb-1 group-hover/tx:text-red-500 transition-colors uppercase">{tx.description}</p>
+                        <p className="text-[9px] text-[var(--text-secondary)] font-bold uppercase mt-1 opacity-50">{new Date(tx.date).toLocaleDateString()}</p>
                       </div>
-                      <div className="text-right flex items-center gap-3">
-                        <p className="font-black text-red-600 text-sm">- R$ {tx.amount.toLocaleString()}</p>
-                        <FileText className="w-4 h-4 text-zinc-300" />
+                      <div className="text-right flex items-center gap-4">
+                        <p className="font-black text-red-600 text-base">- R$ {tx.amount.toLocaleString()}</p>
+                        <FileText className="w-4 h-4 text-[var(--text-secondary)] opacity-30 group-hover/tx:text-red-500 group-hover/tx:opacity-100 transition-all" />
                       </div>
                     </div>
                   )) : (
-                    <p className="text-center py-10 text-zinc-300 text-[10px] font-black uppercase">Nenhum gasto registrado ainda.</p>
+                    <p className="text-center py-12 text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-widest opacity-40">Sem registros de saída.</p>
                   )}
                 </div>
               </section>
@@ -4356,16 +4395,16 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
           </motion.div>
         ) : activeTab === 'feed' ? (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-900/50 pb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6 transition-colors">
               <div>
-                <h2 className="text-2xl font-black uppercase text-white tracking-tighter leading-none">Feed Tático</h2>
-                <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Comunicação estratégica e fórum de campo</p>
+                <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Feed Tático</h2>
+                <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">Comunicação estratégica e fórum de campo • Tempo Real</p>
               </div>
               <button 
                 onClick={() => setIsNoteModalOpen(true)}
-                className="bg-yellow-500 text-zinc-950 px-6 py-3.5 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all shadow-xl shadow-yellow-500/10 active:scale-95 flex items-center gap-2"
+                className="bg-yellow-500 text-zinc-950 px-6 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] hover:bg-yellow-400 transition-all shadow-xl shadow-yellow-500/20 active:scale-95 flex items-center gap-3"
               >
-                <Plus className="w-4 h-4" /> Nova Nota
+                <Plus className="w-4 h-4" /> Registrar Nota
               </button>
             </div>
 
@@ -4382,37 +4421,37 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                   />
                 ))
               ) : (
-                <div className="col-span-full py-20 bg-zinc-900/50 border-2 border-dashed border-zinc-800 rounded-sm text-center">
-                  <MessageSquare className="w-12 h-12 text-zinc-800 mx-auto mb-4" />
-                  <p className="font-black text-zinc-600 uppercase tracking-[0.2em] text-xs">Nenhuma comunicação tática registrada no momento.</p>
+                <div className="col-span-full py-24 bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-sm text-center grayscale opacity-40">
+                  <MessageSquare className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
+                  <p className="font-black text-[var(--text-secondary)] uppercase tracking-[0.3em] text-[10px]">Aguardando diretivas táticas...</p>
                 </div>
               )}
             </div>
           </motion.div>
         ) : (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <div className="bg-white p-8 rounded-sm border-2 border-zinc-200 shadow-xl">
-              <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
-                <div className="text-left text-zinc-950">
-                  <h2 className="text-2xl font-black uppercase tracking-tighter">Notas Estratégicas</h2>
-                  <p className="text-zinc-500 font-medium text-sm">Registre impressões, nomes e lembretes rápidos via áudio.</p>
+            <div className="bg-[var(--bg-secondary)] p-10 rounded-sm border border-[var(--border-color)] shadow-[var(--shadow-sm)]">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-10 border-b border-[var(--border-color)] pb-8">
+                <div className="text-left">
+                  <h2 className="text-2xl font-black uppercase tracking-tighter text-[var(--text-primary)] leading-none">Notas Estratégicas</h2>
+                  <p className="text-[var(--text-secondary)] font-black text-[10px] uppercase tracking-widest mt-3 opacity-60">Diário Tático: Registre impressões regionais em áudio.</p>
                 </div>
                 <button 
                   onClick={startVoiceNote}
-                  className="flex items-center gap-3 bg-zinc-950 text-white px-8 py-5 rounded-sm font-black text-xs uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all shadow-xl active:scale-95 group"
+                  className="flex items-center gap-4 bg-zinc-950 text-white dark:bg-yellow-500 dark:text-zinc-950 px-8 py-5 rounded-sm font-black text-[11px] uppercase tracking-widest hover:bg-zinc-800 dark:hover:bg-yellow-400 transition-all shadow-2xl active:scale-95 group"
                 >
-                  <Mic className="w-5 h-5 text-yellow-500 group-hover:text-zinc-950" />
-                  Gravar Nova Nota
+                  <Mic className="w-5 h-5 text-yellow-500 dark:text-zinc-950 animate-pulse" />
+                  Ativar Gravador Tático
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {notes.length > 0 ? notes.map((note) => (
                   <NoteCard key={note.id} note={note} user={user} isAdmin={false} currentUserName={profileData?.name} onDelete={() => handleDeleteNote(note.id)} />
                 )) : (
-                  <div className="col-span-full p-20 border-2 border-dashed border-zinc-200 rounded-sm text-center">
-                    <Mic className="w-12 h-12 text-zinc-200 mx-auto mb-4" />
-                    <p className="font-black text-zinc-300 uppercase tracking-[0.2em] text-xs">Seu diário estratégico está vazio.</p>
+                  <div className="col-span-full py-24 border-2 border-dashed border-[var(--border-color)] rounded-sm text-center grayscale opacity-40">
+                    <Mic className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
+                    <p className="font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] text-[10px]">Aguardando registro de informações regionais.</p>
                   </div>
                 )}
               </div>
@@ -4427,120 +4466,58 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         {isProfileModalOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+            className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto transition-all"
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative"
+              className="bg-[var(--bg-secondary)] w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-[var(--border-color)]"
             >
               <button 
                 onClick={() => setIsProfileModalOpen(false)}
-                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-sm text-zinc-500"
+                className="absolute top-6 right-6 bg-[var(--bg-tertiary)] p-2.5 rounded-sm text-[var(--text-secondary)] hover:text-red-500 transition-all active:scale-90"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
 
-              <div className="bg-zinc-950 p-8 border-b-4 border-yellow-500 text-left">
+              <div className="bg-zinc-950 p-8 border-b-4 border-yellow-500 text-left dark:bg-zinc-900 transition-colors">
                 <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">Minhas Credenciais</h2>
-                <p className="text-zinc-400 text-xs font-bold mt-2 uppercase tracking-widest">Ajuste seu perfil estratégico</p>
+                <p className="text-yellow-500/70 text-[10px] font-black mt-3 uppercase tracking-[0.2em] leading-none">Ajuste de Identidade Operacional</p>
               </div>
 
-              <div className="p-8 space-y-6 text-left">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
+              <div className="p-10 space-y-8 text-left">
+                <div className="space-y-2.5">
+                  <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] ml-1 opacity-60">Identificação Nominal</label>
                   <input 
                     type="text" 
                     value={profileData.name}
                     onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-sm p-4 font-bold text-zinc-800"
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-4.5 font-bold text-sm text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-all"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Zona Eleitoral / Base</label>
+                <div className="space-y-2.5">
+                  <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] ml-1 opacity-60">Zona Operacional • Base</label>
                   <input 
                     type="text" 
-                    placeholder="Ex: Pacaraima Centro"
-                    value={profileData.zone}
-                    onChange={(e) => setProfileData({...profileData, zone: e.target.value})}
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-sm p-4 font-bold text-zinc-800"
+                    value={profileData.address || ''}
+                    onChange={(e) => setProfileData({...profileData, address: e.target.value})}
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-4.5 font-bold text-sm text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-all"
+                    placeholder="Região de Atuação"
                   />
                 </div>
                 
-                <div className="flex flex-col items-center gap-4 py-4">
-                  <div className="relative">
-                    <div className="w-32 h-32 rounded-sm bg-zinc-100 border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center">
-                      {profileData.photoUrl ? (
-                        <img src={profileData.photoUrl} alt="Preview" className="w-full h-full object-cover" />
-                      ) : (
-                        <Users className="w-10 h-10 text-zinc-300" />
-                      )}
-                    </div>
-                    <label className="absolute -bottom-2 -right-2 bg-yellow-500 text-zinc-950 p-4 rounded-sm cursor-pointer hover:bg-zinc-950 hover:text-white transition-all shadow-xl active:scale-95 border-4 border-white">
-                      <Upload className="w-5 h-5" />
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        className="hidden" 
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              const img = new Image();
-                              img.onload = () => {
-                                const canvas = document.createElement('canvas');
-                                const MAX_WIDTH = 400;
-                                const scaleSize = MAX_WIDTH / img.width;
-                                canvas.width = MAX_WIDTH;
-                                canvas.height = img.height * scaleSize;
-                                const ctx = canvas.getContext('2d');
-                                ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-                                const base64 = canvas.toDataURL('image/jpeg', 0.7);
-                                setProfileData(prev => ({ ...prev, photoUrl: base64 }));
-                              };
-                              img.src = reader.result as string;
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Formatos: JPG, PNG • Max: 1MB</p>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">URL da Foto (ou use o upload acima)</label>
-                  <input 
-                    type="text" 
-                    placeholder="https://link-da-sua-foto.com/perfil.jpg"
-                    value={profileData.photoUrl || ''}
-                    onChange={(e) => setProfileData({...profileData, photoUrl: e.target.value})}
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-sm p-4 font-bold text-zinc-800"
-                  />
-                </div>
-                
-                <div className="flex gap-4">
+                <div className="pt-4">
                   <button 
                     onClick={async () => {
-                        if (!user) return;
-                        try {
-                          await firestoreService.setDocument('users', user.uid, profileData);
-                          setIsProfileModalOpen(false);
-                          alert("✅ Perfil estratégico atualizado!");
-                        } catch (err: any) {
-                          alert("Erro ao salvar perfil: " + err.message);
-                        }
+                      try {
+                        await firestoreService.updateDocument('users', user.uid, profileData);
+                        setIsProfileModalOpen(false);
+                      } catch (err: any) {
+                        alert("Erro ao atualizar credenciais: " + err.message);
+                      }
                     }}
-                    className="flex-1 bg-yellow-500 text-zinc-950 py-5 rounded-sm font-black text-lg shadow-xl shadow-yellow-100 transition-all active:scale-95"
+                    className="w-full bg-zinc-950 text-white dark:bg-yellow-500 dark:text-zinc-950 py-5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-2xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-yellow-400"
                   >
-                    SALVAR AJUSTES
-                  </button>
-                  <button 
-                    onClick={logout}
-                    className="bg-red-600 text-white px-8 py-5 rounded-sm font-black text-lg shadow-xl transition-all active:scale-95"
-                  >
-                    SAIR
+                    ATUALIZAR IDENTIDADE
                   </button>
                 </div>
               </div>
@@ -5279,9 +5256,23 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-8">
-         <ShieldCheck className="w-16 h-16 text-yellow-500 animate-pulse mb-4" />
-         <p className="text-zinc-400 font-bold uppercase tracking-widest animate-pulse">SISTEMA ÁGUIA • CARREGANDO...</p>
+      <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-8 transition-colors duration-500">
+         <div className="relative">
+           <ShieldCheck className="w-20 h-20 text-yellow-500 animate-pulse mb-6 relative z-10" />
+           <div className="absolute inset-0 bg-yellow-500 blur-2xl opacity-20 animate-pulse"></div>
+         </div>
+         <div className="space-y-3 text-center">
+           <p className="text-[var(--text-primary)] font-black uppercase tracking-[0.3em] text-xs animate-pulse">SISTEMA ÁGUIA</p>
+           <p className="text-[var(--text-secondary)] font-black uppercase tracking-widest text-[9px] opacity-50">Estratégia 2026 • Carregando Inteligência</p>
+         </div>
+         <div className="mt-10 w-48 h-1 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
+           <motion.div 
+             initial={{ x: '-100%' }}
+             animate={{ x: '100%' }}
+             transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+             className="w-full h-full bg-yellow-500"
+           />
+         </div>
       </div>
     );
   }
@@ -5342,43 +5333,45 @@ export default function App() {
 
   if (user && forcePasswordChange) {
     return (
-      <div className="min-h-screen bg-zinc-900 flex flex-col items-center justify-center p-4 text-center selection:bg-yellow-500 selection:text-zinc-950">
+      <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 text-center selection:bg-yellow-500 selection:text-zinc-950 transition-colors duration-500">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }} 
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-zinc-950 p-8 rounded-sm shadow-2xl border border-zinc-800 relative"
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md w-full bg-[var(--bg-secondary)] p-10 rounded-sm shadow-2xl border border-[var(--border-color)] relative"
         >
-          <Lock className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-black text-white tracking-tighter uppercase leading-none mb-1">Acesso Seguro</h1>
-          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-8">Por segurança, altere sua senha inicial</p>
+          <div className="w-20 h-20 bg-yellow-500/10 rounded-sm flex items-center justify-center mx-auto mb-8 border border-yellow-500/20">
+            <Lock className="w-10 h-10 text-yellow-500" />
+          </div>
+          <h1 className="text-2xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none mb-3">Definir Identidade</h1>
+          <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] mb-10 opacity-70">Por segurança, altere sua senha de acesso inicial</p>
           
-          <form onSubmit={handlePasswordChange} className="space-y-4 text-left">
-            <div>
-              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 mb-1 block">Nova Senha Pessoal</label>
+          <form onSubmit={handlePasswordChange} className="space-y-6 text-left">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 block opacity-60">Nova Senha Operacional</label>
               <input 
                 type="password" 
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full bg-zinc-900 border border-zinc-800 text-white p-4 rounded-sm focus:outline-none focus:border-yellow-500 transition-all font-medium"
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-4.5 rounded-sm focus:outline-none focus:border-yellow-500 transition-all font-bold text-sm shadow-inner"
                 placeholder="Mínimo 6 caracteres"
               />
             </div>
-            {authError && <p className="text-red-500 text-[10px] font-black text-center">{authError}</p>}
+            {authError && <p className="text-red-500 text-[10px] font-black text-center bg-red-500/5 py-3 rounded-sm border border-red-500/10 uppercase tracking-widest">{authError}</p>}
             <button 
               type="submit"
-              className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-sm uppercase tracking-widest shadow-xl"
+              className="w-full bg-zinc-950 text-white dark:bg-yellow-500 dark:text-zinc-950 py-5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-yellow-400"
             >
-              DEFINIR NOVA SENHA
+              AUTENTICAR NOVA SENHA
             </button>
           </form>
 
           <button 
             onClick={logout}
-            className="mt-6 text-[10px] font-black text-zinc-600 hover:text-zinc-400 uppercase tracking-widest transition-colors"
+            className="mt-10 text-[10px] font-black text-[var(--text-secondary)] hover:text-red-500 uppercase tracking-widest transition-colors opacity-50"
           >
-            Sair do Sistema
+            Encerrar Sessão
           </button>
         </motion.div>
       </div>
@@ -5387,95 +5380,97 @@ export default function App() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-zinc-900 flex flex-col items-center justify-center p-4 md:p-8 text-center selection:bg-yellow-500 selection:text-zinc-950">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-md w-full bg-zinc-950 p-8 md:p-10 rounded-sm shadow-2xl border border-zinc-800 relative overflow-hidden"
-        >
-          {/* Decorative Background */}
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl"></div>
+      <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 md:p-12 text-center selection:bg-yellow-500 selection:text-zinc-950 transition-colors duration-500 relative overflow-hidden">
+        {/* Abstract Background Accents */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-yellow-500"></div>
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-yellow-500/10 rounded-full blur-[120px]"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px]"></div>
 
-          <ShieldCheck className="w-16 h-16 text-yellow-500 mx-auto mb-4 relative z-10" />
-          <h1 className="text-2xl font-black text-white tracking-tighter uppercase leading-none mb-1 relative z-10">SISTEMA ÁGUIA</h1>
-          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-8 relative z-10">Coordenação Estratégica 2026</p>
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }} 
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full bg-[var(--bg-secondary)] p-10 md:p-14 rounded-sm shadow-2xl border border-[var(--border-color)] relative z-20 backdrop-blur-sm"
+        >
+          <div className="flex justify-center mb-8 text-[var(--text-primary)]">
+            <div className="p-4 bg-zinc-950 rounded-sm shadow-2xl shadow-yellow-500/10 border border-white/5">
+              <ShieldCheck className="w-12 h-12 text-yellow-500" />
+            </div>
+          </div>
+          <h1 className="text-3xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none mb-3">SISTEMA ÁGUIA</h1>
+          <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.3em] mb-12 opacity-60">Diretiva de Coordenação Operacional</p>
           
-          <form onSubmit={handleEmailAuth} className="space-y-4 text-left relative z-10">
+          <form onSubmit={handleEmailAuth} className="space-y-6 text-left relative z-10">
             {isRegistering && (
-              <div className="bg-zinc-900/50 p-1 rounded-sm flex mb-6 border border-zinc-800">
+              <div className="bg-[var(--bg-tertiary)] p-1 rounded-sm flex mb-6 border border-[var(--border-color)] shadow-inner">
                 <div className="flex-1 py-3 rounded-sm font-black text-[10px] tracking-widest bg-yellow-500 text-zinc-950 shadow-lg text-center uppercase">
                   Somente Coordenador
                 </div>
               </div>
             )}
-            <div>
-              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 mb-1 block">E-mail Corporativo</label>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 block opacity-60">Credencial de E-mail</label>
               <input 
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full bg-zinc-900 border border-zinc-800 text-white p-4 rounded-sm focus:outline-none focus:border-yellow-500 transition-all font-medium placeholder:text-zinc-700"
-                placeholder="exemplo@aguia.com"
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-4.5 rounded-sm focus:outline-none focus:border-yellow-500 transition-all font-bold text-sm shadow-inner placeholder:[var(--text-secondary)] placeholder:opacity-30"
+                placeholder="operador@aguia.com"
               />
             </div>
-            <div>
-              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 mb-1 block">Senha de Acesso</label>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 block opacity-60">Chave de Acesso</label>
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full bg-zinc-900 border border-zinc-800 text-white p-4 rounded-sm focus:outline-none focus:border-yellow-500 transition-all font-medium placeholder:text-zinc-700"
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-4.5 rounded-sm focus:outline-none focus:border-yellow-500 transition-all font-bold text-sm shadow-inner placeholder:[var(--text-secondary)] placeholder:opacity-30"
                 placeholder="••••••••"
               />
             </div>
 
             {authError && (
-              <p className="text-red-500 text-[10px] font-black uppercase text-center bg-red-500/10 py-2 rounded-sm border border-red-500/20">
+              <p className="text-red-500 text-[10px] font-black uppercase text-center bg-red-500/10 py-3 rounded-sm border border-red-500/20 tracking-wider">
                 {authError}
               </p>
             )}
 
             <button 
               type="submit"
-              className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-sm uppercase tracking-widest shadow-xl hover:bg-yellow-400 transition-all active:scale-95"
+              className="w-full bg-zinc-950 text-white dark:bg-yellow-500 dark:text-zinc-950 py-5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl hover:bg-zinc-800 dark:hover:bg-yellow-400 transition-all active:scale-95"
             >
-              {isRegistering ? 'Criar Nova Credencial' : 'Autenticar Acesso'}
+              {isRegistering ? 'Solicitar Cadastro' : 'Autenticar Unidade'}
             </button>
           </form>
 
-          <div className="relative my-8 z-10">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-zinc-800"></div></div>
-            <div className="relative flex justify-center text-[8px] uppercase font-black text-zinc-600 bg-zinc-950 px-4 tracking-[0.3em]">OU ACESSAR VIA SOCIAL</div>
+          <div className="relative my-10 z-10">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-[var(--border-color)]"></div></div>
+            <div className="relative flex justify-center text-[8px] uppercase font-black text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-4 tracking-[0.4em] opacity-40">LOGIN CORPORATIVO</div>
           </div>
 
           <button 
             onClick={login}
-            className="w-full bg-zinc-900 text-zinc-300 py-4 rounded-sm font-bold text-xs flex items-center justify-center gap-3 border border-zinc-800 hover:bg-zinc-800 transition-all relative z-10"
+            className="w-full bg-[var(--bg-tertiary)] text-[var(--text-primary)] py-4.5 rounded-sm font-black text-[10px] uppercase flex items-center justify-center gap-4 border border-[var(--border-color)] hover:bg-[var(--bg-secondary)] transition-all shadow-sm relative z-10"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-yellow-500" viewBox="0 0 24 24">
                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
             </svg>
-            GOOGLE AUTH
+            Google Cloud Auth
           </button>
 
           <button 
             onClick={() => setIsRegistering(!isRegistering)}
-            className="mt-6 text-[10px] font-black text-zinc-500 hover:text-yellow-500 uppercase tracking-widest transition-colors z-10 relative"
+            className="mt-10 text-[10px] font-black text-[var(--text-secondary)] hover:text-yellow-600 uppercase tracking-widest transition-colors opacity-50 block w-full relative z-10"
           >
-            {isRegistering ? 'Já possui acesso? Fazer Login' : 'Solicitar Nova Credencial'}
+            {isRegistering ? 'Já possui acesso? Efetuar Login' : 'Ainda não é operador? Registrar'}
           </button>
         </motion.div>
         
-        <div className="mt-8 flex items-center gap-2 opacity-30">
-          <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-          <span className="text-[8px] font-black text-white uppercase tracking-[0.3em]">Criptografia Militar de 256 bits Ativa</span>
-        </div>
+        <p className="mt-12 text-[10px] font-black text-[var(--text-secondary)] opacity-20 uppercase tracking-[0.5em] relative z-20">Eagle Intelligence Systems • 2026</p>
       </div>
     );
   }
