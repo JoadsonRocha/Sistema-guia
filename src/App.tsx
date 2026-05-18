@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, 
   Fuel, 
@@ -55,7 +55,6 @@ import {
   Map as MapIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import * as d3 from 'd3';
 import { processarCaos, gerarBriefingCandidato, processarNotaAudio } from './services/geminiService';
 import FinanceDashboard from './components/FinanceDashboard';
 import { useAuth } from './lib/FirebaseProvider';
@@ -3414,170 +3413,84 @@ function CaboDashboard() {
 
   const availableTags = Array.from(new Set(voters.flatMap(v => v.tags || [])));
 
-  // --- COMPONENTE INTERNO: REDE DE INDICAÇÕES ---
+  // --- COMPONENTE INTERNO: MAPA DE INDICAÇÕES (LISTA) ---
   const ReferralNetwork = ({ voters }: { voters: any[] }) => {
-    const svgRef = useRef<SVGSVGElement>(null);
-    const [nodes, setNodes] = useState<any[]>([]);
-    const [links, setLinks] = useState<any[]>([]);
+    // 1. Agrupar eleitores por quem os indicou
+    const groupedByReferrer = voters.reduce((acc: any, voter) => {
+      const referrer = voter.referredBy?.trim() || "Sem Indicação Direta";
+      if (!acc[referrer]) acc[referrer] = [];
+      acc[referrer].push(voter);
+      return acc;
+    }, {});
 
-    useEffect(() => {
-      if (!voters.length) return;
-
-      // Prepare data for D3
-      const d3Nodes = voters.map(v => ({ ...v, isVirtual: false }));
-      const nodeMap = new Map(d3Nodes.map(n => [n.name.trim().toLowerCase(), n]));
-      const d3Links: any[] = [];
-
-      voters.forEach(v => {
-        if (v.referredBy) {
-          const refName = v.referredBy.trim().toLowerCase();
-          let source = nodeMap.get(refName);
-          
-          if (!source) {
-            // Criar nó virtual para o indicador não cadastrado na base filtrada
-            source = { 
-              id: `virtual-${refName}`, 
-              name: v.referredBy.trim(), 
-              isVirtual: true,
-              tags: [] 
-            };
-            d3Nodes.push(source);
-            nodeMap.set(refName, source);
-          }
-          
-          d3Links.push({ source: source.id, target: v.id });
-        }
-      });
-
-      // Simulation setup
-      const simulation = d3.forceSimulation(d3Nodes)
-        .force("link", d3.forceLink(d3Links).id((d: any) => d.id).distance(120))
-        .force("charge", d3.forceManyBody().strength(-400))
-        .force("center", d3.forceCenter(400, 300))
-        .force("collision", d3.forceCollide().radius(60));
-
-      simulation.on("tick", () => {
-        setNodes([...d3Nodes]);
-        setLinks([...d3Links]);
-      });
-
-      return () => simulation.stop();
-    }, [voters]);
+    const referrers = Object.keys(groupedByReferrer).sort();
 
     return (
-      <div className="relative bg-zinc-950 rounded-sm border border-white/5 overflow-hidden w-full aspect-video flex items-center justify-center p-4">
-        <svg ref={svgRef} className="w-full h-full" viewBox="0 0 800 600">
-          <defs>
-            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
-              <polygon points="0 0, 10 3.5, 0 7" fill="#EAB308" opacity="0.4" />
-            </marker>
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          
-          {/* Links with animated flow */}
-          {links.map((link, i) => {
-            const dx = link.target.x - link.source.x;
-            const dy = link.target.y - link.source.y;
-            const dr = Math.sqrt(dx * dx + dy * dy) * 1.5; // Curvatura
-            return (
-              <motion.path
-                key={`link-${i}`}
-                d={`M${link.source.x},${link.source.y}A${dr},${dr} 0 0,1 ${link.target.x},${link.target.y}`}
-                fill="none"
-                stroke="#EAB308"
-                strokeWidth="1.5"
-                strokeOpacity="0.15"
-                markerEnd="url(#arrowhead)"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 1 }}
-              />
-            );
-          })}
-
-          {/* Nodes */}
-          {nodes.map((node) => (
-            <motion.g
-              key={node.id}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1, x: node.x, y: node.y }}
-              whileHover={{ scale: 1.15 }}
-              onClick={() => { 
-                if (!node.isVirtual) {
-                  setSelectedVoter(node); 
-                  setIsVoterDetailOpen(true); 
-                }
-              }}
-              className={`${node.isVirtual ? 'cursor-help' : 'cursor-pointer'}`}
-            >
-              {/* Special ring for high influencers */}
-              {links.filter(l => l.source.id === node.id).length >= 2 && (
-                <circle r="26" fill="none" stroke="#EAB308" strokeWidth="1.5" strokeDasharray="6 3" className="animate-spin-slow opacity-40" />
-              )}
-              
-              <circle 
-                r={node.isVirtual ? 16 : 20} 
-                fill={node.isVirtual ? "#09090b" : "#18181b"} 
-                stroke={node.isVirtual ? "#3f3f46" : "#EAB308"} 
-                strokeWidth={node.isVirtual ? "1" : "2.5"} 
-                filter={node.isVirtual ? "" : "url(#glow)"} 
-                strokeDasharray={node.isVirtual ? "3 3" : ""}
-              />
-              
-              <text
-                textAnchor="middle"
-                dy=".3em"
-                className={`text-[10px] font-black uppercase select-none ${node.isVirtual ? 'fill-zinc-600' : 'fill-yellow-500'}`}
-              >
-                {node.name.charAt(0)}
-              </text>
-              
-              <text
-                y="35"
-                textAnchor="middle"
-                className={`text-[9px] font-black uppercase tracking-tighter select-none ${node.isVirtual ? 'fill-zinc-500 italic' : 'fill-white'}`}
-              >
-                {node.isVirtual ? `Indicador: ${node.name.split(' ')[0]}` : node.name.split(' ')[0]}
-              </text>
-
-              {/* Tags count indicator */}
-              {node.tags && node.tags.length > 0 && (
-                <g transform="translate(15, -15)">
-                  <circle r="6" fill="#EAB308" />
-                  <text textAnchor="middle" dy=".3em" className="text-[7px] font-black fill-zinc-950">{node.tags.length}</text>
-                </g>
-              )}
-            </motion.g>
-          ))}
-        </svg>
-
-        {/* Legend */}
-        <div className="absolute top-6 left-6 space-y-3 bg-zinc-950/60 backdrop-blur-xl p-5 rounded-sm border border-white/10 shadow-2xl">
-          <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-4">Legenda Estratégica</p>
-          <div className="flex items-center gap-3">
-             <div className="w-4 h-4 rounded-full bg-zinc-900 border-2 border-yellow-500 shadow-[0_0_10px_#EAB308]"></div>
-             <span className="text-[9px] font-black text-white uppercase tracking-widest">Liderança / Influente</span>
+      <div className="bg-zinc-950 rounded-sm border border-white/5 overflow-hidden w-full min-h-[500px] p-8">
+        <div className="max-w-4xl mx-auto space-y-12">
+          <div className="flex justify-between items-center border-b border-white/10 pb-6">
+            <div>
+              <h3 className="text-xl font-black text-white uppercase tracking-tighter">Fluxo de Indicações</h3>
+              <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">Mapeamento hierárquico de influência regional</p>
+            </div>
+            <div className="bg-yellow-500/10 border border-yellow-500/20 px-4 py-2 rounded-sm">
+              <span className="text-[10px] font-black text-yellow-500 uppercase tracking-widest">{voters.length} Eleitores Mapeados</span>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-             <div className="w-4 h-4 rounded-full bg-zinc-900 border border-zinc-700 border-dashed"></div>
-             <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest italic">Referência Externa</span>
-          </div>
-          <div className="mt-4 pt-4 border-t border-white/5">
-             <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-                <span className="text-[8px] font-bold text-zinc-400">Ponto com tags de segmentação</span>
-             </div>
-          </div>
-        </div>
 
-        <div className="absolute bottom-6 right-6 text-right">
-          <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.4em] leading-none mb-2">Rede de Fidelização Tática</p>
-          <p className="text-xl font-black text-white uppercase tracking-tighter leading-none">{voters.length} Conexões Ativas</p>
+          <div className="grid grid-cols-1 gap-8">
+            {referrers.map((referrer) => (
+              <div key={referrer} className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-zinc-900 p-2 rounded-sm border border-zinc-800">
+                    <Handshake className="w-4 h-4 text-zinc-400" />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] block">Indicador / Referência</span>
+                    <h4 className="text-sm font-black text-white uppercase tracking-tight">{referrer}</h4>
+                  </div>
+                </div>
+
+                <div className="ml-6 pl-6 border-l-2 border-zinc-900 space-y-3">
+                  {groupedByReferrer[referrer].map((voter: any) => (
+                    <motion.div 
+                      key={voter.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      onClick={() => { setSelectedVoter(voter); setIsVoterDetailOpen(true); }}
+                      className="group flex items-center justify-between p-4 bg-zinc-900/30 rounded-sm border border-white/5 hover:border-yellow-500/50 hover:bg-zinc-900/50 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 bg-zinc-950 font-black text-xs text-yellow-500 flex items-center justify-center rounded-sm border border-white/10 group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors">
+                          {voter.name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-zinc-200 uppercase tracking-tight group-hover:text-white transition-colors">{voter.name}</p>
+                          <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">{voter.phone}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {voter.tags?.map((tag: string) => (
+                          <span key={tag} className="text-[7px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded-sm font-black uppercase tracking-widest">
+                            {tag}
+                          </span>
+                        ))}
+                        <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-yellow-500 transition-all" />
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {voters.length === 0 && (
+            <div className="py-20 text-center border-2 border-dashed border-zinc-900 rounded-sm">
+              <Users className="w-12 h-12 text-zinc-800 mx-auto mb-4" />
+              <p className="text-zinc-500 font-black uppercase tracking-widest text-xs">Nenhuma rede de indicações capturada.</p>
+            </div>
+          )}
         </div>
       </div>
     );
