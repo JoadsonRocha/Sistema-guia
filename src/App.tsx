@@ -271,7 +271,38 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     observations: string;
     referredBy: string;
     tags: string[];
-  }>({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [] });
+    loyaltyScore: number;
+    familyCommunity: string;
+    associatedCandidates: string;
+    isArticulator: boolean;
+    articulatorId: string;
+  }>({ 
+    name: '', 
+    phone: '', 
+    address: '', 
+    observations: '', 
+    referredBy: '', 
+    tags: [],
+    loyaltyScore: 3,
+    familyCommunity: '',
+    associatedCandidates: '',
+    isArticulator: false,
+    articulatorId: ''
+  });
+
+  const [articulatorFilter, setArticulatorFilter] = useState('');
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Briefing State
   const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
@@ -649,7 +680,10 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     const matchesTags = voterFilterTags.length === 0 || 
       voterFilterTags.every((tag: string) => voter.tags?.includes(tag));
 
-    return matchesSearch && matchesReferredBy && matchesTags;
+    const matchesArticulator = !articulatorFilter || 
+      voter.articulatorId === articulatorFilter;
+
+    return matchesSearch && matchesReferredBy && matchesTags && matchesArticulator;
   });
 
   const filteredAttendance = attendance.filter(entry => {
@@ -1090,9 +1124,12 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
-            <div className="hidden sm:flex items-center gap-2.5 px-3 h-10 bg-zinc-50 rounded-sm border border-zinc-100 dark:bg-zinc-900 dark:border-white/5">
-               <div className="w-1.5 h-1.5 bg-red-600 rounded-sm animate-pulse"></div>
-               <span className="text-[9px] font-black text-zinc-900 uppercase tracking-widest">SINALIZADOR ATIVO</span>
+            <div className="hidden sm:flex items-center gap-2.5 px-3 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-sm border border-zinc-200 dark:border-zinc-700">
+               <div className={`w-2 h-2 rounded-sm ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
+               <span className="text-[9px] font-black text-[var(--text-primary)] uppercase tracking-widest">
+                 {isOnline ? 'SINC. ATIVO' : 'MODO OFFLINE'}
+               </span>
+               {!isOnline && <CloudOff className="ml-1 w-3 h-3 text-red-500" />}
             </div>
             
             <div className="h-8 w-px bg-zinc-200 hidden sm:block"></div>
@@ -1425,16 +1462,19 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                       </div>
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Filtrar por Quem Indicou</label>
+                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Filtrar por Articulador</label>
                       <div className="relative">
                         <Handshake className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                        <input 
-                          type="text" 
-                          value={voterFilterReferredBy}
-                          onChange={e => setVoterFilterReferredBy(e.target.value)}
-                          className="w-full bg-zinc-50 border border-zinc-100 rounded-sm py-3 pl-10 pr-4 text-xs font-bold text-zinc-900 outline-none focus:border-yellow-500 transition-all"
-                          placeholder="Nome do indicador..."
-                        />
+                        <select 
+                          value={articulatorFilter}
+                          onChange={e => setArticulatorFilter(e.target.value)}
+                          className="w-full bg-zinc-50 border border-zinc-100 rounded-sm py-3 pl-10 pr-4 text-xs font-bold text-zinc-900 outline-none focus:border-yellow-500 transition-all appearance-none"
+                        >
+                          <option value="">TODOS OS ARTICULADORES</option>
+                          {allVoters.filter(v => v.isArticulator).map(art => (
+                            <option key={art.id} value={art.id}>{art.name}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                   </div>
@@ -1480,9 +1520,9 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-zinc-50 border-b border-zinc-200">
-                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Eleitor</th>
-                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Indicado Por</th>
-                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Tags</th>
+                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Eleitor / Fidelidade</th>
+                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Articulação</th>
+                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Segmentação</th>
                         <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Equipe / Líder</th>
                         <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400 text-right">Ações</th>
                       </tr>
@@ -1492,12 +1532,32 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                         <tr key={voter.id} className="hover:bg-zinc-50/50 transition-colors">
                           <td className="p-4">
                             <div className="flex flex-col">
-                              <span className="text-sm font-black text-zinc-950 uppercase leading-none">{voter.name}</span>
-                              <span className="text-[10px] font-bold text-zinc-400 mt-1">{voter.phone}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-black text-zinc-950 uppercase leading-none">{voter.name}</span>
+                                {voter.isArticulator && (
+                                  <span className="bg-zinc-950 text-yellow-500 text-[7px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">Articulador</span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1 mt-1.5">
+                                {[1,2,3,4,5].map(star => (
+                                  <div 
+                                    key={star} 
+                                    className={`w-2 h-2 rounded-full ${star <= (voter.loyaltyScore || 3) ? 'bg-yellow-500 shadow-[0_0_5px_rgba(234,179,8,0.4)]' : 'bg-zinc-200'}`}
+                                  ></div>
+                                ))}
+                                <span className="text-[10px] font-bold text-zinc-400 ml-1.5">{voter.phone}</span>
+                              </div>
                             </div>
                           </td>
                           <td className="p-4">
-                            <span className="text-xs font-bold text-zinc-600 uppercase">{voter.referredBy || '---'}</span>
+                            <div className="flex flex-col">
+                              <span className="text-xs font-black text-zinc-900 uppercase leading-none">
+                                {voter.articulatorId ? allVoters.find(v => v.id === voter.articulatorId)?.name : (voter.referredBy || '---')}
+                              </span>
+                              {voter.familyCommunity && (
+                                <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Grupamento: {voter.familyCommunity}</span>
+                              )}
+                            </div>
                           </td>
                           <td className="p-4">
                             <div className="flex flex-wrap gap-1">
@@ -1525,7 +1585,12 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                                      address: voter.address,
                                      observations: voter.observations || '',
                                      referredBy: voter.referredBy || '',
-                                     tags: voter.tags || []
+                                     tags: voter.tags || [],
+                                     loyaltyScore: voter.loyaltyScore || 3,
+                                     familyCommunity: voter.familyCommunity || '',
+                                     associatedCandidates: voter.associatedCandidates || '',
+                                     isArticulator: voter.isArticulator || false,
+                                     articulatorId: voter.articulatorId || ''
                                    });
                                    setIsVoterEditModalOpen(true);
                                  }}
@@ -2020,7 +2085,11 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                           </div>
                           <div>
                             <h4 className="font-black text-[var(--text-primary)] uppercase leading-none tracking-tight text-sm font-sans">{p.name}</h4>
-                            <p className="text-[9px] font-black text-[var(--text-secondary)] mt-2 uppercase tracking-widest opacity-60 font-mono">{p.role}</p>
+                            <div className="flex items-center gap-3 mt-2">
+                              <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-60 font-mono">{p.role}</p>
+                              <div className="w-1 h-1 bg-zinc-300 rounded-full"></div>
+                              <p className="text-[9px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-widest">{allVoters.filter(v => v.articulatorId === p.id || v.referredBy === p.name).length} Votos Associados</p>
+                            </div>
                           </div>
                         </div>
                         <div className="text-right">
@@ -2908,6 +2977,64 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Observações Estratégicas</label>
                   <textarea value={voterEditForm.observations} onChange={e => setVoterEditForm({...voterEditForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm h-24" placeholder="Ex: Prioritário, transporte necessário..."></textarea>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Fidelidade Política</label>
+                    <div className="flex gap-2 bg-zinc-50 p-3 rounded-sm border border-zinc-100">
+                      {[1,2,3,4,5].map(star => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setVoterEditForm({...voterEditForm, loyaltyScore: star})}
+                          className={`p-1 transition-all ${star <= voterEditForm.loyaltyScore ? 'text-yellow-500' : 'text-zinc-200'}`}
+                        >
+                          <Zap className={`w-5 h-5 ${star <= voterEditForm.loyaltyScore ? 'fill-yellow-500' : ''}`} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Tipo de Perfil</label>
+                    <button
+                      type="button"
+                      onClick={() => setVoterEditForm({...voterEditForm, isArticulator: !voterEditForm.isArticulator})}
+                      className={`w-full p-3.5 rounded-sm font-black text-[10px] uppercase tracking-widest transition-all border ${
+                        voterEditForm.isArticulator 
+                        ? 'bg-zinc-950 text-yellow-500 border-zinc-950 shadow-lg' 
+                        : 'bg-zinc-50 text-zinc-400 border-zinc-100 hover:bg-zinc-100'
+                      }`}
+                    >
+                      {voterEditForm.isArticulator ? 'Articulador (Liderança)' : 'Eleitor Comum'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Família / Comunidade / Grupamento</label>
+                  <input type="text" value={voterEditForm.familyCommunity} onChange={e => setVoterEditForm({...voterEditForm, familyCommunity: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Ex: Família Silva, Com. Ribeirinha, Igreja..." />
+                </div>
+
+                {!voterEditForm.isArticulator && (
+                  <div className="space-y-1">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Articulador Responsável</label>
+                    <select 
+                      value={voterEditForm.articulatorId} 
+                      onChange={e => setVoterEditForm({...voterEditForm, articulatorId: e.target.value})} 
+                      className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm appearance-none outline-none"
+                    >
+                      <option value="">NENHUM ARTICULADOR</option>
+                      {allVoters.filter(v => v.isArticulator && v.id !== selectedVoter?.id).map(art => (
+                        <option key={art.id} value={art.id}>{art.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Cruzamento (Dobradinha / Outros Apoios)</label>
+                  <input type="text" value={voterEditForm.associatedCandidates} onChange={e => setVoterEditForm({...voterEditForm, associatedCandidates: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Ex: Federal X, Estadual Y..." />
                 </div>
 
                 <div className="space-y-1">

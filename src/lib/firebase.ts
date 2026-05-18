@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { getFirestore, doc, getDocFromServer, enableIndexedDbPersistence } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 // Safety check for empty or missing config
@@ -10,6 +10,16 @@ const app = initializeApp(safeConfig);
 console.log("🦅 [Firebase Initialized] Project:", safeConfig.projectId, "DB:", safeConfig.firestoreDatabaseId);
 
 export const db = getFirestore(app, safeConfig.firestoreDatabaseId);
+
+// Habilitar Persistência Offline (Requisito: Dependência de Sinal de Internet)
+enableIndexedDbPersistence(db).catch((err) => {
+  if (err.code === 'failed-precondition') {
+    console.warn("eagle: persistence failed-precondition (multiple tabs)");
+  } else if (err.code === 'unimplemented') {
+    console.warn("eagle: persistence unimplemented (browser)");
+  }
+});
+
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
