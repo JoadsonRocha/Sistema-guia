@@ -15,6 +15,7 @@ import {
   Mic,
   Wifi,
   ChevronRight,
+  ChevronDown,
   Camera,
   UserPlus,
   StickyNote,
@@ -3415,6 +3416,16 @@ function CaboDashboard() {
 
   // --- COMPONENTE INTERNO: MAPA DE INDICAÇÕES (LISTA) ---
   const ReferralNetwork = ({ voters }: { voters: any[] }) => {
+    const [expandedReferrers, setExpandedReferrers] = useState<string[]>([]);
+
+    const toggleReferrer = (referrer: string) => {
+      setExpandedReferrers(prev => 
+        prev.includes(referrer) 
+          ? prev.filter(r => r !== referrer) 
+          : [...prev, referrer]
+      );
+    };
+
     // 1. Agrupar eleitores por quem os indicou
     const groupedByReferrer = voters.reduce((acc: any, voter) => {
       const referrer = voter.referredBy?.trim() || "Sem Indicação Direta";
@@ -3441,46 +3452,72 @@ function CaboDashboard() {
           <div className="grid grid-cols-1 gap-8">
             {referrers.map((referrer) => (
               <div key={referrer} className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-zinc-900 p-2 rounded-sm border border-zinc-800">
-                    <Handshake className="w-4 h-4 text-zinc-400" />
+                <button 
+                  onClick={() => toggleReferrer(referrer)}
+                  className="w-full flex items-center justify-between text-left group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="bg-zinc-900 p-2 rounded-sm border border-zinc-800 group-hover:border-yellow-500/30 transition-colors">
+                      <Handshake className={`w-4 h-4 transition-colors ${expandedReferrers.includes(referrer) ? 'text-yellow-500' : 'text-zinc-400'}`} />
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] block">Indicador / Referência</span>
+                      <h4 className="text-sm font-black text-white uppercase tracking-tight group-hover:text-yellow-500 transition-colors">{referrer}</h4>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] block">Indicador / Referência</span>
-                    <h4 className="text-sm font-black text-white uppercase tracking-tight">{referrer}</h4>
-                  </div>
-                </div>
-
-                <div className="ml-6 pl-6 border-l-2 border-zinc-900 space-y-3">
-                  {groupedByReferrer[referrer].map((voter: any) => (
-                    <motion.div 
-                      key={voter.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      onClick={() => { setSelectedVoter(voter); setIsVoterDetailOpen(true); }}
-                      className="group flex items-center justify-between p-4 bg-zinc-900/30 rounded-sm border border-white/5 hover:border-yellow-500/50 hover:bg-zinc-900/50 transition-all cursor-pointer"
+                  <div className="flex items-center gap-4">
+                    <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{groupedByReferrer[referrer].length} {groupedByReferrer[referrer].length === 1 ? 'eleitor' : 'eleitores'}</span>
+                    <motion.div
+                      animate={{ rotate: expandedReferrers.includes(referrer) ? 180 : 0 }}
+                      transition={{ duration: 0.3 }}
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="w-8 h-8 bg-zinc-950 font-black text-xs text-yellow-500 flex items-center justify-center rounded-sm border border-white/10 group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors">
-                          {voter.name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="text-xs font-black text-zinc-200 uppercase tracking-tight group-hover:text-white transition-colors">{voter.name}</p>
-                          <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">{voter.phone}</p>
-                        </div>
-                      </div>
+                      <ChevronDown className="w-4 h-4 text-zinc-600 group-hover:text-yellow-500" />
+                    </motion.div>
+                  </div>
+                </button>
 
-                      <div className="flex items-center gap-2">
-                        {voter.tags?.map((tag: string) => (
-                          <span key={tag} className="text-[7px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded-sm font-black uppercase tracking-widest">
-                            {tag}
-                          </span>
+                <AnimatePresence>
+                  {expandedReferrers.includes(referrer) && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: 'easeInOut' }}
+                      className="overflow-hidden"
+                    >
+                      <div className="ml-6 pl-6 border-l-2 border-zinc-900 space-y-3 pb-2">
+                        {groupedByReferrer[referrer].map((voter: any) => (
+                          <motion.div 
+                            key={voter.id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            onClick={() => { setSelectedVoter(voter); setIsVoterDetailOpen(true); }}
+                            className="group flex items-center justify-between p-4 bg-zinc-900/30 rounded-sm border border-white/5 hover:border-yellow-500/50 hover:bg-zinc-900/50 transition-all cursor-pointer"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-8 h-8 bg-zinc-950 font-black text-xs text-yellow-500 flex items-center justify-center rounded-sm border border-white/10 group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors">
+                                {voter.name.charAt(0)}
+                              </div>
+                              <div>
+                                <p className="text-xs font-black text-zinc-200 uppercase tracking-tight group-hover:text-white transition-colors">{voter.name}</p>
+                                <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">{voter.phone}</p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {voter.tags?.map((tag: string) => (
+                                <span key={tag} className="text-[7px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded-sm font-black uppercase tracking-widest">
+                                  {tag}
+                                </span>
+                              ))}
+                              <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-yellow-500 transition-all" />
+                            </div>
+                          </motion.div>
                         ))}
-                        <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-yellow-500 transition-all" />
                       </div>
                     </motion.div>
-                  ))}
-                </div>
+                  )}
+                </AnimatePresence>
               </div>
             ))}
           </div>
