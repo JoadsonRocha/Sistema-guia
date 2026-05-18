@@ -831,6 +831,17 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     }
   };
 
+  const handleDeleteVoter = async (voterId: string) => {
+    if (window.confirm("Deseja realmente excluir este eleitor? Esta ação não pode ser desfeita.")) {
+      try {
+        await firestoreService.deleteDocument('voters', voterId);
+        alert("Eleitor excluído com sucesso!");
+      } catch (err: any) {
+        alert("Erro ao excluir eleitor: " + err.message);
+      }
+    }
+  };
+
   const handleManualCheckin = async (leaderId: string, leaderName: string) => {
     if (!isAdmin) return;
     try {
@@ -1484,23 +1495,33 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                             </div>
                           </td>
                           <td className="p-4 text-right">
-                             <button 
-                               onClick={() => {
-                                 setSelectedVoter(voter);
-                                 setVoterEditForm({
-                                   name: voter.name,
-                                   phone: voter.phone,
-                                   address: voter.address,
-                                   observations: voter.observations || '',
-                                   referredBy: voter.referredBy || '',
-                                   tags: voter.tags || []
-                                 });
-                                 setIsVoterEditModalOpen(true);
-                               }}
-                               className="p-2 text-zinc-400 hover:text-zinc-950 transition-colors"
-                             >
-                               <Edit3 className="w-4 h-4" />
-                             </button>
+                             <div className="flex justify-end gap-2">
+                               <button 
+                                 onClick={() => {
+                                   setSelectedVoter(voter);
+                                   setVoterEditForm({
+                                     name: voter.name,
+                                     phone: voter.phone,
+                                     address: voter.address,
+                                     observations: voter.observations || '',
+                                     referredBy: voter.referredBy || '',
+                                     tags: voter.tags || []
+                                   });
+                                   setIsVoterEditModalOpen(true);
+                                 }}
+                                 className="p-2 text-zinc-400 hover:text-yellow-600 transition-all hover:bg-yellow-500/10 rounded-sm"
+                                 title="Editar dados"
+                               >
+                                 <Edit3 className="w-4 h-4" />
+                               </button>
+                               <button 
+                                 onClick={() => handleDeleteVoter(voter.id)}
+                                 className="p-2 text-zinc-400 hover:text-red-600 transition-all hover:bg-red-500/10 rounded-sm"
+                                 title="Excluir eleitor"
+                               >
+                                 <Trash2 className="w-4 h-4" />
+                               </button>
+                             </div>
                           </td>
                         </tr>
                       )) : (
