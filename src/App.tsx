@@ -973,12 +973,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
         </nav>
 
         <div className="mt-8 space-y-2">
-          <button 
-            onClick={() => setIsAiModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2.5 bg-zinc-950 text-white p-3.5 rounded-sm text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg"
-          >
-            <Brain className="w-4 h-4 text-yellow-500" /> Nova Tarefa IA
-          </button>
           <div className="pt-6 border-t border-[var(--border-color)] space-y-1">
             <button 
               onClick={() => setIsProfileModalOpen(true)}
@@ -3277,14 +3271,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
           </button>
         ))}
       </nav>
-
-      <motion.button 
-        whileTap={{ scale: 0.9 }} 
-        onClick={() => setIsAiModalOpen(true)}
-        className="fixed bottom-32 right-6 w-16 h-16 bg-zinc-950 text-yellow-500 rounded-sm shadow-2xl border-4 border-yellow-500 flex items-center justify-center z-[100] lg:bottom-6"
-      >
-        <Mic className="w-8 h-8" />
-      </motion.button>
     </div>
   );
 }
