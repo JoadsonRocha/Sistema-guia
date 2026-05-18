@@ -3222,6 +3222,9 @@ function CaboDashboard() {
 
   const [teamData, setTeamData] = useState<any>(null);
   const [voters, setVoters] = useState<any[]>([]);
+  const [voterSearch, setVoterSearch] = useState('');
+  const [voterFilterTags, setVoterFilterTags] = useState<string[]>([]);
+  const [voterViewState, setVoterViewState] = useState<'list' | 'network'>('list');
   const [myAgendas, setMyAgendas] = useState<any[]>([]);
   const [selectedVoter, setSelectedVoter] = useState<any>(null);
   const [isVoterDetailOpen, setIsVoterDetailOpen] = useState(false);
@@ -3395,6 +3398,99 @@ function CaboDashboard() {
         alert("Erro ao excluir: " + err.message);
       }
     }
+  };
+
+  const filteredVoters = voters.filter(voter => {
+    const matchesSearch = !voterSearch || 
+      voter.name?.toLowerCase().includes(voterSearch.toLowerCase()) || 
+      voter.phone?.includes(voterSearch);
+    
+    const matchesTags = voterFilterTags.length === 0 || 
+      voterFilterTags.every((tag: string) => voter.tags?.includes(tag));
+
+    return matchesSearch && matchesTags;
+  });
+
+  const availableTags = Array.from(new Set(voters.flatMap(v => v.tags || [])));
+
+  // --- COMPONENTE INTERNO: REDE DE INDICAÇÕES ---
+  const ReferralNetwork = ({ voters }: { voters: any[] }) => {
+    // Definir nós e links
+    const nodes = voters.map(v => ({ id: v.name, color: '#EAB308', data: v }));
+    const links: { source: string; target: string }[] = [];
+
+    voters.forEach(v => {
+      if (v.referredBy) {
+        // Tentar encontrar o indicador na lista
+        const normalizedReferred = v.referredBy.trim().toLowerCase();
+        const indicator = voters.find(iv => iv.name.trim().toLowerCase() === normalizedReferred);
+        if (indicator) {
+          links.push({ source: indicator.name, target: v.name });
+        }
+      }
+    });
+
+    const getPos = (index: number, total: number) => {
+      const angle = (index / (total || 1)) * 2 * Math.PI;
+      const radius = 150;
+      return {
+        x: 250 + radius * Math.cos(angle),
+        y: 250 + radius * Math.sin(angle)
+      };
+    };
+
+    return (
+      <div className="relative bg-zinc-950 rounded-sm border border-white/5 overflow-hidden w-full aspect-square md:aspect-video flex items-center justify-center p-4">
+        <svg className="w-full h-full max-w-4xl" viewBox="0 0 500 500">
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="15" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#3f3f46" />
+            </marker>
+          </defs>
+          {links.map((link, i) => {
+            const sourceIdx = voters.findIndex(v => v.name === link.source);
+            const targetIdx = voters.findIndex(v => v.name === link.target);
+            const p1 = getPos(sourceIdx, voters.length);
+            const p2 = getPos(targetIdx, voters.length);
+            return (
+              <motion.line 
+                key={`link-${i}`}
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} 
+                stroke="#3f3f46" strokeWidth="1" markerEnd="url(#arrowhead)" 
+              />
+            );
+          })}
+          {voters.map((v, i) => {
+            const pos = getPos(i, voters.length);
+            return (
+              <motion.g 
+                key={v.id} 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                whileHover={{ scale: 1.1 }}
+                onClick={() => { setSelectedVoter(v); setIsVoterDetailOpen(true); }}
+                className="cursor-pointer"
+              >
+                <circle cx={pos.x} cy={pos.y} r="12" fill="#EAB308" className="shadow-lg" />
+                <text 
+                  x={pos.x} y={pos.y + 24} 
+                  textAnchor="middle" 
+                  className="text-[8px] font-black fill-zinc-400 uppercase tracking-tighter"
+                >
+                  {v.name.split(' ')[0]}
+                </text>
+              </motion.g>
+            );
+          })}
+        </svg>
+        <div className="absolute bottom-4 left-4 bg-zinc-900/50 backdrop-blur px-4 py-2 rounded-sm border border-white/10">
+          <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Mapa de Influência Tática</p>
+          <p className="text-[10px] text-zinc-400 font-bold mt-1">Conexões baseadas em indicação direta</p>
+        </div>
+      </div>
+    );
   };
 
   const handleVoterSubmit = async (e: React.FormEvent) => {
@@ -3967,48 +4063,138 @@ function CaboDashboard() {
               </motion.div>
             ) : activeTab === 'equipe' ? (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <div className="bg-white p-8 rounded-sm border-2 border-zinc-200 shadow-xl text-center">
-              <Users className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Minha Equipe Regional</h2>
-              <p className="text-zinc-500 font-medium text-sm">Base estratégica de eleitores fidelizados em campo.</p>
-              
-              <div className="grid grid-cols-1 gap-4 mt-8">
-                {voters.length > 0 ? voters.sort((a, b) => a.name.localeCompare(b.name)).map((voter) => (
-                  <motion.div 
-                    key={voter.id} 
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      setSelectedVoter(voter);
-                      setIsVoterDetailOpen(true);
-                    }}
-                    className="flex justify-between items-center p-5 bg-white rounded-sm border-2 border-zinc-100 shadow-sm hover:border-yellow-500 transition-all cursor-pointer text-left"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="bg-zinc-100 text-zinc-400 w-12 h-12 rounded-sm flex items-center justify-center font-black text-lg">
-                        {voter.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="font-black text-zinc-950 text-base uppercase tracking-tight leading-none mb-1">{voter.name}</p>
-                        <p className="text-xs text-zinc-400 font-bold uppercase tracking-widest">{voter.phone || 'Sem Telefone'}</p>
-                      </div>
-                    </div>
-                    <ChevronRight className="text-zinc-300" />
-                  </motion.div>
-                )) : (
-                  <div className="p-12 border-2 border-dashed border-zinc-200 rounded-sm text-center">
-                    <p className="font-black text-zinc-300 uppercase tracking-widest text-sm">Nenhum eleitor cadastrado ainda.</p>
-                    <button 
-                      onClick={() => setActiveTab('logistica')}
-                      className="mt-4 text-xs font-black text-yellow-600 underline uppercase"
-                    >
-                      Ir para logística cadastrar
-                    </button>
+            <div className="bg-white p-8 rounded-sm border-2 border-zinc-200 shadow-xl">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="bg-zinc-950 p-4 rounded-sm shadow-lg">
+                    <Users className="w-8 h-8 text-yellow-500" />
                   </div>
-                )}
+                  <div className="text-left">
+                    <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter leading-none">Minha Equipe Regional</h2>
+                    <p className="text-zinc-500 font-bold text-[10px] uppercase tracking-widest mt-2 dark:text-zinc-400">Base estratégica de eleitores fidelizados em campo</p>
+                  </div>
+                </div>
+                
+                <div className="flex bg-zinc-100 p-1 rounded-sm border border-zinc-200">
+                  <button 
+                    onClick={() => setVoterViewState('list')}
+                    className={`px-6 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all ${
+                      voterViewState === 'list' ? 'bg-white text-zinc-950 shadow-md' : 'text-zinc-400 hover:text-zinc-600'
+                    }`}
+                  >
+                    Lista
+                  </button>
+                  <button 
+                    onClick={() => setVoterViewState('network')}
+                    className={`px-6 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all ${
+                      voterViewState === 'network' ? 'bg-white text-zinc-950 shadow-md' : 'text-zinc-400 hover:text-zinc-600'
+                    }`}
+                  >
+                    Rede
+                  </button>
+                </div>
               </div>
+
+              {/* Advanced Search & Filtering */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                  <input 
+                    type="text" 
+                    value={voterSearch}
+                    onChange={e => setVoterSearch(e.target.value)}
+                    placeholder="Pesquisar por nome ou telefone..."
+                    className="w-full bg-zinc-50 border border-zinc-100 rounded-sm py-4 pl-12 pr-4 text-xs font-bold text-zinc-900 outline-none focus:border-yellow-500 transition-all shadow-inner"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mr-2">Tags:</span>
+                  {availableTags.map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => {
+                        if (voterFilterTags.includes(tag)) {
+                          setVoterFilterTags(voterFilterTags.filter(t => t !== tag));
+                        } else {
+                          setVoterFilterTags([...voterFilterTags, tag]);
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-sm text-[9px] font-black uppercase transition-all ${
+                        voterFilterTags.includes(tag)
+                        ? 'bg-yellow-500 text-zinc-950 shadow-md'
+                        : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                  {voterFilterTags.length > 0 && (
+                    <button 
+                      onClick={() => setVoterFilterTags([])}
+                      className="p-1 px-2 text-red-500 hover:bg-red-50 rounded-sm transition-colors text-[9px] font-black uppercase"
+                    >
+                      <X className="w-3 h-3 inline mr-1" /> Limpar
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {voterViewState === 'list' ? (
+                <div className="grid grid-cols-1 gap-4">
+                  {filteredVoters.length > 0 ? filteredVoters.sort((a, b) => a.name.localeCompare(b.name)).map((voter) => (
+                    <motion.div 
+                      key={voter.id} 
+                      layout
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setSelectedVoter(voter);
+                        setIsVoterDetailOpen(true);
+                      }}
+                      className="flex justify-between items-center p-5 bg-white rounded-sm border border-zinc-100 shadow-sm hover:border-yellow-500 hover:shadow-lg transition-all cursor-pointer text-left group"
+                    >
+                      <div className="flex items-center gap-5">
+                        <div className="bg-zinc-100 text-zinc-400 w-14 h-14 rounded-sm flex items-center justify-center font-black text-xl group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors shadow-inner">
+                          {voter.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-black text-zinc-950 text-base uppercase tracking-tighter leading-none mb-1.5">{voter.name}</p>
+                          <div className="flex items-center gap-3">
+                            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">{voter.phone || 'Sem Telefone'}</p>
+                            {voter.tags && voter.tags.length > 0 && (
+                              <div className="flex gap-1">
+                                {voter.tags.slice(0, 2).map((tag: string) => (
+                                  <span key={tag} className="text-[8px] bg-yellow-50 text-yellow-600 px-1.5 py-0.5 rounded-sm font-black uppercase tracking-widest">{tag}</span>
+                                ))}
+                                {voter.tags.length > 2 && <span className="text-[8px] text-zinc-400 font-black">+{voter.tags.length - 2}</span>}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <ChevronRight className="text-zinc-200 group-hover:text-yellow-500 group-hover:translate-x-1 transition-all" />
+                    </motion.div>
+                  )) : (
+                    <div className="p-20 border-2 border-dashed border-zinc-200 rounded-sm text-center">
+                      <Search className="w-12 h-12 text-zinc-100 mx-auto mb-4" />
+                      <p className="font-black text-zinc-300 uppercase tracking-widest text-sm">Nenhum eleitor encontrado.</p>
+                      {(voterSearch || voterFilterTags.length > 0) && (
+                        <button 
+                          onClick={() => { setVoterSearch(''); setVoterFilterTags([]); }}
+                          className="mt-4 text-[10px] font-black text-yellow-600 underline uppercase tracking-widest"
+                        >
+                          Limpar todos os filtros
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <ReferralNetwork voters={filteredVoters} />
+              )}
             </div>
           </motion.div>
         ) : activeTab === 'financeiro' ? (
+
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <div className="bg-zinc-950 p-8 rounded-sm border-b-8 border-green-500 text-white relative overflow-hidden shadow-2xl">
               <div className="absolute top-0 right-0 p-8 opacity-10">
@@ -4463,7 +4649,7 @@ function CaboDashboard() {
                    setIsVoterModalOpen(false);
                    setIsEditingVoter(false);
                    setEditingVoterId(null);
-                   setVoterForm({ name: '', phone: '', address: '', observations: '' });
+                   setVoterForm({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [] });
                 }} 
                 className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
