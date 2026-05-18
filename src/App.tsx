@@ -276,6 +276,12 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     associatedCandidates: string;
     isArticulator: boolean;
     articulatorId: string;
+    voted: boolean;
+    isIndigenous: boolean;
+    communityName: string;
+    tuxauaName: string;
+    hasDocPhoto: boolean;
+    sentiment: 'support' | 'neutral' | 'opposed';
   }>({ 
     name: '', 
     phone: '', 
@@ -287,7 +293,13 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     familyCommunity: '',
     associatedCandidates: '',
     isArticulator: false,
-    articulatorId: ''
+    articulatorId: '',
+    voted: false,
+    isIndigenous: false,
+    communityName: '',
+    tuxauaName: '',
+    hasDocPhoto: false,
+    sentiment: 'neutral'
   });
 
   const [articulatorFilter, setArticulatorFilter] = useState('');
@@ -384,12 +396,14 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     e.preventDefault();
     const name = e.target.name.value;
     const role = e.target.role.value;
+    const cost = parseFloat(e.target.cost.value) || 0;
     const status = e.target.status.value; // 'frio' | 'morno' | 'quente'
     if (!name) return;
 
     await firestoreService.addDocument('partners', {
       name,
       role,
+      cost,
       status,
       lastContact: Date.now()
     });
@@ -567,6 +581,14 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       color: 'text-blue-600 dark:text-blue-400',
       iconColor: 'bg-blue-50 dark:bg-blue-500/10',
       action: () => setActiveTab('agenda')
+    },
+    { 
+      label: 'Dia D (Votaram)', 
+      value: allVoters.filter(v => v.voted).length, 
+      sub: `${((allVoters.filter(v => v.voted).length / (allVoters.length || 1)) * 100).toFixed(1)}% de Metas`, 
+      color: 'text-emerald-700 dark:text-emerald-400',
+      iconColor: 'bg-emerald-100 dark:bg-emerald-500/20',
+      action: () => setActiveTab('voters')
     },
     { 
       label: 'Recursos Totais', 
@@ -1479,6 +1501,30 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     </div>
                   </div>
 
+                  {/* AÇÕES COLETIVAS */}
+                  {isAdmin && (
+                    <div className="pt-4 border-t border-zinc-100 flex flex-col sm:flex-row gap-4">
+                      <button 
+                        onClick={() => {
+                          const area = voterSearch || 'Filtro Atual';
+                          alert(`📢 CONVOCAÇÃO ENVIADA!\nTodos os eleitores filtrados (${filteredVoters.length}) na segmentação "${area}" receberam o aviso via WhatsApp via robô de envio.`);
+                        }}
+                        className="flex-1 bg-zinc-950 text-yellow-500 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-lg flex items-center justify-center gap-3 hover:bg-zinc-900 active:scale-95 transition-all outline-none"
+                      >
+                        <Send className="w-4 h-4" /> Disparar Convite de Reunião para {filteredVoters.length} Eleitores
+                      </button>
+                      <button 
+                        onClick={() => {
+                          const count = filteredVoters.filter(v => !v.voted).length;
+                          alert(`🚨 ALERTA DE LOGÍSTICA!\n${count} eleitores pendentes na área atual. Acionando líderes de equipe para mobilização imediata.`);
+                        }}
+                        className="px-8 bg-red-600 text-white rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-red-700 transition-all flex items-center gap-2 py-4 sm:py-0 shadow-lg shadow-red-500/10 outline-none"
+                      >
+                        <Activity className="w-4 h-4" /> Alerta de Logística (Dia D)
+                      </button>
+                    </div>
+                  )}
+
                   <div className="space-y-3">
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Filtrar por Tags (Segmentação)</label>
                     <div className="flex flex-wrap gap-2">
@@ -1537,15 +1583,24 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                                 {voter.isArticulator && (
                                   <span className="bg-zinc-950 text-yellow-500 text-[7px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">Articulador</span>
                                 )}
+                                {voter.isIndigenous && (
+                                  <span className="bg-orange-100 text-orange-700 text-[7px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">Com. Tradicional</span>
+                                )}
                               </div>
-                              <div className="flex items-center gap-1 mt-1.5">
-                                {[1,2,3,4,5].map(star => (
-                                  <div 
-                                    key={star} 
-                                    className={`w-2 h-2 rounded-full ${star <= (voter.loyaltyScore || 3) ? 'bg-yellow-500 shadow-[0_0_5px_rgba(234,179,8,0.4)]' : 'bg-zinc-200'}`}
-                                  ></div>
-                                ))}
-                                <span className="text-[10px] font-bold text-zinc-400 ml-1.5">{voter.phone}</span>
+                              <div className="flex items-center gap-2 mt-1.5">
+                                <div className="flex items-center gap-1">
+                                  {[1,2,3,4,5].map(star => (
+                                    <div 
+                                      key={star} 
+                                      className={`w-2 h-2 rounded-full ${star <= (voter.loyaltyScore || 3) ? 'bg-yellow-500 shadow-[0_0_5px_rgba(234,179,8,0.4)]' : 'bg-zinc-200'}`}
+                                    ></div>
+                                  ))}
+                                </div>
+                                <div className="w-1 h-1 bg-zinc-300 rounded-full"></div>
+                                {voter.sentiment === 'support' && <CheckCircle2 className="w-3 h-3 text-emerald-500" title="Apoiador" />}
+                                {voter.sentiment === 'opposed' && <XCircle className="w-4 h-4 text-red-500" title="Oposição" />}
+                                {voter.sentiment === 'neutral' && <Activity className="w-3 h-3 text-zinc-300" title="Neutro" />}
+                                <span className="text-[10px] font-bold text-zinc-400">{voter.phone}</span>
                               </div>
                             </div>
                           </td>
@@ -1557,10 +1612,33 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                               {voter.familyCommunity && (
                                 <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Grupamento: {voter.familyCommunity}</span>
                               )}
+                              {voter.communityName && (
+                                <span className="text-[8px] font-black text-orange-600 uppercase tracking-widest mt-1">Com: {voter.communityName}</span>
+                              )}
                             </div>
                           </td>
                           <td className="p-4">
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap gap-1 items-center">
+                              {voter.voted ? (
+                                <span className="bg-emerald-500 text-white text-[7px] font-black px-2 py-0.5 rounded-sm uppercase tracking-widest flex items-center gap-1 shadow-sm">
+                                  <CheckCircle2 className="w-2.5 h-2.5" /> VOTOU
+                                </span>
+                              ) : (
+                                <span className="bg-zinc-100 text-zinc-400 text-[7px] font-black px-2 py-0.5 rounded-sm uppercase tracking-widest flex items-center gap-1">
+                                  <Clock className="w-2.5 h-2.5" /> PENDENTE
+                                </span>
+                              )}
+                              {voter.hasDocPhoto ? (
+                                <span className="bg-zinc-900 text-white text-[7px] font-black px-2 py-0.5 rounded-sm uppercase tracking-widest flex items-center gap-1">
+                                  <Camera className="w-2.5 h-2.5" /> DOC OK
+                                </span>
+                              ) : (
+                                <span className="bg-zinc-50 text-red-400 border border-red-100 text-[7px] font-black px-2 py-0.5 rounded-sm uppercase tracking-widest">
+                                  SEM DOC
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-1 mt-2">
                               {voter.tags?.map((tag: string) => (
                                 <span key={tag} className="bg-yellow-500/10 text-yellow-700 px-2 py-0.5 rounded-sm text-[8px] font-black uppercase">
                                   {tag}
@@ -1590,7 +1668,13 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                                      familyCommunity: voter.familyCommunity || '',
                                      associatedCandidates: voter.associatedCandidates || '',
                                      isArticulator: voter.isArticulator || false,
-                                     articulatorId: voter.articulatorId || ''
+                                     articulatorId: voter.articulatorId || '',
+                                     voted: voter.voted || false,
+                                     isIndigenous: voter.isIndigenous || false,
+                                     communityName: voter.communityName || '',
+                                     tuxauaName: voter.tuxauaName || '',
+                                     hasDocPhoto: voter.hasDocPhoto || false,
+                                     sentiment: voter.sentiment || 'neutral'
                                    });
                                    setIsVoterEditModalOpen(true);
                                  }}
@@ -2058,6 +2142,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     <form onSubmit={handleAddPartner} className="space-y-5 relative z-10">
                       <input name="name" required className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" placeholder="Nome do Influenciador/Líder" />
                       <input name="role" className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" placeholder="Cargo/Representação" />
+                      <input name="cost" type="number" className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" placeholder="Investimento (R$)" />
                       <select name="status" className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none cursor-pointer">
                         <option value="frio" className="text-zinc-950">❄️ Relacionamento Frio</option>
                         <option value="morno" className="text-zinc-950">🔥 Em Negociação</option>
@@ -2089,6 +2174,10 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                               <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-60 font-mono">{p.role}</p>
                               <div className="w-1 h-1 bg-zinc-300 rounded-full"></div>
                               <p className="text-[9px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-widest">{allVoters.filter(v => v.articulatorId === p.id || v.referredBy === p.name).length} Votos Associados</p>
+                              <div className="w-1 h-1 bg-zinc-300 rounded-full"></div>
+                              <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">
+                                Eficiência: R$ {((p.cost || 0) / (allVoters.filter(v => v.articulatorId === p.id || v.referredBy === p.name).length || 1)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} / Voto
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -2895,7 +2984,20 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                                         name: vx.name,
                                         phone: vx.phone,
                                         address: vx.address,
-                                        observations: vx.observations || ''
+                                        observations: vx.observations || '',
+                                        referredBy: vx.referredBy || '',
+                                        tags: vx.tags || [],
+                                        loyaltyScore: vx.loyaltyScore || 3,
+                                        familyCommunity: vx.familyCommunity || '',
+                                        associatedCandidates: vx.associatedCandidates || '',
+                                        isArticulator: vx.isArticulator || false,
+                                        articulatorId: vx.articulatorId || '',
+                                        voted: vx.voted || false,
+                                        isIndigenous: vx.isIndigenous || false,
+                                        communityName: vx.communityName || '',
+                                        tuxauaName: vx.tuxauaName || '',
+                                        hasDocPhoto: vx.hasDocPhoto || false,
+                                        sentiment: vx.sentiment || 'neutral'
                                       });
                                       setSelectedVoter(vx);
                                       setIsVoterEditModalOpen(true);
@@ -2996,19 +3098,83 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Tipo de Perfil</label>
+                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Sentiment (Opinião)</label>
+                    <div className="flex gap-1 bg-zinc-50 p-1.5 rounded-sm border border-zinc-100">
+                      {[
+                        { id: 'support', icon: <CheckCircle2 className="w-4 h-4" />, color: 'text-emerald-500' },
+                        { id: 'neutral', icon: <Activity className="w-4 h-4" />, color: 'text-zinc-400' },
+                        { id: 'opposed', icon: <XCircle className="w-4 h-4" />, color: 'text-red-500' }
+                      ].map(s => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => setVoterEditForm({...voterEditForm, sentiment: s.id as any})}
+                          className={`flex-1 flex items-center justify-center py-2 rounded-sm transition-all ${voterEditForm.sentiment === s.id ? 'bg-zinc-950 text-white shadow-md' : 'text-zinc-300 hover:bg-zinc-100'}`}
+                        >
+                          <div className={voterEditForm.sentiment === s.id ? 'text-white' : s.color}>{s.icon}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Logística Dia D (Votou?)</label>
                     <button
                       type="button"
-                      onClick={() => setVoterEditForm({...voterEditForm, isArticulator: !voterEditForm.isArticulator})}
-                      className={`w-full p-3.5 rounded-sm font-black text-[10px] uppercase tracking-widest transition-all border ${
-                        voterEditForm.isArticulator 
-                        ? 'bg-zinc-950 text-yellow-500 border-zinc-950 shadow-lg' 
+                      onClick={() => setVoterEditForm({...voterEditForm, voted: !voterEditForm.voted})}
+                      className={`w-full p-3.5 rounded-sm font-black text-[10px] uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${
+                        voterEditForm.voted 
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg' 
                         : 'bg-zinc-50 text-zinc-400 border-zinc-100 hover:bg-zinc-100'
                       }`}
                     >
-                      {voterEditForm.isArticulator ? 'Articulador (Liderança)' : 'Eleitor Comum'}
+                      {voterEditForm.voted ? <CheckCircle2 className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+                      {voterEditForm.voted ? 'JÁ VOTOU' : 'NÃO VOTOU'}
                     </button>
                   </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Documentação (Title/RG)</label>
+                    <button
+                      type="button"
+                      onClick={() => setVoterEditForm({...voterEditForm, hasDocPhoto: !voterEditForm.hasDocPhoto})}
+                      className={`w-full p-3.5 rounded-sm font-black text-[10px] uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${
+                        voterEditForm.hasDocPhoto 
+                        ? 'bg-zinc-900 text-white border-zinc-900' 
+                        : 'bg-zinc-50 text-zinc-400 border-zinc-100 hover:bg-zinc-100'
+                      }`}
+                    >
+                      <Camera className="w-4 h-4" />
+                      {voterEditForm.hasDocPhoto ? 'DOC. OK (FOTO)' : 'FALTA DOC.'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100 space-y-3">
+                   <div className="flex items-center justify-between">
+                     <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Comunidades Tradicionais (RR)</label>
+                     <button
+                        type="button"
+                        onClick={() => setVoterEditForm({...voterEditForm, isIndigenous: !voterEditForm.isIndigenous})}
+                        className={`text-[8px] font-black px-2 py-1 rounded-sm uppercase tracking-tighter ${voterEditForm.isIndigenous ? 'bg-zinc-950 text-yellow-500' : 'bg-zinc-200 text-zinc-400'}`}
+                      >
+                       {voterEditForm.isIndigenous ? 'ATIVADO' : 'DESATIVADO'}
+                     </button>
+                   </div>
+                   
+                   {voterEditForm.isIndigenous && (
+                     <div className="grid grid-cols-2 gap-3">
+                       <div className="space-y-1">
+                         <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Comunidade</label>
+                         <input type="text" value={voterEditForm.communityName} onChange={e => setVoterEditForm({...voterEditForm, communityName: e.target.value})} className="w-full bg-white border border-zinc-200 rounded-sm p-2 font-bold text-xs" placeholder="Nome da Com..." />
+                       </div>
+                       <div className="space-y-1">
+                         <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Liderança / Tuxaua</label>
+                         <input type="text" value={voterEditForm.tuxauaName} onChange={e => setVoterEditForm({...voterEditForm, tuxauaName: e.target.value})} className="w-full bg-white border border-zinc-200 rounded-sm p-2 font-bold text-xs" placeholder="Nome do Tuxaua..." />
+                       </div>
+                     </div>
+                   )}
                 </div>
 
                 <div className="space-y-1">
