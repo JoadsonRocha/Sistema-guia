@@ -702,65 +702,79 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
               </h2>
               <p className="text-[8px] font-black text-zinc-500 uppercase mt-1 tracking-widest">Logs de Transações Digitais</p>
             </div>
-            <div className="divide-y divide-zinc-100 overflow-y-auto flex-1 custom-scrollbar">
+            <div className="divide-y divide-zinc-100 overflow-y-auto flex-1 custom-scrollbar bg-zinc-50/30">
               {transactions.length > 0 ? transactions.map(t => (
-                <div key={t.id} className="p-3.5 flex items-center justify-between hover:bg-zinc-50 transition-colors group">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2.5 rounded-lg ${
-                      t.type === 'entrada' ? 'bg-green-50 text-green-600' : 
-                      t.type === 'alocacao' ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'
-                    }`}>
-                      {t.type === 'entrada' ? <TrendingUp className="w-3.5 h-3.5" /> : 
-                      t.type === 'alocacao' ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+                <div key={t.id} className="p-4 hover:bg-white hover:shadow-md transition-all group border-l-4 border-transparent hover:border-zinc-950 relative">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className={`mt-0.5 p-2 rounded-lg shrink-0 ${
+                        t.type === 'entrada' ? 'bg-emerald-100 text-emerald-700' : 
+                        t.type === 'alocacao' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {t.type === 'entrada' ? <TrendingUp className="w-3 h-3" /> : 
+                        t.type === 'alocacao' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-[10px] font-black uppercase text-zinc-950 truncate leading-none" title={t.description}>
+                            {t.description}
+                          </h4>
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <span className="text-[7px] font-black text-zinc-400 uppercase tracking-widest bg-zinc-100 px-1.5 py-0.5 rounded leading-none">
+                             {new Date(t.date).toLocaleDateString('pt-BR')} • {new Date(t.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                           </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-[9px] font-black uppercase text-zinc-950 truncate leading-none" title={t.description}>
-                        {t.description}
-                      </h4>
-                      <p className="text-[7px] font-bold text-zinc-400 mt-1 uppercase truncate" title={t.origin || t.purpose || 'DIRETO'}>
-                        {t.origin || t.purpose || 'DIRETO'}
+                    <div className="text-right shrink-0">
+                      <p className={`font-black tracking-tight text-[11px] leading-none mb-1 ${
+                        t.type === 'entrada' ? 'text-emerald-600' : 
+                        t.type === 'alocacao' ? 'text-blue-600' : 'text-red-600'
+                      }`}>
+                        {t.type === 'entrada' ? '+' : '-'} {fmt.format(t.amount)}
                       </p>
+                      <span className="text-[7px] font-black text-zinc-400 uppercase tracking-[0.1em] block">
+                        {t.origin || t.purpose || t.team || 'SISTEMA'}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-1 px-1 min-w-[80px]">
-                    <p className={`font-black tracking-tighter text-[10px] whitespace-nowrap ${
-                      t.type === 'entrada' ? 'text-green-600' : 
-                      t.type === 'alocacao' ? 'text-blue-600' : 'text-red-600'
-                    }`}>
-                      {t.type === 'entrada' ? '+' : '-'} {fmt.format(t.amount)}
-                    </p>
-                    <div className="flex gap-2">
+
+                  {/* Ações que aparecem no hover de forma elegante */}
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all flex gap-1 transform translate-y-1 group-hover:translate-y-0">
+                    <button 
+                      onClick={() => prepararEdicao(t)}
+                      className="p-1.5 bg-white text-zinc-600 rounded-lg hover:bg-zinc-950 hover:text-white transition-all shadow-md border border-zinc-100"
+                      title="Editar"
+                    >
+                      <Edit3 className="w-2.5 h-2.5" />
+                    </button>
+                    {t.type === 'alocacao' && (
                       <button 
-                        onClick={() => prepararEdicao(t)}
-                        className="p-1.5 bg-zinc-100 text-zinc-600 rounded-lg hover:bg-zinc-950 hover:text-white transition-all shadow-sm"
-                        title="Editar"
+                        onClick={() => {
+                          setSelectedReceiptTx(t);
+                          setIsReceiptModalOpen(true);
+                        }}
+                        className="p-1.5 bg-white text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-md border border-zinc-100"
+                        title="Ver Recibo"
                       >
-                        <Edit3 className="w-3 h-3" />
+                        <FileText className="w-2.5 h-2.5" />
                       </button>
-                      {t.type === 'alocacao' && (
-                        <button 
-                          onClick={() => {
-                            setSelectedReceiptTx(t);
-                            setIsReceiptModalOpen(true);
-                          }}
-                          className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                          title="Ver Recibo"
-                        >
-                          <FileText className="w-3 h-3" />
-                        </button>
-                      )}
-                      <button 
-                        onClick={() => deletarTransacao(t)}
-                        className="p-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all shadow-md active:scale-95"
-                        title="Excluir"
-                      >
-                         <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
+                    )}
+                    <button 
+                      onClick={() => deletarTransacao(t)}
+                      className="p-1.5 bg-white text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-md border border-zinc-100"
+                      title="Excluir"
+                    >
+                       <Trash2 className="w-2.5 h-2.5" />
+                    </button>
                   </div>
                 </div>
               )) : (
-                <div className="p-6 text-center text-zinc-300 uppercase text-[8px] font-black tracking-widest">Sem movimentos registrados</div>
+                <div className="flex flex-col items-center justify-center p-12 text-center opacity-30 grayscale">
+                  <History className="w-12 h-12 text-zinc-300 mb-4" />
+                  <p className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.3em]">Nenhuma atividade<br/>rastreada no momento</p>
+                </div>
               )}
             </div>
           </section>
