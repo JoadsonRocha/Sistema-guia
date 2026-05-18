@@ -53,6 +53,8 @@ import {
   Package,
   Handshake,
   Activity,
+  Sun,
+  Moon,
   Map as MapIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -116,7 +118,7 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white border border-zinc-200 rounded-sm p-6 shadow-sm hover:border-yellow-500/50 transition-all flex flex-col h-full text-left"
+      className="bg-white border border-zinc-200 rounded-sm p-6 shadow-sm hover:border-yellow-500/50 transition-all flex flex-col h-full text-left dark:bg-zinc-900 dark:border-white/10 dark:text-white"
     >
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-2">
@@ -205,7 +207,7 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
 }
 
 /// --- COMPONENTE: DASHBOARD DO COORDENADOR ---
-function CoordinatorDashboard() {
+function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme: (t: 'light' | 'dark') => void }) {
   const { user, login, logout, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'voters' | 'finance' | 'agenda' | 'notes' | 'attendance' | 'materials' | 'partners' | 'demands'>('overview');
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
@@ -878,9 +880,9 @@ function CoordinatorDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-[#F9FAFB] text-zinc-900 font-sans overflow-hidden">
+    <div className="flex h-screen bg-[#F9FAFB] text-zinc-900 font-sans overflow-hidden dark:bg-zinc-950 dark:text-zinc-100 transition-colors duration-300">
       {/* SIDEBAR - DESKTOP */}
-      <aside className="hidden lg:flex w-72 flex-col bg-white border-r border-zinc-200 py-8 px-6 overflow-y-auto">
+      <aside className="hidden lg:flex w-72 flex-col bg-white border-r border-zinc-200 py-8 px-6 overflow-y-auto dark:bg-zinc-950 dark:border-white/10 shrink-0">
         <div className="mb-10 px-2">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-zinc-950 rounded-sm shadow-lg">
@@ -953,9 +955,9 @@ function CoordinatorDashboard() {
       </aside>
 
       {/* MAIN VIEWPORT */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#F9FAFB] overflow-hidden relative">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#F9FAFB] dark:bg-[#09090b] overflow-hidden relative">
         {/* TOP BAR / COMMAND CENTER */}
-        <header className="h-16 bg-white border-b border-zinc-200 flex items-center justify-between px-6 z-30 shrink-0">
+        <header className="h-16 bg-white border-b border-zinc-200 flex items-center justify-between px-6 z-30 shrink-0 dark:bg-zinc-950 dark:border-white/10">
           <div className="flex items-center gap-6 flex-1">
             <div className="relative w-full max-w-sm hidden md:block">
               <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
@@ -966,7 +968,7 @@ function CoordinatorDashboard() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Pesquisar zonas, líderes ou demandas..."
-                className="w-full bg-zinc-100 border-none rounded-sm py-2 pl-11 pr-4 text-xs font-medium text-zinc-900 placeholder:text-zinc-500 focus:ring-1 focus:ring-yellow-500/20 outline-none transition-all"
+                className="w-full bg-zinc-100 border-none rounded-sm py-2 pl-11 pr-4 text-xs font-medium text-zinc-900 placeholder:text-zinc-500 focus:ring-1 focus:ring-yellow-500/20 outline-none transition-all dark:bg-zinc-900 dark:text-white"
               />
 
               {/* SEARCH RESULTS PANEL */}
@@ -976,7 +978,7 @@ function CoordinatorDashboard() {
                     initial={{ opacity: 0, y: 10 }} 
                     animate={{ opacity: 1, y: 0 }} 
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-200 rounded-sm shadow-2xl z-50 max-h-96 overflow-y-auto p-2"
+                    className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-200 rounded-sm shadow-2xl z-50 max-h-96 overflow-y-auto p-2 dark:bg-zinc-900 dark:border-white/10"
                   >
                     {totalResults > 0 ? (
                       <div className="p-1 space-y-3">
@@ -1044,7 +1046,14 @@ function CoordinatorDashboard() {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2.5 px-3 h-10 bg-zinc-50 rounded-sm border border-zinc-100">
+            <button 
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2.5 bg-zinc-100 rounded-sm text-zinc-500 hover:bg-yellow-500 hover:text-zinc-950 transition-all dark:bg-zinc-900 dark:text-zinc-400"
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+
+            <div className="hidden sm:flex items-center gap-2.5 px-3 h-10 bg-zinc-50 rounded-sm border border-zinc-100 dark:bg-zinc-900 dark:border-white/5">
                <div className="w-1.5 h-1.5 bg-red-600 rounded-sm animate-pulse"></div>
                <span className="text-[9px] font-black text-zinc-900 uppercase tracking-widest">SINALIZADOR ATIVO</span>
             </div>
@@ -1078,7 +1087,7 @@ function CoordinatorDashboard() {
             {activeTab === 'overview' && (
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
               <div className="flex-col gap-1 flex">
-                <h2 className="text-lg font-black text-zinc-950 tracking-tighter uppercase leading-none">Painel de Operações</h2>
+                <h2 className="text-lg font-black text-zinc-950 tracking-tighter uppercase leading-none dark:text-white">Painel de Operações</h2>
                 <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Monitoramento estratégico em tempo real</p>
               </div>
 
@@ -1154,7 +1163,7 @@ function CoordinatorDashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     onClick={stat.action}
-                    className="bg-white border border-zinc-200 p-5 rounded-sm shadow-sm hover:shadow-md hover:border-yellow-500/50 transition-all cursor-pointer group"
+                    className="bg-white border border-zinc-200 p-5 rounded-sm shadow-sm hover:shadow-md hover:border-yellow-500/50 transition-all cursor-pointer group dark:bg-zinc-900 dark:border-white/10"
                   >
                     <div className="flex justify-between items-start mb-3">
                       <div className={`p-2 bg-zinc-50 rounded-sm group-hover:bg-yellow-500 transition-colors`}>
@@ -3167,7 +3176,7 @@ const getDistanceInMeters = (lat1: number, lon1: number, lat2: number, lon2: num
 };
 
 // --- COMPONENTE: DASHBOARD DO CABO ELEITORAL (PWA) ---
-function CaboDashboard() {
+function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme: (t: 'light' | 'dark') => void }) {
   const { user, logout, isAdmin } = useAuth();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [queueCount, setQueueCount] = useState(0);
@@ -3779,11 +3788,11 @@ function CaboDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans selection:bg-yellow-500 selection:text-zinc-950 flex overflow-hidden">
+    <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-yellow-500 selection:text-zinc-950 flex overflow-hidden dark:bg-[#0A0A0A] dark:text-zinc-100 transition-colors duration-300">
       
       {/* SIDEBAR - DESKTOP ONLY */}
-      <aside className="hidden lg:flex w-72 bg-zinc-950 border-r border-white/5 flex-col flex-shrink-0 relative z-20">
-        <div className="p-6 border-b border-white/5 bg-gradient-to-br from-zinc-900 to-black">
+      <aside className="hidden lg:flex w-72 bg-white border-r border-zinc-200 flex-col flex-shrink-0 relative z-20 dark:bg-zinc-950 dark:border-white/5">
+        <div className="p-6 border-b border-zinc-200 bg-zinc-50 dark:bg-gradient-to-br dark:from-zinc-900 dark:to-black dark:border-white/5">
           <div className="flex items-center gap-3 mb-6">
             <div className="bg-yellow-500 p-2.5 rounded-sm shadow-lg shadow-yellow-500/10">
               <ShieldCheck className="w-6 h-6 text-zinc-950" />
@@ -3845,10 +3854,10 @@ function CaboDashboard() {
 
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* TOP BAR */}
-        <header className="h-16 bg-neutral-950/80 backdrop-blur-xl border-b border-white/5 px-6 lg:px-10 flex items-center justify-between flex-shrink-0 relative z-30">
+        <header className="h-16 bg-white border-b border-zinc-200 px-6 lg:px-10 flex items-center justify-between flex-shrink-0 relative z-30 dark:bg-neutral-950/80 dark:backdrop-blur-xl dark:border-white/5">
           <div className="flex items-center gap-3 lg:hidden">
             <ShieldCheck className="w-6 h-6 text-yellow-500" />
-            <h1 className="font-black text-base uppercase tracking-tighter">Líder Águia</h1>
+            <h1 className="font-black text-base uppercase tracking-tighter text-zinc-950 dark:text-white">Líder Águia</h1>
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
@@ -3859,6 +3868,13 @@ function CaboDashboard() {
           </div>
 
           <div className="flex items-center gap-3 lg:gap-4">
+            <button 
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-3 bg-zinc-900 border border-white/5 rounded-sm text-zinc-400 hover:bg-zinc-800 hover:text-yellow-500 transition-all shadow-xl"
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+
             <div className={`flex items-center gap-2 px-4 py-2 rounded-sm border transition-all ${
                 isOnline 
                 ? 'bg-green-500/10 border-green-500/20 text-green-500' 
@@ -3880,7 +3896,7 @@ function CaboDashboard() {
         </header>
 
         {/* SCROLLABLE MAIN CONTENT */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-12 custom-scrollbar pb-32 lg:pb-12 bg-gradient-to-b from-[#0A0A0A] to-zinc-950">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-12 custom-scrollbar pb-32 lg:pb-12 bg-[#F9FAFB] dark:bg-gradient-to-b dark:from-[#0A0A0A] dark:to-zinc-950">
           <div className="max-w-6xl mx-auto space-y-10">
             
             {activeTab === 'logistica' ? (
@@ -4005,7 +4021,7 @@ function CaboDashboard() {
                   )}
 
                   {myAgendas.length > 0 && (
-                    <section className="bg-white border-2 border-zinc-100 rounded-sm p-10 shadow-sm overflow-hidden flex flex-col h-full group">
+                    <section className="bg-white border-2 border-zinc-100 rounded-sm p-10 shadow-sm overflow-hidden flex flex-col h-full group dark:bg-zinc-900 dark:border-white/5">
                       <div className="flex justify-between items-center mb-8">
                         <h3 className="text-zinc-950 font-black text-lg uppercase tracking-tighter flex items-center gap-3">
                           <div className="bg-zinc-100 p-2 rounded-sm group-hover:bg-zinc-950 group-hover:text-white transition-all"><Calendar className="w-5 h-5 text-zinc-400 group-hover:text-emerald-500" /></div>
@@ -4110,7 +4126,7 @@ function CaboDashboard() {
                     <Users className="w-8 h-8 text-yellow-500" />
                   </div>
                   <div className="text-left">
-                    <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter leading-none">Minha Equipe Regional</h2>
+                    <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter leading-none dark:text-white">Minha Equipe Regional</h2>
                     <p className="text-zinc-500 font-bold text-[10px] uppercase tracking-widest mt-2 dark:text-zinc-400">Base estratégica de eleitores fidelizados em campo</p>
                   </div>
                 </div>
@@ -4190,7 +4206,7 @@ function CaboDashboard() {
                         setSelectedVoter(voter);
                         setIsVoterDetailOpen(true);
                       }}
-                      className="flex justify-between items-center p-5 bg-white rounded-sm border border-zinc-100 shadow-sm hover:border-yellow-500 hover:shadow-lg transition-all cursor-pointer text-left group"
+                      className="flex justify-between items-center p-5 bg-white rounded-sm border border-zinc-100 shadow-sm hover:border-yellow-500 hover:shadow-lg transition-all cursor-pointer text-left group dark:bg-zinc-950 dark:border-white/5"
                     >
                       <div className="flex items-center gap-5">
                         <div className="bg-zinc-100 text-zinc-400 w-14 h-14 rounded-sm flex items-center justify-center font-black text-xl group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors shadow-inner">
@@ -4259,7 +4275,7 @@ function CaboDashboard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <section className="bg-white p-8 rounded-sm border-2 border-zinc-100 shadow-sm">
+              <section className="bg-white p-8 rounded-sm border-2 border-zinc-100 shadow-sm dark:bg-zinc-900 dark:border-white/5">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-xs font-black uppercase text-zinc-400 tracking-widest flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-green-500" /> Alocações do Coordenador
@@ -5209,6 +5225,14 @@ function CaboDashboard() {
 export default function App() {
   const { user, login, loginWithEmail, signupWithEmail, logout, loading, isAdmin, forcePasswordChange, changePassword } = useAuth();
   const [view, setView] = useState<'coord' | 'cabo'>('cabo');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    return (localStorage.getItem('aguia-theme') as 'light' | 'dark') || 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    localStorage.setItem('aguia-theme', theme);
+  }, [theme]);
   
   useEffect(() => {
     if (user) {
@@ -5457,9 +5481,13 @@ export default function App() {
   }
 
   return (
-    <>
-      {view === 'coord' ? <CoordinatorDashboard /> : <CaboDashboard />}
-    </>
+    <div className={`${theme} min-h-screen transition-colors duration-300`}>
+      {view === 'coord' ? (
+        <CoordinatorDashboard theme={theme} setTheme={setTheme} />
+      ) : (
+        <CaboDashboard theme={theme} setTheme={setTheme} />
+      )}
+    </div>
   );
 }
 

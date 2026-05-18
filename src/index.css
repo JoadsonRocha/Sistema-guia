@@ -9,8 +9,30 @@
 
 @layer base {
   body {
-    @apply font-sans text-zinc-950 bg-[#F9FAFB];
+    @apply font-sans;
   }
+}
+
+:root {
+  --bg-primary: #F9FAFB;
+  --bg-secondary: #FFFFFF;
+  --text-primary: #09090b;
+  --text-secondary: #71717a;
+  --border-color: rgba(9, 9, 11, 0.1);
+}
+
+.dark {
+  --bg-primary: #09090b;
+  --bg-secondary: #0c0c0e;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border-color: rgba(255, 255, 255, 0.1);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
