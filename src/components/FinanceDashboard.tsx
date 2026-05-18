@@ -56,6 +56,20 @@ const fmt = new Intl.NumberFormat('pt-BR', {
   currency: 'BRL',
 });
 
+const maskCurrency = (value: string) => {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return '';
+  const amount = (Number(digits) / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2
+  });
+  return amount;
+};
+
+const parseCurrencyToNumber = (value: string) => {
+  return Number(value.replace(/\D/g, '')) / 100;
+};
+
 export default function FinanceDashboard({ isNested = false }: { isNested?: boolean }) {
   const { user, isAdmin } = useAuth();
   // --- ESTADO FINANCEIRO (ESTADO DO CAIXA FORTE) ---
@@ -93,7 +107,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
 
   // Derived total for allocation
   const allocTotal = useMemo(() => {
-    const amt = parseFloat(allocAmount) || 0;
+    const amt = parseCurrencyToNumber(allocAmount) || 0;
     const qty = parseFloat(allocQuantity) || 0;
     return amt * qty;
   }, [allocAmount, allocQuantity]);
@@ -138,7 +152,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
   const salvarEntrada = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAdmin) return alert("Ação restrita a Administradores.");
-    const val = parseFloat(incomeData.amount);
+    const val = parseCurrencyToNumber(incomeData.amount);
     if (isNaN(val) || val <= 0) return;
 
     try {
@@ -230,7 +244,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
 
   const alocarParaEquipe = async () => {
     if (!isAdmin) return alert("Ação restrita a Administradores.");
-    const valTotal = allocTotal;
+    const valTotal = allocTotal; // Now use allocTotal which uses the parsed number
     if (valTotal <= 0) return;
 
     const oldAmount = editingTransaction?.type === 'alocacao' ? Number(editingTransaction.amount) : 0;
@@ -343,7 +357,7 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
     e.preventDefault();
     if (!isAdmin) return alert("Ação restrita a Administradores.");
     
-    const val = parseFloat(expenseData.amount);
+    const val = parseCurrencyToNumber(expenseData.amount);
     if (isNaN(val) || val <= 0) return;
     
     const teamName = expenseData.team || editingTransaction?.team;
@@ -543,13 +557,16 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Valor Unitário (R$)</label>
-                  <input 
-                    type="number" 
-                    value={allocAmount}
-                    onChange={(e) => setAllocAmount(e.target.value)}
-                    placeholder="0,00"
-                    className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl p-3.5 font-black text-sm text-white outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-700"
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[10px] font-black text-zinc-600">R$</span>
+                    <input 
+                      type="text" 
+                      value={allocAmount}
+                      onChange={(e) => setAllocAmount(maskCurrency(e.target.value))}
+                      placeholder="0,00"
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl py-3.5 pl-10 pr-3.5 font-black text-sm text-white outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-700"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Quantidade</label>
@@ -797,14 +814,17 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
                 
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Valor (R$)</label>
-                  <input 
-                    required
-                    type="number" 
-                    value={expenseData.amount}
-                    onChange={(e) => setExpenseData({...expenseData, amount: e.target.value})}
-                    placeholder="0,00"
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-xl text-zinc-950 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300"
-                  />
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-zinc-400">R$</span>
+                    <input 
+                      required
+                      type="text" 
+                      value={expenseData.amount}
+                      onChange={(e) => setExpenseData({...expenseData, amount: maskCurrency(e.target.value)})}
+                      placeholder="0,00"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 pl-10 font-black text-xl text-zinc-950 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300"
+                    />
+                  </div>
                 </div>
                 
                 <div className="pt-2">
@@ -867,14 +887,17 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Valor Bruto (R$)</label>
-                  <input 
-                    required 
-                    type="number" 
-                    value={incomeData.amount} 
-                    onChange={e => setIncomeData({...incomeData, amount: e.target.value})} 
-                    placeholder="0,00" 
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-xl text-zinc-950 outline-none focus:border-green-500 transition-all placeholder:text-zinc-300" 
-                  />
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-zinc-400">R$</span>
+                    <input 
+                      required 
+                      type="text" 
+                      value={incomeData.amount} 
+                      onChange={e => setIncomeData({...incomeData, amount: maskCurrency(e.target.value)})} 
+                      placeholder="0,00" 
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 pl-10 font-black text-xl text-zinc-950 outline-none focus:border-green-500 transition-all placeholder:text-zinc-300" 
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Observações</label>

@@ -225,6 +225,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
   const [chaosText, setChaosText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [aiResult, setAiResult] = useState<any>(null);
+  const [partnerCost, setPartnerCost] = useState('');
   
   const [selectedUrgency, setSelectedUrgency] = useState<any>(null);
   const [observation, setObservation] = useState('');
@@ -396,7 +397,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     e.preventDefault();
     const name = e.target.name.value;
     const role = e.target.role.value;
-    const cost = parseFloat(e.target.cost.value) || 0;
+    const cost = parseCurrencyToNumber(e.target.cost.value) || 0;
     const status = e.target.status.value; // 'frio' | 'morno' | 'quente'
     if (!name) return;
 
@@ -2139,10 +2140,24 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                       <Handshake className="w-24 h-24 text-yellow-500" />
                     </div>
                     <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-yellow-500 mb-8 relative z-10">Mapear Aliado</h3>
-                    <form onSubmit={handleAddPartner} className="space-y-5 relative z-10">
+                    <form onSubmit={async (e: any) => {
+                      e.preventDefault();
+                      await handleAddPartner(e);
+                      setPartnerCost('');
+                    }} className="space-y-5 relative z-10">
                       <input name="name" required className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" placeholder="Nome do Influenciador/Líder" />
                       <input name="role" className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" placeholder="Cargo/Representação" />
-                      <input name="cost" type="number" className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" placeholder="Investimento (R$)" />
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-zinc-500">R$</span>
+                        <input 
+                          name="cost" 
+                          type="text" 
+                          value={partnerCost}
+                          onChange={(e) => setPartnerCost(maskCurrency(e.target.value))}
+                          className="w-full bg-white/10 border border-white/5 rounded-sm p-4 pl-10 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" 
+                          placeholder="Investimento (R$)" 
+                        />
+                      </div>
                       <select name="status" className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none cursor-pointer">
                         <option value="frio" className="text-zinc-950">❄️ Relacionamento Frio</option>
                         <option value="morno" className="text-zinc-950">🔥 Em Negociação</option>
@@ -4094,7 +4109,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     e.preventDefault();
     if (!user || !teamData) return;
     
-    const val = parseFloat(expenseForm.amount);
+    const val = parseCurrencyToNumber(expenseForm.amount);
     if (isNaN(val) || val <= 0) return;
 
     // Check balance
@@ -5431,10 +5446,20 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Finalidade / Categoria Operacional</label>
                   <input required type="text" value={expenseForm.purpose} onChange={e => setExpenseForm({...expenseForm, purpose: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" placeholder="Ex: Logística, Emergência, Apoio..." />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Montante (Valores em R$)</label>
-                  <input required type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-2xl text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" placeholder="0,00" />
-                </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Montante (Valores em R$)</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-zinc-400">R$</span>
+                      <input 
+                        required 
+                        type="text" 
+                        value={expenseForm.amount} 
+                        onChange={e => setExpenseForm({...expenseForm, amount: maskCurrency(e.target.value)})} 
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 pl-10 font-black text-2xl text-zinc-900 outline-none focus:border-red-500 transition-all placeholder:text-zinc-300" 
+                        placeholder="0,00" 
+                      />
+                    </div>
+                  </div>
                 <button type="submit" className="w-full bg-red-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-red-500/10 hover:bg-red-700 transition-all active:scale-[0.98] mt-2">EFETIVAR SAÍDA</button>
               </form>
             </motion.div>
@@ -5600,6 +5625,20 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     </div>
   );
 }
+
+const maskCurrency = (value: string) => {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return '';
+  const amount = (Number(digits) / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2
+  });
+  return amount;
+};
+
+const parseCurrencyToNumber = (value: string) => {
+  return Number(value.replace(/\D/g, '')) / 100;
+};
 
 export default function App() {
   const { user, login, loginWithEmail, signupWithEmail, logout, loading, isAdmin, forcePasswordChange, changePassword } = useAuth();
