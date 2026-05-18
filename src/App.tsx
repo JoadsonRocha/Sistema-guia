@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ShieldCheck, 
   Fuel, 
@@ -55,6 +55,7 @@ import {
   Map as MapIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import * as d3 from 'd3';
 import { processarCaos, gerarBriefingCandidato, processarNotaAudio } from './services/geminiService';
 import FinanceDashboard from './components/FinanceDashboard';
 import { useAuth } from './lib/FirebaseProvider';
@@ -3415,79 +3416,168 @@ function CaboDashboard() {
 
   // --- COMPONENTE INTERNO: REDE DE INDICAÇÕES ---
   const ReferralNetwork = ({ voters }: { voters: any[] }) => {
-    // Definir nós e links
-    const nodes = voters.map(v => ({ id: v.name, color: '#EAB308', data: v }));
-    const links: { source: string; target: string }[] = [];
+    const svgRef = useRef<SVGSVGElement>(null);
+    const [nodes, setNodes] = useState<any[]>([]);
+    const [links, setLinks] = useState<any[]>([]);
 
-    voters.forEach(v => {
-      if (v.referredBy) {
-        // Tentar encontrar o indicador na lista
-        const normalizedReferred = v.referredBy.trim().toLowerCase();
-        const indicator = voters.find(iv => iv.name.trim().toLowerCase() === normalizedReferred);
-        if (indicator) {
-          links.push({ source: indicator.name, target: v.name });
+    useEffect(() => {
+      if (!voters.length) return;
+
+      // Prepare data for D3
+      const d3Nodes = voters.map(v => ({ ...v, isVirtual: false }));
+      const nodeMap = new Map(d3Nodes.map(n => [n.name.trim().toLowerCase(), n]));
+      const d3Links: any[] = [];
+
+      voters.forEach(v => {
+        if (v.referredBy) {
+          const refName = v.referredBy.trim().toLowerCase();
+          let source = nodeMap.get(refName);
+          
+          if (!source) {
+            // Criar nó virtual para o indicador não cadastrado na base filtrada
+            source = { 
+              id: `virtual-${refName}`, 
+              name: v.referredBy.trim(), 
+              isVirtual: true,
+              tags: [] 
+            };
+            d3Nodes.push(source);
+            nodeMap.set(refName, source);
+          }
+          
+          d3Links.push({ source: source.id, target: v.id });
         }
-      }
-    });
+      });
 
-    const getPos = (index: number, total: number) => {
-      const angle = (index / (total || 1)) * 2 * Math.PI;
-      const radius = 150;
-      return {
-        x: 250 + radius * Math.cos(angle),
-        y: 250 + radius * Math.sin(angle)
-      };
-    };
+      // Simulation setup
+      const simulation = d3.forceSimulation(d3Nodes)
+        .force("link", d3.forceLink(d3Links).id((d: any) => d.id).distance(120))
+        .force("charge", d3.forceManyBody().strength(-400))
+        .force("center", d3.forceCenter(400, 300))
+        .force("collision", d3.forceCollide().radius(60));
+
+      simulation.on("tick", () => {
+        setNodes([...d3Nodes]);
+        setLinks([...d3Links]);
+      });
+
+      return () => simulation.stop();
+    }, [voters]);
 
     return (
-      <div className="relative bg-zinc-950 rounded-sm border border-white/5 overflow-hidden w-full aspect-square md:aspect-video flex items-center justify-center p-4">
-        <svg className="w-full h-full max-w-4xl" viewBox="0 0 500 500">
+      <div className="relative bg-zinc-950 rounded-sm border border-white/5 overflow-hidden w-full aspect-video flex items-center justify-center p-4">
+        <svg ref={svgRef} className="w-full h-full" viewBox="0 0 800 600">
           <defs>
-            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="15" refY="3.5" orient="auto">
-              <polygon points="0 0, 10 3.5, 0 7" fill="#3f3f46" />
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#EAB308" opacity="0.4" />
             </marker>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
           </defs>
+          
+          {/* Links with animated flow */}
           {links.map((link, i) => {
-            const sourceIdx = voters.findIndex(v => v.name === link.source);
-            const targetIdx = voters.findIndex(v => v.name === link.target);
-            const p1 = getPos(sourceIdx, voters.length);
-            const p2 = getPos(targetIdx, voters.length);
+            const dx = link.target.x - link.source.x;
+            const dy = link.target.y - link.source.y;
+            const dr = Math.sqrt(dx * dx + dy * dy) * 1.5; // Curvatura
             return (
-              <motion.line 
+              <motion.path
                 key={`link-${i}`}
+                d={`M${link.source.x},${link.source.y}A${dr},${dr} 0 0,1 ${link.target.x},${link.target.y}`}
+                fill="none"
+                stroke="#EAB308"
+                strokeWidth="1.5"
+                strokeOpacity="0.15"
+                markerEnd="url(#arrowhead)"
                 initial={{ pathLength: 0, opacity: 0 }}
                 animate={{ pathLength: 1, opacity: 1 }}
-                x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} 
-                stroke="#3f3f46" strokeWidth="1" markerEnd="url(#arrowhead)" 
               />
             );
           })}
-          {voters.map((v, i) => {
-            const pos = getPos(i, voters.length);
-            return (
-              <motion.g 
-                key={v.id} 
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                whileHover={{ scale: 1.1 }}
-                onClick={() => { setSelectedVoter(v); setIsVoterDetailOpen(true); }}
-                className="cursor-pointer"
+
+          {/* Nodes */}
+          {nodes.map((node) => (
+            <motion.g
+              key={node.id}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1, x: node.x, y: node.y }}
+              whileHover={{ scale: 1.15 }}
+              onClick={() => { 
+                if (!node.isVirtual) {
+                  setSelectedVoter(node); 
+                  setIsVoterDetailOpen(true); 
+                }
+              }}
+              className={`${node.isVirtual ? 'cursor-help' : 'cursor-pointer'}`}
+            >
+              {/* Special ring for high influencers */}
+              {links.filter(l => l.source.id === node.id).length >= 2 && (
+                <circle r="26" fill="none" stroke="#EAB308" strokeWidth="1.5" strokeDasharray="6 3" className="animate-spin-slow opacity-40" />
+              )}
+              
+              <circle 
+                r={node.isVirtual ? 16 : 20} 
+                fill={node.isVirtual ? "#09090b" : "#18181b"} 
+                stroke={node.isVirtual ? "#3f3f46" : "#EAB308"} 
+                strokeWidth={node.isVirtual ? "1" : "2.5"} 
+                filter={node.isVirtual ? "" : "url(#glow)"} 
+                strokeDasharray={node.isVirtual ? "3 3" : ""}
+              />
+              
+              <text
+                textAnchor="middle"
+                dy=".3em"
+                className={`text-[10px] font-black uppercase select-none ${node.isVirtual ? 'fill-zinc-600' : 'fill-yellow-500'}`}
               >
-                <circle cx={pos.x} cy={pos.y} r="12" fill="#EAB308" className="shadow-lg" />
-                <text 
-                  x={pos.x} y={pos.y + 24} 
-                  textAnchor="middle" 
-                  className="text-[8px] font-black fill-zinc-400 uppercase tracking-tighter"
-                >
-                  {v.name.split(' ')[0]}
-                </text>
-              </motion.g>
-            );
-          })}
+                {node.name.charAt(0)}
+              </text>
+              
+              <text
+                y="35"
+                textAnchor="middle"
+                className={`text-[9px] font-black uppercase tracking-tighter select-none ${node.isVirtual ? 'fill-zinc-500 italic' : 'fill-white'}`}
+              >
+                {node.isVirtual ? `Indicador: ${node.name.split(' ')[0]}` : node.name.split(' ')[0]}
+              </text>
+
+              {/* Tags count indicator */}
+              {node.tags && node.tags.length > 0 && (
+                <g transform="translate(15, -15)">
+                  <circle r="6" fill="#EAB308" />
+                  <text textAnchor="middle" dy=".3em" className="text-[7px] font-black fill-zinc-950">{node.tags.length}</text>
+                </g>
+              )}
+            </motion.g>
+          ))}
         </svg>
-        <div className="absolute bottom-4 left-4 bg-zinc-900/50 backdrop-blur px-4 py-2 rounded-sm border border-white/10">
-          <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Mapa de Influência Tática</p>
-          <p className="text-[10px] text-zinc-400 font-bold mt-1">Conexões baseadas em indicação direta</p>
+
+        {/* Legend */}
+        <div className="absolute top-6 left-6 space-y-3 bg-zinc-950/60 backdrop-blur-xl p-5 rounded-sm border border-white/10 shadow-2xl">
+          <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-4">Legenda Estratégica</p>
+          <div className="flex items-center gap-3">
+             <div className="w-4 h-4 rounded-full bg-zinc-900 border-2 border-yellow-500 shadow-[0_0_10px_#EAB308]"></div>
+             <span className="text-[9px] font-black text-white uppercase tracking-widest">Liderança / Influente</span>
+          </div>
+          <div className="flex items-center gap-3">
+             <div className="w-4 h-4 rounded-full bg-zinc-900 border border-zinc-700 border-dashed"></div>
+             <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest italic">Referência Externa</span>
+          </div>
+          <div className="mt-4 pt-4 border-t border-white/5">
+             <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                <span className="text-[8px] font-bold text-zinc-400">Ponto com tags de segmentação</span>
+             </div>
+          </div>
+        </div>
+
+        <div className="absolute bottom-6 right-6 text-right">
+          <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.4em] leading-none mb-2">Rede de Fidelização Tática</p>
+          <p className="text-xl font-black text-white uppercase tracking-tighter leading-none">{voters.length} Conexões Ativas</p>
         </div>
       </div>
     );
