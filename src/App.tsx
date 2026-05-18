@@ -316,6 +316,16 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     }
   };
 
+  const handleDeleteAttendance = async (id: string) => {
+    if (window.confirm("Deseja realmente excluir este registro de frequência? Esta ação não pode ser desfeita.")) {
+      try {
+        await firestoreService.deleteDocument('attendance', id);
+      } catch (err: any) {
+        alert("Erro ao excluir registro: " + err.message);
+      }
+    }
+  };
+
   const handleAddMaterial = async (e: any) => {
     e.preventDefault();
     const name = e.target.name.value;
@@ -1806,9 +1816,18 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                                   )}
                                 </td>
                                 <td className="p-5 text-right">
-                                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 text-[9px] font-black uppercase tracking-widest border border-emerald-500/20 shadow-inner">
-                                    <CheckCircle2 className="w-3 h-3" /> Validado
-                                  </span>
+                                  <div className="flex items-center justify-end gap-3">
+                                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 text-[9px] font-black uppercase tracking-widest border border-emerald-500/20 shadow-inner">
+                                      <CheckCircle2 className="w-3 h-3" /> Validado
+                                    </span>
+                                    <button 
+                                      onClick={() => handleDeleteAttendance(entry.id)}
+                                      className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-all"
+                                      title="Excluir Registro"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             ))}
