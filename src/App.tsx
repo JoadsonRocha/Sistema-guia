@@ -237,6 +237,11 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
   const [agendas, setAgendas] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
 
+  // Attendance Filter State
+  const [attendanceFilterDate, setAttendanceFilterDate] = useState('');
+  const [attendanceFilterTeam, setAttendanceFilterTeam] = useState('');
+  const [attendanceFilterLeader, setAttendanceFilterLeader] = useState('');
+
   // Profile State
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
@@ -636,6 +641,17 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
     return matchesSearch && matchesReferredBy && matchesTags;
   });
+
+  const filteredAttendance = attendance.filter(entry => {
+    const entryDate = new Date(entry.timestamp).toISOString().split('T')[0];
+    const matchesDate = !attendanceFilterDate || entryDate === attendanceFilterDate;
+    const matchesTeam = !attendanceFilterTeam || entry.teamName === attendanceFilterTeam;
+    const matchesLeader = !attendanceFilterLeader || entry.leaderName === attendanceFilterLeader;
+    return matchesDate && matchesTeam && matchesLeader;
+  }).sort((a, b) => b.timestamp - a.timestamp);
+
+  const attendanceTeams = Array.from(new Set(attendance.map(a => a.teamName).filter(Boolean)));
+  const attendanceLeaders = Array.from(new Set(attendance.map(a => a.leaderName).filter(Boolean)));
 
   const availableTags = Array.from(new Set(allVoters.flatMap(v => v.tags || [])));
 
@@ -1675,8 +1691,71 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                   </div>
                 </div>
 
+                {/* Filtros de Pesquisa */}
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 grid grid-cols-1 md:grid-cols-4 gap-6 shadow-[var(--shadow-sm)]">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] opacity-60 flex items-center gap-2">
+                      <Calendar className="w-3 h-3" /> Filtrar por Data
+                    </label>
+                    <input 
+                      type="date" 
+                      value={attendanceFilterDate}
+                      onChange={(e) => setAttendanceFilterDate(e.target.value)}
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-3.5 rounded-sm font-bold text-xs outline-none focus:border-yellow-500 transition-all font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] opacity-60 flex items-center gap-2">
+                      <Users className="w-3 h-3" /> Filtrar por Equipe
+                    </label>
+                    <select 
+                      value={attendanceFilterTeam}
+                      onChange={(e) => setAttendanceFilterTeam(e.target.value)}
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-3.5 rounded-sm font-bold text-xs outline-none focus:border-yellow-500 transition-all cursor-pointer"
+                    >
+                      <option value="">Todas as Equipes</option>
+                      {attendanceTeams.map(team => (
+                        <option key={team} value={team}>{team}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] opacity-60 flex items-center gap-2">
+                      <ShieldCheck className="w-3 h-3" /> Filtrar por Líder
+                    </label>
+                    <select 
+                      value={attendanceFilterLeader}
+                      onChange={(e) => setAttendanceFilterLeader(e.target.value)}
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-3.5 rounded-sm font-bold text-xs outline-none focus:border-yellow-500 transition-all cursor-pointer"
+                    >
+                      <option value="">Todos os Líderes</option>
+                      {attendanceLeaders.map(leader => (
+                        <option key={leader} value={leader}>{leader}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-end">
+                    <button 
+                      onClick={() => {
+                        setAttendanceFilterDate('');
+                        setAttendanceFilterTeam('');
+                        setAttendanceFilterLeader('');
+                      }}
+                      className="w-full h-[46px] bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-secondary)] rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <X className="w-3.5 h-3.5" /> Limpar Filtros
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center px-1">
+                  <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] opacity-40">
+                    Exibindo <span className="text-yellow-600 dark:text-yellow-500">{filteredAttendance.length}</span> de <span className="text-[var(--text-primary)]">{attendance.length}</span> registros auditados
+                  </p>
+                </div>
+
                 <div className="grid grid-cols-1 gap-4">
-                  {attendance.length > 0 ? (
+                  {filteredAttendance.length > 0 ? (
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm overflow-hidden shadow-[var(--shadow-sm)]">
                       <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
@@ -1689,7 +1768,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-[var(--border-color)]">
-                            {attendance.sort((a,b) => b.timestamp - a.timestamp).map((entry) => (
+                            {filteredAttendance.map((entry) => (
                               <tr key={entry.id} className="hover:bg-[var(--bg-tertiary)]/50 transition-colors group/row">
                                 <td className="p-5">
                                   <div className="flex items-center gap-4">
@@ -1740,7 +1819,11 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                   ) : (
                     <div className="py-24 bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-sm text-center grayscale opacity-40">
                       <Clock className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
-                      <p className="font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] text-xs">Aguardando registros de check-in...</p>
+                      <p className="font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] text-[10px]">
+                        {attendanceFilterDate || attendanceFilterTeam || attendanceFilterLeader 
+                          ? "Nenhum registro tático encontrado para os parâmetros selecionados." 
+                          : "Aguardando registros de check-in em tempo real..."}
+                      </p>
                     </div>
                   )}
                 </div>
