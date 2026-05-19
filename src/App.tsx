@@ -278,6 +278,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
   const [reportsHistory, setReportsHistory] = useState<any[]>([]);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedReportType, setSelectedReportType] = useState<string>('');
+  const [reportDetailLevel, setReportDetailLevel] = useState<'summary' | 'detailed'>('summary');
   const [reportFilters, setReportFilters] = useState<any>({});
   const [selectedReportColumns, setSelectedReportColumns] = useState<string[]>([]);
   const [materials, setMaterials] = useState<any[]>([]);
@@ -649,11 +650,77 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     let subtitle = '';
 
     const allPossibleColumns = AVAILABLE_COLUMNS_BY_TYPE[type] || [];
-    columns = allPossibleColumns.filter(c => filters.selectedColumns?.includes(c.dataKey));
-    if (columns.length === 0) columns = allPossibleColumns;
+    
+    // If detailed, we might need different columns based on what we are detailing
+    let reportColumns = columns;
 
     try {
-      switch (type) {
+      if (filters.detailLevel === 'detailed') {
+        switch (type) {
+          case 'teams':
+            title = 'Relatório Detalhado: Eleitores por Equipe';
+            reportColumns = AVAILABLE_COLUMNS_BY_TYPE['voters'];
+            // Filter teams first, then get their voters
+            const activeTeams = teams.filter(t => {
+              if (filters.status && t.status !== filters.status) return false;
+              if (filters.location && !t.location.includes(filters.location)) return false;
+              return true;
+            }).map(t => t.name);
+            
+            data = allVoters.filter(v => activeTeams.includes(v.team) || activeTeams.includes(v.teamName))
+              .map(v => ({
+                ...v,
+                teamDisplay: v.team || v.teamName || 'N/A',
+                votedStatus: v.voted ? 'SIM' : 'NÃO',
+                sentiment: v.sentiment === 'support' ? 'APOIO' : v.sentiment === 'neutral' ? 'NEUTRO' : 'OPOSIÇÃO',
+                referredByDisplay: v.articulatorId ? (allVoters.find(av => av.id === v.articulatorId)?.name || 'Articulador') : (v.referredBy || '---'),
+                tagsStr: v.tags?.join(', ') || ''
+              }));
+            subtitle = `Listagem detalhada de ${data.length} eleitores vinculados às equipes selecionadas.`;
+            break;
+
+          case 'partners':
+            title = 'Relatório Detalhado: Eleitores por Articulador';
+            reportColumns = AVAILABLE_COLUMNS_BY_TYPE['voters'];
+            const activePartners = partners.map(p => ({ id: p.id, name: p.name }));
+            data = allVoters.filter(v => activePartners.some(p => p.id === v.articulatorId || p.name === v.referredBy))
+              .map(v => ({
+                ...v,
+                teamDisplay: v.team || v.teamName || 'N/A',
+                votedStatus: v.voted ? 'SIM' : 'NÃO',
+                sentiment: v.sentiment === 'support' ? 'APOIO' : v.sentiment === 'neutral' ? 'NEUTRO' : 'OPOSIÇÃO',
+                referredByDisplay: v.articulatorId ? (allVoters.find(av => av.id === v.articulatorId)?.name || 'Articulador') : (v.referredBy || '---'),
+                tagsStr: v.tags?.join(', ') || ''
+              }));
+            subtitle = `Base de dados de ${data.length} contatos diretos dos articuladores políticos.`;
+            break;
+
+          case 'materials':
+            title = 'Relatório Detalhado: Movimentação de Materiais';
+            reportColumns = [
+              { header: 'Solicitante', dataKey: 'requester' },
+              { header: 'Material', dataKey: 'materialName' },
+              { header: 'Qtd', dataKey: 'quantity' },
+              { header: 'Data', dataKey: 'dateStr' },
+              { header: 'Status', dataKey: 'status' }
+            ];
+            data = materialRequests.map(req => ({
+              ...req,
+              dateStr: new Date(req.createdAt).toLocaleDateString(),
+              status: req.status === 'approved' ? 'ENTREGUE' : req.status === 'rejected' ? 'NEGADO' : 'PENDENTE'
+            }));
+            subtitle = `Histórico de ${data.length} solicitações de materiais.`;
+            break;
+
+          default:
+            // Fallback to normal filtered summary if no detailed logic defined
+            break;
+        }
+      }
+
+      // If we didn't populate detailed data, use summary logic
+      if (data.length === 0 && filters.detailLevel !== 'detailed' || (filters.detailLevel === 'detailed' && data.length === 0)) {
+        switch (type) {
         case 'teams':
           title = 'Relatório de Equipes e Lideranças';
           data = teams.filter(t => {
@@ -739,17 +806,41 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
           }));
           break;
       }
+    }
 
-      await reportService.generatePDF({
+    const doc = new jsPDF() as any;
+    const timestamp = new Date().toLocaleString();
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(subtitle, 14, 45);
+      doc.text(`Gerado em: ${timestamp} | Por: ${userName}`, 14, 52);
+
+      doc.autoTable({
+        startY: 60,
+        head: [reportColumns.map(col => col.header.toUpperCase())],
+        body: data.map(row => reportColumns.map(col => {
+          const val = row[col.dataKey];
+          return val !== undefined && val !== null ? String(val) : '---';
+        })),
+        styles: { fontSize: 8, font: 'helvetica', cellPadding: 3 },
+        headStyles: { fillColor: [218, 165, 32], textColor: [255, 255, 255], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 245, 245] },
+        margin: { top: 60 }
+      });
+
+      doc.save(`${type}-relatorio-${Date.now()}.pdf`);
+
+      await addDoc(collection(db, 'reports'), {
+        type,
         title,
         subtitle,
-        columns,
-        data,
-        filters,
-        userName,
-        type
+        timestamp: Date.now(),
+        createdBy: user?.email,
+        createdByDisplayName: profileData?.name || user?.email,
+        createdAt: serverTimestamp(),
+        detailLevel: filters.detailLevel || 'summary'
       });
-      alert("Relatório gerado e salvo no histórico!");
     } catch (err: any) {
       alert("Erro ao gerar relatório: " + err.message);
     }
@@ -4313,7 +4404,11 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
                 <button 
                   onClick={() => {
-                    generateReport(selectedReportType, { ...reportFilters, selectedColumns: selectedReportColumns });
+                    generateReport(selectedReportType, { 
+                      ...reportFilters, 
+                      selectedColumns: selectedReportColumns,
+                      detailLevel: reportDetailLevel
+                    });
                     setIsReportModalOpen(false);
                   }}
                   className="w-full bg-zinc-950 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:bg-yellow-500 hover:text-zinc-950 transition-all active:scale-[0.98] mt-2 flex items-center justify-center gap-2"
