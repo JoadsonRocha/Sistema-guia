@@ -836,10 +836,18 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       doc.text(subtitle, 14, 40);
       doc.text(`Gerado em: ${timestamp} | Por: ${userName}`, 14, 48);
 
+      // Filter out columns that have no data across all rows
+      const visibleColumns = reportColumns.filter((col: any) => {
+        return data.some(row => {
+          const val = row[col.dataKey];
+          return val !== undefined && val !== null && String(val).trim() !== '' && String(val) !== '---';
+        });
+      });
+
       autoTable(doc, {
         startY: 55,
-        head: [reportColumns.map((col: any) => col.header.toUpperCase())],
-        body: data.map(row => reportColumns.map((col: any) => {
+        head: [visibleColumns.map((col: any) => col.header.toUpperCase())],
+        body: data.map(row => visibleColumns.map((col: any) => {
           const val = row[col.dataKey];
           return val !== undefined && val !== null ? String(val) : '---';
         })),
