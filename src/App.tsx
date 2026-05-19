@@ -227,7 +227,9 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
   const [isProcessing, setIsProcessing] = useState(false);
   const [aiResult, setAiResult] = useState<any>(null);
   const [partnerCost, setPartnerCost] = useState('');
-  
+  const [isEditingPartner, setIsEditingPartner] = useState(false);
+  const [editingPartnerId, setEditingPartnerId] = useState<string | null>(null);
+
   const [isEditingMaterial, setIsEditingMaterial] = useState(false);
   const [editingMaterialId, setEditingMaterialId] = useState<string | null>(null);
   const [materialForm, setMaterialForm] = useState({ name: '', qty: '' });
@@ -379,10 +381,11 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     e.preventDefault();
     try {
       const name = e.target.name.value.trim();
-      const qtyStr = e.target.qty.value.replace(/\D/g, '');
-      const qty = parseInt(qtyStr);
+      const rawQty = e.target.qty.value;
+      const qtyStr = rawQty.toString().replace(/\D/g, ''); 
+      const qty = parseInt(qtyStr, 10);
       
-      if (!name || isNaN(qty)) {
+      if (!name || isNaN(qty) || qty <= 0) {
         alert("Preencha o nome e a quantidade corretamente.");
         return;
       }
@@ -445,10 +448,11 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     if (!editingMaterialId) return;
 
     try {
-      const qtyStr = materialForm.qty.replace(/\D/g, '');
-      const qty = parseInt(qtyStr);
+      const name = materialForm.name.trim();
+      const qtyStr = materialForm.qty.toString().replace(/\D/g, '');
+      const qty = parseInt(qtyStr, 10);
       
-      if (!materialForm.name || isNaN(qty)) {
+      if (!name || isNaN(qty) || qty <= 0) {
         alert("Preencha o nome e a quantidade corretamente.");
         return;
       }
@@ -532,6 +536,45 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     });
     e.target.reset();
   };
+
+  const handleEditPartner = (p: any) => {
+    setIsEditingPartner(true);
+    setEditingPartnerId(p.id);
+    setPartnerCost(p.cost?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '');
+  };
+
+  const handleSaveEditPartner = async (e: any) => {
+    e.preventDefault();
+    if (!editingPartnerId) return;
+    try {
+      const name = e.target.name.value.trim();
+      const role = e.target.role.value.trim();
+      const cost = parseCurrencyToNumber(partnerCost);
+      const status = e.target.status.value;
+
+      await firestoreService.updateDocument('partners', editingPartnerId, {
+        name, role, cost, status, updatedAt: Date.now()
+      });
+      setIsEditingPartner(false);
+      setEditingPartnerId(null);
+      setPartnerCost('');
+      e.target.reset();
+      alert("Parceiro atualizado com sucesso!");
+    } catch (err: any) {
+      alert("Erro ao editar parceiro: " + err.message);
+    }
+  };
+
+  const handleDeletePartner = async (id: string) => {
+    if (confirm("Deseja realmente remover este parceiro da articulação estratégica?")) {
+      try {
+        await firestoreService.deleteDocument('partners', id);
+      } catch (err: any) {
+        alert("Erro ao excluir: " + err.message);
+      }
+    }
+  };
+
   const [newTeam, setNewTeam] = useState({
     name: '',
     leader: '',
@@ -2399,14 +2442,16 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
                       <Handshake className="w-24 h-24 text-yellow-500" />
                     </div>
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-yellow-500 mb-8 relative z-10">Mapear Aliado</h3>
-                    <form onSubmit={async (e: any) => {
+                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-yellow-500 mb-8 relative z-10">
+                      {isEditingPartner ? 'Editar Aliado' : 'Mapear Aliado'}
+                    </h3>
+                    <form onSubmit={isEditingPartner ? handleSaveEditPartner : async (e: any) => {
                       e.preventDefault();
                       await handleAddPartner(e);
                       setPartnerCost('');
                     }} className="space-y-5 relative z-10">
-                      <input name="name" required className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" placeholder="Nome do Influenciador/Líder" />
-                      <input name="role" className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" placeholder="Cargo/Representação" />
+                      <input name="name" required defaultValue={isEditingPartner ? partners.find(p => p.id === editingPartnerId)?.name : ''} className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" placeholder="Nome do Influenciador/Líder" />
+                      <input name="role" defaultValue={isEditingPartner ? partners.find(p => p.id === editingPartnerId)?.role : ''} className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" placeholder="Cargo/Representação" />
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-zinc-500">R$</span>
                         <input 
@@ -2418,14 +2463,25 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                           placeholder="Investimento (R$)" 
                         />
                       </div>
-                      <select name="status" className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none cursor-pointer">
+                      <select name="status" defaultValue={isEditingPartner ? partners.find(p => p.id === editingPartnerId)?.status : 'frio'} className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none cursor-pointer">
                         <option value="frio" className="text-zinc-950">❄️ Relacionamento Frio</option>
                         <option value="morno" className="text-zinc-950">🔥 Em Negociação</option>
                         <option value="quente" className="text-zinc-950">💎 Apoio Confirmado</option>
                       </select>
-                      <button className="w-full bg-yellow-500 text-zinc-950 py-4.5 rounded-sm font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-yellow-500/20 hover:bg-yellow-400">
-                        Incluir no COMANDO
-                      </button>
+                      <div className="flex gap-2">
+                        {isEditingPartner && (
+                          <button 
+                            type="button"
+                            onClick={() => { setIsEditingPartner(false); setEditingPartnerId(null); setPartnerCost(''); }}
+                            className="bg-zinc-800 text-white px-4 rounded-sm hover:bg-zinc-700 transition-all font-black text-[9px] uppercase tracking-widest"
+                          >
+                            Cancelar
+                          </button>
+                        )}
+                        <button className="flex-1 bg-yellow-500 text-zinc-950 py-4.5 rounded-sm font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-yellow-500/20 hover:bg-yellow-400">
+                          {isEditingPartner ? 'Salvar Alterações' : 'Incluir no COMANDO'}
+                        </button>
+                      </div>
                     </form>
                   </div>
 
@@ -2455,6 +2511,22 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                               </p>
                             </div>
                           </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => handleEditPartner(p)} 
+                            className="w-10 h-10 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-zinc-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all active:scale-95"
+                            title="Editar"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleDeletePartner(p.id)} 
+                            className="w-10 h-10 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all active:scale-95"
+                            title="Excluir"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                         <div className="text-right">
                           <span className={`text-[8px] font-black uppercase tracking-widest px-3.5 py-2 rounded-sm shadow-sm ${
@@ -3899,6 +3971,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
   const [isProcessingNote, setIsProcessingNote] = useState(false);
   const [materials, setMaterials] = useState<any[]>([]);
   const [materialRequests, setMaterialRequests] = useState<any[]>([]);
+  const [partners, setPartners] = useState<any[]>([]);
 
   // Finance State for Leader
   const [teamTransactions, setTeamTransactions] = useState<any[]>([]);
@@ -3917,7 +3990,8 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     observations: string;
     referredBy: string;
     tags: string[];
-  }>({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [] });
+    articulatorId?: string;
+  }>({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [], articulatorId: '' });
   const [currentTag, setCurrentTag] = useState('');
 
   const [isFuelModalOpen, setIsFuelModalOpen] = useState(false);
@@ -4028,6 +4102,10 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       });
 
+      const unsubPartners = onSnapshot(collection(db, 'partners'), (snap) => {
+        setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+
       const unsubMaterialRequests = firestoreService.subscribeToCollection('material_requests', (data) => {
         setMaterialRequests(data);
       });
@@ -4040,6 +4118,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         if (unsubTx) unsubTx();
         unsubDailyOrder();
         unsubMaterials();
+        unsubPartners();
         unsubMaterialRequests();
       };
     }
@@ -4336,7 +4415,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
       setIsVoterModalOpen(false);
       setIsEditingVoter(false);
       setEditingVoterId(null);
-      setVoterForm({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [] });
+      setVoterForm({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [], articulatorId: '' });
     } catch (err: any) {
       alert("Erro ao salvar: " + err.message);
     }
@@ -5464,7 +5543,8 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                         address: selectedVoter.address,
                         observations: selectedVoter.observations || '',
                         referredBy: selectedVoter.referredBy || '',
-                        tags: selectedVoter.tags || []
+                        tags: selectedVoter.tags || [],
+                        articulatorId: selectedVoter.articulatorId || ''
                       });
                       setEditingVoterId(selectedVoter.id);
                       setIsEditingVoter(true);
@@ -5504,7 +5584,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                    setIsVoterModalOpen(false);
                    setIsEditingVoter(false);
                    setEditingVoterId(null);
-                   setVoterForm({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [] });
+                   setVoterForm({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [], articulatorId: '' });
                 }} 
                 className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
@@ -5530,7 +5610,21 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                   <input type="text" value={voterForm.address} onChange={e => setVoterForm({...voterForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Rua, Bairro ou Referência..." />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Indicado por (Referência)</label>
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Articulador / Parceiro Associado</label>
+                  <select 
+                    value={voterForm.articulatorId} 
+                    onChange={e => setVoterForm({...voterForm, articulatorId: e.target.value})}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all appearance-none"
+                  >
+                    <option value="">NENHUM ARTICULADOR SELECIONADO</option>
+                    {partners.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Indicado por (Referência Manual)</label>
                   <input type="text" value={voterForm.referredBy} onChange={e => setVoterForm({...voterForm, referredBy: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Nome de quem o indicou..." />
                 </div>
 
