@@ -1765,7 +1765,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                                 <h3 className="text-lg font-black uppercase tracking-tight text-zinc-950 group-hover:text-yellow-600 transition-colors">{item.municipio}</h3>
                                 <div className="flex flex-wrap items-center gap-3 text-[9px] font-black text-zinc-400 tracking-widest uppercase">
                                   <span className="flex items-center gap-1.5"><Clock className="w-2.5 h-2.5 text-yellow-500" /> {item.hora_inicio} - {item.hora_fim}</span>
-                                  <span className="flex items-center gap-1.5"><User className="w-2.5 h-2.5 text-yellow-500" /> {item.sugeridoPor}</span>
+                                  <span className="flex items-center gap-1.5"><User className="w-2.5 h-2.5 text-yellow-500" /> <span className="text-zinc-900">{item.team || '---'}</span> • {item.sugeridoPor}</span>
                                 </div>
                                 {item.motivo && <p className="text-[10px] text-zinc-500 font-bold bg-zinc-100 px-2.5 py-0.5 rounded-sm inline-block">{item.motivo}</p>}
                               </div>
@@ -3463,7 +3463,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                    </div>
                    <div className="space-y-1">
                       <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Equipe Responsável</p>
-                      <p className="text-lg font-black text-zinc-900">{selectedAgenda.sugeridoPor}</p>
+                      <p className="text-lg font-black text-zinc-900">{selectedAgenda.team || '---'} • {selectedAgenda.sugeridoPor}</p>
                    </div>
                 </div>
 
