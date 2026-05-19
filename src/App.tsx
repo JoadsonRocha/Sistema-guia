@@ -596,15 +596,22 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             { header: 'Zona/Equipe', dataKey: 'name' },
             { header: 'Líder', dataKey: 'leader' },
             { header: 'Localização', dataKey: 'location' },
-            { header: 'Contatos', dataKey: 'contacts' },
+            { header: 'Eleitores', dataKey: 'realContacts' },
+            { header: 'Demandas', dataKey: 'demandCount' },
+            { header: 'Gasto Real', dataKey: 'spentStr' },
             { header: 'Status', dataKey: 'status' }
           ];
           data = teams.filter(t => {
             if (filters.status && t.status !== filters.status) return false;
             if (filters.location && !t.location.includes(filters.location)) return false;
             return true;
-          });
-          subtitle = `Total de ${data.length} equipes mapeadas.`;
+          }).map(t => ({
+            ...t,
+            realContacts: allVoters.filter(v => v.team === t.name || v.teamName === t.name).length,
+            demandCount: urgencies.filter(u => u.team === t.name).length,
+            spentStr: `R$ ${t.spent?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`
+          }));
+          subtitle = `Análise detalhada de ${data.length} frentes de atuação regional.`;
           break;
 
         case 'voters':
@@ -1720,20 +1727,24 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 flex-1 text-left relative z-10">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 flex-1 text-left relative z-10">
                         <div>
-                          <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Contatos</p>
-                          <p className="text-2xl font-black text-[var(--text-primary)] tracking-tighter">{team.contacts || 0}</p>
+                          <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Eleitores</p>
+                          <p className="text-2xl font-black text-[var(--text-primary)] tracking-tighter">
+                            {allVoters.filter(v => v.team === team.name || v.teamName === team.name).length}
+                          </p>
                         </div>
                         <div>
                           <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Engajamento</p>
                           <p className="text-2xl font-black text-emerald-600 dark:text-emerald-500 tracking-tighter leading-none">
-                            {Math.min(100, Math.round(((team.contacts || 0) / 100) * 100))}%
+                            {Math.min(100, Math.round(((allVoters.filter(v => v.team === team.name || v.teamName === team.name).length) / 100) * 100))}%
                           </p>
                         </div>
                         <div>
-                          <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Alertas</p>
-                          <p className={`text-2xl font-black tracking-tighter leading-none ${team.demands > 0 ? 'text-red-600' : 'text-[var(--bg-tertiary)] opacity-30 dark:opacity-10'}`}>{team.demands || 0}</p>
+                          <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Demandas</p>
+                          <p className={`text-2xl font-black tracking-tighter leading-none ${urgencies.filter(u => u.team === team.name).length > 0 ? 'text-red-600' : 'text-[var(--bg-tertiary)] opacity-30 dark:opacity-10'}`}>
+                            {urgencies.filter(u => u.team === team.name).length}
+                          </p>
                         </div>
                         <div>
                            <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-2 leading-none opacity-60">Status de Rede</p>
