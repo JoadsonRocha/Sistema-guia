@@ -58,6 +58,8 @@ import {
   Map as MapIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { processarCaos, gerarBriefingCandidato, processarNotaAudio } from './services/geminiService';
 import { reportService } from './services/reportService';
 import FinanceDashboard from './components/FinanceDashboard';
@@ -74,7 +76,7 @@ import {
   PieChart,
   Pie
 } from 'recharts';
-import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, getDoc } from 'firebase/firestore';
+import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from './lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from './lib/agendaLogic';
 
@@ -645,14 +647,15 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
   const generateReport = async (type: string, filters: any = {}) => {
     const userName = profileData?.name || user?.email || 'Coordenador';
     let title = '';
-    let columns: { header: string; dataKey: string }[] = [];
     let data: any[] = [];
     let subtitle = '';
 
     const allPossibleColumns = AVAILABLE_COLUMNS_BY_TYPE[type] || [];
     
-    // If detailed, we might need different columns based on what we are detailing
-    let reportColumns = columns;
+    // Default columns (filtered if user selected specific ones, else all for this type)
+    let reportColumns = filters.selectedColumns && filters.selectedColumns.length > 0
+      ? allPossibleColumns.filter((c: any) => filters.selectedColumns.includes(c.dataKey))
+      : allPossibleColumns;
 
     try {
       if (filters.detailLevel === 'detailed') {
@@ -664,6 +667,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             const activeTeams = teams.filter(t => {
               if (filters.status && t.status !== filters.status) return false;
               if (filters.location && !t.location.includes(filters.location)) return false;
+              if (filters.team && t.name !== filters.team) return false;
               return true;
             }).map(t => t.name);
             
@@ -682,7 +686,11 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
           case 'partners':
             title = 'Relatório Detalhado: Eleitores por Articulador';
             reportColumns = AVAILABLE_COLUMNS_BY_TYPE['voters'];
-            const activePartners = partners.map(p => ({ id: p.id, name: p.name }));
+            const activePartners = partners.filter(p => {
+              if (filters.team && p.team !== filters.team) return false; // If partners have teams
+              return true;
+            }).map(p => ({ id: p.id, name: p.name }));
+            
             data = allVoters.filter(v => activePartners.some(p => p.id === v.articulatorId || p.name === v.referredBy))
               .map(v => ({
                 ...v,
@@ -711,126 +719,139 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             }));
             subtitle = `Histórico de ${data.length} solicitações de materiais.`;
             break;
+        }
+      }
 
-          default:
-            // Fallback to normal filtered summary if no detailed logic defined
+      // If we didn't populate data (either not detailed or no detailed logic), use summary logic
+      if (data.length === 0) {
+        switch (type) {
+          case 'teams':
+            title = 'Relatório de Equipes e Lideranças';
+            data = teams.filter(t => {
+              if (filters.status && t.status !== filters.status) return false;
+              if (filters.location && !t.location.includes(filters.location)) return false;
+              if (filters.team && t.name !== filters.team) return false;
+              return true;
+            }).map(t => ({
+              ...t,
+              realContacts: allVoters.filter(v => v.team === t.name || v.teamName === t.name).length,
+              demandCount: urgencies.filter(u => u.team === t.name).length,
+              spentStr: `R$ ${t.spent?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`,
+              status: t.status || 'OK'
+            }));
+            subtitle = `Análise de ${data.length} frentes de atuação regional.`;
+            break;
+
+          case 'voters':
+            title = 'Relatório Geral de Eleitores';
+            data = allVoters.filter(v => {
+              if (filters.sentiment && v.sentiment !== filters.sentiment) return false;
+              if (filters.voted !== undefined && v.voted !== filters.voted) return false;
+              if (filters.team && v.team !== filters.team && v.teamName !== filters.team) return false;
+              return true;
+            }).map(v => ({
+              ...v,
+              teamDisplay: v.team || v.teamName || 'N/A',
+              votedStatus: v.voted ? 'SIM' : 'NÃO',
+              sentiment: v.sentiment === 'support' ? 'APOIO' : v.sentiment === 'neutral' ? 'NEUTRO' : 'OPOSIÇÃO',
+              referredByDisplay: v.articulatorId ? (allVoters.find(av => av.id === v.articulatorId)?.name || 'Articulador') : (v.referredBy || '---'),
+              tagsStr: v.tags?.join(', ') || ''
+            }));
+            subtitle = `${data.length} eleitores filtrados na base estratégica.`;
+            break;
+
+          case 'finance':
+            title = 'Relatório Financeiro e Custos';
+            data = teams.map(t => ({
+              ...t,
+              team: t.name,
+              allocatedStr: `R$ ${t.allocated.toLocaleString('pt-BR')}`,
+              spentStr: `R$ ${t.spent.toLocaleString('pt-BR')}`,
+              balanceStr: `R$ ${(t.allocated - t.spent).toLocaleString('pt-BR')}`
+            }));
+            subtitle = `Investimento Total: R$ ${teams.reduce((acc, t) => acc + t.allocated, 0).toLocaleString('pt-BR')}`;
+            break;
+
+          case 'attendance':
+            title = 'Relatório de Auditoria de Ponto';
+            data = attendance.filter(a => {
+              if (filters.startDate && a.timestamp < new Date(filters.startDate).getTime()) return false;
+              if (filters.endDate && a.timestamp > new Date(filters.endDate).getTime()) return false;
+              return true;
+            }).map(a => ({
+              ...a,
+              dateStr: new Date(a.timestamp).toLocaleString(),
+              status: (a.status || 'Pendente').toUpperCase()
+            }));
+            subtitle = `Registros de ponto monitorados: ${data.length}`;
+            break;
+
+          case 'materials':
+            title = 'Relatório de Gestão de Materiais';
+            data = materials.map(m => ({
+              ...m,
+              used: (m.total || 0) - (m.current || 0)
+            }));
+            subtitle = `Controle de estoque de ${data.length} itens.`;
+            break;
+
+          case 'partners':
+            title = 'Relatório de Articulação Política';
+            data = partners.map(p => ({
+              ...p,
+              costStr: `R$ ${(p.cost || 0).toLocaleString('pt-BR')}`,
+              statusLabel: p.status === 'quente' ? 'CONSOLIDADO' : p.status === 'morno' ? 'TRATATIVA' : 'MAPEADO',
+              contactsCount: allVoters.filter(v => v.articulatorId === p.id || v.referredBy === p.name).length
+            }));
+            subtitle = `Articulação com ${data.length} aliados estratégicos.`;
+            break;
+
+          case 'demands':
+            title = 'Relatório de Demandas e Urgências';
+            data = urgencies.map(u => ({
+              ...u,
+              dateStr: new Date(u.createdAt).toLocaleDateString(),
+              status: (u.status || 'Aberta').toUpperCase()
+            }));
+            subtitle = `Acompanhamento de ${data.length} solicitações de urgência.`;
             break;
         }
       }
 
-      // If we didn't populate detailed data, use summary logic
-      if (data.length === 0 && filters.detailLevel !== 'detailed' || (filters.detailLevel === 'detailed' && data.length === 0)) {
-        switch (type) {
-        case 'teams':
-          title = 'Relatório de Equipes e Lideranças';
-          data = teams.filter(t => {
-            if (filters.status && t.status !== filters.status) return false;
-            if (filters.location && !t.location.includes(filters.location)) return false;
-            return true;
-          }).map(t => ({
-            ...t,
-            realContacts: allVoters.filter(v => v.team === t.name || v.teamName === t.name).length,
-            demandCount: urgencies.filter(u => u.team === t.name).length,
-            spentStr: `R$ ${t.spent?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`
-          }));
-          subtitle = `Análise detalhada de ${data.length} frentes de atuação regional.`;
-          break;
+      // Generate PDF
+      const doc = new jsPDF() as any;
+      const timestamp = new Date().toLocaleString('pt-BR');
+      
+      // Header
+      doc.setFontSize(22);
+      doc.setTextColor(218, 165, 32); // Dourado
+      doc.text('ÁGUIA - SISTEMA DE ESTRATÉGIA', 14, 20);
+      
+      doc.setFontSize(16);
+      doc.setTextColor(40, 40, 40);
+      doc.text(title.toUpperCase(), 14, 30);
 
-        case 'voters':
-          title = 'Relatório Geral de Eleitores';
-          data = allVoters.filter(v => {
-            if (filters.sentiment && v.sentiment !== filters.sentiment) return false;
-            if (filters.voted !== undefined && v.voted !== filters.voted) return false;
-            if (filters.team && v.team !== filters.team && v.teamName !== filters.team) return false;
-            return true;
-          }).map(v => ({
-            ...v,
-            teamDisplay: v.team || v.teamName || 'N/A',
-            votedStatus: v.voted ? 'SIM' : 'NÃO',
-            sentiment: v.sentiment === 'support' ? 'APOIO' : v.sentiment === 'neutral' ? 'NEUTRO' : 'OPOSIÇÃO',
-            referredByDisplay: v.articulatorId ? (allVoters.find(av => av.id === v.articulatorId)?.name || 'Articulador') : (v.referredBy || '---'),
-            tagsStr: v.tags?.join(', ') || ''
-          }));
-          subtitle = `${data.length} eleitores filtrados na base estratégica.`;
-          break;
-
-        case 'finance':
-          title = 'Relatório Financeiro e Custos';
-          data = teams.map(t => ({
-            ...t,
-            team: t.name,
-            allocatedStr: `R$ ${t.allocated.toLocaleString()}`,
-            spentStr: `R$ ${t.spent.toLocaleString()}`,
-            balanceStr: `R$ ${(t.allocated - t.spent).toLocaleString()}`
-          }));
-          subtitle = `Investimento Total: R$ ${teams.reduce((acc, t) => acc + t.allocated, 0).toLocaleString()}`;
-          break;
-
-        case 'attendance':
-          title = 'Relatório de Auditoria de Ponto';
-          data = attendance.filter(a => {
-            if (filters.startDate && a.timestamp < new Date(filters.startDate).getTime()) return false;
-            if (filters.endDate && a.timestamp > new Date(filters.endDate).getTime()) return false;
-            return true;
-          }).map(a => ({
-            ...a,
-            dateStr: new Date(a.timestamp).toLocaleString(),
-            status: a.status.toUpperCase()
-          }));
-          break;
-
-        case 'materials':
-          title = 'Relatório de Gestão de Materiais';
-          data = materials.map(m => ({
-            ...m,
-            used: (m.total || 0) - (m.current || 0)
-          }));
-          break;
-
-        case 'partners':
-          title = 'Relatório de Articulação Política';
-          data = partners.map(p => ({
-            ...p,
-            costStr: `R$ ${(p.cost || 0).toLocaleString()}`,
-            statusLabel: p.status === 'quente' ? 'CONSOLIDADO' : p.status === 'morno' ? 'TRATATIVA' : 'MAPEADO',
-            contactsCount: allVoters.filter(v => v.articulatorId === p.id || v.referredBy === p.name).length
-          }));
-          break;
-
-        case 'demands':
-          title = 'Relatório de Demandas e Urgências';
-          data = urgencies.map(u => ({
-            ...u,
-            dateStr: new Date(u.createdAt).toLocaleDateString(),
-            status: u.status.toUpperCase()
-          }));
-          break;
-      }
-    }
-
-    const doc = new jsPDF() as any;
-    const timestamp = new Date().toLocaleString();
-      doc.setFont('helvetica', 'normal');
       doc.setFontSize(10);
       doc.setTextColor(100, 100, 100);
-      doc.text(subtitle, 14, 45);
-      doc.text(`Gerado em: ${timestamp} | Por: ${userName}`, 14, 52);
+      doc.text(subtitle, 14, 40);
+      doc.text(`Gerado em: ${timestamp} | Por: ${userName}`, 14, 48);
 
-      doc.autoTable({
-        startY: 60,
-        head: [reportColumns.map(col => col.header.toUpperCase())],
-        body: data.map(row => reportColumns.map(col => {
+      autoTable(doc, {
+        startY: 55,
+        head: [reportColumns.map((col: any) => col.header.toUpperCase())],
+        body: data.map(row => reportColumns.map((col: any) => {
           const val = row[col.dataKey];
           return val !== undefined && val !== null ? String(val) : '---';
         })),
-        styles: { fontSize: 8, font: 'helvetica', cellPadding: 3 },
+        styles: { fontSize: 7, font: 'helvetica', cellPadding: 2 },
         headStyles: { fillColor: [218, 165, 32], textColor: [255, 255, 255], fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [245, 245, 245] },
-        margin: { top: 60 }
+        margin: { top: 55 }
       });
 
       doc.save(`${type}-relatorio-${Date.now()}.pdf`);
 
+      // Add to Firestore History
       await addDoc(collection(db, 'reports'), {
         type,
         title,
@@ -839,9 +860,12 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
         createdBy: user?.email,
         createdByDisplayName: profileData?.name || user?.email,
         createdAt: serverTimestamp(),
-        detailLevel: filters.detailLevel || 'summary'
+        detailLevel: filters.detailLevel || 'summary',
+        itemCount: data.length
       });
+
     } catch (err: any) {
+      console.error("Erro ao gerar relatório:", err);
       alert("Erro ao gerar relatório: " + err.message);
     }
   };
@@ -4297,6 +4321,50 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                 <p className="text-yellow-500 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Filtragem e Recorte de Dados Estratégicos</p>
               </div>
 
+              <div className="p-6 space-y-4 text-left border-b border-zinc-100">
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nível de Detalhamento</label>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => {
+                        setReportDetailLevel('summary');
+                        setSelectedReportColumns(AVAILABLE_COLUMNS_BY_TYPE[selectedReportType]?.map(c => c.dataKey) || []);
+                      }}
+                      className={`flex-1 py-3 px-4 rounded-sm font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 border ${
+                        reportDetailLevel === 'summary' 
+                          ? 'bg-zinc-950 text-white border-zinc-950 shadow-lg' 
+                          : 'bg-zinc-50 text-zinc-400 border-zinc-100 hover:bg-zinc-100'
+                      }`}
+                    >
+                      <LayoutDashboard className="w-3 h-3" />
+                      Resumo (Geral)
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setReportDetailLevel('detailed');
+                        if (selectedReportType === 'teams' || selectedReportType === 'partners') {
+                          setSelectedReportColumns(AVAILABLE_COLUMNS_BY_TYPE['voters']?.map(c => c.dataKey) || []);
+                        }
+                      }}
+                      className={`flex-1 py-3 px-4 rounded-sm font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 border ${
+                        reportDetailLevel === 'detailed' 
+                          ? 'bg-yellow-500 text-zinc-950 border-yellow-500 shadow-xl shadow-yellow-500/20 active:scale-95' 
+                          : 'bg-zinc-50 text-zinc-400 border-zinc-100 hover:bg-zinc-100'
+                      }`}
+                    >
+                      <Users className="w-3 h-3" />
+                      Detalhamento (Lista)
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-zinc-400 italic mt-1 ml-1 font-medium">
+                    {reportDetailLevel === 'summary' 
+                      ? '* Gera uma visão consolidada com indicadores gerais.' 
+                      : '* Gera uma listagem completa item por item (Ex: Cada eleitor individual).'
+                    }
+                  </p>
+                </div>
+              </div>
+
               <div className="p-6 space-y-4 text-left">
                 {selectedReportType === 'teams' && (
                   <>
@@ -4305,7 +4373,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                       <select 
                         value={reportFilters.status || ''} 
                         onChange={e => setReportFilters({...reportFilters, status: e.target.value})}
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all cursor-pointer"
                       >
                         <option value="">TODOS OS STATUS</option>
                         <option value="OK">OPERANDO (OK)</option>
@@ -4372,8 +4440,11 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
                 <div className="space-y-3 pt-4 border-t border-zinc-100">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Campos do Relatório</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {AVAILABLE_COLUMNS_BY_TYPE[selectedReportType]?.map(col => (
+                  <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                    {(reportDetailLevel === 'detailed' && (selectedReportType === 'teams' || selectedReportType === 'partners') 
+                      ? AVAILABLE_COLUMNS_BY_TYPE['voters'] 
+                      : AVAILABLE_COLUMNS_BY_TYPE[selectedReportType]
+                    )?.map(col => (
                       <button
                         key={col.dataKey}
                         onClick={() => {
