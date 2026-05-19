@@ -78,6 +78,65 @@ import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, get
 import { db, auth } from './lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from './lib/agendaLogic';
 
+const AVAILABLE_COLUMNS_BY_TYPE: Record<string, { header: string; dataKey: string }[]> = {
+  teams: [
+    { header: 'Zona/Equipe', dataKey: 'name' },
+    { header: 'Líder', dataKey: 'leader' },
+    { header: 'Localização', dataKey: 'location' },
+    { header: 'Eleitores', dataKey: 'realContacts' },
+    { header: 'Demandas', dataKey: 'demandCount' },
+    { header: 'Gasto Real', dataKey: 'spentStr' },
+    { header: 'Status', dataKey: 'status' }
+  ],
+  voters: [
+    { header: 'Nome', dataKey: 'name' },
+    { header: 'Telefone', dataKey: 'phone' },
+    { header: 'Equipe/Zona', dataKey: 'teamDisplay' },
+    { header: 'Indicado por', dataKey: 'referredByDisplay' },
+    { header: 'Sentimento', dataKey: 'sentiment' },
+    { header: 'Votou', dataKey: 'votedStatus' },
+    { header: 'Endereço', dataKey: 'address' },
+    { header: 'Comunidade/Família', dataKey: 'familyCommunity' },
+    { header: 'Comunidade Indígena', dataKey: 'communityName' },
+    { header: 'Tuxaua', dataKey: 'tuxauaName' },
+    { header: 'Score Fidelidade', dataKey: 'loyaltyScore' },
+    { header: 'Observações', dataKey: 'observations' },
+    { header: 'Tags', dataKey: 'tagsStr' }
+  ],
+  finance: [
+    { header: 'Equipe', dataKey: 'team' },
+    { header: 'Alocado', dataKey: 'allocatedStr' },
+    { header: 'Gasto', dataKey: 'spentStr' },
+    { header: 'Saldo', dataKey: 'balanceStr' }
+  ],
+  attendance: [
+    { header: 'Colaborador', dataKey: 'userName' },
+    { header: 'Data', dataKey: 'date' },
+    { header: 'Entrada', dataKey: 'checkIn' },
+    { header: 'Saída', dataKey: 'checkOut' },
+    { header: 'Localização', dataKey: 'location' }
+  ],
+  materials: [
+    { header: 'Material', dataKey: 'name' },
+    { header: 'Total', dataKey: 'total' },
+    { header: 'Disponível', dataKey: 'current' },
+    { header: 'Usado', dataKey: 'used' }
+  ],
+  partners: [
+    { header: 'Aliado', dataKey: 'name' },
+    { header: 'Cargo/Representação', dataKey: 'role' },
+    { header: 'Investimento', dataKey: 'costStr' },
+    { header: 'Status', dataKey: 'statusLabel' }
+  ],
+  demands: [
+    { header: 'Título', dataKey: 'title' },
+    { header: 'Equipe/Zona', dataKey: 'team' },
+    { header: 'Prioridade', dataKey: 'priority' },
+    { header: 'Status', dataKey: 'status' },
+    { header: 'Data', dataKey: 'dateStr' }
+  ]
+};
+
 /// --- COMPONENTE: CARD DE NOTA (ESTILO FÓRUM) ---
 function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
   const [comments, setComments] = useState<any[]>([]);
@@ -220,6 +279,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedReportType, setSelectedReportType] = useState<string>('');
   const [reportFilters, setReportFilters] = useState<any>({});
+  const [selectedReportColumns, setSelectedReportColumns] = useState<string[]>([]);
   const [materials, setMaterials] = useState<any[]>([]);
   const [materialRequests, setMaterialRequests] = useState<any[]>([]);
   const [partners, setPartners] = useState<any[]>([]);
@@ -588,19 +648,14 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     let data: any[] = [];
     let subtitle = '';
 
+    const allPossibleColumns = AVAILABLE_COLUMNS_BY_TYPE[type] || [];
+    columns = allPossibleColumns.filter(c => filters.selectedColumns?.includes(c.dataKey));
+    if (columns.length === 0) columns = allPossibleColumns;
+
     try {
       switch (type) {
         case 'teams':
           title = 'Relatório de Equipes e Lideranças';
-          columns = [
-            { header: 'Zona/Equipe', dataKey: 'name' },
-            { header: 'Líder', dataKey: 'leader' },
-            { header: 'Localização', dataKey: 'location' },
-            { header: 'Eleitores', dataKey: 'realContacts' },
-            { header: 'Demandas', dataKey: 'demandCount' },
-            { header: 'Gasto Real', dataKey: 'spentStr' },
-            { header: 'Status', dataKey: 'status' }
-          ];
           data = teams.filter(t => {
             if (filters.status && t.status !== filters.status) return false;
             if (filters.location && !t.location.includes(filters.location)) return false;
@@ -616,14 +671,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
         case 'voters':
           title = 'Relatório Geral de Eleitores';
-          columns = [
-            { header: 'Nome', dataKey: 'name' },
-            { header: 'Telefone', dataKey: 'phone' },
-            { header: 'Equipe/Zona', dataKey: 'teamDisplay' },
-            { header: 'Indicado por', dataKey: 'referredBy' },
-            { header: 'Sentimento', dataKey: 'sentiment' },
-            { header: 'Votou', dataKey: 'votedStatus' }
-          ];
           data = allVoters.filter(v => {
             if (filters.sentiment && v.sentiment !== filters.sentiment) return false;
             if (filters.voted !== undefined && v.voted !== filters.voted) return false;
@@ -633,19 +680,15 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             ...v,
             teamDisplay: v.team || v.teamName || 'N/A',
             votedStatus: v.voted ? 'SIM' : 'NÃO',
-            sentiment: v.sentiment === 'support' ? 'APOIO' : v.sentiment === 'neutral' ? 'NEUTRO' : 'OPOSIÇÃO'
+            sentiment: v.sentiment === 'support' ? 'APOIO' : v.sentiment === 'neutral' ? 'NEUTRO' : 'OPOSIÇÃO',
+            referredByDisplay: v.articulatorId ? (allVoters.find(av => av.id === v.articulatorId)?.name || 'Articulador') : (v.referredBy || '---'),
+            tagsStr: v.tags?.join(', ') || ''
           }));
           subtitle = `${data.length} eleitores filtrados na base estratégica.`;
           break;
 
         case 'finance':
           title = 'Relatório Financeiro e Custos';
-          columns = [
-            { header: 'Equipe', dataKey: 'team' },
-            { header: 'Alocado', dataKey: 'allocatedStr' },
-            { header: 'Gasto', dataKey: 'spentStr' },
-            { header: 'Saldo', dataKey: 'balanceStr' }
-          ];
           data = teams.map(t => ({
             ...t,
             team: t.name,
@@ -658,12 +701,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
         case 'attendance':
           title = 'Relatório de Auditoria de Ponto';
-          columns = [
-            { header: 'Data', dataKey: 'dateStr' },
-            { header: 'Líder', dataKey: 'leaderName' },
-            { header: 'Equipe', dataKey: 'teamName' },
-            { header: 'Status', dataKey: 'status' }
-          ];
           data = attendance.filter(a => {
             if (filters.startDate && a.timestamp < new Date(filters.startDate).getTime()) return false;
             if (filters.endDate && a.timestamp > new Date(filters.endDate).getTime()) return false;
@@ -677,12 +714,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
         case 'materials':
           title = 'Relatório de Gestão de Materiais';
-          columns = [
-            { header: 'Material', dataKey: 'name' },
-            { header: 'Total', dataKey: 'total' },
-            { header: 'Disponível', dataKey: 'current' },
-            { header: 'Usado', dataKey: 'used' }
-          ];
           data = materials.map(m => ({
             ...m,
             used: (m.total || 0) - (m.current || 0)
@@ -691,27 +722,16 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
         case 'partners':
           title = 'Relatório de Articulação Política';
-          columns = [
-            { header: 'Aliado', dataKey: 'name' },
-            { header: 'Cargo/Representação', dataKey: 'role' },
-            { header: 'Investimento', dataKey: 'costStr' },
-            { header: 'Status', dataKey: 'statusLabel' }
-          ];
           data = partners.map(p => ({
             ...p,
             costStr: `R$ ${(p.cost || 0).toLocaleString()}`,
-            statusLabel: p.status === 'quente' ? 'CONSOLIDADO' : p.status === 'morno' ? 'TRATATIVA' : 'MAPEADO'
+            statusLabel: p.status === 'quente' ? 'CONSOLIDADO' : p.status === 'morno' ? 'TRATATIVA' : 'MAPEADO',
+            contactsCount: allVoters.filter(v => v.articulatorId === p.id || v.referredBy === p.name).length
           }));
           break;
 
         case 'demands':
           title = 'Relatório de Demandas e Urgências';
-          columns = [
-            { header: 'Título', dataKey: 'title' },
-            { header: 'Equipe/Zona', dataKey: 'team' },
-            { header: 'Status', dataKey: 'status' },
-            { header: 'Data', dataKey: 'dateStr' }
-          ];
           data = urgencies.map(u => ({
             ...u,
             dateStr: new Date(u.createdAt).toLocaleDateString(),
@@ -2865,6 +2885,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                       <button 
                         onClick={() => {
                           setSelectedReportType(r.id);
+                          setSelectedReportColumns(AVAILABLE_COLUMNS_BY_TYPE[r.id]?.map(c => c.dataKey) || []);
                           setIsReportModalOpen(true);
                         }}
                         className="w-full bg-zinc-950 text-white dark:bg-zinc-900 border border-white/10 py-3.5 rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all flex items-center justify-center gap-2"
@@ -4258,9 +4279,41 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                   </div>
                 )}
 
+                <div className="space-y-3 pt-4 border-t border-zinc-100">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Campos do Relatório</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {AVAILABLE_COLUMNS_BY_TYPE[selectedReportType]?.map(col => (
+                      <button
+                        key={col.dataKey}
+                        onClick={() => {
+                          setSelectedReportColumns(prev => 
+                            prev.includes(col.dataKey) 
+                              ? prev.filter(k => k !== col.dataKey) 
+                              : [...prev, col.dataKey]
+                          );
+                        }}
+                        className={`flex items-center gap-2 p-2 rounded-sm border transition-all text-left ${
+                          selectedReportColumns.includes(col.dataKey)
+                            ? 'bg-yellow-50 border-yellow-500 text-yellow-700'
+                            : 'bg-zinc-50 border-zinc-100 text-zinc-400'
+                        }`}
+                      >
+                        <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${
+                          selectedReportColumns.includes(col.dataKey)
+                            ? 'bg-yellow-500 border-yellow-500'
+                            : 'bg-white border-zinc-300'
+                        }`}>
+                          {selectedReportColumns.includes(col.dataKey) && <div className="w-1 h-1 bg-white rounded-full" />}
+                        </div>
+                        <span className="text-[9px] font-black uppercase tracking-tight">{col.header}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <button 
                   onClick={() => {
-                    generateReport(selectedReportType, reportFilters);
+                    generateReport(selectedReportType, { ...reportFilters, selectedColumns: selectedReportColumns });
                     setIsReportModalOpen(false);
                   }}
                   className="w-full bg-zinc-950 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:bg-yellow-500 hover:text-zinc-950 transition-all active:scale-[0.98] mt-2 flex items-center justify-center gap-2"
