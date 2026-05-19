@@ -685,8 +685,22 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     if (activeTab === 'voters' && isAdmin) {
       const votersRef = collection(db, 'voters');
       const unsub = onSnapshot(votersRef, (snapshot) => {
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setAllVoters(data);
+        const rawData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+        // Deduplicar para a visão geral: prioriza o registro mais completo ou mais recente
+        const uniqueMap = new Map();
+        rawData.forEach((v: any) => {
+          const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, v);
+          } else {
+            // Se já existe, mantém o que tem mais campos preenchidos (ex: articulatorId)
+            const existing = uniqueMap.get(key);
+            if (!existing.articulatorId && v.articulatorId) {
+              uniqueMap.set(key, v);
+            }
+          }
+        });
+        setAllVoters(Array.from(uniqueMap.values()));
       });
       return () => unsub();
     }
@@ -3728,8 +3742,16 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
 
       const votersQuery = query(collection(db, 'voters'), where('leaderId', '==', user.uid));
       const unsubVoters = onSnapshot(votersQuery, (snapshot) => {
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setVoters(data);
+        const rawData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+        // Deduplicar para o líder também, garantindo lista limpa
+        const uniqueMap = new Map();
+        rawData.forEach((v: any) => {
+          const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, v);
+          }
+        });
+        setVoters(Array.from(uniqueMap.values()));
       }, (err) => {
         console.error("Erro ao escutar eleitores:", err);
       });
@@ -3996,6 +4018,16 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     }
 
     try {
+      // Verificar se já existe um eleitor com este telefone antes de criar um novo
+      if (!isEditingVoter && voterForm.phone && voterForm.phone.length > 5) {
+        const q = query(collection(db, 'voters'), where('phone', '==', voterForm.phone));
+        const checkSnap = await getDocs(q);
+        if (!checkSnap.empty) {
+          alert("🚨 ATENÇÃO: Este telefone já está cadastrado na base geral da campanha! Não é permitido duplicar eleitores.");
+          return;
+        }
+      }
+
       if (isEditingVoter && editingVoterId) {
         await firestoreService.updateDocument('voters', editingVoterId, {
           ...voterForm,
