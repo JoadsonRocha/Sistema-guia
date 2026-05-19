@@ -619,6 +619,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
           columns = [
             { header: 'Nome', dataKey: 'name' },
             { header: 'Telefone', dataKey: 'phone' },
+            { header: 'Equipe/Zona', dataKey: 'teamDisplay' },
             { header: 'Indicado por', dataKey: 'referredBy' },
             { header: 'Sentimento', dataKey: 'sentiment' },
             { header: 'Votou', dataKey: 'votedStatus' }
@@ -626,13 +627,15 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
           data = allVoters.filter(v => {
             if (filters.sentiment && v.sentiment !== filters.sentiment) return false;
             if (filters.voted !== undefined && v.voted !== filters.voted) return false;
+            if (filters.team && v.team !== filters.team && v.teamName !== filters.team) return false;
             return true;
           }).map(v => ({
             ...v,
+            teamDisplay: v.team || v.teamName || 'N/A',
             votedStatus: v.voted ? 'SIM' : 'NÃO',
             sentiment: v.sentiment === 'support' ? 'APOIO' : v.sentiment === 'neutral' ? 'NEUTRO' : 'OPOSIÇÃO'
           }));
-          subtitle = `${data.length} eleitores identificados na base.`;
+          subtitle = `${data.length} eleitores filtrados na base estratégica.`;
           break;
 
         case 'finance':
@@ -836,6 +839,10 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
+    const unsubVoters = onSnapshot(collection(db, 'voters'), (snap) => {
+      setAllVoters(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
     const unsubReports = onSnapshot(query(collection(db, 'reports'), orderBy('createdAt', 'desc')), (snap) => {
       setReportsHistory(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
@@ -852,6 +859,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       unsubMaterials();
       unsubMaterialRequests();
       unsubPartners();
+      unsubVoters();
       unsubReports();
     };
   }, [user, isAdmin]);
@@ -901,11 +909,11 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     },
     { 
       label: 'Contatos Base', 
-      value: teams.reduce((acc, t) => acc + (t.contacts || 0), 0), 
+      value: allVoters.length, 
       sub: 'Monitoramento Real', 
       color: 'text-emerald-600 dark:text-emerald-500',
       iconColor: 'bg-emerald-50 dark:bg-emerald-500/10',
-      action: () => setActiveTab('teams')
+      action: () => setActiveTab('voters')
     },
     { 
       label: 'Agenda Pendente', 
@@ -1788,7 +1796,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                             setIsTeamManagementOpen(true);
                           }}
                           className={`w-full px-6 py-3.5 rounded-sm font-black text-[10px] uppercase shadow-lg transition-all active:translate-y-0.5 whitespace-nowrap hover:scale-[1.02] ${
-                            team.demands > 0 ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-zinc-950 text-white hover:bg-zinc-800'
+                            urgencies.filter(u => u.team === team.name).length > 0 ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-zinc-950 text-white hover:bg-zinc-800'
                           }`}
                         >
                           Gerenciar Equipe
@@ -4198,6 +4206,19 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
                 {selectedReportType === 'voters' && (
                   <>
+                    <div className="space-y-1.5">
+                       <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Equipe/Zona</label>
+                       <select 
+                         value={reportFilters.team || ''} 
+                         onChange={e => setReportFilters({...reportFilters, team: e.target.value})}
+                         className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+                       >
+                         <option value="">TODAS AS EQUIPES</option>
+                         {teams.map(t => (
+                           <option key={t.id} value={t.name}>{t.name.toUpperCase()}</option>
+                         ))}
+                       </select>
+                    </div>
                     <div className="space-y-1.5">
                        <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Sentimento Político</label>
                        <select 
