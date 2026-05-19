@@ -228,6 +228,10 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
   const [aiResult, setAiResult] = useState<any>(null);
   const [partnerCost, setPartnerCost] = useState('');
   
+  const [isEditingMaterial, setIsEditingMaterial] = useState(false);
+  const [editingMaterialId, setEditingMaterialId] = useState<string | null>(null);
+  const [materialForm, setMaterialForm] = useState({ name: '', qty: '' });
+  
   const [selectedUrgency, setSelectedUrgency] = useState<any>(null);
   const [observation, setObservation] = useState('');
   const [isUrgencyModalOpen, setIsUrgencyModalOpen] = useState(false);
@@ -373,16 +377,29 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
   const handleAddMaterial = async (e: any) => {
     e.preventDefault();
-    const name = e.target.name.value;
-    const qty = parseInt(e.target.qty.value);
+    const name = e.target.name.value.trim();
+    const qtyStr = e.target.qty.value.replace(/\D/g, '');
+    const qty = parseInt(qtyStr);
+    
     if (!name || isNaN(qty)) return;
     
-    await firestoreService.addDocument('materials', {
-      name,
-      total: qty,
-      current: qty,
-      createdAt: Date.now()
-    });
+    const existing = materials.find(m => m.name.toLowerCase() === name.toLowerCase());
+    
+    if (existing) {
+      // Acrescentar ao invés de criar novo
+      await firestoreService.updateDocument('materials', existing.id, {
+        total: (existing.total || 0) + qty,
+        current: (existing.current || 0) + qty
+      });
+      alert(`Quantidade adicionada ao material existente: ${name}`);
+    } else {
+      await firestoreService.addDocument('materials', {
+        name,
+        total: qty,
+        current: qty,
+        createdAt: Date.now()
+      });
+    }
     e.target.reset();
   };
 
@@ -392,6 +409,50 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     await firestoreService.updateDocument('materials', id, {
       current: Math.max(0, (mat.current || 0) + amount)
     });
+  };
+
+  const handleDeleteMaterial = async (id: string) => {
+    if (confirm("Deseja realmente excluir este tipo de material e todo seu estoque?")) {
+      await firestoreService.deleteDocument('materials', id);
+    }
+  };
+
+  const handleStartEditMaterial = (m: any) => {
+    setIsEditingMaterial(true);
+    setEditingMaterialId(m.id);
+    setMaterialForm({ name: m.name, qty: m.total.toString() });
+  };
+
+  const handleSaveEditMaterial = async (e: any) => {
+    e.preventDefault();
+    if (!editingMaterialId) return;
+
+    const qtyStr = materialForm.qty.replace(/\D/g, '');
+    const qty = parseInt(qtyStr);
+    
+    if (!materialForm.name || isNaN(qty)) return;
+
+    const old = materials.find(m => m.id === editingMaterialId);
+    if (!old) return;
+
+    // Se o total mudou, precisamos ajustar o current proporcionalmente ou apenas manter?
+    // User said "editar materiais que já foram registrados"
+    // Geralmente editar é pra corrigir erro no cadastro inicial.
+    // Vou atualizar o total e resetar o current se for erro de cadastro, 
+    // mas se já saíram materiais, resetar o current pode ser ruim.
+    // Vou manter a diferença entre total e current se possível.
+    const diffUsed = old.total - old.current;
+
+    await firestoreService.updateDocument('materials', editingMaterialId, {
+      name: materialForm.name,
+      total: qty,
+      current: Math.max(0, qty - diffUsed)
+    });
+
+    setIsEditingMaterial(false);
+    setEditingMaterialId(null);
+    setMaterialForm({ name: '', qty: '' });
+    alert("Material atualizado com sucesso!");
   };
 
   const handleApproveMaterialRequest = async (req: any) => {
@@ -2119,32 +2180,62 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                  {/* FORM ADD MATERIAL */}
+                  {/* FORM ADD/EDIT MATERIAL */}
                   <div className="lg:col-span-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-8 shadow-[var(--shadow-sm)] h-fit relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
                       <Package className="w-32 h-32" />
                     </div>
                     <h3 className="text-xs font-black uppercase text-[var(--text-primary)] mb-8 flex items-center gap-3 relative z-10">
-                      <div className="p-2 bg-yellow-500 rounded-sm shadow-lg shadow-yellow-500/20"><Plus className="w-4 h-4 text-zinc-950" /></div> Registrador de Lote
+                      <div className="p-2 bg-yellow-500 rounded-sm shadow-lg shadow-yellow-500/20">
+                        {isEditingMaterial ? <Edit3 className="w-4 h-4 text-zinc-950" /> : <Plus className="w-4 h-4 text-zinc-950" />}
+                      </div> {isEditingMaterial ? 'Editar Material' : 'Registrador de Lote'}
                     </h3>
-                    <form onSubmit={handleAddMaterial} className="space-y-6 relative z-10">
+                    
+                    <form onSubmit={isEditingMaterial ? handleSaveEditMaterial : handleAddMaterial} className="space-y-6 relative z-10">
                       <div className="space-y-2 text-left">
                         <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Descrição do Material</label>
-                        <input name="name" type="text" placeholder="Ex: Santinho 55000" className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors" />
+                        <input 
+                          name="name" 
+                          type="text" 
+                          placeholder="Ex: Santinho 55000" 
+                          value={isEditingMaterial ? materialForm.name : undefined}
+                          onChange={isEditingMaterial ? (e) => setMaterialForm({...materialForm, name: e.target.value}) : undefined}
+                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors" 
+                        />
                       </div>
                       <div className="space-y-2 text-left">
-                        <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Quantidade Total</label>
-                        <input name="qty" type="number" placeholder="Ex: 5000" className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors" />
+                        <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">
+                          {isEditingMaterial ? 'Quantidade Total Original' : 'Quantidade Total'}
+                        </label>
+                        <input 
+                          name="qty" 
+                          type="text" 
+                          placeholder="Ex: 50.000" 
+                          value={isEditingMaterial ? materialForm.qty : undefined}
+                          onChange={isEditingMaterial ? (e) => setMaterialForm({...materialForm, qty: e.target.value}) : undefined}
+                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors" 
+                        />
                       </div>
-                      <button className="w-full bg-zinc-950 text-white dark:bg-yellow-500 dark:text-zinc-950 py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-yellow-400">
-                        Autenticar Entrada
-                      </button>
+                      <div className="flex gap-3">
+                        {isEditingMaterial && (
+                          <button 
+                            type="button"
+                            onClick={() => { setIsEditingMaterial(false); setEditingMaterialId(null); setMaterialForm({ name: '', qty: '' }); }}
+                            className="flex-1 bg-zinc-200 text-zinc-950 py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-300"
+                          >
+                            Cancelar
+                          </button>
+                        )}
+                        <button className="flex-[2] bg-zinc-950 text-white dark:bg-yellow-500 dark:text-zinc-950 py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-yellow-400">
+                          {isEditingMaterial ? 'Salvar Alterações' : 'Autenticar Entrada'}
+                        </button>
+                      </div>
                     </form>
                   </div>
 
                   {/* MATERIAL LIST */}
                   <div className="lg:col-span-2 space-y-4">
-                    {materials.length > 0 ? materials.map(m => (
+                    {materials.length > 0 ? materials.sort((a, b) => b.createdAt - a.createdAt).map(m => (
                       <div key={m.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 flex items-center justify-between group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)]">
                         <div className="flex items-center gap-5">
                           <div className="w-14 h-14 bg-[var(--bg-tertiary)] rounded-sm flex items-center justify-center border border-[var(--border-color)] shadow-inner group-hover/mat:border-yellow-500/30">
@@ -2160,16 +2251,32 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                                   className={`h-full ${(m.current / m.total) < 0.2 ? 'bg-red-500' : 'bg-yellow-500'}`} 
                                 />
                               </div>
-                              <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest leading-none">{m.current} <span className="opacity-40">/ {m.total}</span></span>
+                              <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest leading-none">
+                                {m.current.toLocaleString('pt-BR')} <span className="opacity-40">/ {m.total.toLocaleString('pt-BR')}</span>
+                              </span>
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <button onClick={() => handleUpdateMaterial(m.id, -100)} className="w-11 h-11 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-red-500 hover:bg-red-500/10 transition-all active:scale-95 text-xs font-black">
-                            -100
+                          <button 
+                            onClick={() => handleStartEditMaterial(m)} 
+                            className="w-10 h-10 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-zinc-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all active:scale-95"
+                            title="Editar"
+                          >
+                            <Edit3 className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleUpdateMaterial(m.id, 100)} className="w-11 h-11 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-emerald-500 hover:bg-emerald-500/10 transition-all active:scale-95 text-xs font-black">
+                          <button 
+                            onClick={() => handleDeleteMaterial(m.id)} 
+                            className="w-10 h-10 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all active:scale-95"
+                            title="Excluir"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleUpdateMaterial(m.id, 100)} className="w-14 h-11 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-emerald-500 hover:bg-emerald-500/10 transition-all active:scale-95 text-[10px] font-black">
                             +100
+                          </button>
+                          <button onClick={() => handleUpdateMaterial(m.id, 1000)} className="w-14 h-11 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-emerald-500 hover:bg-emerald-500/10 transition-all active:scale-95 text-[10px] font-black">
+                            +1k
                           </button>
                         </div>
                       </div>
