@@ -377,43 +377,60 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
   const handleAddMaterial = async (e: any) => {
     e.preventDefault();
-    const name = e.target.name.value.trim();
-    const qtyStr = e.target.qty.value.replace(/\D/g, '');
-    const qty = parseInt(qtyStr);
-    
-    if (!name || isNaN(qty)) return;
-    
-    const existing = materials.find(m => m.name.toLowerCase() === name.toLowerCase());
-    
-    if (existing) {
-      // Acrescentar ao invés de criar novo
-      await firestoreService.updateDocument('materials', existing.id, {
-        total: (existing.total || 0) + qty,
-        current: (existing.current || 0) + qty
-      });
-      alert(`Quantidade adicionada ao material existente: ${name}`);
-    } else {
-      await firestoreService.addDocument('materials', {
-        name,
-        total: qty,
-        current: qty,
-        createdAt: Date.now()
-      });
+    try {
+      const name = e.target.name.value.trim();
+      const qtyStr = e.target.qty.value.replace(/\D/g, '');
+      const qty = parseInt(qtyStr);
+      
+      if (!name || isNaN(qty)) {
+        alert("Preencha o nome e a quantidade corretamente.");
+        return;
+      }
+      
+      const existing = materials.find(m => m.name.toLowerCase() === name.toLowerCase());
+      
+      if (existing) {
+        await firestoreService.updateDocument('materials', existing.id, {
+          total: (existing.total || 0) + qty,
+          current: (existing.current || 0) + qty
+        });
+        alert(`Quantidade adicionada ao material existente: ${name}`);
+      } else {
+        await firestoreService.addDocument('materials', {
+          name,
+          total: qty,
+          current: qty,
+          createdAt: Date.now()
+        });
+        alert("Material registrado com sucesso!");
+      }
+      e.target.reset();
+      setMaterialForm({ name: '', qty: '' });
+    } catch (err: any) {
+      alert("Erro ao salvar: " + err.message);
     }
-    e.target.reset();
   };
 
   const handleUpdateMaterial = async (id: string, amount: number) => {
-    const mat = materials.find(m => m.id === id);
-    if (!mat) return;
-    await firestoreService.updateDocument('materials', id, {
-      current: Math.max(0, (mat.current || 0) + amount)
-    });
+    try {
+      const mat = materials.find(m => m.id === id);
+      if (!mat) return;
+      await firestoreService.updateDocument('materials', id, {
+        current: Math.max(0, (mat.current || 0) + amount)
+      });
+    } catch (err: any) {
+      alert("Erro ao atualizar: " + err.message);
+    }
   };
 
   const handleDeleteMaterial = async (id: string) => {
     if (confirm("Deseja realmente excluir este tipo de material e todo seu estoque?")) {
-      await firestoreService.deleteDocument('materials', id);
+      try {
+        await firestoreService.deleteDocument('materials', id);
+        alert("Material excluído!");
+      } catch (err: any) {
+        alert("Erro ao excluir: " + err.message);
+      }
     }
   };
 
@@ -427,32 +444,36 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     e.preventDefault();
     if (!editingMaterialId) return;
 
-    const qtyStr = materialForm.qty.replace(/\D/g, '');
-    const qty = parseInt(qtyStr);
-    
-    if (!materialForm.name || isNaN(qty)) return;
+    try {
+      const qtyStr = materialForm.qty.replace(/\D/g, '');
+      const qty = parseInt(qtyStr);
+      
+      if (!materialForm.name || isNaN(qty)) {
+        alert("Preencha o nome e a quantidade corretamente.");
+        return;
+      }
 
-    const old = materials.find(m => m.id === editingMaterialId);
-    if (!old) return;
+      const old = materials.find(m => m.id === editingMaterialId);
+      if (!old) {
+        alert("Erro: Material original não encontrado.");
+        return;
+      }
 
-    // Se o total mudou, precisamos ajustar o current proporcionalmente ou apenas manter?
-    // User said "editar materiais que já foram registrados"
-    // Geralmente editar é pra corrigir erro no cadastro inicial.
-    // Vou atualizar o total e resetar o current se for erro de cadastro, 
-    // mas se já saíram materiais, resetar o current pode ser ruim.
-    // Vou manter a diferença entre total e current se possível.
-    const diffUsed = old.total - old.current;
+      const diffUsed = (old.total || 0) - (old.current || 0);
 
-    await firestoreService.updateDocument('materials', editingMaterialId, {
-      name: materialForm.name,
-      total: qty,
-      current: Math.max(0, qty - diffUsed)
-    });
+      await firestoreService.updateDocument('materials', editingMaterialId, {
+        name: materialForm.name,
+        total: qty,
+        current: Math.max(0, qty - diffUsed)
+      });
 
-    setIsEditingMaterial(false);
-    setEditingMaterialId(null);
-    setMaterialForm({ name: '', qty: '' });
-    alert("Material atualizado com sucesso!");
+      setIsEditingMaterial(false);
+      setEditingMaterialId(null);
+      setMaterialForm({ name: '', qty: '' });
+      alert("Material atualizado com sucesso!");
+    } catch (err: any) {
+      alert("Erro ao salvar alterações: " + err.message);
+    }
   };
 
   const handleApproveMaterialRequest = async (req: any) => {
@@ -2198,8 +2219,8 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                           name="name" 
                           type="text" 
                           placeholder="Ex: Santinho 55000" 
-                          value={isEditingMaterial ? materialForm.name : undefined}
-                          onChange={isEditingMaterial ? (e) => setMaterialForm({...materialForm, name: e.target.value}) : undefined}
+                          value={materialForm.name}
+                          onChange={(e) => setMaterialForm({...materialForm, name: e.target.value})}
                           className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors" 
                         />
                       </div>
@@ -2211,8 +2232,12 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                           name="qty" 
                           type="text" 
                           placeholder="Ex: 50.000" 
-                          value={isEditingMaterial ? materialForm.qty : undefined}
-                          onChange={isEditingMaterial ? (e) => setMaterialForm({...materialForm, qty: e.target.value}) : undefined}
+                          value={materialForm.qty}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '');
+                            const formatted = val ? parseInt(val).toLocaleString('pt-BR') : '';
+                            setMaterialForm({...materialForm, qty: formatted});
+                          }}
                           className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors" 
                         />
                       </div>
