@@ -2487,57 +2487,83 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
                   {/* LIST */}
                   <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {partners.length > 0 ? partners.map(p => (
-                      <div key={p.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 flex items-center justify-between group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)]">
-                        <div className="flex items-center gap-5">
-                          <div className={`w-14 h-14 rounded-sm flex items-center justify-center border-2 shadow-inner ${
-                            p.status === 'quente' ? 'bg-yellow-500/10 border-yellow-500/20' : 
-                            p.status === 'morno' ? 'bg-orange-500/10 border-orange-500/20' : 'bg-blue-500/10 border-blue-500/20'
-                          }`}>
-                            <Handshake className={`w-7 h-7 ${
-                              p.status === 'quente' ? 'text-yellow-500' : 
-                              p.status === 'morno' ? 'text-orange-500' : 'text-blue-500'
-                            }`} />
+                    {partners.length > 0 ? partners.map(p => {
+                      const associatedVoters = allVoters.filter(v => v.articulatorId === p.id || v.referredBy === p.name).length;
+                      const efficiency = (p.cost || 0) / (associatedVoters || 1);
+                      
+                      return (
+                        <div key={p.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 flex flex-col gap-5 group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)] relative overflow-hidden">
+                          {/* Top Section: Icon, Name, Status */}
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className={`w-12 h-12 rounded-sm flex items-center justify-center border-2 shadow-inner transition-colors ${
+                                p.status === 'quente' ? 'bg-yellow-500/10 border-yellow-500/20' : 
+                                p.status === 'morno' ? 'bg-orange-500/10 border-orange-500/20' : 'bg-blue-500/10 border-blue-500/20'
+                              }`}>
+                                <Handshake className={`w-6 h-6 ${
+                                  p.status === 'quente' ? 'text-yellow-500' : 
+                                  p.status === 'morno' ? 'text-orange-500' : 'text-blue-500'
+                                }`} />
+                              </div>
+                              <div>
+                                <h4 className="font-black text-[var(--text-primary)] uppercase leading-none tracking-tight text-sm font-sans">{p.name}</h4>
+                                <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-60 mt-1.5 font-mono">{p.role || 'SEM FUNÇÃO DEFINIDA'}</p>
+                              </div>
+                            </div>
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-sm shadow-sm ${
+                              p.status === 'quente' ? 'bg-yellow-500 text-zinc-950' : 
+                              p.status === 'morno' ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
+                            }`}>
+                              {p.status === 'quente' ? '💎 CONSOLIDADO' : p.status === 'morno' ? '🔥 TRATATIVA' : '❄️ MAPEADO'}
+                            </span>
                           </div>
-                          <div>
-                            <h4 className="font-black text-[var(--text-primary)] uppercase leading-none tracking-tight text-sm font-sans">{p.name}</h4>
-                            <div className="flex items-center gap-3 mt-2">
-                              <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-60 font-mono">{p.role}</p>
-                              <div className="w-1 h-1 bg-zinc-300 rounded-full"></div>
-                              <p className="text-[9px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-widest">{allVoters.filter(v => v.articulatorId === p.id || v.referredBy === p.name).length} Votos Associados</p>
-                              <div className="w-1 h-1 bg-zinc-300 rounded-full"></div>
-                              <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">
-                                Eficiência: R$ {((p.cost || 0) / (allVoters.filter(v => v.articulatorId === p.id || v.referredBy === p.name).length || 1)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} / Voto
-                              </p>
+
+                          {/* Stats Grid */}
+                          <div className="grid grid-cols-2 gap-3 py-4 border-y border-[var(--border-color)] border-dashed">
+                            <div className="bg-[var(--bg-tertiary)]/50 p-3 rounded-sm border border-[var(--border-color)] flex flex-col gap-1.5">
+                               <p className="text-[7px] font-black text-zinc-400 uppercase tracking-[0.2em]">Votos Identificados</p>
+                               <div className="flex items-baseline gap-1">
+                                 <span className="text-base font-black text-yellow-600 dark:text-yellow-500 leading-none">{associatedVoters}</span>
+                                 <span className="text-[9px] font-black text-zinc-400 uppercase">Projetados</span>
+                               </div>
+                            </div>
+                            <div className="bg-[var(--bg-tertiary)]/50 p-3 rounded-sm border border-[var(--border-color)] flex flex-col gap-1.5">
+                               <p className="text-[7px] font-black text-zinc-400 uppercase tracking-[0.2em]">Custo p/ Conversão</p>
+                               <div className="flex items-baseline gap-1">
+                                 <span className="text-[10px] font-black text-zinc-400">R$</span>
+                                 <span className="text-sm font-black text-emerald-600 leading-none">
+                                   {efficiency.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                 </span>
+                               </div>
+                            </div>
+                          </div>
+
+                          {/* Actions Footer */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1">
+                              <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest">Investimento Total:</p>
+                              <p className="text-[8px] font-black text-[var(--text-primary)]">R$ {(p.cost || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button 
+                                onClick={() => handleEditPartner(p)} 
+                                className="w-8 h-8 rounded-sm flex items-center justify-center text-zinc-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all border border-transparent hover:border-blue-500/20"
+                                title="Editar Cadastro"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button 
+                                onClick={() => handleDeletePartner(p.id)} 
+                                className="w-8 h-8 rounded-sm flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20"
+                                title="Excluir Mapeamento"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => handleEditPartner(p)} 
-                            className="w-10 h-10 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-zinc-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all active:scale-95"
-                            title="Editar"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleDeletePartner(p.id)} 
-                            className="w-10 h-10 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all active:scale-95"
-                            title="Excluir"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                        <div className="text-right">
-                          <span className={`text-[8px] font-black uppercase tracking-widest px-3.5 py-2 rounded-sm shadow-sm ${
-                            p.status === 'quente' ? 'bg-yellow-500 text-zinc-950' : 
-                            p.status === 'morno' ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
-                          }`}>
-                            {p.status === 'quente' ? '💎 CONSOLIDADO' : p.status === 'morno' ? '🔥 TRATATIVA' : '❄️ MAPEADO'}
-                          </span>
-                        </div>
-                      </div>
-                    )) : (
+                      );
+                    }) : (
                       <div className="col-span-full py-24 text-center bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-sm grayscale opacity-30">
                         <Handshake className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
                         <p className="text-[var(--text-secondary)] font-black uppercase tracking-[0.2em] text-[10px]">Sem Parceiros: Inicie o mapeamento regional.</p>
