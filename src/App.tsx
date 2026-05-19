@@ -2036,8 +2036,8 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {notes.filter(n => noteSubTab === 'private' ? n.type === 'private' : (n.type === 'tactical' || !n.type)).length > 0 ? (
-                    notes.filter(n => noteSubTab === 'private' ? n.type === 'private' : (n.type === 'tactical' || !n.type)).map((note) => (
+                  {notes.filter(n => noteSubTab === 'private' ? (n.type === 'private' && n.authorId === user?.uid) : (n.type === 'tactical')).length > 0 ? (
+                    notes.filter(n => noteSubTab === 'private' ? (n.type === 'private' && n.authorId === user?.uid) : (n.type === 'tactical')).map((note) => (
                       <NoteCard key={note.id} note={note} user={user} isAdmin={isAdmin} currentUserName={profileData?.name} onDelete={() => firestoreService.deleteDocument('notes', note.id)} />
                     ))
                   ) : (
@@ -4211,14 +4211,21 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         text: processedNote,
         originalText: noteText,
         leaderId: user.uid,
+        authorId: user.uid,
         leaderName: profileData.name,
+        authorName: profileData.name,
         team: profileData.zone,
         teamName: profileData.zone,
-        type: 'tactical',
+        type: activeTab === 'feed' ? 'tactical' : 'private',
         createdAt: Date.now()
       });
       setNoteText('');
       setIsNoteModalOpen(false);
+      if (activeTab === 'feed') {
+        alert("Nota postada no Feed Tático!");
+      } else {
+        alert("Anotação salva na sua agenda pessoal!");
+      }
     } catch (error) {
       console.error("Erro ao salvar nota:", error);
       alert("Erro ao salvar nota.");
@@ -4826,8 +4833,8 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {notes.filter(n => n.type === 'tactical' || !n.type).length > 0 ? (
-                notes.filter(n => n.type === 'tactical' || !n.type).map((note) => (
+              {notes.filter(n => n.type === 'tactical').length > 0 ? (
+                notes.filter(n => n.type === 'tactical').map((note) => (
                   <NoteCard 
                     key={note.id} 
                     note={note} 
@@ -4863,7 +4870,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {notes.length > 0 ? notes.map((note) => (
+                {notes.filter(n => n.type === 'private' && n.authorId === user?.uid).length > 0 ? notes.filter(n => n.type === 'private' && n.authorId === user?.uid).map((note) => (
                   <NoteCard key={note.id} note={note} user={user} isAdmin={false} currentUserName={profileData?.name} onDelete={() => handleDeleteNote(note.id)} />
                 )) : (
                   <div className="col-span-full py-24 border-2 border-dashed border-[var(--border-color)] rounded-sm text-center grayscale opacity-40">
