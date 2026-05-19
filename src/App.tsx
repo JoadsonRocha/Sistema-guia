@@ -217,6 +217,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
   // New States for requested features
   const [dailyOrder, setDailyOrder] = useState<any>(null);
   const [materials, setMaterials] = useState<any[]>([]);
+  const [materialRequests, setMaterialRequests] = useState<any[]>([]);
   const [partners, setPartners] = useState<any[]>([]);
   const [demandsSummary, setDemandsSummary] = useState<any[]>([]);
   const [isEditingDailyOrder, setIsEditingDailyOrder] = useState(false);
@@ -393,6 +394,45 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     });
   };
 
+  const handleApproveMaterialRequest = async (req: any) => {
+    try {
+      const mat = materials.find(m => m.id === req.materialId);
+      if (!mat) {
+        alert("Material não encontrado no estoque!");
+        return;
+      }
+      
+      if (mat.current < req.qty) {
+        alert("Quantidade insuficiente no estoque para aprovar esta solicitação!");
+        return;
+      }
+
+      // Update material qty
+      await firestoreService.updateDocument('materials', req.materialId, {
+        current: mat.current - req.qty
+      });
+
+      // Update request status
+      await firestoreService.updateDocument('material_requests', req.id, {
+        status: 'aprovado',
+        approvedAt: Date.now()
+      });
+
+      alert("Solicitação aprovada e material descontado do estoque!");
+    } catch (err: any) {
+      alert("Erro ao aprovar: " + err.message);
+    }
+  };
+
+  const handleDenyMaterialRequest = async (id: string) => {
+    if (confirm("Deseja realmente negar esta solicitação?")) {
+      await firestoreService.updateDocument('material_requests', id, {
+        status: 'negado',
+        deniedAt: Date.now()
+      });
+    }
+  };
+
   const handleAddPartner = async (e: any) => {
     e.preventDefault();
     const name = e.target.name.value;
@@ -506,6 +546,10 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
+    const unsubMaterialRequests = firestoreService.subscribeToCollection('material_requests', (data) => {
+      setMaterialRequests(data);
+    });
+
     const unsubPartners = onSnapshot(collection(db, 'partners'), (snap) => {
       setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
@@ -520,6 +564,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       unsubProfile();
       unsubDailyOrder();
       unsubMaterials();
+      unsubMaterialRequests();
       unsubPartners();
     };
   }, [user, isAdmin]);
@@ -2136,6 +2181,75 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     )}
                   </div>
                 </div>
+
+                {/* SOLICITAÇÕES DE LÍDERES */}
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-10 shadow-[var(--shadow-sm)]">
+                  <div className="flex justify-between items-center mb-8 border-b border-[var(--border-color)] pb-6">
+                    <div>
+                      <h3 className="text-xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Solicitações de Líderes</h3>
+                      <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] mt-3 opacity-60">Pedidos de remessa e distribuição de campo</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {materialRequests.length > 0 ? materialRequests.sort((a, b) => b.createdAt - a.createdAt).map(req => (
+                      <div key={req.id} className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-6 flex flex-col gap-5 hover:border-yellow-500/30 transition-all shadow-inner relative overflow-hidden group">
+                        {req.status === 'pendente' && <div className="absolute top-0 right-0 w-2 h-full bg-yellow-500"></div>}
+                        
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-sm flex items-center justify-center shadow-inner border border-[var(--border-color)] ${
+                              req.status === 'aprovado' ? 'bg-emerald-500/10 text-emerald-500' : req.status === 'negado' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500'
+                            }`}>
+                              <Package className="w-5 h-5" />
+                            </div>
+                            <div className="text-left">
+                              <h4 className="font-black text-[var(--text-primary)] text-sm uppercase tracking-tight">{req.materialName} ({req.qty} un)</h4>
+                              <p className="text-[9px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-widest mt-1.5">{req.team || '---'} • {req.leaderName}</p>
+                            </div>
+                          </div>
+                          <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-sm shadow-sm ${
+                            req.status === 'aprovado' ? 'bg-emerald-500 text-white' : req.status === 'negado' ? 'bg-red-500 text-white' : 'bg-yellow-500 text-zinc-950'
+                          }`}>
+                            {req.status}
+                          </span>
+                        </div>
+
+                        {req.reason && (
+                          <div className="bg-white/5 p-4 rounded-sm border border-white/5">
+                            <p className="text-[10px] font-bold text-zinc-500 italic leading-relaxed">"{req.reason}"</p>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between pt-4 border-t border-[var(--border-color)]">
+                          <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">{new Date(req.createdAt).toLocaleString()}</p>
+                          
+                          {req.status === 'pendente' && (
+                            <div className="flex items-center gap-3">
+                              <button 
+                                onClick={() => handleDenyMaterialRequest(req.id)}
+                                className="flex items-center gap-2 px-4 py-2 border border-red-500/30 text-red-500 rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-red-500/10"
+                              >
+                                <XCircle className="w-3.5 h-3.5" /> Negar
+                              </button>
+                              <button 
+                                onClick={() => handleApproveMaterialRequest(req)}
+                                className="flex items-center gap-2 px-6 py-2 bg-emerald-500 text-white rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/20"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" /> Liberar Lote
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="col-span-full py-20 text-center border-2 border-dashed border-[var(--border-color)] rounded-sm grayscale opacity-30">
+                        <Package className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
+                        <p className="text-[var(--text-secondary)] font-black uppercase tracking-[0.2em] text-[10px]">Sem solicitações pendentes.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </motion.div>
             )}
              {activeTab === 'partners' && (
@@ -3641,7 +3755,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [queueCount, setQueueCount] = useState(0);
   const [isLocating, setIsLocating] = useState(false);
-  const [activeTab, setActiveTab] = useState<'equipe' | 'logistica' | 'ouvidoria' | 'financeiro' | 'notas'>('logistica');
+  const [activeTab, setActiveTab] = useState<'equipe' | 'logistica' | 'ouvidoria' | 'financeiro' | 'notas' | 'materiais' | 'feed'>('logistica');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [dailyOrder, setDailyOrder] = useState<any>(null);
   
@@ -3651,6 +3765,8 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
   const [noteText, setNoteText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessingNote, setIsProcessingNote] = useState(false);
+  const [materials, setMaterials] = useState<any[]>([]);
+  const [materialRequests, setMaterialRequests] = useState<any[]>([]);
 
   // Finance State for Leader
   const [teamTransactions, setTeamTransactions] = useState<any[]>([]);
@@ -3776,6 +3892,14 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         if (snap.exists()) setDailyOrder(snap.data());
       });
 
+      const unsubMaterials = onSnapshot(collection(db, 'materials'), (snap) => {
+        setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+
+      const unsubMaterialRequests = firestoreService.subscribeToCollection('material_requests', (data) => {
+        setMaterialRequests(data);
+      });
+
       return () => {
         unsubProfile();
         unsubVoters();
@@ -3783,6 +3907,8 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         unsubNotes();
         if (unsubTx) unsubTx();
         unsubDailyOrder();
+        unsubMaterials();
+        unsubMaterialRequests();
       };
     }
   }, [user]);
@@ -4008,6 +4134,32 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         </div>
       </div>
     );
+  };
+
+  const handleAddMaterialRequest = async (e: any) => {
+    e.preventDefault();
+    const materialId = e.target.materialId.value;
+    const qty = parseInt(e.target.qty.value);
+    const reason = e.target.reason.value;
+    
+    if (!materialId || isNaN(qty)) return;
+
+    const mat = materials.find((m: any) => m.id === materialId);
+    
+    await firestoreService.addDocument('material_requests', {
+      leaderId: user.uid,
+      leaderName: profileData.name,
+      teamId: teamData?.id,
+      team: profileData.zone,
+      materialId,
+      materialName: mat?.name || 'Material Desconhecido',
+      qty,
+      reason,
+      status: 'pendente',
+      createdAt: Date.now()
+    });
+    e.target.reset();
+    alert("Solicitação de material enviada com sucesso!");
   };
 
   const handleVoterSubmit = async (e: React.FormEvent) => {
@@ -4309,6 +4461,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             { id: 'logistica', label: 'Painel Tático', icon: <MapPin className="w-4 h-4" /> },
             { id: 'equipe', label: 'Base de Eleitores', icon: <Users className="w-4 h-4" /> },
             { id: 'financeiro', label: 'Operacional Financeiro', icon: <Wallet className="w-4 h-4" /> },
+            { id: 'materiais', label: 'Gestão Materiais', icon: <Package className="w-4 h-4" /> },
             { id: 'notas', label: 'Notas de Voz', icon: <Mic className="w-4 h-4" /> },
             { id: 'feed', label: 'Feed Tático', icon: <MessageSquare className="w-4 h-4" /> }
           ].map(tab => (
@@ -4847,6 +5000,87 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                   )}
                 </div>
               </section>
+            </div>
+          </motion.div>
+        ) : activeTab === 'materiais' ? (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6 transition-colors">
+              <div>
+                <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Gestão de Materiais</h2>
+                <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">Solicitação de suprimentos e materiais de campanha</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+              {/* REQUEST FORM */}
+              <div className="lg:col-span-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-8 shadow-[var(--shadow-sm)] h-fit relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                  <Package className="w-32 h-32" />
+                </div>
+                <h3 className="text-xs font-black uppercase text-[var(--text-primary)] mb-8 flex items-center gap-3 relative z-10">
+                  <div className="p-2 bg-yellow-500 rounded-sm shadow-lg shadow-yellow-500/20"><Plus className="w-4 h-4 text-zinc-950" /></div> Solicitar Material
+                </h3>
+                <form onSubmit={handleAddMaterialRequest} className="space-y-6 relative z-10">
+                  <div className="space-y-2 text-left">
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Tipo de Material</label>
+                    <select name="materialId" required className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors cursor-pointer">
+                      <option value="">Selecione o Material</option>
+                      {materials.map(m => (
+                        <option key={m.id} value={m.id} disabled={m.current <= 0}>
+                          {m.name} ({m.current} disponíveis)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-2 text-left">
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Quantidade Desejada</label>
+                    <input name="qty" type="number" required placeholder="Ex: 500" className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors" />
+                  </div>
+                  <div className="space-y-2 text-left">
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Finalidade / Observação</label>
+                    <textarea name="reason" placeholder="Para distribuição no bairro..." className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors min-h-[100px]" />
+                  </div>
+                  <button className="w-full bg-zinc-950 text-white dark:bg-yellow-500 dark:text-zinc-950 py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-yellow-400">
+                    Enviar Solicitação
+                  </button>
+                </form>
+              </div>
+
+              {/* REQUEST LIST */}
+              <div className="lg:col-span-2 space-y-4">
+                <h3 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] mb-4">Minhas Solicitações</h3>
+                {materialRequests.filter(r => r.leaderId === user.uid).length > 0 ? (
+                  materialRequests.filter(r => r.leaderId === user.uid).sort((a, b) => b.createdAt - a.createdAt).map(req => (
+                    <div key={req.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 flex items-center justify-between group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)]">
+                      <div className="flex items-center gap-5">
+                        <div className={`w-14 h-14 bg-[var(--bg-tertiary)] rounded-sm flex items-center justify-center border border-[var(--border-color)] shadow-inner ${
+                          req.status === 'aprovado' ? 'text-emerald-500' : req.status === 'negado' ? 'text-red-500' : 'text-yellow-500'
+                        }`}>
+                          <Package className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h4 className="font-black text-[var(--text-primary)] text-sm uppercase tracking-tight font-sans">{req.materialName} ({req.qty} un)</h4>
+                          <div className="mt-1 flex items-center gap-3">
+                            <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">{new Date(req.createdAt).toLocaleDateString()}</span>
+                            <div className="w-1 h-1 bg-zinc-300 rounded-full"></div>
+                            <span className={`text-[9px] font-black uppercase tracking-widest ${
+                              req.status === 'aprovado' ? 'text-emerald-600' : req.status === 'negado' ? 'text-red-600' : 'text-yellow-600'
+                            }`}>
+                              {req.status}
+                            </span>
+                          </div>
+                          {req.reason && <p className="mt-2 text-[10px] font-bold text-zinc-500 italic opacity-70">"{req.reason}"</p>}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-24 text-center bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-sm grayscale opacity-30">
+                    <Package className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
+                    <p className="text-[var(--text-secondary)] font-black uppercase tracking-[0.2em] text-[10px]">Nenhuma solicitação enviada.</p>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         ) : activeTab === 'feed' ? (
