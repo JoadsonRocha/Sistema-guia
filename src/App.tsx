@@ -4437,15 +4437,17 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
         {isProfileModalOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[160] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+            className="fixed inset-0 z-[160] bg-zinc-950/90 backdrop-blur-md p-4 overflow-y-auto flex justify-center items-start md:items-center py-6 md:py-12"
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative my-auto"
             >
               <button 
+                type="button"
                 onClick={() => setIsProfileModalOpen(false)} 
-                className="absolute top-5 right-5 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 z-10"
+                className="absolute top-5 right-5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 p-2 rounded-sm z-50 transition-all flex items-center justify-center shadow-md cursor-pointer"
+                title="Fechar"
               >
                 <X className="w-5 h-5" />
               </button>
