@@ -4904,22 +4904,28 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       </AnimatePresence>
 
       {/* MOBILE BOTTOM NAV - COORDINATOR */}
-      <nav className="lg:hidden fixed bottom-6 left-6 right-6 h-20 bg-white/90 backdrop-blur-xl border border-zinc-200 rounded-sm flex items-center justify-around px-4 z-50 shadow-2xl">
+      <nav className="lg:hidden fixed bottom-6 left-6 right-6 h-20 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 rounded-sm flex items-center gap-3 overflow-x-auto px-4 z-50 shadow-2xl scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {[
           { id: 'overview', label: 'Dash', icon: <LayoutDashboard className="w-5 h-5" /> },
           { id: 'teams', label: 'Equipes', icon: <Users className="w-5 h-5" /> },
+          { id: 'voters', label: 'Eleitores', icon: <Target className="w-5 h-5" /> },
           { id: 'attendance', label: 'Ponto', icon: <Clock className="w-5 h-5" /> },
           { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-5 h-5" /> },
+          { id: 'finance', label: 'Finanças', icon: <DollarSign className="w-5 h-5" /> },
           { id: 'materials', label: 'Materia', icon: <Package className="w-5 h-5" /> },
-          { id: 'demands', label: 'Mapa', icon: <Activity className="w-5 h-5" /> }
+          { id: 'partners', label: 'Articular', icon: <Handshake className="w-5 h-5" /> },
+          { id: 'demands', label: 'Mapa', icon: <Activity className="w-5 h-5" /> },
+          { id: 'notes', label: 'Notas', icon: <MessageSquare className="w-5 h-5" /> },
+          { id: 'reports', label: 'Relatórios', icon: <FileDown className="w-5 h-5" /> },
+          { id: 'proposal', label: 'Proposta', icon: <Briefcase className="w-5 h-5" /> }
         ].map(tab => (
           <button 
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex flex-col items-center gap-1 transition-all ${
+            className={`flex flex-col items-center gap-1 transition-all shrink-0 min-w-[64px] ${
               activeTab === tab.id 
-              ? 'text-yellow-600 scale-110' 
-              : 'text-zinc-400'
+              ? 'text-yellow-600 dark:text-yellow-500 scale-105 font-black' 
+              : 'text-zinc-400 dark:text-zinc-500'
             }`}
           >
             <div className={`p-2 rounded-sm transition-all ${activeTab === tab.id ? 'bg-yellow-500/10' : ''}`}>
