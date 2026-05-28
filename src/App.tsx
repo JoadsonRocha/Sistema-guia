@@ -1677,20 +1677,20 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
 
         {/* CONTENT AREA */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar pb-32 lg:pb-20">
-          <div className="max-w-7xl mx-auto space-y-12 pb-20">
+        <main className="flex-1 overflow-y-auto p-3.5 md:p-10 custom-scrollbar pb-32 lg:pb-20">
+          <div className="max-w-7xl mx-auto space-y-6 md:space-y-12 pb-20">
             
             {activeTab === 'overview' && (
-              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-5 md:space-y-8">
               <div className="flex-col gap-1 flex">
-                <h2 className="text-lg font-black text-zinc-950 tracking-tighter uppercase leading-none dark:text-white">Painel de Operações</h2>
-                <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Monitoramento estratégico em tempo real</p>
+                <h2 className="text-base md:text-lg font-black text-zinc-950 tracking-tighter uppercase leading-none dark:text-white">Painel de Operações</h2>
+                <p className="text-[8px] md:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Monitoramento estratégico em tempo real</p>
               </div>
 
               <motion.section 
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-zinc-950 rounded-sm p-6 shadow-2xl border border-yellow-500/30 overflow-hidden relative group dark:bg-zinc-950"
+                className="bg-zinc-950 rounded-sm p-4 md:p-6 shadow-2xl border border-yellow-500/30 overflow-hidden relative group dark:bg-zinc-950"
               >
                 <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none group-hover:scale-110 transition-transform duration-700">
                   <ShieldCheck className="w-40 h-40 text-yellow-500" />
@@ -1750,7 +1750,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
               </motion.section>
 
               {/* STATS GRID */}
-              <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                 {stats.map((stat, i) => (
                   <motion.div 
                     key={i}
@@ -1758,24 +1758,24 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     onClick={stat.action}
-                    className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:border-yellow-500/50 transition-all cursor-pointer group"
+                    className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-3.5 md:p-5 rounded-sm shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:border-yellow-500/50 transition-all cursor-pointer group"
                   >
-                    <div className="flex justify-between items-start mb-3">
-                      <div className={`p-2.5 rounded-sm group-hover:bg-yellow-500 transition-colors ${(stat as any).iconColor || 'bg-[var(--bg-tertiary)]'}`}>
-                        {i === 0 && <Target className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
-                        {i === 1 && <Users className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
-                        {i === 2 && <Calendar className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
-                        {i === 3 && <DollarSign className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
+                    <div className="flex justify-between items-start mb-2.5">
+                      <div className={`p-2 rounded-sm group-hover:bg-yellow-500 transition-colors ${(stat as any).iconColor || 'bg-[var(--bg-tertiary)]'}`}>
+                        {i === 0 && <Target className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
+                        {i === 1 && <Users className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
+                        {i === 2 && <Calendar className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
+                        {i === 3 && <DollarSign className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-[7px] font-black py-0.5 px-2 bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 rounded-sm uppercase tracking-widest border border-green-200/50 dark:border-green-500/20">Fluxo Normal</span>
+                        <span className="text-[6px] md:text-[7px] font-black py-0.5 px-1.5 bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 rounded-sm uppercase tracking-widest border border-green-200/50 dark:border-green-500/20 leading-none">ATIVO</span>
                       </div>
                     </div>
-                    <p className={`text-2xl font-black tracking-tighter mb-0.5 leading-none ${stat.color || 'text-[var(--text-primary)]'}`}>{stat.value}</p>
-                    <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-[0.1em]">{stat.label}</p>
-                    <div className="mt-5 pt-3 border-t border-[var(--border-color)] flex items-center justify-between">
-                      <span className="text-[8px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">{stat.sub}</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-yellow-500 group-hover:translate-x-0.5 transition-all" />
+                    <p className={`text-lg md:text-2xl font-black tracking-tighter mb-0.5 leading-none ${stat.color || 'text-[var(--text-primary)]'}`}>{stat.value}</p>
+                    <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-[0.1em]">{stat.label}</p>
+                    <div className="mt-3.5 md:mt-5 pt-2 md:pt-3 border-t border-[var(--border-color)] flex items-center justify-between">
+                      <span className="text-[7.5px] md:text-[8px] font-bold text-[var(--text-secondary)] uppercase tracking-widest leading-none">{stat.sub}</span>
+                      <ChevronRight className="w-3 h-3 text-[var(--text-secondary)] group-hover:text-yellow-500 group-hover:translate-x-0.5 transition-all" />
                     </div>
                   </motion.div>
                 ))}
@@ -1811,11 +1811,11 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             )}
 
             {activeTab === 'teams' && (
-              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
+              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 md:space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4 md:pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Gestão de Equipes</h2>
-                    <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-2">Controle tático de recursos e unidades</p>
+                    <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Gestão de Equipes</h2>
+                    <p className="text-[var(--text-secondary)] text-[8px] md:text-[10px] font-bold uppercase tracking-widest mt-1.5 md:mt-2">Controle tático de recursos e unidades</p>
                   </div>
                   <button 
                     onClick={() => {
@@ -1838,18 +1838,18 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                         spent: 0
                       });
                     }}
-                    className="bg-yellow-500 text-zinc-950 px-6 py-3.5 rounded-sm font-black text-[10px] uppercase flex items-center justify-center gap-2.5 shadow-lg shadow-yellow-500/10 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto"
+                    className="bg-yellow-500 text-zinc-950 px-5 md:px-6 py-3 md:py-3.5 rounded-sm font-black text-[9px] md:text-[10px] uppercase flex items-center justify-center gap-2 md:gap-2.5 shadow-lg shadow-yellow-500/10 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto mt-2 md:mt-0"
                   >
                     <Plus className="w-4 h-4 text-zinc-950" /> Cadastrar Nova Unidade
                   </button>
                 </div>
                 
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-3 md:gap-4">
                   {teams.length > 0 ? teams.map((team) => (
                     <motion.div 
                       key={team.id || team.name} 
                       layout
-                      className={`bg-[var(--bg-secondary)] border ${team.fraudAlert ? 'border-red-600 shadow-[var(--shadow-md)] animate-pulse' : 'border-[var(--border-color)]'} rounded-sm p-5 lg:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:shadow-[var(--shadow-md)] hover:border-yellow-500/30 transition-all group relative overflow-hidden`}
+                      className={`bg-[var(--bg-secondary)] border ${team.fraudAlert ? 'border-red-600 shadow-[var(--shadow-md)] animate-pulse' : 'border-[var(--border-color)]'} rounded-sm p-4 md:p-6 lg:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6 hover:shadow-[var(--shadow-md)] hover:border-yellow-500/30 transition-all group relative overflow-hidden`}
                     >
                       <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 blur-3xl -mr-16 -mt-16 group-hover:bg-yellow-500/10 transition-colors pointer-events-none opacity-0 dark:opacity-100" />
                       
@@ -1859,79 +1859,79 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                         </div>
                       )}
                       
-                      <div className="flex items-center gap-5 min-w-[240px] relative z-10">
-                        <div className={`w-14 h-14 rounded-sm flex items-center justify-center transition-transform group-hover:rotate-3 shadow-inner ${
+                      <div className="flex items-center gap-4 md:gap-5 min-w-[200px] md:min-w-[240px] relative z-10">
+                        <div className={`w-11 h-11 md:w-14 md:h-14 rounded-sm flex items-center justify-center transition-transform group-hover:rotate-3 shadow-inner ${
                           team.status === 'OK' ? 'bg-emerald-500/10 text-emerald-500' : 
                           team.status === 'ALERTA' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-red-500/10 text-red-500'
                         }`}>
-                          <Users className="w-7 h-7" />
+                          <Users className="w-5 h-5 md:w-7 md:h-7" />
                         </div>
                         <div className="space-y-1">
-                          <h3 className="font-black text-[var(--text-primary)] text-xl uppercase tracking-tighter leading-none">{team.name}</h3>
+                          <h3 className="font-black text-[var(--text-primary)] text-base md:text-xl uppercase tracking-tighter leading-none">{team.name}</h3>
                           <div className="flex flex-col gap-1 pt-1 opacity-70">
-                            <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-2 tracking-widest leading-none">
-                              <User className="w-2.5 h-2.5 text-yellow-500" /> Líder: {team.leader}
+                            <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-1.5 tracking-widest leading-none">
+                              <User className="w-2 md:w-2.5 h-2 md:h-2.5 text-yellow-500" /> Líder: {team.leader}
                             </p>
-                            <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-2 tracking-widest leading-none">
-                              <MapPin className="w-2.5 h-2.5 text-yellow-500" /> Base: {team.location}
+                            <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-1.5 tracking-widest leading-none">
+                              <MapPin className="w-2 md:w-2.5 h-2 md:h-2.5 text-yellow-500" /> Base: {team.location}
                             </p>
                           </div>
                         </div>
                       </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 flex-1 text-left relative z-10">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 flex-1 text-left relative z-10">
                         <div>
-                          <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Eleitores</p>
-                          <p className="text-2xl font-black text-[var(--text-primary)] tracking-tighter">
+                          <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Eleitores</p>
+                          <p className="text-base md:text-2xl font-black text-[var(--text-primary)] tracking-tighter">
                             {allVoters.filter(v => v.team === team.name || v.teamName === team.name).length}
                           </p>
                         </div>
                         <div>
-                          <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Engajamento</p>
-                          <p className="text-2xl font-black text-emerald-600 dark:text-emerald-500 tracking-tighter leading-none">
+                          <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Engajamento</p>
+                          <p className="text-base md:text-2xl font-black text-emerald-600 dark:text-emerald-500 tracking-tighter leading-none">
                             {Math.min(100, Math.round(((allVoters.filter(v => v.team === team.name || v.teamName === team.name).length) / 100) * 100))}%
                           </p>
                         </div>
                         <div>
-                          <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Demandas</p>
-                          <p className={`text-2xl font-black tracking-tighter leading-none ${urgencies.filter(u => u.team === team.name).length > 0 ? 'text-red-600' : 'text-[var(--bg-tertiary)] opacity-30 dark:opacity-10'}`}>
+                          <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Demandas</p>
+                          <p className={`text-base md:text-2xl font-black tracking-tighter leading-none ${urgencies.filter(u => u.team === team.name).length > 0 ? 'text-red-600' : 'text-[var(--bg-tertiary)] opacity-30 dark:opacity-10'}`}>
                             {urgencies.filter(u => u.team === team.name).length}
                           </p>
                         </div>
                         <div>
-                           <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-2 leading-none opacity-60">Status de Rede</p>
-                           <span className={`inline-flex items-center gap-1.5 text-[8px] font-black px-3 py-1.5 rounded-sm uppercase tracking-widest border transition-colors ${
+                           <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1.5 md:mb-2 leading-none opacity-60">Status de Rede</p>
+                           <span className={`inline-flex items-center gap-1 text-[7px] md:text-[8px] font-black px-2 md:px-3 py-1 md:py-1.5 rounded-sm uppercase tracking-widest border transition-colors leading-none ${
                             team.status === 'OK' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border-emerald-500/20' : 
                             team.status === 'ALERTA' ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-500 border-yellow-500/20' : 'bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20'
                           }`}>
-                            <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${team.status === 'OK' ? 'bg-emerald-500' : team.status === 'ALERTA' ? 'bg-yellow-500' : 'bg-red-500'}`} />
+                            <div className={`w-1 md:w-1.5 h-1 md:h-1.5 rounded-full animate-pulse ${team.status === 'OK' ? 'bg-emerald-500' : team.status === 'ALERTA' ? 'bg-yellow-500' : 'bg-red-500'}`} />
                             {team.status}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex flex-row lg:flex-col gap-2 justify-end relative z-10">
-                        <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row lg:flex-col gap-2 justify-end relative z-10 w-full lg:w-auto">
+                        <div className="flex gap-2 w-full lg:w-auto">
                            <button 
                              onClick={() => handleCopyAccessLink(team)}
-                             className="p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)]"
+                             className="flex-1 lg:flex-none p-2.5 md:p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)] flex items-center justify-center"
                              title="Copiar Credenciais"
                            >
-                             <LogIn className="w-4 h-4" />
+                             <LogIn className="w-3.5 h-3.5 md:w-4 md:h-4" />
                            </button>
                            <button 
                              onClick={() => handleEditTeam(team)}
-                             className="p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)]"
+                             className="flex-1 lg:flex-none p-2.5 md:p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)] flex items-center justify-center"
                              title="Editar Unidade"
                            >
-                             <Edit3 className="w-4 h-4" />
+                             <Edit3 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                            </button>
                            <button 
                              onClick={() => handleDeleteTeam(team.id || team.name.replace(/\s/g, '_').toLowerCase(), team.name)}
-                             className="p-3 bg-red-600 text-white rounded-sm hover:bg-red-700 transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-red-600/20"
+                             className="flex-1 lg:flex-none p-2.5 md:p-3 bg-red-600 text-white rounded-sm hover:bg-red-700 transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-red-600/20 flex items-center justify-center"
                              title="Excluir"
                            >
-                             <Trash2 className="w-4 h-4" />
+                             <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                            </button>
                         </div>
                         <button 
@@ -1939,7 +1939,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                             setSelectedManagingTeam(team);
                             setIsTeamManagementOpen(true);
                           }}
-                          className={`w-full px-6 py-3.5 rounded-sm font-black text-[10px] uppercase shadow-lg transition-all active:translate-y-0.5 whitespace-nowrap hover:scale-[1.02] ${
+                          className={`w-full px-4 md:px-6 py-3 rounded-sm font-black text-[9px] md:text-[10px] uppercase shadow-lg transition-all active:translate-y-0.5 whitespace-nowrap hover:scale-[1.02] ${
                             urgencies.filter(u => u.team === team.name).length > 0 ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-zinc-950 text-white hover:bg-zinc-800'
                           }`}
                         >
@@ -1958,21 +1958,21 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             )}
 
             {activeTab === 'voters' && (
-              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-zinc-950 rounded-sm flex items-center justify-center shadow-lg">
-                      <Target className="w-6 h-6 text-yellow-500" />
+              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 md:space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4 md:pb-6">
+                  <div className="flex items-center gap-3 md:gap-4">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-950 rounded-sm flex items-center justify-center shadow-lg">
+                      <Target className="w-5 h-5 md:w-6 md:h-6 text-yellow-500" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Base de Eleitores</h2>
-                      <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Gestão centralizada de segmentação e influência</p>
+                      <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Base de Eleitores</h2>
+                      <p className="text-[var(--text-secondary)] text-[8px] md:text-[10px] font-bold uppercase tracking-widest mt-1.5 md:mt-2">Gestão centralizada de segmentação e influência</p>
                     </div>
                   </div>
                 </div>
 
                 {/* FILTERS */}
-                <div className="bg-white border border-zinc-200 rounded-sm p-6 shadow-sm space-y-6">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 shadow-sm space-y-4 md:space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Pesquisar por Nome/Telefone</label>
@@ -2007,24 +2007,24 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
                   {/* AÇÕES COLETIVAS */}
                   {isAdmin && (
-                    <div className="pt-4 border-t border-zinc-100 flex flex-col sm:flex-row gap-4">
+                    <div className="pt-4 border-t border-[var(--border-color)] flex flex-col sm:flex-row gap-3">
                       <button 
                         onClick={() => {
                           const area = voterSearch || 'Filtro Atual';
                           alert(`📢 CONVOCAÇÃO ENVIADA!\nTodos os eleitores filtrados (${filteredVoters.length}) na segmentação "${area}" receberam o aviso via WhatsApp via robô de envio.`);
                         }}
-                        className="flex-1 bg-zinc-950 text-yellow-500 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-lg flex items-center justify-center gap-3 hover:bg-zinc-900 active:scale-95 transition-all outline-none"
+                        className="flex-1 bg-zinc-950 text-yellow-500 py-3 md:py-4 rounded-sm font-black text-[9px] md:text-[10px] uppercase tracking-[0.2em] shadow-lg flex items-center justify-center gap-2 hover:bg-zinc-900 active:scale-95 transition-all outline-none"
                       >
-                        <Send className="w-4 h-4" /> Disparar Convite de Reunião para {filteredVoters.length} Eleitores
+                        <Send className="w-3.5 h-3.5" /> Disparar Convite de Reunião para {filteredVoters.length} Eleitores
                       </button>
                       <button 
                         onClick={() => {
                           const count = filteredVoters.filter(v => !v.voted).length;
                           alert(`🚨 ALERTA DE LOGÍSTICA!\n${count} eleitores pendentes na área atual. Acionando líderes de equipe para mobilização imediata.`);
                         }}
-                        className="px-8 bg-red-600 text-white rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-red-700 transition-all flex items-center gap-2 py-4 sm:py-0 shadow-lg shadow-red-500/10 outline-none"
+                        className="px-6 md:px-8 bg-red-600 text-white rounded-sm font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-red-700 transition-all flex items-center justify-center gap-1.5 py-3 md:py-0 shadow-lg shadow-red-500/10 outline-none"
                       >
-                        <Activity className="w-4 h-4" /> Alerta de Logística (Dia D)
+                        <Activity className="w-3.5 h-3.5" /> Alerta de Logística (Dia D)
                       </button>
                     </div>
                   )}
@@ -2042,10 +2042,10 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                                setVoterFilterTags([...voterFilterTags, tag]);
                              }
                            }}
-                           className={`px-3 py-1.5 rounded-sm text-[9px] font-black uppercase transition-all border ${
+                           className={`px-2.5 py-1.5 rounded-sm text-[8px] md:text-[9px] font-black uppercase transition-all border ${
                              voterFilterTags.includes(tag)
                              ? 'bg-yellow-500 border-yellow-600 text-zinc-950 shadow-md'
-                             : 'bg-zinc-100 border-zinc-200 text-zinc-500 hover:bg-zinc-200'
+                             : 'bg-[var(--bg-tertiary)] border-[var(--border-color)] text-[var(--text-secondary)] hover:bg-zinc-200 dark:hover:bg-zinc-800'
                            }`}
                          >
                            {tag}
@@ -2066,21 +2066,21 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                 </div>
 
                 {/* TABLE/LIST */}
-                <div className="bg-white border border-zinc-200 rounded-sm shadow-sm overflow-hidden min-h-[400px]">
-                  <table className="w-full text-left border-collapse">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm shadow-sm overflow-x-auto min-h-[400px] custom-scrollbar">
+                  <table className="w-full text-left border-collapse min-w-[600px] lg:min-w-0">
                     <thead>
-                      <tr className="bg-zinc-50 border-b border-zinc-200">
-                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Eleitor / Fidelidade</th>
-                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Articulação</th>
-                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Segmentação</th>
-                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400">Equipe / Líder</th>
-                        <th className="p-4 text-[10px] font-black uppercase tracking-widest text-zinc-400 text-right">Ações</th>
+                      <tr className="bg-[var(--bg-tertiary)] border-b border-[var(--border-color)]">
+                        <th className="p-3.5 text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Eleitor / Fidelidade</th>
+                        <th className="p-3.5 text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Articulação</th>
+                        <th className="p-3.5 text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Segmentação</th>
+                        <th className="p-3.5 text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Equipe / Líder</th>
+                        <th className="p-3.5 text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)] text-right">Ações</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-100">
+                    <tbody className="divide-y divide-[var(--border-color)]">
                       {filteredVoters.length > 0 ? filteredVoters.map((voter) => (
-                        <tr key={voter.id} className="hover:bg-zinc-50/50 transition-colors">
-                          <td className="p-4">
+                        <tr key={voter.id} className="hover:bg-[var(--bg-tertiary)]/50 transition-colors">
+                          <td className="p-3.5">
                             <div className="flex flex-col">
                               <div className="flex items-center gap-2">
                                 <span className="text-sm font-black text-zinc-950 uppercase leading-none">{voter.name}</span>
@@ -2328,20 +2328,20 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             )}
 
             {activeTab === 'attendance' && (
-              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
+              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4 md:space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4 md:pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Controle de Frequência (GPS)</h2>
-                    <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">Auditoria de localização e horários em tempo real para unidades de campo</p>
+                    <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Controle de Frequência (GPS)</h2>
+                    <p className="text-[var(--text-secondary)] text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-2 md:mt-3 opacity-70">Auditoria de localização e horários em tempo real para unidades de campo</p>
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 w-full md:w-auto">
                     <button 
                       onClick={async () => {
                         if(window.confirm("Deseja exportar o relatório de ponto em PDF?")) {
                           alert("Gerando relatório... O download iniciará em instantes.");
                         }
                       }}
-                      className="bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-primary)] px-5 py-3.5 rounded-sm font-black text-[10px] uppercase flex items-center justify-center gap-3 shadow-[var(--shadow-sm)] hover:bg-[var(--bg-tertiary)] transition-all active:scale-95"
+                      className="w-full md:w-auto bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-primary)] px-4 md:px-5 py-3 md:py-3.5 rounded-sm font-black text-[9px] md:text-[10px] uppercase flex items-center justify-center gap-2 md:gap-3 shadow-[var(--shadow-sm)] hover:bg-[var(--bg-tertiary)] transition-all active:scale-95"
                     >
                       <FileDown className="w-4 h-4" /> Exportar Relatório PDF
                     </button>
@@ -2349,7 +2349,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                 </div>
 
                 {/* Filtros de Pesquisa */}
-                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 grid grid-cols-1 md:grid-cols-4 gap-6 shadow-[var(--shadow-sm)]">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 shadow-[var(--shadow-sm)]">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] opacity-60 flex items-center gap-2">
                       <Calendar className="w-3 h-3" /> Filtrar por Data
@@ -2418,18 +2418,18 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                         <table className="w-full text-left border-collapse">
                           <thead>
                             <tr className="bg-[var(--bg-tertiary)] border-b border-[var(--border-color)]">
-                              <th className="p-5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60">Agente de Campo</th>
-                              <th className="p-5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60">Registro Temporal</th>
-                              <th className="p-5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60">Geolocalização</th>
-                              <th className="p-5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60 text-right">Validação</th>
+                              <th className="p-3.5 md:p-5 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60">Agente de Campo</th>
+                              <th className="p-3.5 md:p-5 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60">Registro Temporal</th>
+                              <th className="p-3.5 md:p-5 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60">Geolocalização</th>
+                              <th className="p-3.5 md:p-5 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60 text-right">Validação</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-[var(--border-color)]">
                             {filteredAttendance.map((entry) => (
                               <tr key={entry.id} className="hover:bg-[var(--bg-tertiary)]/50 transition-colors group/row">
-                                <td className="p-5">
-                                  <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-sm bg-zinc-950 flex items-center justify-center font-black text-white text-[10px] overflow-hidden border border-[var(--border-color)] group-hover/row:border-yellow-500/30 shadow-inner">
+                                <td className="p-3.5 md:p-5">
+                                  <div className="flex items-center gap-3 md:gap-4">
+                                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-sm bg-zinc-950 flex items-center justify-center font-black text-white text-[10px] overflow-hidden border border-[var(--border-color)] group-hover/row:border-yellow-500/30 shadow-inner">
                                       {entry.leaderPhoto ? (
                                         <img src={entry.leaderPhoto} alt={entry.leaderName} className="w-full h-full object-cover" />
                                       ) : (
@@ -2442,27 +2442,27 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                                     </div>
                                   </div>
                                 </td>
-                                <td className="p-5">
+                                <td className="p-3.5 md:p-5">
                                   <div className="flex flex-col">
                                     <span className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-tight">{new Date(entry.timestamp).toLocaleDateString()}</span>
                                     <span className="text-[10px] font-bold text-[var(--text-secondary)] mt-1 opacity-60">{new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
                                   </div>
                                 </td>
-                                <td className="p-5">
+                                <td className="p-3.5 md:p-5">
                                   {entry.location ? (
                                     <a 
                                       href={`https://www.google.com/maps?q=${entry.location.lat},${entry.location.lng}`} 
                                       target="_blank" 
                                       rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-2.5 px-3 py-2 rounded-sm bg-blue-500/5 text-blue-600 dark:text-blue-400 font-black text-[10px] uppercase hover:bg-blue-500/10 transition-colors border border-blue-500/10"
+                                      className="inline-flex items-center gap-2.5 px-2.5 py-1.5 rounded-sm bg-blue-500/5 text-blue-600 dark:text-blue-400 font-black text-[9px] md:text-[10px] uppercase hover:bg-blue-500/10 transition-colors border border-blue-500/10"
                                     >
-                                      <MapPin className="w-3.5 h-3.5" /> Ver Coordenadas
+                                      <MapPin className="w-3 md:w-3.5 h-3 md:h-3.5" /> Ver Coordenadas
                                     </a>
                                   ) : (
-                                    <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase opacity-30 italic">GPS Não Sincronizado</span>
+                                    <span className="text-[9px] md:text-[10px] font-black text-[var(--text-secondary)] uppercase opacity-30 italic">GPS Não Sincronizado</span>
                                   )}
                                 </td>
-                                <td className="p-5 text-right">
+                                <td className="p-3.5 md:p-5 text-right">
                                   <div className="flex items-center justify-end gap-3">
                                     <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 text-[9px] font-black uppercase tracking-widest border border-emerald-500/20 shadow-inner">
                                       <CheckCircle2 className="w-3 h-3" /> Validado
@@ -2503,24 +2503,24 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             )}
 
             {activeTab === 'notes' && (
-              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm flex items-center justify-center shadow-inner">
-                      <MessageSquare className="w-6 h-6 text-[var(--text-primary)]" />
+              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 md:space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4 md:pb-6">
+                  <div className="flex items-center gap-3 md:gap-4">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm flex items-center justify-center shadow-inner">
+                      <MessageSquare className="w-5 h-5 md:w-6 md:h-6 text-[var(--text-primary)]" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Anotações Táticas</h2>
-                      <div className="flex gap-4 mt-5">
+                      <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Anotações Táticas</h2>
+                      <div className="flex gap-2.5 mt-3 md:mt-5">
                         <button 
                           onClick={() => setNoteSubTab('tactical')}
-                          className={`text-[9px] font-black uppercase tracking-widest px-6 py-2.5 rounded-sm transition-all border ${noteSubTab === 'tactical' ? 'bg-zinc-950 text-white border-zinc-950 shadow-xl dark:bg-yellow-500 dark:text-zinc-950 dark:border-yellow-500' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-yellow-500'}`}
+                          className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-3.5 md:px-6 py-2 md:py-2.5 rounded-sm transition-all border ${noteSubTab === 'tactical' ? 'bg-zinc-950 text-white border-zinc-950 shadow-xl dark:bg-yellow-500 dark:text-zinc-950 dark:border-yellow-500' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-yellow-500'}`}
                         >
                           Equipe (Fórum)
                         </button>
                         <button 
                           onClick={() => setNoteSubTab('private')}
-                          className={`text-[9px] font-black uppercase tracking-widest px-6 py-2.5 rounded-sm transition-all border ${noteSubTab === 'private' ? 'bg-zinc-950 text-white border-zinc-950 shadow-xl dark:bg-yellow-500 dark:text-zinc-950 dark:border-yellow-500' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-yellow-500'}`}
+                          className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-3.5 md:px-6 py-2 md:py-2.5 rounded-sm transition-all border ${noteSubTab === 'private' ? 'bg-zinc-950 text-white border-zinc-950 shadow-xl dark:bg-yellow-500 dark:text-zinc-950 dark:border-yellow-500' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-yellow-500'}`}
                         >
                           Minhas Observações
                         </button>
@@ -2554,21 +2554,21 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             )}
 
             {activeTab === 'materials' && (
-              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
+              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 md:space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4 md:pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none font-sans">Gestão de Materiais</h2>
-                    <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">Controle tático de suprimentos e distribuição regional</p>
+                    <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none font-sans">Gestão de Materiais</h2>
+                    <p className="text-[var(--text-secondary)] text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-1.5 md:mt-3 opacity-70">Controle tático de suprimentos e distribuição regional</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
                   {/* FORM ADD/EDIT MATERIAL */}
-                  <div className="lg:col-span-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-8 shadow-[var(--shadow-sm)] h-fit relative overflow-hidden">
+                  <div className="lg:col-span-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-8 shadow-[var(--shadow-sm)] h-fit relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
                       <Package className="w-32 h-32" />
                     </div>
-                    <h3 className="text-xs font-black uppercase text-[var(--text-primary)] mb-8 flex items-center gap-3 relative z-10">
+                    <h3 className="text-xs font-black uppercase text-[var(--text-primary)] mb-5 md:mb-8 flex items-center gap-3 relative z-10">
                       <div className="p-2 bg-yellow-500 rounded-sm shadow-lg shadow-yellow-500/20">
                         {isEditingMaterial ? <Edit3 className="w-4 h-4 text-zinc-950" /> : <Plus className="w-4 h-4 text-zinc-950" />}
                       </div> {isEditingMaterial ? 'Editar Material' : 'Registrador de Lote'}
@@ -2621,48 +2621,48 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                   </div>
 
                   {/* MATERIAL LIST */}
-                  <div className="lg:col-span-2 space-y-4">
+                  <div className="lg:col-span-2 space-y-3 md:space-y-4">
                     {materials.length > 0 ? materials.sort((a, b) => b.createdAt - a.createdAt).map(m => (
-                      <div key={m.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 flex items-center justify-between group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)]">
-                        <div className="flex items-center gap-5">
-                          <div className="w-14 h-14 bg-[var(--bg-tertiary)] rounded-sm flex items-center justify-center border border-[var(--border-color)] shadow-inner group-hover/mat:border-yellow-500/30">
-                            <Package className={`w-6 h-6 ${(m.current / m.total) < 0.2 ? 'text-red-500 animate-pulse' : 'text-[var(--text-secondary)]'} group-hover:text-yellow-600 transition-colors`} />
+                      <div key={m.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)]">
+                        <div className="flex items-center gap-3 md:gap-5">
+                          <div className="w-11 h-11 md:w-14 md:h-14 bg-[var(--bg-tertiary)] rounded-sm flex items-center justify-center border border-[var(--border-color)] shadow-inner group-hover/mat:border-yellow-500/30">
+                            <Package className={`w-5 h-5 md:w-6 md:h-6 ${(m.current / m.total) < 0.2 ? 'text-red-500 animate-pulse' : 'text-[var(--text-secondary)]'} group-hover:text-yellow-600 transition-colors`} />
                           </div>
                           <div>
-                            <h4 className="font-black text-[var(--text-primary)] text-sm uppercase tracking-tight font-sans">{m.name}</h4>
-                            <div className="mt-2.5 flex items-center gap-4">
-                              <div className="h-1.5 w-40 bg-[var(--bg-tertiary)] rounded-full overflow-hidden border border border-[var(--border-color)]">
+                            <h4 className="font-black text-[var(--text-primary)] text-xs md:text-sm uppercase tracking-tight font-sans leading-none">{m.name}</h4>
+                            <div className="mt-2 flex items-center gap-2 md:gap-4">
+                              <div className="h-1.5 w-24 md:w-40 bg-[var(--bg-tertiary)] rounded-full overflow-hidden border border-[var(--border-color)]">
                                 <motion.div 
                                   initial={{ width: 0 }}
                                   animate={{ width: `${Math.min(100, (m.current / m.total) * 100)}%` }}
                                   className={`h-full ${(m.current / m.total) < 0.2 ? 'bg-red-500' : 'bg-yellow-500'}`} 
                                 />
                               </div>
-                              <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest leading-none">
+                              <span className="text-[8px] md:text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest leading-none">
                                 {m.current.toLocaleString('pt-BR')} <span className="opacity-40">/ {m.total.toLocaleString('pt-BR')}</span>
                               </span>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 md:gap-2 flex-wrap justify-end w-full sm:w-auto">
                           <button 
                             onClick={() => handleStartEditMaterial(m)} 
-                            className="w-10 h-10 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-zinc-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all active:scale-95"
+                            className="w-8.5 h-8.5 md:w-10 md:h-10 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-zinc-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all active:scale-95"
                             title="Editar"
                           >
-                            <Edit3 className="w-4 h-4" />
+                            <Edit3 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                           </button>
                           <button 
                             onClick={() => handleDeleteMaterial(m.id)} 
-                            className="w-10 h-10 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all active:scale-95"
+                            className="w-8.5 h-8.5 md:w-10 md:h-10 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all active:scale-95"
                             title="Excluir"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                           </button>
-                          <button onClick={() => handleUpdateMaterial(m.id, 100)} className="w-14 h-11 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-emerald-500 hover:bg-emerald-500/10 transition-all active:scale-95 text-[10px] font-black">
+                          <button onClick={() => handleUpdateMaterial(m.id, 100)} className="px-2.5 h-8.5 md:w-14 md:h-11 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-emerald-500 hover:bg-emerald-500/10 transition-all active:scale-95 text-[9px] md:text-[10px] font-black">
                             +100
                           </button>
-                          <button onClick={() => handleUpdateMaterial(m.id, 1000)} className="w-14 h-11 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-emerald-500 hover:bg-emerald-500/10 transition-all active:scale-95 text-[10px] font-black">
+                          <button onClick={() => handleUpdateMaterial(m.id, 1000)} className="px-2.5 h-8.5 md:w-14 md:h-11 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-emerald-500 hover:bg-emerald-500/10 transition-all active:scale-95 text-[9px] md:text-[10px] font-black">
                             +1k
                           </button>
                         </div>
@@ -2747,21 +2747,21 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
               </motion.div>
             )}
              {activeTab === 'partners' && (
-              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
+              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 md:space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4 md:pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Articulação Política</h2>
-                    <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">CRM de Relacionamento e Mobilização</p>
+                    <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Articulação Política</h2>
+                    <p className="text-[var(--text-secondary)] text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-1.5 md:mt-3 opacity-70">CRM de Relacionamento e Mobilização</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-8">
                   {/* QUICK ADD */}
-                  <div className="lg:col-span-1 bg-zinc-950 rounded-sm p-8 shadow-2xl text-white relative h-fit dark:bg-zinc-900 border border-white/5">
+                  <div className="lg:col-span-1 bg-zinc-950 rounded-sm p-4 md:p-8 shadow-2xl text-white relative h-fit dark:bg-zinc-900 border border-white/5">
                     <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
                       <Handshake className="w-24 h-24 text-yellow-500" />
                     </div>
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-yellow-500 mb-8 relative z-10">
+                    <h3 className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-yellow-500 mb-5 md:mb-8 relative z-10">
                       {isEditingPartner ? 'Editar Aliado' : 'Mapear Aliado'}
                     </h3>
                     <form onSubmit={isEditingPartner ? handleSaveEditPartner : async (e: any) => {
@@ -2811,25 +2811,25 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                       const efficiency = (p.cost || 0) / (associatedVoters || 1);
                       
                       return (
-                        <div key={p.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 flex flex-col gap-5 group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)] relative overflow-hidden">
+                        <div key={p.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 flex flex-col gap-4 md:gap-5 group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)] relative overflow-hidden">
                           {/* Top Section: Icon, Name, Status */}
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className={`w-12 h-12 rounded-sm flex items-center justify-center border-2 shadow-inner transition-colors ${
+                          <div className="flex items-start justify-between gap-2 flex-wrap">
+                            <div className="flex items-center gap-3 md:gap-4">
+                              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-sm flex items-center justify-center border-2 shadow-inner transition-colors ${
                                 p.status === 'quente' ? 'bg-yellow-500/10 border-yellow-500/20' : 
                                 p.status === 'morno' ? 'bg-orange-500/10 border-orange-500/20' : 'bg-blue-500/10 border-blue-500/20'
                               }`}>
-                                <Handshake className={`w-6 h-6 ${
+                                <Handshake className={`w-5 h-5 md:w-6 md:h-6 ${
                                   p.status === 'quente' ? 'text-yellow-500' : 
                                   p.status === 'morno' ? 'text-orange-500' : 'text-blue-500'
                                 }`} />
                               </div>
                               <div>
-                                <h4 className="font-black text-[var(--text-primary)] uppercase leading-none tracking-tight text-sm font-sans">{p.name}</h4>
-                                <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-60 mt-1.5 font-mono">{p.role || 'SEM FUNÇÃO DEFINIDA'}</p>
+                                <h4 className="font-black text-[var(--text-primary)] uppercase leading-none tracking-tight text-xs md:text-sm font-sans">{p.name}</h4>
+                                <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-60 mt-1.5 font-mono">{p.role || 'SEM FUNÇÃO DEFINIDA'}</p>
                               </div>
                             </div>
-                            <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-sm shadow-sm ${
+                            <span className={`text-[7px] md:text-[8px] font-black uppercase tracking-widest px-2 md:px-3 py-1 md:py-1.5 rounded-sm shadow-sm ${
                               p.status === 'quente' ? 'bg-yellow-500 text-zinc-950' : 
                               p.status === 'morno' ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
                             }`}>

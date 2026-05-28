@@ -434,99 +434,101 @@ export default function FinanceDashboard({ isNested = false }: { isNested?: bool
       )}
 
       {/* CARDS SUPERIORES - VISÃO GERAL */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 ${isNested ? '' : 'px-4 md:px-8 max-w-7xl mx-auto'}`}>
-        <div className="bg-zinc-950 text-white p-6 rounded-2xl border border-zinc-900 shadow-xl relative overflow-hidden group">
+      <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mt-4 md:mt-6 ${isNested ? '' : 'px-4 md:px-8 max-w-7xl mx-auto'}`}>
+        <div className="bg-zinc-950 text-white p-3.5 md:p-6 rounded-xl md:rounded-2xl border border-zinc-900 shadow-xl relative overflow-hidden group">
           <div className="absolute -right-4 -top-4 p-6 opacity-10 group-hover:opacity-20 transition-all duration-700">
-            <TrendingUp className="w-20 h-20 text-yellow-500" />
+            <TrendingUp className="w-14 h-14 md:w-20 md:h-20 text-yellow-500" />
           </div>
-          <div className="relative z-10">
-            <div className="flex justify-between items-start">
-              <div className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                <div className="w-1 h-1 bg-yellow-500 rounded-full" /> Arrecadação 
+          <div className="relative z-10 flex flex-col justify-between h-full min-h-[100px] md:min-h-[120px]">
+            <div>
+              <div className="flex justify-between items-start">
+                <div className="text-[6px] md:text-[7px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-1">
+                  <div className="w-1 h-1 bg-yellow-500 rounded-full" /> Arrecadação 
+                </div>
+                {isAdmin && (
+                  <button 
+                    onClick={zerarFinanceiro}
+                    className="text-[5px] md:text-[6px] font-black text-red-500 uppercase tracking-widest hover:underline opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    Zerar
+                  </button>
+                )}
               </div>
-              {isAdmin && (
-                <button 
-                  onClick={zerarFinanceiro}
-                  className="text-[6px] font-black text-red-500 uppercase tracking-widest hover:underline opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  Zerar Transações
-                </button>
-              )}
+              <p className="text-xs sm:text-sm md:text-xl lg:text-2xl font-black text-white mt-2 md:mt-3 tracking-tighter leading-none truncate" title={fmt.format(totalFunded)}>
+                {fmt.format(totalFunded)}
+              </p>
             </div>
-            <p className="text-[12px] sm:text-[14px] font-black text-white mt-3 tracking-tighter leading-none truncate" title={fmt.format(totalFunded)}>
-              {fmt.format(totalFunded)}
-            </p>
-            <div className="mt-5">
+            <div className="mt-3 md:mt-5">
               <button 
                 onClick={() => {
                   setIncomeData({ amount: '', origin: '', description: '', id: '' });
                   setIsIncomeModalOpen(true);
                 }} 
-                className="w-full bg-yellow-500 text-zinc-950 p-2.5 rounded-xl shadow-lg transition-all font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white active:scale-95"
+                className="w-full bg-yellow-500 text-zinc-950 p-2 md:p-2.5 rounded-lg md:rounded-xl shadow-lg transition-all font-black text-[8px] md:text-[9px] uppercase tracking-widest flex items-center justify-center gap-1 md:gap-2 hover:bg-white active:scale-95"
               >
-                <Plus className="w-3.5 h-3.5" /> Injetar Recurso
+                <Plus className="w-3 h-3" /> Injetar Recurso
               </button>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex flex-col justify-between relative overflow-hidden group">
+        <div className="bg-white p-3.5 md:p-6 rounded-xl md:rounded-2xl border border-zinc-200 shadow-sm flex flex-col justify-between relative overflow-hidden group min-h-[100px] md:min-h-[120px]">
           <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-all duration-700 rotate-12">
-            <Users className="w-20 h-20 text-zinc-900" />
+            <Users className="w-14 h-14 md:w-20 md:h-20 text-zinc-900" />
           </div>
           <div className="relative z-10">
-            <div className="text-[7px] font-black text-zinc-400 uppercase tracking-[0.2em] flex items-center gap-2">
+            <div className="text-[6px] md:text-[7px] font-black text-zinc-400 uppercase tracking-[0.2em] flex items-center gap-1">
               <div className="w-1 h-1 bg-zinc-400 rounded-full" /> Total Alocado
             </div>
-            <p className="text-[12px] sm:text-[14px] font-black text-zinc-900 mt-3 tracking-tighter leading-none truncate" title={fmt.format(totalAllocated)}>
+            <p className="text-xs sm:text-sm md:text-xl lg:text-2xl font-black text-zinc-900 mt-2 md:mt-3 tracking-tighter leading-none truncate" title={fmt.format(totalAllocated)}>
               {fmt.format(totalAllocated)}
             </p>
           </div>
-          <div className="mt-6 flex items-center justify-between">
-            <span className="text-[7px] text-zinc-400 uppercase font-black tracking-widest">Frentes: {teams.length}</span>
-            <div className="flex -space-x-1.5">
+          <div className="mt-3 md:mt-6 flex items-center justify-between">
+            <span className="text-[6px] md:text-[7px] text-zinc-400 uppercase font-black tracking-widest">Frentes: {teams.length}</span>
+            <div className="flex -space-x-1">
               {[1, 2].map(i => (
-                <div key={i} className="w-4 h-4 rounded-full border border-white bg-zinc-100 flex items-center justify-center text-[6px] font-black text-zinc-400">{i}</div>
+                <div key={i} className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full border border-white bg-zinc-100 flex items-center justify-center text-[5px] md:text-[6px] font-black text-zinc-400">{i}</div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex flex-col justify-between relative overflow-hidden group">
+        <div className="bg-white p-3.5 md:p-6 rounded-xl md:rounded-2xl border border-zinc-200 shadow-sm flex flex-col justify-between relative overflow-hidden group min-h-[100px] md:min-h-[120px]">
           <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-all duration-700 -rotate-12">
-             <ArrowDownRight className="w-20 h-20 text-red-500" />
+             <ArrowDownRight className="w-14 h-14 md:w-20 md:h-20 text-red-500" />
           </div>
           <div className="relative z-10">
-            <div className="text-[7px] font-black text-zinc-400 uppercase tracking-[0.2em] flex items-center gap-2">
+            <div className="text-[6px] md:text-[7px] font-black text-zinc-400 uppercase tracking-[0.2em] flex items-center gap-1">
               <div className="w-1 h-1 bg-red-500 rounded-full" /> Executado
             </div>
-            <p className="text-[12px] sm:text-[14px] font-black text-red-600 mt-3 tracking-tighter leading-none truncate" title={fmt.format(totalSpent)}>
+            <p className="text-xs sm:text-sm md:text-xl lg:text-2xl font-black text-red-600 mt-2 md:mt-3 tracking-tighter leading-none truncate" title={fmt.format(totalSpent)}>
               {fmt.format(totalSpent)}
             </p>
           </div>
-          <div className="mt-6">
+          <div className="mt-3 md:mt-6">
             <div className="w-full h-1 bg-zinc-100 rounded-full overflow-hidden">
                <div className="h-full bg-red-500 rounded-full" style={{ width: `${Math.min((totalSpent/totalAllocated)*100 || 0, 100)}%` }} />
             </div>
-            <p className="text-[6px] font-black text-zinc-400 uppercase tracking-widest mt-1.5">Queima: {((totalSpent/totalAllocated)*100 || 0).toFixed(1)}%</p>
+            <p className="text-[5px] md:text-[6px] font-black text-zinc-400 uppercase tracking-widest mt-1 md:mt-1.5 leading-none">Queima: {((totalSpent/totalAllocated)*100 || 0).toFixed(1)}%</p>
           </div>
         </div>
 
-        <div className="bg-yellow-500 p-6 rounded-2xl relative overflow-hidden shadow-lg flex flex-col justify-between group">
+        <div className="bg-yellow-500 p-3.5 md:p-6 rounded-xl md:rounded-2xl relative overflow-hidden shadow-lg flex flex-col justify-between group min-h-[100px] md:min-h-[120px]">
           <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
-            <Wallet className="w-20 h-20 text-zinc-950" />
+            <Wallet className="w-14 h-14 md:w-20 md:h-20 text-zinc-950" />
           </div>
           <div className="relative z-10">
-            <div className="text-[7px] font-black text-zinc-950/60 uppercase tracking-[0.2em] flex items-center gap-2">
+            <div className="text-[6px] md:text-[7px] font-black text-zinc-950/60 uppercase tracking-[0.2em] flex items-center gap-1">
               <div className="w-1 h-1 bg-zinc-950/40 rounded-full" /> Saldo em Vault
             </div>
-            <p className="text-[12px] sm:text-[14px] font-black text-zinc-950 mt-3 tracking-tighter leading-none truncate" title={fmt.format(freeBalance)}>
+            <p className="text-xs sm:text-sm md:text-xl lg:text-2xl font-black text-zinc-950 mt-2 md:mt-3 tracking-tighter leading-none truncate" title={fmt.format(freeBalance)}>
               {fmt.format(freeBalance)}
             </p>
           </div>
-          <div className="mt-6 flex items-center justify-between border-t border-zinc-950/10 pt-3">
-            <span className="text-[6px] text-zinc-950/60 uppercase tracking-widest font-black">Operação Especial</span>
-            <ShieldCheck className="w-2.5 h-2.5 text-zinc-950/40" />
+          <div className="mt-3 md:mt-6 flex items-center justify-between border-t border-zinc-950/10 pt-2 md:pt-3">
+            <span className="text-[5px] md:text-[6px] text-zinc-950/60 uppercase tracking-widest font-black leading-none">Operação Especial</span>
+            <ShieldCheck className="w-2 md:w-2.5 h-2 md:h-2.5 text-zinc-950/40" />
           </div>
         </div>
       </div>
