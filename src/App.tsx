@@ -3196,6 +3196,68 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                   </div>
                 </div>
 
+                {/* ⚡ PLANEJAMENTO TÁTICO: O QUE FAZER COM O GRUPO DE 94 APOIADORES ATUAIS? */}
+                <div className="bg-gradient-to-r from-zinc-950 to-zinc-900 border border-yellow-500/20 rounded-sm p-6 md:p-8">
+                  <span className="inline-block px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 font-black text-[9px] uppercase tracking-[0.25em] rounded-sm mb-4">
+                    ESTRATÉGIA DE ACELERAÇÃO DIGITAL
+                  </span>
+                  <h3 className="text-xl font-black text-white uppercase tracking-tight mb-3">
+                    Aceleração Rápida: O Poder do seu Grupo de 94 Apoiadores no WhatsApp
+                  </h3>
+                  <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest leading-relaxed mb-6">
+                    Muitos candidatos acham que um grupo de WhatsApp é suficiente para gerenciar uma campanha. Isso é um erro tático grave. O grupo de WhatsApp é o **combustível**, mas o **Ecossistema ÁGUIA** é o motor que converte esse calor em votos auditados e vitória nas urnas. Veja como agregamos valor sem descartar sua base atual:
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Alavanca 1: Triagem de Super-Lideranças */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm">
+                      <div className="flex items-center gap-2 mb-3 text-yellow-500">
+                        <Users className="w-5 h-5" />
+                        <h4 className="text-xs font-black uppercase tracking-tight">1. Recrutar os Super-Líderes</h4>
+                      </div>
+                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest leading-relaxed">
+                        Do grupo de 94 membros, identificamos as **10 a 15 pessoas mais influentes** de diferentes bairros de Boa Vista e distritos do interior.
+                      </p>
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest leading-relaxed mt-3 pt-3 border-t border-[var(--border-color)]">
+                        👉 **Ação**: Eles recebem login de Líder no aplicativo para iniciar mapeamentos sérios e auditados em suas micro-regiões.
+                      </p>
+                    </div>
+
+                    {/* Alavanca 2: Meta de Multiplicação Geométrica */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm">
+                      <div className="flex items-center gap-2 mb-3 text-yellow-500">
+                        <TrendingUp className="w-5 h-5" />
+                        <h4 className="text-xs font-black uppercase tracking-tight">2. Multiplicação de Rede</h4>
+                      </div>
+                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest leading-relaxed">
+                        Cada super-líder recebe a meta de cadastrar **20 eleitores reais** no CRM do aplicativo, validando nome e Loyalty Score.
+                      </p>
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest leading-relaxed mt-3 pt-3 border-t border-[var(--border-color)]">
+                        📈 **Resultado**: Seus 94 membros desorganizados no WhatsApp escalam rapidamente para **mais de 300 eleitores fiéis em nossa central**.
+                      </p>
+                    </div>
+
+                    {/* Alavanca 3: Blindagem e Segurança */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm">
+                      <div className="flex items-center gap-2 mb-3 text-yellow-500">
+                        <ShieldCheck className="w-5 h-5" />
+                        <h4 className="text-xs font-black uppercase tracking-tight">3. Proteção contra Espionagem</h4>
+                      </div>
+                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest leading-relaxed">
+                        Em grupos de WhatsApp, qualquer concorrente ou infiltrado pode roubar sua lista de contatos e copiar seus números.
+                      </p>
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest leading-relaxed mt-3 pt-3 border-t border-[var(--border-color)]">
+                        🔒 **Segurança**: Com o ÁGUIA, os dados dos eleitores ficam em banco de dados militarizado do Google Cloud, e um líder nunca vê a base do outro.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 p-4 rounded-sm bg-yellow-500/5 border border-yellow-500/10 text-[var(--text-secondary)] text-[10px] uppercase font-black tracking-widest leading-relaxed">
+                    🎯 **O PITCH PARA A CANDIDATA**: 
+                    "Doutora, nós não vamos acabar com o seu grupo de apoiadores. Pelo contrário: nós vamos dar uma meta de crescimento para que esse grupo de 94 vire um exército organizado de 500 cabos eleitorais ativos, cada um alimentando o nosso sistema com mapa de dores regionais e controle de fidelidade de eleitores."
+                  </div>
+                </div>
+
                 {/* Tabela de Dimensionamento Real de Uso de Banco */}
                 <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 md:p-8 mt-6">
                   <h3 className="text-sm font-black uppercase text-[var(--text-primary)] tracking-widest mb-6 flex items-center gap-2">
