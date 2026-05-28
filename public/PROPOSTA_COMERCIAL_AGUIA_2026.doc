@@ -1,0 +1,368 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset='utf-8'>
+<title>Proposta Comercial - Ecossistema ÁGUIA 2026</title>
+<!--[if gte mso 9]>
+<xml>
+  <w:WordDocument>
+    <w:View>Print</w:View>
+    <w:Zoom>100</w:Zoom>
+    <w:DoNotOptimizeForBrowser/>
+  </w:WordDocument>
+</xml>
+<![endif]-->
+<style>
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    line-height: 1.6;
+    color: #1a202c;
+    margin: 40px auto;
+    max-width: 800px;
+  }
+  .cover {
+    text-align: center;
+    padding: 60px 20px;
+    border: 3px solid #d69e2e;
+    margin-bottom: 50px;
+    background-color: #1a365d;
+    color: #ffffff;
+  }
+  .cover h1 {
+    font-size: 28pt;
+    margin: 10px 0;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #f6e05e;
+  }
+  .cover p.subtitle {
+    font-size: 14pt;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #e2e8f0;
+  }
+  .section-title {
+    color: #1a365d;
+    font-size: 18pt;
+    border-bottom: 3px solid #d69e2e;
+    padding-bottom: 5px;
+    margin-top: 40px;
+    text-transform: uppercase;
+    font-weight: bold;
+  }
+  .subsection-title {
+    color: #2b6cb0;
+    font-size: 13pt;
+    margin-top: 25px;
+    font-weight: bold;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 3sux;
+  }
+  .pain-box {
+    background-color: #fffaf0;
+    border-left: 4px solid #dd6b20;
+    padding: 15px;
+    margin: 15px 0;
+  }
+  .solution-box {
+    background-color: #ebf8ff;
+    border-left: 4px solid #3182ce;
+    padding: 15px;
+    margin: 15px 0;
+  }
+  .value-box {
+    background-color: #f0fff4;
+    border-left: 4px solid #38a169;
+    padding: 15px;
+    margin: 15px 0;
+  }
+  .badge-pain {
+    color: #c05621;
+    font-weight: bold;
+    font-size: 10pt;
+    text-transform: uppercase;
+  }
+  .badge-solution {
+    color: #2b6cb0;
+    font-weight: bold;
+    font-size: 10pt;
+    text-transform: uppercase;
+  }
+  .badge-value {
+    color: #276749;
+    font-weight: bold;
+    font-size: 10pt;
+    text-transform: uppercase;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 25px 0;
+  }
+  th, td {
+    border: 1px solid #cbd5e0;
+    padding: 12px;
+    text-align: left;
+    font-size: 10pt;
+  }
+  th {
+    background-color: #2b6cb0;
+    color: #ffffff;
+    font-weight: bold;
+  }
+  tr:nth-child(even) {
+    background-color: #f7fafc;
+  }
+  .highlight-yellow {
+    background-color: #fef08a;
+    font-weight: bold;
+    padding: 2px 4px;
+  }
+  .footer {
+    margin-top: 60px;
+    text-align: center;
+    font-size: 9pt;
+    color: #718096;
+    border-top: 2px solid #e2e8f0;
+    padding-top: 15px;
+  }
+  .text-danger {
+    color: #e53e3e;
+    font-weight: bold;
+  }
+  .price-card {
+    border: 2px solid #38a169;
+    background-color: #f0fff4;
+    border-radius: 4px;
+    padding: 20px;
+    margin: 25px 0;
+    text-align: center;
+  }
+  .price-amount {
+    font-size: 24pt;
+    color: #276749;
+    font-weight: 800;
+    margin: 15px 0;
+  }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <p style="margin: 0; font-size: 12pt; text-transform: uppercase; letter-spacing: 4px; color: #f6e05e;">PROPOSTA TÉCNICA E COMERCIAL</p>
+    <h1>ECOSSISTEMA ÁGUIA 2026</h1>
+    <p class="subtitle">Campanha de Alta Performance • Governabilidade de Rua</p>
+    <div style="margin: 40px auto; width: 80px; height: 3px; background-color: #f6e05e;"></div>
+    <p style="margin: 0; font-size: 11pt; color: #cbd5e0;">Exclusivo para a Candidatura da Futura Deputada Estadual por Roraima</p>
+    <p style="margin: 5px 0 0 0; font-size: 10pt; color: #a0aec0;">Roraima • Edição Estratégica Regionalizada</p>
+  </div>
+
+  <p style="font-size: 11pt; text-align: justify; margin-bottom: 30px;">
+    <strong>Prezada Candidata e Coordenação Geral de Campanha,</strong>
+  </p>
+  <p style="font-size: 11pt; text-align: justify; margin-bottom: 30px;">
+    Uma campanha para Deputada Estadual no estado de Roraima apresenta desafios singulares. O território exige grande capilaridade, desde a capital Boa Vista até as áreas de fronteira (Pacaraima e Bonfim), os polos comerciais do sul (Rorainópolis), vicinais produtivas (Cantá, Mucajaí e Caroebe) e comunidades indígenas de difícil acesso que concentram relevante força representativa (Normandia, Amajari e Uiramutã). 
+  </p>
+  <p style="font-size: 11pt; text-align: justify; margin-bottom: 30px;">
+    Vencer este cenário exige governabilidade sobre as equipes de rua, destinação cirúrgica de recursos e capacidade de falar exatamente o que a comunidade necessita em seus diversos distritos. O <strong>Ecossistema ÁGUIA 2026</strong> foi desenhado especificamente para suprir essas demandas, transformando mobilização descentralizada em votos contados nas urnas. 
+  </p>
+
+  <div class="section-title">1. OS GARGALOS OPERACIONAIS (AS DORES DA ESTRADA)</div>
+  <p style="font-size: 11pt; text-align: justify;">
+    Gerenciar centenas de apoiadores e coordenadores municipais via grupos informais de WhatsApp gera vazamento de dados, perda de inteligência tática, desperdício financeiro imensurável e falta de previsibilidade matemática de votação. Abaixo, detalhamos como a nossa arquitetura sana cada uma dessas dores.
+  </p>
+
+  <div class="subsection-title">1.1 O Mito do "Cabo de Papel" (Equipes fantasma ou ociosas)</div>
+  <div class="pain-box">
+    <span class="badge-pain">A Dor:</span><br>
+    Líderes de rua que recebem ajuda de custo, mas não cumprem as agendas designadas, não realizam visitas reais ou registram nomes fictícios de apoio doméstico para simular atividade.
+  </div>
+  <div class="solution-box">
+    <span class="badge-solution">A Solução ÁGUIA:</span><br>
+    <strong>Auditoria por Assinatura de GPS Dual.</strong> O líder de rua registra entrada e saída nas vicinais e comunidades coletando geolocalização física comprovada. O sistema possui blindagem com alertas de falsificação de GPS que impede burlar a presença.
+  </div>
+  <div class="value-box">
+    <span class="badge-value">Valor Estratégico:</span><br>
+    Otimização de até 35% nos gastos com mobilização de rua, garantindo que cada real despendido corresponda a horários reais trabalhados em campo.
+  </div>
+
+  <div class="subsection-title">1.2 Discurso Genérico no Palanque (Falta de conexão no território)</div>
+  <div class="pain-box">
+    <span class="badge-pain">A Dor:</span><br>
+    O candidato chega a um município como Normandia, Bonfim ou Rorainópolis e faz discursos genéricos pois não sabe qual é a principal reclamação local do morador no último mês.
+  </div>
+  <div class="solution-box">
+    <span class="badge-solution">A Solução ÁGUIA:</span><br>
+    <strong>Ouvidoria Georreferenciada de Demandas.</strong> A equipe de campo coleta fotos, categoria e urgência das demandas rurais e urbanas (saúde, vicinal intrafegável, pontes quebradas, falta de energia). A central herda um mapa de calor das dores de cada município de Roraima.
+  </div>
+  <div class="value-box">
+    <span class="badge-value">Valor Estratégico:</span><br>
+    O candidato sobe no palanque dominando as queixas locais. Em vez de promessas vazias, ele cita a rua, o bairro ou a vicinal específica que necessita de intervenção: <em>“Eu sei que a vicinal 12 do Cantá precisa de cascalhamento urgente, e é por ela que vou lutar!”</em>.
+  </div>
+
+  <div class="subsection-title">1.3 A Caixa Preta dos Recursos Descentralizados (Vazamento de verba)</div>
+  <div class="pain-box">
+    <span class="badge-pain">A Dor:</span><br>
+    Falta de transparência e controle sobre como o combustível, a alimentação e as ajudas de custo estão sendo alocados para as lideranças municipais e bairros da capital.
+  </div>
+  <div class="solution-box">
+    <span class="badge-solution">A Solução ÁGUIA:</span><br>
+    <strong>O Módulo "Vault" (Caixa Forte) com Recibos Digitais Assinados.</strong> A coordenação define o orçamento exato de cada frente regional. O líder, de forma fácil no smartphone, solicita e registra a aplicação da verba acompanhada de descrição e recibo digital assinado imediatamente pela liderança recebedora.
+  </div>
+  <div class="value-box">
+    <span class="badge-value">Valor Estratégico:</span><br>
+    Blindagem financeira e jurídica absoluta. Evita fraudes internas e escoamento indevido de verba de campanha, garantindo foco máximo de liquidez nas frentes decisivas.
+  </div>
+
+  <div class="subsection-title">1.4 Organização Reduzida para o Crítico "Dia D" (Voto com integridade)</div>
+  <div class="pain-box">
+    <span class="badge-pain">A Dor:</span><br>
+    Erros grosseiros de contabilidade de voto. Na véspera, a coordenação acredita ter milhares de votos garantidos, mas no dia da apuração descobre que os contatos cadastrados eram inválidos ou nomes duplicados na base de dados de diferentes cabos.
+  </div>
+  <div class="solution-box">
+    <span class="badge-solution">A Solução ÁGUIA:</span><br>
+    <strong>CRM Inteligente com Análise de Sentimento (Loyalty Score).</strong> Mapeamento qualitativo de cada eleitor com indicador de fidelidade de 0 a 100, validação de documento fotográfico do título, detecção de comunidades específicas (Ex: nome da Maloca e o Tuxaua responsável) e fluxo de "Indicado por" que localiza os principais catalisadores de voto da campanha.
+  </div>
+  <div class="value-box">
+    <span class="badge-value">Valor Estratégico:</span><br>
+    Saber matematicamente a real base de apoiadores consolidados, os neutros inclinados (onde o marketing precisa atuar mais) e rastrear as redes de indicação para premiar os verdadeiros puxadores de votos regionais.
+  </div>
+
+  <div class="subsection-title">1.5 Lentidão na Comunicação e Dificuldade para Digitar de Campo</div>
+  <div class="pain-box">
+    <span class="badge-pain">A Dor:</span><br>
+    Líderes comunitários e de áreas de assentamentos rurais muitas vezes possuem baixa familiaridade com digitação ágil, gerando cadastros incompletos ou abandonando o reporte na ferramenta.
+  </div>
+  <div class="solution-box">
+    <span class="badge-solution">A Solução ÁGUIA:</span><br>
+    <strong>Estruturação Tática de Áudio Local.</strong> O líder grava o relato por áudio, as notas e palavras-chave de Roraima são capturadas e estruturadas no terminal de forma eficiente, eliminando a digitação extensiva e mantendo dados limpos e precisos.
+  </div>
+  <div class="value-box">
+    <span class="badge-value">Valor Estratégico:</span><br>
+    Inclusão e aceitação total da ferramenta por colaboradores de todos os níveis de instrução, expandindo a capacidade de monitoramento a campo.
+  </div>
+
+  <div class="section-title">2. TABELA DE DIMENSIONAMENTO E CUSTOS DE INFRAESTRUTURA</div>
+  <p style="font-size: 11pt; text-align: justify;">
+    O sistema funciona sob o regime de arquitetura limpa híbrida. O armazenamento e a sincronização são operados via <strong>Google Firebase Firestore</strong>, uma tecnologia de classe mundial segura, à prova de falhas de sinal (funciona offline no Lavrado e sincroniza assim que detecta conectividade) e extremamente acessível.
+  </p>
+
+  <p style="font-size: 11pt; text-align: justify;">
+    Abaixo, apresentamos uma tabela atualizada e verídica contendo a projeção de custos do banco de dados (Firestore) com base no tamanho da sua equipe de mobilização de campanha em Roraima operando sob regime diário de escrita e leitura de campo:
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nível / Escala de Equipe</th>
+        <th>Usuários Ativos por Dia</th>
+        <th>Leituras Estimadas / Dia</th>
+        <th>Escritas Estimadas / Dia</th>
+        <th>Custo Provedor Nucléo (Google)</th>
+        <th>Status Tributário / Operação</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Campanha Local / Inicial</strong></td>
+        <td>Até 50 líderes</td>
+        <td>~15.000 leituras/dia</td>
+        <td>~5.000 escritas/dia</td>
+        <td class="highlight-yellow">R$ 0,00 (Gratuito)</td>
+        <td>Plano Google Spark (Isento)</td>
+      </tr>
+      <tr>
+        <td><strong>Campanha Regional / Média</strong></td>
+        <td>150 líderes ativos</td>
+        <td>~45.000 leituras/dia</td>
+        <td>~15.000 escritas/dia</td>
+        <td class="highlight-yellow">R$ 0,00 (Gratuito)</td>
+        <td>Limite de cota de gratuidade atende</td>
+      </tr>
+      <tr>
+        <td><strong>Campanha Estadual / Alta Performance</strong></td>
+        <td>500 líderes ativos</td>
+        <td>150.000 leituras/dia</td>
+        <td>40.000 escritas/dia</td>
+        <td>Apenas ~R$ 4,50 / dia (Cálculo em USD)</td>
+        <td>Plano Blaze Pay-as-you-go (Custo irrisório)</td>
+      </tr>
+      <tr>
+        <td><strong>Campanha Metropolitana / Gigante</strong></td>
+        <td>2.000 líderes ativos</td>
+        <td>600.000 leituras/dia</td>
+        <td>150.000 escritas/dia</td>
+        <td>Apenas ~R$ 18,50 / dia</td>
+        <td>Estabilidade total para milhões de registros</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="value-box" style="margin-top: 15px;">
+    <strong>Análise Técnica Importante:</strong> Os custos gerados pelo processador interno de termos, regionalização e notas de voz foram reduzidos a <strong>ZERO reais</strong> através de processamento determinístico local de palavras-chave estruturadas. Isso garante o funcionamento do painel sem risco de sobressaltos e surpresas com faturamento de APIs em dólares.
+  </div>
+
+  <div class="section-title">3. PROPOSTAS DE INVESTIMENTO E CENÁRIOS ESTRATÉGICOS</div>
+  <p style="font-size: 11pt; text-align: justify;">
+    Para garantir a implantação das bases, parametrização dos dados históricos e suporte técnico com prontidão absoluta de guerra comercial, elaboramos duas estruturas comerciais customizadas para atender os diferentes desdobramentos políticos da candidatura à Assembleia Legislativa de Roraima:
+  </p>
+
+  <div class="subsection-title">Cenário 1: VITÓRIA ELEITORAL & MANUTENÇÃO DE MANDATO ATIVO (Recomendado)</div>
+  <p style="font-size: 11pt; text-align: justify;">
+    Este cenário é idealizado para a candidata com alta probabilidade de êxito eleitoral e que compreende a importância estratégica de reter as informações colhidas de campo para governar. O banco de dados construído na campanha converte-se pós-pleito no cérebro do gabinete parlamentar da Deputada na Assembleia Legislativa de Roraima (ALE-RR).
+  </p>
+
+  <div class="price-card" style="border-color: #d69e2e; background-color: #fffaf0;">
+    <p style="margin: 0; font-size: 9.5pt; font-weight: bold; text-transform: uppercase; color: #b7791f; tracking: 1px;">FASE DE CAMPANHA (Até Outubro/2026)</p>
+    <div class="price-amount" style="color: #b7791f; margin: 10px 0;">3x de R$ 2.450,00</div>
+    <p style="margin: 0; font-size: 9.5pt; color: #4a5568;">Implantação total, migração de dados antigos, capacitação de frentes e suporte emergencial "War Room" em toda Roraima.</p>
+    
+    <div style="margin: 20px auto; width: 60%; height: 1px; background-color: #e2e8f0;"></div>
+    
+    <p style="margin: 0; font-size: 9.5pt; font-weight: bold; text-transform: uppercase; color: #2c5282;">FASE DE MANDATO (A partir de Novembro/2026)</p>
+    <div class="price-amount" style="color: #2c5282; margin: 10px 0;">R$ 1.250,00 / mês</div>
+    <p style="margin: 0; font-size: 9pt; color: #4a5568;">Manutenção da infraestrutura hospedada, atualizações críticas e desbloqueio do pacote de novas funções legislativas de gabinete.</p>
+  </div>
+
+  <div class="value-box" style="margin-top: 15px;">
+    <strong>Novas Funcionalidades inclusas no Mandato Parlamentar:</strong><br>
+    <ul>
+      <li><strong>Módulo Gabinete Conectado:</strong> Central de processamento de pedidos comunitários (providências de infraestrutura, ofícios parlamentares, saúde básica de Boa Vista e interior) vindos de presidentes de associações diretamente mapeados pelas equipes.</li>
+      <li><strong>Rastreador de Emendas Municipais:</strong> Gestão e fiscalização ativa da liberação e execução de emendas destinadas a cada município parceiro (Bonfim, Cantá, Caroebe, Uiramutã, etc.).</li>
+      <li><strong>CRM Popular Continuado:</strong> Envio profissionalizado de boletins eleitorais de prestação de contas periódicos aos eleitores cadastrados na base, alimentando o prestígio e garantindo bases ativas permanentes de diálogo.</li>
+    </ul>
+    <strong>Justificativa de Retorno:</strong> Garante que o precioso patrimônio de contatos de campo obtido na eleição não se desintegre. O mandato que começa monitorando e atendendo suas lideranças rurais e urbanas chega na busca por reeleição com 100% das bases blindadas e mapeadas.
+  </div>
+
+  <div class="subsection-title">Cenário 2: OPERAÇÃO ELEITORAL TÁTICA FOCAL (Curto Prazo - Campanha de Tiro Curto)</div>
+  <p style="font-size: 11pt; text-align: justify;">
+    Voltado exclusivamente para atender os meses de mobilização eleitoral de alta colisão no asfalto e na poeira até o domingo das eleições de Outubro. Este modelo não prevê continuidade ou mensalidades subsequentes após o encerramento do pleito eleitoral, servindo como uma solução fechada de alta performance técnica.
+  </p>
+
+  <div class="price-card" style="border-color: #e53e3e; background-color: #fff5f5;">
+    <p style="margin: 0; font-size: 9.5pt; font-weight: bold; text-transform: uppercase; color: #e53e3e; tracking: 1px;">TAXA ÚNICA E SOBERANA DE PROJETO (Sem Mensalidades Pós-Outubro)</p>
+    <div class="price-amount" style="color: #c53030; margin: 10px 0;">R$ 8.500,00 (À Vista / Parcelados por Comitê)</div>
+    <p style="margin: 0; font-size: 9.5pt; color: #742a2a;">Entrega imediata sob demanda, capacitação, auditoria, suporte premium em período integral e fornecimento geral até 30 dias após o pleito.</p>
+  </div>
+
+  <div class="value-box" style="margin-top: 15px; border-left-color: #e53e3e; background-color: #fff5f5;">
+    <strong>Procedimentos Inclusos de Encerramento e Pós-Eleição (Se Não Eleita):</strong><br>
+    <ul>
+      <li><strong>Corte Seguro de Infraestrutura:</strong> Interrupção automática e desativação programada dos servidores de homologação e produção 30 dias após as eleições presidenciais e estaduais para eliminação de qualquer custo subsequente.</li>
+      <li><strong>Backup Militarizado de Eleitores:</strong> Download criptografado completo das tabelas de lideranças, eleitores qualificados por município, coeficientes de fidelidade (Loyalty Score) e inteligência de indicação para guarda permanente confidencial do partido.</li>
+    </ul>
+    <strong>Justificativa de Retorno:</strong> Custo direto fechado, 100% amortizado com a eliminação de despesas de transportes e comissões fantasmas que ocorrem na distribuição de recursos em papel. A candidata utiliza a vanguarda tecnológica pelo período exato de duração da guerra eleitoral, recebendo em mãos as bases organizadas para futuras rodadas de aliança partidária estadual.
+  </div>
+
+  <div class="section-title">4. SEGURANÇA E INTEGRALIDADE DE DADOS DO CANDIDATO</div>
+  <p style="font-size: 11pt; text-align: justify;">
+    Segurança é sagrada. O Ecossistema ÁGUIA opera com regras rígidas de segurança nativas do banco de dados (<strong>Firestore Rules Authenticated</strong>). Um líder de campo de Normandia consegue ver e gerenciar apenas os eleitores ou recursos que ele próprio cadastrou ou recebeu. Ele <strong>não consegue visualizar</strong> os dados sensíveis da equipe de Boa Vista ou de outras divisões do partido. O coordenador central é o único com a visão "Águia" unificada de todo o estado.
+  </p>
+
+  <div class="footer">
+    <p><strong>ECOSSISTEMA ÁGUIA 2026: A TECNOLOGIA ESTRATÉGICA QUE TRANSFORMA CAMPANHAS EM VITÓRIA.</strong></p>
+    <p style="margin-top: 5px; font-size: 8pt; color: #a0aec0;">DOCUMENTO INTERNO CONFIDENCIAL • DIREITOS RESERVADOS À COORDENAÇÃO DE TECNOLOGIA ELEITORAL</p>
+  </div>
+
+</body>
+</html>

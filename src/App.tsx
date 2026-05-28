@@ -273,7 +273,7 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
 /// --- COMPONENTE: DASHBOARD DO COORDENADOR ---
 function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme: (t: 'light' | 'dark') => void }) {
   const { user, login, logout, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'voters' | 'finance' | 'agenda' | 'notes' | 'attendance' | 'materials' | 'partners' | 'demands' | 'reports'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'voters' | 'finance' | 'agenda' | 'notes' | 'attendance' | 'materials' | 'partners' | 'demands' | 'reports' | 'proposal'>('overview');
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
   
   // Reports State
@@ -1508,7 +1508,8 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             { id: 'partners', label: 'Articulação', icon: <Handshake className="w-4 h-4" /> },
             { id: 'demands', label: 'Demandas/Mapa', icon: <Activity className="w-4 h-4" /> },
             { id: 'notes', label: 'Anotações', icon: <MessageSquare className="w-4 h-4" /> },
-            { id: 'reports', label: 'Relatórios & BI', icon: <FileDown className="w-4 h-4" /> }
+            { id: 'reports', label: 'Relatórios & BI', icon: <FileDown className="w-4 h-4" /> },
+            { id: 'proposal', label: 'Proposta Comercial 💼', icon: <Briefcase className="w-4 h-4" /> }
           ].map((item) => (
             <button
               key={item.id}
@@ -3054,6 +3055,344 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                       </div>
                     )}
                   </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'proposal' && (
+              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
+                {/* Cabeçalho da Proposta */}
+                <div className="relative overflow-hidden bg-gradient-to-r from-zinc-950 to-zinc-900 border border-yellow-500/20 rounded-sm p-8 md:p-12 shadow-2xl">
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-yellow-500/5 rounded-full blur-[100px]"></div>
+                  <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div>
+                      <span className="inline-block px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 font-black text-[9px] uppercase tracking-[0.25em] rounded-sm mb-4">
+                        Dossiê Técnico-Comercial de Venda
+                      </span>
+                      <h2 className="text-3xl md:text-4xl font-black uppercase text-white tracking-tighter leading-none">
+                        ECOSSISTEMA ÁGUIA 2026
+                      </h2>
+                      <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest mt-4">
+                        Apresentação Comercial & Proposta de Venda para Candidata a Deputada Estadual por Roraima
+                      </p>
+                    </div>
+                    <div>
+                      <a 
+                        href="/PROPOSTA_COMERCIAL_AGUIA_2026.doc" 
+                        download="PROPOSTA_COMERCIAL_AGUIA_2026.doc"
+                        className="flex items-center gap-3 px-6 py-4 bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-black text-xs uppercase tracking-widest rounded-sm shadow-xl hover:shadow-yellow-500/10 transition-all duration-300"
+                      >
+                        <FileDown className="w-5 h-5 text-zinc-950 animate-bounce" /> Baixar Proposta em Word (.doc)
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bloco de Filosofia de Dores e Soluções */}
+                <div className="space-y-6">
+                  <h3 className="text-lg font-black uppercase text-[var(--text-primary)] tracking-tighter border-b border-[var(--border-color)] pb-3 font-sans">
+                    🔥 MAPEAMENTO DE GARGALOS OPERACIONAIS E CURAS TECNOLÓGICAS (DE CABO A RABO)
+                  </h3>
+                  <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest leading-relaxed">
+                    Veja em detalhes como cada funcionalidade vital do sistema ÁGUIA sana as piores dores de infraestrutura rural e urbana de campo no território de Roraima:
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Bloco 1 */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 hover:border-orange-500/30 transition-all shadow-sm">
+                      <div className="flex items-center gap-2 mb-3 text-orange-500">
+                        <span className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
+                          DOR CRÍTICA RURAL #1
+                        </span>
+                        <h4 className="text-xs font-black uppercase tracking-tight">O "Cabo de Papel" (Fraude de Rua)</h4>
+                      </div>
+                      <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest leading-relaxed mb-4">
+                        Cumpriores de agenda que recebem doações de campanha, mas mentem sobre as rotas ou visitas rurais.
+                      </p>
+                      <div className="mt-4 pt-4 border-t border-[var(--border-color)]">
+                        <div className="flex items-center gap-2 mb-2 text-yellow-500">
+                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
+                            A OPERAÇÃO ÁGUIA
+                          </span>
+                          <h5 className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Assinatura GPS Inviolável</h5>
+                        </div>
+                        <p className="text-xs text-[var(--text-secondary)] font-bold uppercase tracking-widest leading-relaxed">
+                          Os líderes registram ponto nas comunidades e vicinais de Roraima com precisão métrica de satélite e trava de simulador de GPS.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bloco 2 */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 hover:border-orange-500/30 transition-all shadow-sm">
+                      <div className="flex items-center gap-2 mb-3 text-orange-500">
+                        <span className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
+                          DOR CRÍTICA RURAL #2
+                        </span>
+                        <h4 className="text-xs font-black uppercase tracking-tight">Candidato Desconectado no Palanque</h4>
+                      </div>
+                      <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest leading-relaxed mb-4">
+                        Subir nos carros de som com discursos fracos por ignorar a demanda específica e factual da localidade visitada.
+                      </p>
+                      <div className="mt-4 pt-4 border-t border-[var(--border-color)]">
+                        <div className="flex items-center gap-2 mb-2 text-yellow-500">
+                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
+                            A OPERAÇÃO ÁGUIA
+                          </span>
+                          <h5 className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Auditoria Georreferenciada de Demandas</h5>
+                        </div>
+                        <p className="text-xs text-[var(--text-secondary)] font-bold uppercase tracking-widest leading-relaxed">
+                          Cada líder municipal mapeia reclamações locais (bueiro no Cantá, ponte no Caracaraí). O candidato discursa sabendo todos os detalhes geográficos.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bloco 3 */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 hover:border-orange-500/30 transition-all shadow-sm">
+                      <div className="flex items-center gap-2 mb-3 text-orange-500">
+                        <span className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
+                          DOR CRÍTICA RURAL #3
+                        </span>
+                        <h4 className="text-xs font-black uppercase tracking-tight">Perda Financeira (Caixa Preta de Rua)</h4>
+                      </div>
+                      <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest leading-relaxed mb-4">
+                        Desvio de vales-combustível e alimentação distribuídos de forma manual sem documentação ou recibo.
+                      </p>
+                      <div className="mt-4 pt-4 border-t border-[var(--border-color)]">
+                        <div className="flex items-center gap-2 mb-2 text-yellow-500">
+                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
+                            A OPERAÇÃO ÁGUIA
+                          </span>
+                          <h5 className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Vault Financeiro & Recibos Rápidos</h5>
+                        </div>
+                        <p className="text-xs text-[var(--text-secondary)] font-bold uppercase tracking-widest leading-relaxed">
+                          Divisão tática de custos por núcleo e emissão instantânea de contra-recibos digitais assinados via painel do coordenador e do líder.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bloco 4 */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 hover:border-orange-500/30 transition-all shadow-sm">
+                      <div className="flex items-center gap-2 mb-3 text-orange-500">
+                        <span className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
+                          DOR CRÍTICA RURAL #4
+                        </span>
+                        <h4 className="text-xs font-black uppercase tracking-tight">O "Eleitor Fantasma" no Dia de Trabalho</h4>
+                      </div>
+                      <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest leading-relaxed mb-4">
+                        Bases infladas na véspera com cadastros rasos e duplicados que se desintegram na hora crítica de contagem de voto.
+                      </p>
+                      <div className="mt-4 pt-4 border-t border-[var(--border-color)]">
+                        <div className="flex items-center gap-2 mb-2 text-yellow-500">
+                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
+                            A OPERAÇÃO ÁGUIA
+                          </span>
+                          <h5 className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Network CRM (Rede de Influência)</h5>
+                        </div>
+                        <p className="text-xs text-[var(--text-secondary)] font-bold uppercase tracking-widest leading-relaxed">
+                          Nomes atrelados a indicados originais, pontuação de confiabilidade de voto (Loyalty Score) e dados rurais completos como Maloca/Tuxaua correspondente.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tabela de Dimensionamento Real de Uso de Banco */}
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 md:p-8 mt-6">
+                  <h3 className="text-sm font-black uppercase text-[var(--text-primary)] tracking-widest mb-6 flex items-center gap-2">
+                    📊 TABELA DE DIMENSIONAMENTO DE INFRAESTRUTURA DE BANCO DE DADOS (FIRESTORE)
+                  </h3>
+                  <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-widest leading-relaxed mb-8">
+                    Análise técnica que comprova a viabilidade matemática e custo extremamente enxuto e escalável da plataforma sob regime de alta carga de mobilização de campo:
+                  </p>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left font-mono">
+                      <thead>
+                        <tr className="border-b border-[var(--border-color)] text-[var(--text-secondary)] text-[9px] uppercase tracking-widest">
+                          <th className="py-4 font-black">Escala de Equipe</th>
+                          <th className="py-4 font-black">Usuários Ativos / Dia</th>
+                          <th className="py-4 font-black">Leituras / Dia</th>
+                          <th className="py-4 font-black">Escritas / Dia</th>
+                          <th className="py-4 font-black">Custo Google Firestore</th>
+                          <th className="py-4 font-black">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--border-color)] text-[10px] font-bold text-[var(--text-primary)] text-zinc-400">
+                        <tr>
+                          <td className="py-4 font-black text-white">Local / Familiar</td>
+                          <td className="py-4">Até 50 lideranças</td>
+                          <td className="py-4">~15.000 / dia</td>
+                          <td className="py-4">~5.000 / dia</td>
+                          <td className="py-4 text-emerald-500 font-bold">R$ 0,00 (100% Gratuito)</td>
+                          <td className="py-4 uppercase text-[9px]">Corte de Cota Atende</td>
+                        </tr>
+                        <tr>
+                          <td className="py-4 font-black text-white">Médio Porte</td>
+                          <td className="py-4">150 lideranças</td>
+                          <td className="py-4">~45.000 / dia</td>
+                          <td className="py-4">~15.000 / dia</td>
+                          <td className="py-4 text-emerald-500 font-bold">R$ 0,00 (100% Gratuito)</td>
+                          <td className="py-4 uppercase text-[9px]">Corte de Cota Atende</td>
+                        </tr>
+                        <tr>
+                          <td className="py-4 font-black text-white">Escala Deputado Estadual</td>
+                          <td className="py-4">500 lideranças</td>
+                          <td className="py-4">~150.000 / dia</td>
+                          <td className="py-4">~40.000 / dia</td>
+                          <td className="py-4 text-yellow-500 font-bold">~R$ 4,50 / dia</td>
+                          <td className="py-4 uppercase text-[9px]">Regime Pay-as-you-go</td>
+                        </tr>
+                        <tr>
+                          <td className="py-4 font-black text-white">Gigante Metropolitana</td>
+                          <td className="py-4">2.000 lideranças</td>
+                          <td className="py-4">~600.000 / dia</td>
+                          <td className="py-4">~150.000 / dia</td>
+                          <td className="py-4 text-orange-500 font-bold">~R$ 18,50 / dia</td>
+                          <td className="py-4 uppercase text-[9px]">Pico Máximo Estabilizado</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="mt-6 p-4 rounded-sm bg-yellow-500/5 border border-yellow-500/10 text-[var(--text-secondary)] text-[10px] uppercase font-black tracking-widest leading-relaxed">
+                    💡 **OPERAÇÃO 100% LIVRE DE TAXAS DE INTELIGÊNCIA ARTIFICIAL**: 
+                    As rotinas de anotações táticas de voz e o organizador de demandas de campo funcionam de forma determinística nativa da nossa agência sem consumir créditos ou requisições adicionais de APIs externas. Custo operacional fixado.
+                  </div>
+                </div>
+
+                {/* Proposta de Investimento e Retorno - Dois Cenários Estratégicos */}
+                <div className="space-y-6 mt-10">
+                  <h3 className="text-lg font-black uppercase text-[var(--text-primary)] tracking-tighter border-b border-[var(--border-color)] pb-3 font-sans">
+                    💼 MODELOS DE COMERCIALIZAÇÃO E CENÁRIOS ESTRATÉGICOS
+                  </h3>
+                  <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest leading-relaxed">
+                    Apresentamos duas modelagens financeiras personalizadas que se alinham perfeitamente com os rumos e desdobramentos políticos da candidatura à Assembleia Legislativa:
+                  </p>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Cenário 1: Vitória Eleitoral & Mandato Continuado */}
+                    <div className="relative overflow-hidden bg-gradient-to-br from-zinc-950 to-zinc-905 border-2 border-yellow-500/30 rounded-sm p-8 shadow-2xl">
+                      <div className="absolute top-0 right-0 px-3 py-1 bg-yellow-500 text-zinc-950 font-black text-[9px] uppercase tracking-widest rounded-bl-sm">
+                        RECOMENDADO • ALTA PERFORMANCE
+                      </div>
+                      
+                      <span className="inline-block px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 font-black text-[9px] uppercase tracking-[0.25em] rounded-sm mb-4">
+                        CENÁRIO 1: VITÓRIA ELEITORAL & MANDATO ATIVO
+                      </span>
+                      
+                      <h4 className="text-xl font-black text-white uppercase tracking-tight mb-2">
+                        Presença de Rua Convertida em Mandato Histórico
+                      </h4>
+                      <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest leading-relaxed mb-6 border-b border-zinc-800 pb-4">
+                        Foco na eleição do Candidato e transição automática para a gestão parlamentar no Legislativo de Roraima.
+                      </p>
+
+                      <div className="space-y-4 mb-8">
+                        <div>
+                          <p className="text-zinc-500 text-[8px] font-black uppercase tracking-widest">Fase de Campanha (Até Outubro/2026)</p>
+                          <p className="text-2xl font-black text-white tracking-widest">3x R$ 2.450,00</p>
+                          <p className="text-zinc-400 text-[9px] font-bold uppercase tracking-widest">Implantação, suporte "War Room" em Boa Vista e interiores, treinamento de equipes de rua.</p>
+                        </div>
+                        <div className="pt-4 border-t border-zinc-800">
+                          <p className="text-yellow-500 text-[8px] font-black uppercase tracking-widest">Fase de Mandato (Transição Pós-Vitória)</p>
+                          <p className="text-2xl font-black text-yellow-500 tracking-widest">R$ 1.250,00 <span className="text-xs text-zinc-400 font-bold tracking-normal">/ mensal</span></p>
+                          <p className="text-[var(--text-secondary)] text-[9px] font-bold uppercase tracking-widest leading-relaxed mt-2">
+                            Assinatura mensal para manutenção da infraestrutura, atualizações de segurança e disponibilização de novas ferramentas táticas parlamentares.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-sm space-y-3">
+                        <p className="text-white text-[10px] uppercase font-black tracking-widest">⚙️ Expansão Inclusa para Mandato Parlamentar:</p>
+                        <ul className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider space-y-2">
+                          <li className="flex items-start gap-2">
+                            <span className="text-yellow-500">✔</span> 
+                            <span>**Gabinete Conectado**: Portal web interno de solicitações populares georreferenciadas mapeadas pelas frentes.</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="text-yellow-500">✔</span> 
+                            <span>**Rastreador de Emendas**: Inteligência integrada para acompanhar a destinação e andamento das emendas parlamentares.</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="text-yellow-500">✔</span> 
+                            <span>**Fomento Continuado de Base**: Conversão do banco de eleitores da campanha em base permanente de diálogo e apoio contínuo.</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="mt-6 p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-sm">
+                        <p className="text-emerald-400 text-[9px] font-black uppercase tracking-widest leading-relaxed">
+                          🎯 **Justificativa de Valor**: Evita que o precioso banco de apoiadores coletado a campo se perca pós-eleição. O parlamentar mantém comunicação direta permanente em Rorainópolis, Bonfim, Pacaraima e capital, pavimentando o prestígio e o caminho de reeleição de forma cientifica.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Cenário 2: Operação Cabos de Guerra (Até Outubro) */}
+                    <div className="relative overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-8 shadow-sm">
+                      <span className="inline-block px-3 py-1 bg-zinc-800 border border-zinc-700 text-zinc-400 font-black text-[9px] uppercase tracking-[0.25em] rounded-sm mb-4">
+                        CENÁRIO 2: OPERAÇÃO ELEITORAL TÁTICA FOCAL
+                      </span>
+                      
+                      <h4 className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tight mb-2">
+                        Máxima Engenharia de Guerra até o Dia D
+                      </h4>
+                      <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest leading-relaxed mb-6 border-b border-[var(--border-color)] pb-4">
+                        Ferramental focado estritamente na caminhada eleitoral ativa, sem recorrências ou contratos pós-Outubro.
+                      </p>
+
+                      <div className="space-y-6 mb-11">
+                        <div>
+                          <p className="text-zinc-500 text-[8px] font-black uppercase tracking-widest">Taxa Única de Operação Coletiva (Foco Outubro/2026)</p>
+                          <p className="text-3xl font-black text-[var(--text-primary)] tracking-widest">R$ 8.500,00 <span className="text-xs text-zinc-500 font-bold tracking-normal">Taxa Única</span></p>
+                          <p className="text-zinc-400 text-[9px] font-bold uppercase tracking-widest mt-2">
+                            Acesso ilimitado, implantação tática completa, treinamento, suporte premium permanente e auditoria integral durante todo o período eleitoral ativo.
+                          </p>
+                        </div>
+                        
+                        <div className="pt-4 border-t border-[var(--border-color)]">
+                          <p className="text-orange-500 text-[8px] font-black uppercase tracking-widest">Fluxo Pós-Eleição (Após Outubro/2026)</p>
+                          <p className="text-lg font-black text-orange-500 tracking-tight">Hibernação Segura & Exportação de Dados</p>
+                          <p className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest leading-relaxed mt-2">
+                            Nenhum custo extra ou mensalidade continuada subsequente. O contrato é encerrado automaticamente com a entrega dos backups criptografados.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="bg-zinc-900/10 border border-[var(--border-color)] p-4 rounded-sm space-y-3">
+                        <p className="text-[var(--text-primary)] text-[10px] uppercase font-black tracking-widest">📦 Pacote de Fechamento de Ciclo Incluso:</p>
+                        <ul className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider space-y-2">
+                          <li className="flex items-start gap-2">
+                            <span className="text-zinc-600">✔</span> 
+                            <span>**Backup Militarizado de Eleitores**: Exportação estruturada segura das listas completas com Loyalty Score e dados rurais.</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="text-zinc-600">✔</span> 
+                            <span>**Conformidade Eleitoral**: Destruição programada segura dos servidores em nuvem de homologação em 30 dias.</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="mt-6 p-4 bg-yellow-500/5 border border-yellow-500/10 rounded-sm">
+                        <p className="text-[var(--text-secondary)] text-[9px] font-black uppercase tracking-widest leading-relaxed">
+                          🎯 **Justificativa de Valor**: Caso a candidata opte por uma abordagem restrita de curto prazo para mobilização de campanha com encerramento contábil garantido, este cenário mitiga custos de custódia e entrega um ativo de dados altamente catalogado de Roraima para futuras alianças partidárias.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rodapé de Ação */}
+                <div className="flex flex-col sm:flex-row justify-between items-center bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 mt-10 gap-4">
+                  <p className="text-zinc-500 text-[9px] font-black uppercase tracking-widest">
+                    Prepara esta Proposta Comercial de alto nível para enviar ao Comitê Eleitoral 🦅
+                  </p>
+                  <a 
+                    href="/PROPOSTA_COMERCIAL_AGUIA_2026.doc" 
+                    download="PROPOSTA_COMERCIAL_AGUIA_2026.doc"
+                    className="flex items-center gap-2 px-6 py-3.5 bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-black text-[10px] uppercase tracking-widest rounded-sm shadow-xl transition-all"
+                  >
+                    <FileDown className="w-4 h-4 text-zinc-950" /> Baixar Documento Oficial (.doc)
+                  </a>
                 </div>
               </motion.div>
             )}
