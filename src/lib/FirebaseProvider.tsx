@@ -6,7 +6,8 @@ import {
   googleProvider, 
   auth,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
+  updatePassword
 } from './firebase';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
@@ -146,8 +147,6 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   const changePassword = async (newPass: string) => {
     if (!auth.currentUser) throw new Error("Usuário não autenticado");
     try {
-      // Re-import dynamic correctly or assume it's exposed
-      const { updatePassword } = await import('firebase/auth');
       await updatePassword(auth.currentUser, newPass);
       
       // Clear flag in Firestore

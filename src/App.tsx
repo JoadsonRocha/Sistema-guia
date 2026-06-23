@@ -80,6 +80,31 @@ import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, get
 import { db, auth } from './lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from './lib/agendaLogic';
 
+const safeLocalStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      console.warn("Storage access denied:", e);
+      return null;
+    }
+  },
+  setItem: (key: string, value: string): void => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn("Storage write denied:", e);
+    }
+  },
+  removeItem: (key: string): void => {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      console.warn("Storage remove denied:", e);
+    }
+  }
+};
+
 const AVAILABLE_COLUMNS_BY_TYPE: Record<string, { header: string; dataKey: string }[]> = {
   teams: [
     { header: 'Zona/Equipe', dataKey: 'name' },
@@ -131,6 +156,8 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
     const q = query(collection(db, 'notes', note.id, 'comments'), orderBy('createdAt', 'asc'));
     const unsub = onSnapshot(q, (snap) => {
       setComments(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (err) => {
+      console.warn("Comments sync permission or access denied:", err.message);
     });
     return () => unsub();
   }, [note.id]);
@@ -1015,12 +1042,16 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     const unsubNotes = query(collection(db, 'notes'), orderBy('createdAt', 'desc'));
     const unsubNotesSnap = onSnapshot(unsubNotes, (snapshot) => {
       setNotes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (err) => {
+      console.warn("Notes sync error (permission or query failure):", err.message);
     });
 
     const unsubProfile = onSnapshot(doc(db, 'users', user.uid), (snapshot) => {
       if (snapshot.exists()) {
         setProfileData(snapshot.data());
       }
+    }, (err) => {
+      console.warn("Profile sync error:", err.message);
     });
     
     // Fallback for empty collections
@@ -1036,10 +1067,14 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
         setDailyOrder(snap.data());
         setNewDailyOrder(snap.data().text || '');
       }
+    }, (err) => {
+      console.warn("DailyOrder sync error:", err.message);
     });
 
     const unsubMaterials = onSnapshot(collection(db, 'materials'), (snap) => {
       setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => {
+      console.warn("Materials sync error:", err.message);
     });
 
     const unsubMaterialRequests = firestoreService.subscribeToCollection('material_requests', (data) => {
@@ -1048,10 +1083,14 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
     const unsubVoters = onSnapshot(collection(db, 'voters'), (snap) => {
       setAllVoters(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => {
+      console.warn("Voters sync error:", err.message);
     });
 
     const unsubReports = onSnapshot(query(collection(db, 'reports'), orderBy('createdAt', 'desc')), (snap) => {
       setReportsHistory(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => {
+      console.warn("Reports sync error:", err.message);
     });
 
     return () => {
@@ -1211,6 +1250,8 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             const unsub = onSnapshot(qVoters, (snapshot) => {
               const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
               setManagingTeamVoters(data);
+            }, (err) => {
+              console.warn("Error listening to managing team voters:", err.message);
             });
             return unsub;
           }
@@ -1246,6 +1287,8 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
           }
         });
         setAllVoters(Array.from(uniqueMap.values()));
+      }, (err) => {
+        console.warn("Error listening to all voters:", err.message);
       });
       return () => unsub();
     }
@@ -1535,15 +1578,12 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
             { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
             { id: 'voters', label: 'Eleitores Geral', icon: <Target className="w-4 h-4" /> },
-            { id: 'attendance', label: 'Audit. Ponto', icon: <Clock className="w-4 h-4" /> },
             { id: 'agenda', label: 'Mapa & Agenda', icon: <Calendar className="w-4 h-4" /> },
             { id: 'finance', label: 'Financeiro', icon: <DollarSign className="w-4 h-4" /> },
             { id: 'materials', label: 'Materiais', icon: <Package className="w-4 h-4" /> },
-            { id: 'partners', label: 'Articulação', icon: <Handshake className="w-4 h-4" /> },
             { id: 'demands', label: 'Demandas/Mapa', icon: <Activity className="w-4 h-4" /> },
             { id: 'notes', label: 'Anotações', icon: <MessageSquare className="w-4 h-4" /> },
-            { id: 'reports', label: 'Relatórios & BI', icon: <FileDown className="w-4 h-4" /> },
-            { id: 'proposal', label: 'Manual Coordenador 🎓', icon: <BookOpen className="w-4 h-4" /> }
+            { id: 'reports', label: 'Relatórios & BI', icon: <FileDown className="w-4 h-4" /> }
           ].map((item) => (
             <button
               key={item.id}
@@ -2712,9 +2752,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     { id: 'teams', title: 'Equipes e Lideranças', desc: 'Dados de contato e performance regional.', icon: <Users className="w-6 h-6" /> },
                     { id: 'voters', title: 'Base de Eleitores', desc: 'Mapeamento de votos e sentimento.', icon: <Target className="w-6 h-6" /> },
                     { id: 'finance', title: 'Financeiro e Custos', desc: 'Fluxo de caixa e alocação de recursos.', icon: <DollarSign className="w-6 h-6" /> },
-                    { id: 'attendance', title: 'Auditoria de Ponto', desc: 'Log de presença e geolocalização.', icon: <Clock className="w-6 h-6" /> },
                     { id: 'materials', title: 'Materiais e Estoque', desc: 'Controle de suprimentos e remessas.', icon: <Package className="w-6 h-6" /> },
-                    { id: 'partners', title: 'Articulação Política', desc: 'Efetividade de influenciadores e aliados.', icon: <Handshake className="w-6 h-6" /> },
                     { id: 'demands', title: 'Demandas e Mapa', desc: 'Urgências e necessidades mapeadas.', icon: <Activity className="w-6 h-6" /> }
                   ].map(r => (
                     <div key={r.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 hover:border-yellow-500/50 transition-all group shadow-sm">
@@ -2773,292 +2811,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                         <p className="text-[var(--text-secondary)] font-black uppercase tracking-[0.2em] text-[10px]">Aguardando geração de dados estratégicos.</p>
                       </div>
                     )}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'proposal' && (
-              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 md:space-y-8">
-                {/* Cabeçalho do Manual */}
-                <div className="relative overflow-hidden bg-gradient-to-r from-zinc-950 to-zinc-900 border border-yellow-500/20 rounded-sm p-6 md:p-10 shadow-2xl">
-                  <div className="absolute top-0 right-0 w-80 h-80 bg-yellow-500/5 rounded-full blur-[100px] pointer-events-none"></div>
-                  <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div>
-                      <span className="inline-block px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 font-black text-[8px] md:text-[9px] uppercase tracking-[0.25em] rounded-sm mb-3">
-                        Manual & Tutorial Estratégico de Operações
-                      </span>
-                      <h2 className="text-2xl md:text-3.5xl font-black uppercase text-white tracking-tighter leading-none">
-                        MANUAL INTELIGENTE DO COORDENADOR
-                      </h2>
-                      <p className="text-zinc-400 text-[10px] md:text-xs font-bold uppercase tracking-widest mt-2">
-                        Como o Sistema Águia automatiza, blinda e multiplica os resultados da inteligência de campo política
-                      </p>
-                    </div>
-                    <div className="shrink-0 flex flex-wrap gap-3">
-                      <button
-                        onClick={handleDownloadDoc}
-                        className="flex items-center gap-2.5 px-5 py-3 md:px-6 md:py-3.5 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-sm shadow-md active:scale-95 transition-all duration-300 group"
-                        title="Baixar Manual Completo em Word (.DOC)"
-                      >
-                        <FileDown className="w-4 h-4 text-zinc-400 group-hover:scale-110 transition-transform duration-300" /> Baixar Manual (.DOC)
-                      </button>
-                      <button
-                        onClick={handleDownloadPdf}
-                        className="flex items-center gap-2.5 px-5 py-3 md:px-6 md:py-3.5 bg-yellow-500 hover:bg-white text-zinc-950 font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-sm shadow-xl hover:shadow-yellow-500/20 active:scale-95 transition-all duration-300 group"
-                        title="Baixar Manual Completo em PDF (.PDF)"
-                      >
-                        <FileText className="w-4 h-4 text-zinc-950 group-hover:scale-110 transition-transform duration-300" /> Baixar Manual (.PDF)
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Filosofia do Coordenador - Citação Reconfigurada */}
-                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-4 md:p-6 rounded-sm shadow-sm space-y-3.5 relative overflow-hidden">
-                  <div className="absolute top-0 right-[-10px] p-6 opacity-5 pointer-events-none">
-                    <BookOpen className="w-24 h-24 text-[var(--text-primary)]" />
-                  </div>
-                  <h3 className="text-xs font-black uppercase text-yellow-600 dark:text-yellow-500 tracking-widest flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-ping" />
-                    O Papel Doutrinário do Coordenador de Campanha
-                  </h3>
-                  <blockquote className="border-l-2 border-yellow-500 pl-4 py-1 italic text-zinc-600 dark:text-zinc-400 text-xs leading-relaxed max-w-4xl space-y-2">
-                    <p>
-                      "A função central é cuidar, ajustar e direcionar a campanha eleitoral de um determinado candidato. O coordenador gerencia os acertos e compromissos diários de campanha. Ele é responsável por articular com parceiros no meio político, seja no âmbito estadual, municipal ou da república... O profissional realiza o gerenciamento das finanças, fatiando e distribuindo o dinheiro para cobrir custos com cabos eleitorais, combustível, mídias e materiais..."
-                    </p>
-                    <p className="text-[10px] uppercase font-black tracking-wider text-[var(--test-secondary)] opacity-60 not-italic">
-                      — Diretrizes de Alta Liderança e Comando Eleitoral
-                    </p>
-                  </blockquote>
-                </div>
-
-                {/* Pilares de Equivalência e Comparação Crítica */}
-                <div className="space-y-4 md:space-y-6">
-                  <h3 className="text-base md:text-lg font-black uppercase text-[var(--text-primary)] tracking-tighter border-b border-[var(--border-color)] pb-3 font-sans flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-yellow-500" />
-                    CORRELAÇÃO OPERACIONAL: FUNÇÃO CLÁSSICA VS. PODER DA TECNOLOGIA ÁGUIA
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                    
-                    {/* Pilar 1 */}
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 hover:border-yellow-500/30 transition-all shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
-                            Função Classica #1
-                          </span>
-                          <h4 className="text-[11px] md:text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Direcionar e Cuidar da Campanha</h4>
-                        </div>
-                        <p className="text-[10px] md:text-[11px] text-zinc-500 font-bold uppercase tracking-widest leading-loose mb-4">
-                          "Cuidar, ajustar e direcionar a campanha de um determinado candidato com precisão e controle de movimentações."
-                        </p>
-                        
-                        <div className="mt-4 pt-4 border-t border-[var(--border-color)] space-y-2">
-                          <div className="flex items-center gap-2 text-emerald-500">
-                            <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
-                              No Sistema Águia
-                            </span>
-                            <h5 className="text-[10px] md:text-xs font-black uppercase tracking-tight">Dashboard Central Unificado</h5>
-                          </div>
-                          <p className="text-[10px] text-[var(--text-secondary)] font-medium leading-relaxed">
-                            O coordenador visualiza o painel geral consolidado com indicadores de total de contatos ativos, metas e ocorrências regionais. O sistema atualiza o status de rede de cada regional tática de forma imediata.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-relaxed">
-                        ⚡ **Impacto vs. Tradicional**: No tradicional, o coordenador depende de impressões físicas e conversas casuais. No Águia, ele tem uma visão holística instantânea com tomada de decisão baseada em números exatos.
-                      </div>
-                    </div>
-
-                    {/* Pilar 2 */}
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 hover:border-yellow-500/30 transition-all shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
-                            Função Classica #2
-                          </span>
-                          <h4 className="text-[11px] md:text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Acertos e Compromissos Diários</h4>
-                        </div>
-                        <p className="text-[10px] md:text-[11px] text-zinc-500 font-bold uppercase tracking-widest leading-loose mb-4">
-                          "Gerenciar o cronograma operacional de rua, otimizando as visitas de candidatos aos distritos e bairros."
-                        </p>
-                        
-                        <div className="mt-4 pt-4 border-t border-[var(--border-color)] space-y-2">
-                          <div className="flex items-center gap-2 text-emerald-500">
-                            <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
-                              No Sistema Águia
-                            </span>
-                            <h5 className="text-[10px] md:text-xs font-black uppercase tracking-tight">Mapa Dinâmico & Triagem de Horas</h5>
-                          </div>
-                          <p className="text-[10px] text-[var(--text-secondary)] font-medium leading-relaxed">
-                            O coordenador acessa a aba <strong className="font-extrabold text-[var(--text-primary)]">Mapa & Agenda</strong> para vincular compromissos a eixos temáticos e traçar caminhos geo-mapeados de alto impacto das equipes e de deslocamento do candidato.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-relaxed">
-                        ⚡ **Impacto vs. Tradicional**: Sem "colisão" ou furos de agenda física. Evita deslocamentos redundantes e garante cobertura de rotas táticas com menor consumo de verbas logísticas.
-                      </div>
-                    </div>
-
-                    {/* Pilar 3 */}
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 hover:border-yellow-500/30 transition-all shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
-                            Função Classica #3
-                          </span>
-                          <h4 className="text-[11px] md:text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Articulação de Parceiros Ambientais</h4>
-                        </div>
-                        <p className="text-[10px] md:text-[11px] text-zinc-500 font-bold uppercase tracking-widest leading-loose mb-4">
-                          "Coordenar de forma inteligente coligados municipais, líderes estaduais e vereadores garantindo engajamento mútuo."
-                        </p>
-                        
-                        <div className="mt-4 pt-4 border-t border-[var(--border-color)] space-y-2">
-                          <div className="flex items-center gap-2 text-emerald-500">
-                            <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
-                              No Sistema Águia
-                            </span>
-                            <h5 className="text-[10px] md:text-xs font-black uppercase tracking-tight">CRM de Articulação Política</h5>
-                          </div>
-                          <p className="text-[10px] text-[var(--text-secondary)] font-medium leading-relaxed">
-                            A aba <strong className="font-extrabold text-[var(--text-primary)]">Articulação</strong> disponibiliza um CRM completo com graus de proximidade dos parceiros / líderes ("quente", "morno", "frio") e monitoramento de metas de influência.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-relaxed">
-                        ⚡ **Impacto vs. Tradicional**: Substitui pastas de contatos desorganizadas por um funil estratégico de aliados que impede o esfriamento de bases importantes por esquecimento ou falta de acompanhamento.
-                      </div>
-                    </div>
-
-                    {/* Pilar 4 */}
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 hover:border-yellow-500/30 transition-all shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
-                            Função Classica #4
-                          </span>
-                          <h4 className="text-[11px] md:text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Gerenciamento Técnico de Finanças</h4>
-                        </div>
-                        <p className="text-[10px] md:text-[11px] text-zinc-500 font-bold uppercase tracking-widest leading-loose mb-4">
-                          "Repassar e direcionar verbas partidárias estratégicas para cobrir doações de campanha, combustíveis e material impresso."
-                        </p>
-                        
-                        <div className="mt-4 pt-4 border-t border-[var(--border-color)] space-y-2">
-                          <div className="flex items-center gap-2 text-emerald-500">
-                            <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
-                              No Sistema Águia
-                            </span>
-                            <h5 className="text-[10px] md:text-xs font-black uppercase tracking-tight">Vault de Controle e Alocações & Materiais</h5>
-                          </div>
-                          <p className="text-[10px] text-[var(--text-secondary)] font-medium leading-relaxed">
-                            As abas <strong className="font-extrabold text-[var(--text-primary)]">Financeiro</strong> e <strong className="font-extrabold text-[var(--text-primary)]">Materiais</strong> controlam o teto de gastos por frentes táticas, injeção de recursos imediatos pelo coordenador e auditoria de recibos por equipe de rua de forma contínua.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-relaxed">
-                        ⚡ **Impacto vs. Tradicional**: Zero 'caixa-preta' de gastos manuais. Fim do desvio de combustível e materiais porque toda saída exige registro de recibos ou contra-provas do líder de equipe.
-                      </div>
-                    </div>
-
-                    {/* Pilar 5 */}
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 hover:border-yellow-500/30 transition-all shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest text-center leading-none">
-                            Função Classica #5
-                          </span>
-                          <h4 className="text-[11px] md:text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Homem de Confiança / Aval Final</h4>
-                        </div>
-                        <p className="text-[10px] md:text-[11px] text-zinc-500 font-bold uppercase tracking-widest leading-loose mb-4">
-                          "Garantir que todas as decisões, notas e resoluções passem pelo controle direto e crivo do coordenador."
-                        </p>
-                        
-                        <div className="mt-4 pt-4 border-t border-[var(--border-color)] space-y-2">
-                          <div className="flex items-center gap-2 text-emerald-500">
-                            <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
-                              No Sistema Águia
-                            </span>
-                            <h5 className="text-[10px] md:text-xs font-black uppercase tracking-tight">Fórum do Comitê de Anotações Táticas</h5>
-                          </div>
-                          <p className="text-[10px] text-[var(--text-secondary)] font-medium leading-relaxed">
-                            Através da aba <strong className="font-extrabold text-[var(--text-primary)]">Anotações Táticas</strong> e do sistema descentralizado de convites e links, nenhuma nova unidade entra em operação ou acessa dados sem a autorização de link único criada no painel principal.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-relaxed">
-                        ⚡ **Impacto vs. Tradicional**: Centralização absoluta da soberania militar da campanha. Somente indivíduos credenciados têm visibilidade das frentes, eliminando riscos de espionagem eleitoral.
-                      </div>
-                    </div>
-
-                    {/* Pilar 6 */}
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 hover:border-yellow-500/30 transition-all shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
-                            Função Classica #6
-                          </span>
-                          <h4 className="text-[11px] md:text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Preparação de Discurso do Candidato</h4>
-                        </div>
-                        <p className="text-[10px] md:text-[11px] text-zinc-500 font-bold uppercase tracking-widest leading-loose mb-4">
-                          "Alimentar o palanque com as pautas factuais e necessidades mais candentes das comunidades visitadas."
-                        </p>
-                        
-                        <div className="mt-4 pt-4 border-t border-[var(--border-color)] space-y-2">
-                          <div className="flex items-center gap-2 text-emerald-500">
-                            <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
-                              No Sistema Águia
-                            </span>
-                            <h5 className="text-[10px] md:text-xs font-black uppercase tracking-tight">Georreferenciamento de Demandas e IA</h5>
-                          </div>
-                          <p className="text-[10px] text-[var(--text-secondary)] font-medium leading-relaxed">
-                            O coordenador usa a aba <strong className="font-extrabold text-[var(--text-primary)]">Demandas/Mapa</strong> para analisar relatos de asfalto, fiação e saneamento coletados pelos líderes rurais. A inteligência do ecossistema sintetiza as dores locais em um compêndio que molda o palanque em segundos.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-relaxed">
-                        ⚡ **Impacto vs. Tradicional**: Sai do discursonismo vago e sobe no palanque dominando as pautas locais com assertividade, criando conexão imediata com o eleitorado local.
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-
-                {/* Seção Operacional Secundária - Tutoriais de Procedimento de Comando */}
-                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-4 md:p-8 rounded-sm space-y-6">
-                  <h3 className="text-xs md:text-sm font-black uppercase text-[var(--text-primary)] tracking-widest flex items-center gap-2 border-b border-[var(--border-color)] pb-3">
-                    <BookOpen className="w-4 h-4 text-yellow-500" />
-                    PROCEDIMENTO OPERACIONAL PADRÃO (P.O.P.) DA CAMPANHA ÁGUIA
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-[10px] uppercase font-black tracking-widest">
-                    <div className="space-y-2">
-                      <h4 className="text-yellow-600 dark:text-yellow-500 font-extrabold">1. Credenciamento de Novos Líderes</h4>
-                      <p className="text-zinc-500 font-bold leading-relaxed not-italic uppercase">
-                        Vá na aba <span className="text-[var(--text-primary)]">"Equipes"</span>, clique em "Adicionar Equipe/Base", defina o líder e configure o teto financeiro e bases operacionais da facção. Copie o link exclusivo de login gerado no cartão da equipe e envie para o celular do líder de rua.
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <h4 className="text-yellow-600 dark:text-yellow-500 font-extrabold">2. Mobilização de Rua & Audit de Ponto</h4>
-                      <p className="text-zinc-500 font-bold leading-relaxed not-italic uppercase">
-                        Acompanhe diariamente a aba <span className="text-[var(--text-primary)]">"Audit. Ponto"</span> para auditar a geolocalização e as assinaturas digitais por satélite das equipes em vicinais ou comunidades rurais de difícil mapeamento convencional.
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <h4 className="text-yellow-600 dark:text-yellow-500 font-extrabold">3. Consolidação Financeira e Suprimentos</h4>
-                      <p className="text-zinc-500 font-bold leading-relaxed not-italic uppercase">
-                        Alimente a aba <span className="text-[var(--text-primary)]">"Financeiro"</span> com aportes de recursos recebidos, atrelando os fatiamentos de combustível e materiais táticos às metas de multiplicação geométrica de votantes locais.
-                      </p>
-                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -4551,15 +4303,12 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
           { id: 'overview', label: 'Dash', icon: <LayoutDashboard className="w-5 h-5" /> },
           { id: 'teams', label: 'Equipes', icon: <Users className="w-5 h-5" /> },
           { id: 'voters', label: 'Eleitores', icon: <Target className="w-5 h-5" /> },
-          { id: 'attendance', label: 'Ponto', icon: <Clock className="w-5 h-5" /> },
           { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-5 h-5" /> },
           { id: 'finance', label: 'Finanças', icon: <DollarSign className="w-5 h-5" /> },
           { id: 'materials', label: 'Materia', icon: <Package className="w-5 h-5" /> },
-          { id: 'partners', label: 'Articular', icon: <Handshake className="w-5 h-5" /> },
           { id: 'demands', label: 'Mapa', icon: <Activity className="w-5 h-5" /> },
           { id: 'notes', label: 'Notas', icon: <MessageSquare className="w-5 h-5" /> },
-          { id: 'reports', label: 'Relatórios', icon: <FileDown className="w-5 h-5" /> },
-          { id: 'proposal', label: 'Manual', icon: <BookOpen className="w-5 h-5" /> }
+          { id: 'reports', label: 'Relatórios', icon: <FileDown className="w-5 h-5" /> }
         ].map(tab => (
           <button 
             key={tab.id}
@@ -4770,14 +4519,20 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
 
       const unsubDailyOrder = onSnapshot(doc(db, 'config', 'dailyOrder'), (snap) => {
         if (snap.exists()) setDailyOrder(snap.data());
+      }, (err) => {
+        console.warn("DailyOrder Cabo sync error:", err.message);
       });
 
       const unsubMaterials = onSnapshot(collection(db, 'materials'), (snap) => {
         setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, (err) => {
+        console.warn("Materials Cabo sync error:", err.message);
       });
 
       const unsubPartners = onSnapshot(collection(db, 'partners'), (snap) => {
         setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, (err) => {
+        console.warn("Partners Cabo sync error:", err.message);
       });
 
       const unsubMaterialRequests = firestoreService.subscribeToCollection('material_requests', (data) => {
@@ -4806,7 +4561,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     window.addEventListener('online', handleStatusChange);
     window.addEventListener('offline', handleStatusChange);
     
-    const queue = JSON.parse(localStorage.getItem('aguia_offline_queue') || '[]');
+    const queue = JSON.parse(safeLocalStorage.getItem('aguia_offline_queue') || '[]');
     setQueueCount(queue.length);
 
     if (user) {
@@ -4824,11 +4579,11 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
   }, []);
 
   const syncOfflineQueue = async () => {
-    const queue = JSON.parse(localStorage.getItem('aguia_offline_queue') || '[]');
+    const queue = JSON.parse(safeLocalStorage.getItem('aguia_offline_queue') || '[]');
     if (queue.length === 0) return;
     
     setTimeout(() => {
-      localStorage.setItem('aguia_offline_queue', '[]');
+      safeLocalStorage.setItem('aguia_offline_queue', '[]');
       setQueueCount(0);
       alert('✅ Sincronização Concluída!');
     }, 1500);
@@ -4857,9 +4612,9 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             status: 'validado'
           };
           
-          const queue = JSON.parse(localStorage.getItem('aguia_offline_queue') || '[]');
+          const queue = JSON.parse(safeLocalStorage.getItem('aguia_offline_queue') || '[]');
           const newQueue = [...queue, { ...checkinData, id: Date.now() }];
-          localStorage.setItem('aguia_offline_queue', JSON.stringify(newQueue));
+          safeLocalStorage.setItem('aguia_offline_queue', JSON.stringify(newQueue));
           setQueueCount(newQueue.length);
           
           // Se online, já tenta salvar
@@ -5474,7 +5229,6 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
 
                 <section className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
                   {[
-                    { id: 'ponto', label: 'Assinar Ponto', sub: 'GEOLOCALIZAÇÃO', icon: <Camera className="w-8 h-8 lg:w-10 lg:h-10" />, color: 'yellow' },
                     { id: 'eleitor', label: 'Cadastrar Eleitor', sub: 'EXPANSÃO DE BASE', icon: <UserPlus className="w-8 h-8 lg:w-10 lg:h-10" />, color: 'blue' },
                     { id: 'agenda', label: 'Sugerir Agenda', sub: 'MISSÕES LOCAIS', icon: <Calendar className="w-8 h-8 lg:w-10 lg:h-10" />, color: 'emerald' },
                     { id: 'combustivel', label: 'Suporte / Fuel', sub: 'RECURSOS', icon: <Fuel className="w-8 h-8 lg:w-10 lg:h-10" />, color: 'orange' },
@@ -6897,12 +6651,12 @@ export default function App() {
   const { user, login, loginWithEmail, signupWithEmail, logout, loading, isAdmin, forcePasswordChange, changePassword } = useAuth();
   const [view, setView] = useState<'coord' | 'cabo'>('cabo');
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    return (localStorage.getItem('aguia-theme') as 'light' | 'dark') || 'light';
+    return (safeLocalStorage.getItem('aguia-theme') as 'light' | 'dark') || 'light';
   });
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem('aguia-theme', theme);
+    safeLocalStorage.setItem('aguia-theme', theme);
   }, [theme]);
   
   useEffect(() => {
@@ -6944,7 +6698,11 @@ export default function App() {
 
     if (emailParam || tokenParam) {
        // Limpar URL para não ficar poluído
-       window.history.replaceState({}, document.title, window.location.pathname);
+       try {
+         window.history.replaceState({}, document.title, window.location.pathname);
+       } catch (e) {
+         console.warn("Navegação/Histórico restrito no iframe:", e);
+       }
     }
   }, [user]);
 

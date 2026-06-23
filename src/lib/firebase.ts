@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, updatePassword } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer, enableIndexedDbPersistence } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
@@ -12,13 +12,17 @@ console.log("🦅 [Firebase Initialized] Project:", safeConfig.projectId, "DB:",
 export const db = getFirestore(app, safeConfig.firestoreDatabaseId);
 
 // Habilitar Persistência Offline (Requisito: Dependência de Sinal de Internet)
-enableIndexedDbPersistence(db).catch((err) => {
-  if (err.code === 'failed-precondition') {
-    console.warn("eagle: persistence failed-precondition (multiple tabs)");
-  } else if (err.code === 'unimplemented') {
-    console.warn("eagle: persistence unimplemented (browser)");
-  }
-});
+try {
+  enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code === 'failed-precondition') {
+      console.warn("eagle: persistence failed-precondition (multiple tabs)");
+    } else if (err.code === 'unimplemented') {
+      console.warn("eagle: persistence unimplemented (browser)");
+    }
+  });
+} catch (e) {
+  console.warn("indexedDB initialization was blocked inside this environment sandbox:", e);
+}
 
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
@@ -32,19 +36,7 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// Validate Connection (Safe attempt)
-async function testConnection() {
-  if (!(safeConfig as any).apiKey) {
-    console.error("Firebase API Key is missing. Check your configuration.");
-    return;
-  }
-  try {
-    await getDocFromServer(doc(db, 'system', 'connection_test'));
-  } catch (error) {
-    console.warn("Initial connection test failed, but app may still work:", error);
-  }
-}
-testConnection();
+// Validate Connection removed to avoid unauthenticated connection-test permission alerts on load.
 
-export { onAuthStateChanged, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword };
+export { onAuthStateChanged, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updatePassword };
 export type { User };
