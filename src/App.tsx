@@ -65,6 +65,7 @@ import { processarCaos, gerarBriefingCandidato, processarNotaAudio } from './ser
 import { reportService } from './services/reportService';
 import { useAuth } from './lib/FirebaseProvider';
 import { firestoreService } from './lib/firestoreService';
+import RoraimaMapComponent from './components/RoraimaMapComponent';
 import { 
   BarChart, 
   Bar, 
@@ -281,7 +282,7 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
 /// --- COMPONENTE: DASHBOARD DO COORDENADOR ---
 function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme: (t: 'light' | 'dark') => void }) {
   const { user, login, logout, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'voters' | 'agenda' | 'notes' | 'materials' | 'demands' | 'reports'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports'>('overview');
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
 
   const handleDownloadDoc = () => {
@@ -1578,10 +1579,11 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
             { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
             { id: 'voters', label: 'Eleitores Geral', icon: <Target className="w-4 h-4" /> },
-            { id: 'agenda', label: 'Mapa & Agenda', icon: <Calendar className="w-4 h-4" /> },
+            { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
+            { id: 'mapa', label: 'Mapa Regional', icon: <MapIcon className="w-4 h-4" /> },
             { id: 'finance', label: 'Financeiro', icon: <DollarSign className="w-4 h-4" /> },
             { id: 'materials', label: 'Materiais', icon: <Package className="w-4 h-4" /> },
-            { id: 'demands', label: 'Demandas/Mapa', icon: <Activity className="w-4 h-4" /> },
+            { id: 'demands', label: 'Demandas', icon: <Activity className="w-4 h-4" /> },
             { id: 'notes', label: 'Anotações', icon: <MessageSquare className="w-4 h-4" /> },
             { id: 'reports', label: 'Relatórios & BI', icon: <FileDown className="w-4 h-4" /> }
           ].map((item) => (
@@ -2404,6 +2406,16 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     </div>
                   </div>
                 </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'mapa' && (
+              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                <RoraimaMapComponent 
+                  teams={teams}
+                  allVoters={allVoters}
+                  theme={theme}
+                />
               </motion.div>
             )}
 
