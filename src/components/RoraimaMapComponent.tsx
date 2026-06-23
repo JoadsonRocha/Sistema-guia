@@ -51,99 +51,243 @@ const MUNICIPALITIES = [
   "Uiramutã"
 ];
 
+const ZONES_GROUPS = [
+  {
+    name: "1ª e 5ª Zonas Eleitorais",
+    region: "Capital & Cantá (Centro-Leste)",
+    municipalities: ["Boa Vista", "Cantá"],
+    bgColor: "bg-amber-500/5",
+    borderColor: "border-amber-500/20",
+    badgeColor: "bg-amber-500 text-zinc-950"
+  },
+  {
+    name: "2ª Zona Eleitoral",
+    region: "Caracaraí (Centro-Sul)",
+    municipalities: ["Caracaraí"],
+    bgColor: "bg-orange-500/5",
+    borderColor: "border-orange-500/20",
+    badgeColor: "bg-orange-600 text-white"
+  },
+  {
+    name: "3ª Zona Eleitoral",
+    region: "Alto Alegre",
+    municipalities: ["Alto Alegre"],
+    bgColor: "bg-emerald-500/5",
+    borderColor: "border-emerald-500/20",
+    badgeColor: "bg-emerald-600 text-white"
+  },
+  {
+    name: "4ª Zona Eleitoral",
+    region: "Eixo BR-210 Sul (São Luiz, Baliza & Caroebe)",
+    municipalities: ["São Luiz", "São João da Baliza", "Caroebe"],
+    bgColor: "bg-blue-500/5",
+    borderColor: "border-blue-500/20",
+    badgeColor: "bg-blue-600 text-white"
+  },
+  {
+    name: "6ª Zona Eleitoral",
+    region: "Mucajaí & Iracema (Centro)",
+    municipalities: ["Mucajaí", "Iracema"],
+    bgColor: "bg-purple-500/5",
+    borderColor: "border-purple-500/20",
+    badgeColor: "bg-purple-600 text-white"
+  },
+  {
+    name: "7ª Zona Eleitoral",
+    region: "Norte / Fronteira (Amajari, Pacaraima & Uiramutã)",
+    municipalities: ["Amajari", "Pacaraima", "Uiramutã"],
+    bgColor: "bg-lime-500/5",
+    borderColor: "border-lime-500/20",
+    badgeColor: "bg-lime-600 text-zinc-950"
+  },
+  {
+    name: "8ª Zona Eleitoral",
+    region: "Rorainópolis (Sul)",
+    municipalities: ["Rorainópolis"],
+    bgColor: "bg-rose-500/5",
+    borderColor: "border-rose-500/20",
+    badgeColor: "bg-rose-600 text-white"
+  },
+  {
+    name: "9ª Zona Eleitoral",
+    region: "Leste / Fronteira (Bonfim & Normandia)",
+    municipalities: ["Bonfim", "Normandia"],
+    bgColor: "bg-cyan-500/5",
+    borderColor: "border-cyan-500/20",
+    badgeColor: "bg-cyan-600 text-white"
+  }
+];
+
 // Map of municipality to their respective Electoral Zone info
 const ZONE_INFO: Record<string, { zone: string; color: string; hoverColor: string; description: string }> = {
   "Amajari": { 
     zone: "7ª Zona", 
-    color: "#cbe296", 
-    hoverColor: "#b2cf72",
+    color: "#add587", 
+    hoverColor: "#93bf6c",
     description: "Sede de Operações da 7ª ZE (Pacaraima, Amajari e Uiramutã)." 
   },
   "Pacaraima": { 
     zone: "7ª Zona", 
-    color: "#a7d18c", 
-    hoverColor: "#89bf6a",
+    color: "#add587", 
+    hoverColor: "#92be6c",
     description: "Operações de Fronteira. Vinculado à 7ª ZE." 
   },
   "Uiramutã": { 
     zone: "7ª Zona", 
-    color: "#cbef90", 
-    hoverColor: "#abc270",
+    color: "#add587", 
+    hoverColor: "#91bd6b",
     description: "Extremo Norte. Comunidades Indígenas vinculadas à 7ª ZE." 
   },
   "Alto Alegre": { 
     zone: "3ª Zona", 
-    color: "#fffaae", 
-    hoverColor: "#e6e08c",
+    color: "#fdf7ab", 
+    hoverColor: "#e6de8c",
     description: "Sede de Operações da 3ª ZE. Região de forte atuação agrícola." 
   },
   "Boa Vista": { 
     zone: "1ª/5ª Zona", 
-    color: "#ffffff", 
-    hoverColor: "#e6e4df",
+    color: "#fff5da", 
+    hoverColor: "#ffd699",
     description: "Capital do Estado. Maior colégio eleitoral, dividido entre 1ª e 5ª ZE." 
   },
   "Bonfim": { 
     zone: "9ª Zona", 
-    color: "#45b4c1", 
-    hoverColor: "#3297a3",
+    color: "#54b9bc", 
+    hoverColor: "#3e9da0",
     description: "Sede de Operações da 9ª ZE (Bonfim e Normandia). Fronteira Guiana." 
   },
   "Normandia": { 
     zone: "9ª Zona", 
-    color: "#20a3b2", 
-    hoverColor: "#17838f",
+    color: "#54b9bc", 
+    hoverColor: "#3c9ba0",
     description: "Vinculado à 9ª ZE. Forte engajamento de bases rurais." 
   },
   "Cantá": { 
     zone: "5ª Zona", 
-    color: "#ffd07b", 
-    hoverColor: "#e6b35d",
+    color: "#febd62", 
+    hoverColor: "#e6aa52",
     description: "Vinculado à 5ª ZE (Boa Vista e Cantá). Cinturão verde e vicinais." 
   },
   "Mucajaí": { 
     zone: "6ª Zona", 
-    color: "#a998c7", 
-    hoverColor: "#8f7cae",
+    color: "#9b8cb8", 
+    hoverColor: "#82729e",
     description: "Sede de Operações da 6ª ZE (Mucajaí e Iracema). Hub logístico." 
   },
   "Iracema": { 
     zone: "6ª Zona", 
-    color: "#9988b7", 
-    hoverColor: "#7e6da0",
+    color: "#9b8cb8", 
+    hoverColor: "#81719c",
     description: "Vinculada à 6ª ZE. Grande potencial de expansão regional." 
   },
   "Caracaraí": { 
     zone: "2ª Zona", 
-    color: "#cdbfa5", 
-    hoverColor: "#b2a288",
+    color: "#cdb699", 
+    hoverColor: "#b29c80",
     description: "Sede da 2ª ZE. Hub fluvial e maior em extensão territorial." 
   },
   "Rorainópolis": { 
     zone: "8ª Zona", 
-    color: "#f26b80", 
-    hoverColor: "#db5166",
+    color: "#ee637d", 
+    hoverColor: "#d24d66",
     description: "Sede de Operações da 8ª ZE. Segundo maior colégio eleitoral de RR." 
   },
   "São Luiz": { 
     zone: "4ª Zona", 
-    color: "#a0c4df", 
-    hoverColor: "#82a9c7",
+    color: "#9cbdde", 
+    hoverColor: "#81a2c2",
     description: "Sede de Operações da 4ª ZE (São Luiz, Baliza e Caroebe)." 
   },
   "São João da Baliza": { 
     zone: "4ª Zona", 
-    color: "#8ab4df", 
-    hoverColor: "#6c97c7",
+    color: "#9cbdde", 
+    hoverColor: "#80a1c1",
     description: "Eixo do Sul. Integrado à 4ª ZE de Roraima." 
   },
   "Caroebe": { 
     zone: "4ª Zona", 
-    color: "#6fa4df", 
-    hoverColor: "#5286bf",
-    description: "Extremo Sudeste de Roraima, forte bacia produtora da 4ª ZE." 
+    color: "#9cbdde", 
+    hoverColor: "#7fa0bf",
+    description: "Extremo Southeast de Roraima, forte bacia produtora da 4ª ZE." 
   }
 };
+
+export function resolveTeamMunicipality(location: string | null | undefined): string {
+  if (!location) return "Boa Vista";
+  const locLower = location.trim().toLowerCase();
+
+  // Handle specific bases / codes first
+  if (
+    locLower === "bv" || 
+    locLower.startsWith("bv-") || 
+    locLower.includes("boa vista") || 
+    locLower.includes("boavista") ||
+    locLower.includes("capital")
+  ) {
+    return "Boa Vista";
+  }
+
+  if (locLower.includes("amajari")) return "Amajari";
+  if (locLower.includes("alto alegre")) return "Alto Alegre";
+  if (locLower.includes("bonfim")) return "Bonfim";
+  if (locLower.includes("cantá") || locLower.includes("canta")) return "Cantá";
+  
+  if (locLower.includes("caracaraí") || locLower.includes("caracarai") || locLower.startsWith("carac")) {
+    return "Caracaraí";
+  }
+  
+  if (locLower.includes("caroebe")) return "Caroebe";
+  if (locLower.includes("iracema")) return "Iracema";
+  if (locLower.includes("mucajaí") || locLower.includes("mucajai")) return "Mucajaí";
+  if (locLower.includes("normandia")) return "Normandia";
+  if (locLower.includes("pacaraima")) return "Pacaraima";
+  
+  if (
+    locLower.includes("rorainópolis") || 
+    locLower.includes("rorainopolis") || 
+    locLower.startsWith("rorain") || 
+    locLower.startsWith("rr-")
+  ) {
+    return "Rorainópolis";
+  }
+  
+  if (locLower.includes("joão") || locLower.includes("joao") || locLower.includes("baliza")) {
+    return "São João da Baliza";
+  }
+  
+  if (
+    locLower.includes("luiz") || 
+    locLower.includes("luis") || 
+    locLower.includes("são luiz") || 
+    locLower.includes("sao luiz") ||
+    locLower.includes("sao luis") ||
+    locLower.includes("são luis")
+  ) {
+    return "São Luiz";
+  }
+  
+  if (locLower.includes("uiramutã") || locLower.includes("uiramuta")) return "Uiramutã";
+
+  // Check if any municipality name is contained within the string
+  for (const mun of MUNICIPALITIES) {
+    if (locLower.includes(mun.toLowerCase())) {
+      return mun;
+    }
+  }
+
+  // Double check basic startsWith
+  if (locLower.startsWith("bv")) return "Boa Vista";
+  if (locLower.startsWith("am")) return "Amajari";
+  if (locLower.startsWith("al")) return "Alto Alegre";
+  if (locLower.startsWith("bo")) return "Bonfim";
+  if (locLower.startsWith("ca")) {
+    if (locLower.includes("nt")) return "Cantá";
+    if (locLower.includes("ra")) return "Caracaraí";
+    if (locLower.includes("ro")) return "Caroebe";
+  }
+
+  return "Boa Vista"; // Default fallback
+}
 
 export default function RoraimaMapComponent({ teams, allVoters, theme }: RoraimaMapComponentProps) {
   const [selectedMun, setSelectedMun] = useState<string>("Boa Vista");
@@ -151,73 +295,161 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
   const [searchQuery, setSearchQuery] = useState("");
   const [sentimentFilter, setSentimentFilter] = useState<string>("all");
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
+  const [expandAllInfluence, setExpandAllInfluence] = useState<boolean>(false);
 
   // Dynamic voter mapping function with memoized lookup cache
   const mappedVoters = useMemo(() => {
+    // Cache map of team name/leader to municipality location for fast lookup
+    const teamNameToLocation = new Map<string, string>();
+    teams.forEach(t => {
+      const resolved = resolveTeamMunicipality(t.location);
+      if (t.name) {
+        teamNameToLocation.set(t.name.trim().toLowerCase(), resolved);
+      }
+      if (t.leader) {
+        teamNameToLocation.set(t.leader.trim().toLowerCase(), resolved);
+      }
+    });
+
     return allVoters.map(voter => {
-      let location = "Boa Vista"; // Default fallback
+      let location: string | null = null;
 
-      // 1. Match by voter's explicit address or localVotacao if it mentions a municipality
-      const localText = `${voter.address || ""} ${voter.localVotacao || ""}`.toLowerCase();
-      let matched = false;
-      for (const mun of MUNICIPALITIES) {
-        if (localText.includes(mun.toLowerCase())) {
-          location = mun;
-          matched = true;
-          break;
-        }
-      }
-
-      // Special handling for short/special names
-      if (!matched && voter.address) {
+      // 1. Check if the voter's address has an explicit mention of any municipality
+      if (voter.address) {
         const addrLower = voter.address.toLowerCase();
-        if (addrLower.includes("baliza") || addrLower.includes("são joão")) {
-          location = "São João da Baliza";
-          matched = true;
-        } else if (addrLower.includes("sao luiz") || addrLower.includes("luiz do anau")) {
-          location = "São Luiz";
-          matched = true;
+        for (const mun of MUNICIPALITIES) {
+          if (addrLower.includes(mun.toLowerCase())) {
+            location = mun;
+            break;
+          }
+        }
+        if (!location) {
+          if (addrLower.includes("baliza") || addrLower.includes("são joão") || addrLower.includes("sao joao")) {
+            location = "São João da Baliza";
+          } else if (addrLower.includes("sao luiz") || addrLower.includes("luiz do anau") || addrLower.includes("são luiz")) {
+            location = "São Luiz";
+          }
         }
       }
 
-      // 2. Fallback to matching with their articulator's team location
-      if (!matched && voter.articulatorId) {
-        const team = teams.find(t => t.id === voter.articulatorId || t.leader === voter.referredBy);
-        if (team && team.location) {
-          location = team.location;
-          matched = true;
+      // 2. Check if voter's localVotacao (polling place) mentions any municipality
+      if (!location && voter.localVotacao) {
+        const lvLower = voter.localVotacao.toLowerCase();
+        for (const mun of MUNICIPALITIES) {
+          if (lvLower.includes(mun.toLowerCase())) {
+            location = mun;
+            break;
+          }
+        }
+        if (!location) {
+          if (lvLower.includes("baliza") || lvLower.includes("são joão") || lvLower.includes("sao joao")) {
+            location = "São João da Baliza";
+          } else if (lvLower.includes("sao luiz") || lvLower.includes("luiz do anau") || lvLower.includes("são luiz")) {
+            location = "São Luiz";
+          }
         }
       }
 
-      // 3. Fallback to Electoral Zone matching
-      if (!matched && voter.zona) {
+      // 3. Match using voter's team or teamName which aligns with a registered team
+      if (!location) {
+        if (voter.team) {
+          const tName = voter.team.trim().toLowerCase();
+          if (teamNameToLocation.has(tName)) {
+            location = teamNameToLocation.get(tName)!;
+          }
+        }
+        if (!location && voter.teamName) {
+          const tName = voter.teamName.trim().toLowerCase();
+          if (teamNameToLocation.has(tName)) {
+            location = teamNameToLocation.get(tName)!;
+          }
+        }
+      }
+
+      // 4. Match using leaderName or referredBy
+      if (!location) {
+        if (voter.leaderName) {
+          const lName = voter.leaderName.trim().toLowerCase();
+          if (teamNameToLocation.has(lName)) {
+            location = teamNameToLocation.get(lName)!;
+          }
+        }
+        if (!location && voter.referredBy) {
+          const rName = voter.referredBy.trim().toLowerCase();
+          if (teamNameToLocation.has(rName)) {
+            location = teamNameToLocation.get(rName)!;
+          }
+        }
+      }
+
+      // 5. Match using the articulator's details
+      if (!location && voter.articulatorId) {
+        const articulator = allVoters.find(av => av.id === voter.articulatorId);
+        if (articulator) {
+          if (articulator.team && teamNameToLocation.has(articulator.team.trim().toLowerCase())) {
+            location = teamNameToLocation.get(articulator.team.trim().toLowerCase())!;
+          } else if (articulator.teamName && teamNameToLocation.has(articulator.teamName.trim().toLowerCase())) {
+            location = teamNameToLocation.get(articulator.teamName.trim().toLowerCase())!;
+          } else if (articulator.address) {
+            const artAddr = articulator.address.toLowerCase();
+            for (const mun of MUNICIPALITIES) {
+              if (artAddr.includes(mun.toLowerCase())) {
+                location = mun;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      // 6. Electoral Zone matching
+      if (!location && voter.zona) {
         const z = voter.zona.toString().replace(/\D/g, '');
+        const lvText = `${voter.address || ""} ${voter.localVotacao || ""}`.toLowerCase();
+        
         if (z === '1') location = "Boa Vista";
         else if (z === '2') location = "Caracaraí";
         else if (z === '3') location = "Alto Alegre";
         else if (z === '4') {
-          if (localText.includes("caroebe")) location = "Caroebe";
-          else if (localText.includes("baliza") || localText.includes("joão")) location = "São João da Baliza";
+          if (lvText.includes("caroebe")) location = "Caroebe";
+          else if (lvText.includes("baliza") || lvText.includes("joão") || lvText.includes("joao")) location = "São João da Baliza";
           else location = "São Luiz";
         }
         else if (z === '5') {
-          if (localText.includes("cantá") || localText.includes("canta")) location = "Cantá";
+          if (lvText.includes("cantá") || lvText.includes("canta")) location = "Cantá";
           else location = "Boa Vista";
         }
         else if (z === '6') {
-          if (localText.includes("iracema")) location = "Iracema";
+          if (lvText.includes("iracema")) location = "Iracema";
           else location = "Mucajaí";
         }
         else if (z === '7') {
-          if (localText.includes("pacaraima")) location = "Pacaraima";
-          else if (localText.includes("uiramutã") || localText.includes("uiramuta")) location = "Uiramutã";
+          if (lvText.includes("pacaraima")) location = "Pacaraima";
+          else if (lvText.includes("uiramutã") || lvText.includes("uiramuta")) location = "Uiramutã";
           else location = "Amajari";
         }
         else if (z === '8') location = "Rorainópolis";
         else if (z === '9') {
-          if (localText.includes("normandia")) location = "Normandia";
+          if (lvText.includes("normandia")) location = "Normandia";
           else location = "Bonfim";
         }
+      }
+
+      // 7. Last resort: check if any team corresponds to the voter's coordinator/leader/email
+      if (!location) {
+        const associatedTeam = teams.find(t => 
+          t.name?.toLowerCase() === voter.team?.toLowerCase() || 
+          t.leader?.toLowerCase() === voter.referredBy?.toLowerCase() || 
+          t.leaderEmail?.toLowerCase() === voter.registeredBy?.toLowerCase()
+        );
+        if (associatedTeam && associatedTeam.location) {
+          location = associatedTeam.location;
+        }
+      }
+
+      // 8. Fallback
+      if (!location) {
+        location = "Boa Vista";
       }
 
       return {
@@ -243,7 +475,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
     });
 
     teams.forEach(t => {
-      const m = t.location;
+      const m = resolveTeamMunicipality(t.location);
       if (stats[m]) {
         stats[m].teams++;
         if (t.leader && !stats[m].leaders.includes(t.leader)) {
@@ -257,7 +489,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
 
   // Filter current active municipality data
   const municipalTeams = useMemo(() => {
-    return teams.filter(t => t.location?.trim().toLowerCase() === selectedMun.toLowerCase());
+    return teams.filter(t => resolveTeamMunicipality(t.location).toLowerCase() === selectedMun.toLowerCase());
   }, [teams, selectedMun]);
 
   const municipalVoters = useMemo(() => {
@@ -313,7 +545,9 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
   // Helper to render tree nodes recursively
   const renderInfluenceNode = (node: any, depth = 0) => {
     const hasChildren = node.children && node.children.length > 0;
-    const isExpanded = expandedNodes[node.name] !== false; // Default expanded
+    const isExpanded = expandedNodes[node.name] !== undefined 
+      ? expandedNodes[node.name] 
+      : (expandAllInfluence || depth === 0);
 
     const sentimentColors = {
       support: 'bg-green-50 border-green-200 text-green-800 dark:bg-green-950/20 dark:border-green-900 dark:text-green-400',
@@ -322,25 +556,25 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
     };
 
     return (
-      <div key={node.id || node.name} className="relative pl-6 md:pl-8 border-l border-zinc-200 dark:border-zinc-800 ml-4 py-1">
+      <div key={node.id || node.name} className="relative pl-4 md:pl-5 border-l border-zinc-200 dark:border-zinc-800 ml-2 md:ml-3 py-1">
         {/* Connection point dot */}
-        <div className="absolute top-4 left-0 w-3.5 h-px bg-zinc-200 dark:bg-zinc-800" />
+        <div className="absolute top-4 left-0 w-2.5 md:w-3.5 h-px bg-zinc-200 dark:bg-zinc-800" />
         
-        <div className={`p-3.5 rounded-sm border ${sentimentColors[node.sentiment as 'support'|'neutral'|'opposed'] || 'bg-zinc-50 border-zinc-200'} transition-all max-w-xl shadow-sm hover:shadow-md`}>
+        <div className={`p-2.5 md:p-3 rounded-sm border ${sentimentColors[node.sentiment as 'support'|'neutral'|'opposed'] || 'bg-zinc-50 border-zinc-200'} transition-all max-w-xl shadow-sm hover:shadow-md`}>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div className="flex items-center gap-2">
-              <span className="font-black uppercase tracking-tight text-xs sm:text-sm">
+              <span className="font-black uppercase tracking-tight text-xs">
                 {node.name}
               </span>
               
               {node.isArticulator && (
-                <span className="bg-yellow-500 text-zinc-950 text-[8px] font-black uppercase px-1.5 py-0.5 rounded-sm">
+                <span className="bg-yellow-500 text-zinc-950 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">
                   Articulador
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-2 text-[9px] font-mono opacity-80 shrink-0">
+            <div className="flex items-center gap-2 text-[8px] font-mono opacity-80 shrink-0">
               {node.phone && (
                 <a 
                   href={`https://wa.me/55${node.phone.replace(/\D/g, '')}`}
@@ -354,9 +588,9 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
             </div>
           </div>
 
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400">
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[9px] font-bold text-zinc-500 dark:text-zinc-400">
             {node.localVotacao && (
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-0.5">
                 <MapPin className="w-2.5 h-2.5 text-yellow-500" /> Colégio: {node.localVotacao}
               </span>
             )}
@@ -370,7 +604,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
           {hasChildren && (
             <button 
               onClick={() => toggleNode(node.name)}
-              className="mt-2.5 flex items-center gap-1.5 text-[9px] font-black uppercase text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              className="mt-2 flex items-center gap-1.5 text-[8px] font-black uppercase text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
             >
               {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
               {node.children.length} {node.children.length === 1 ? 'Indicação Direta' : 'Indicações Diretas'}
@@ -419,23 +653,99 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
       {/* Main Grid View: Map Visualizer & Data Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* Left Side: Interactive SVG Map (Cols 1-6) */}
-        <div className="lg:col-span-6 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-6 shadow-sm flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-start mb-6">
+        {/* Left Side: Dynamic Zones & Quick Contact Directory (Cols 1-6) */}
+        <div className="lg:col-span-6 space-y-6">
+          <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-6 shadow-sm">
+            <div>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-zinc-100 dark:border-zinc-900">
               <div>
-                <h3 className="text-sm font-black uppercase tracking-widest text-zinc-950 dark:text-white mb-2">Divisão por Zona e Município</h3>
+                <h3 className="text-sm font-black uppercase tracking-widest text-zinc-950 dark:text-white">Divisão por Zona e Município</h3>
                 <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">Selecione ou clique nos municípios para mapear as frentes operacionais locais.</p>
-              </div>
-              <div className="p-2 bg-yellow-500/10 rounded-sm">
-                <Info className="w-4 h-4 text-yellow-500" />
               </div>
             </div>
 
-            {/* SVG Interactive Canvas */}
-            <div className="relative w-full aspect-[4/5] max-h-[600px] flex items-center justify-center p-3 outline-none">
+            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-1">
+                {ZONES_GROUPS.map((group) => (
+                  <div 
+                    key={group.name} 
+                    className={`border ${group.borderColor} ${group.bgColor} rounded-sm p-4 space-y-3`}
+                  >
+                    <div className="flex justify-between items-center border-b border-zinc-200/40 dark:border-zinc-800/40 pb-2">
+                      <div>
+                        <h4 className="text-xs font-black uppercase text-zinc-900 dark:text-white leading-none tracking-wider">
+                          {group.name}
+                        </h4>
+                        <p className="text-[9px] text-zinc-400 dark:text-zinc-500 font-bold uppercase mt-1 leading-none tracking-widest">
+                          {group.region}
+                        </p>
+                      </div>
+                      <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-sm ${group.badgeColor}`}>
+                        Regional
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {group.municipalities.map((mun) => {
+                        const isSelected = selectedMun === mun;
+                        const stats = munStats[mun] || { voters: 0, teams: 0, supporters: 0 };
+                        return (
+                          <button
+                            type="button"
+                            key={mun}
+                            onClick={() => setSelectedMun(mun)}
+                            className={`text-left p-3 border rounded-sm transition-all relative overflow-hidden flex flex-col justify-between min-h-[90px] outline-none ${
+                              isSelected
+                                ? 'border-yellow-500 bg-yellow-500/10 shadow-md ring-1 ring-yellow-500'
+                                : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-350 dark:hover:border-zinc-700 shadow-xs'
+                            }`}
+                          >
+                            {/* Active Indicator Strip */}
+                            <div 
+                              className="absolute top-0 left-0 bottom-0 w-1.5" 
+                              style={{ backgroundColor: ZONE_INFO[mun]?.color || "#eab308" }}
+                            />
+
+                            <div className="pl-2 flex justify-between items-start gap-1 w-full">
+                              <div>
+                                <h5 className="text-xs font-black uppercase text-zinc-900 dark:text-white leading-tight">
+                                  {mun}
+                                </h5>
+                                <p className="text-[8px] text-zinc-400 font-bold uppercase mt-1 leading-none tracking-wider">
+                                  {ZONE_INFO[mun]?.zone}
+                                </p>
+                              </div>
+                              {isSelected && (
+                                <span className="bg-yellow-500 text-zinc-950 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm shrink-0">
+                                  Ativo
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="pl-2 mt-3 flex items-center gap-4 text-[9px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                              <div className="flex items-center gap-1">
+                                <Users className="w-3.5 h-3.5 text-yellow-500" />
+                                <span>
+                                  {stats.teams} {stats.teams === 1 ? 'Equipe' : 'Equipes'}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1 border-l border-zinc-200 dark:border-zinc-800 pl-3">
+                                <UserCheck className="w-3.5 h-3.5 text-green-500" />
+                                <span>
+                                  {stats.voters} {stats.voters === 1 ? 'Voto' : 'Mapeados'}
+                                </span>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="hidden">
               <svg 
-                viewBox="100 0 900 950" 
+                viewBox="0 0 650 740" 
                 className="w-full h-full drop-shadow-md select-none transition-all duration-300"
               >
                 {/* Defs for gradients, patterns */}
@@ -448,8 +758,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                 {/* Draw all Municipal Borders based on calculated points in image */}
                 <g filter="url(#shadow)">
                   {/* 1. Amajari */}
-                  <polygon 
-                    points="300,160 400,110 500,100 450,140 500,200 590,180 580,210 480,225 380,210 320,180"
+                  <path 
+                    d="M 120,200 C 140,165 200,160 210,160 C 240,185 270,180 320,150 C 370,160 380,180 415,160 C 400,200 405,240 425,270 C 385,270 330,225 245,240 C 210,248 180,245 120,200 Z"
                     fill={selectedMun === "Amajari" ? ZONE_INFO["Amajari"].hoverColor : ZONE_INFO["Amajari"].color}
                     stroke={selectedMun === "Amajari" ? "#eab308" : "#ffffff"}
                     strokeWidth={selectedMun === "Amajari" ? "3.5" : "1.5"}
@@ -460,8 +770,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   />
 
                   {/* 2. Pacaraima */}
-                  <polygon 
-                    points="450,140 500,100 580,100 600,120 680,140 650,170 590,180 500,200"
+                  <path 
+                    d="M 320,150 C 340,110 380,110 405,95 C 415,120 425,115 440,115 C 440,150 435,170 415,160 C 380,180 370,160 320,150 Z"
                     fill={selectedMun === "Pacaraima" ? ZONE_INFO["Pacaraima"].hoverColor : ZONE_INFO["Pacaraima"].color}
                     stroke={selectedMun === "Pacaraima" ? "#eab308" : "#ffffff"}
                     strokeWidth={selectedMun === "Pacaraima" ? "3.5" : "1.5"}
@@ -472,8 +782,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   />
 
                   {/* 3. Uiramutã */}
-                  <polygon 
-                    points="600,80 680,20 740,50 780,110 750,150 680,140 600,120"
+                  <path 
+                    d="M 440,115 C 455,110 465,115 470,115 C 475,80 495,40 525,20 C 515,70 535,110 565,120 C 560,135 535,140 520,145 C 515,165 500,175 485,205 C 470,225 455,250 455,250 C 450,165 455,135 470,115 Z"
                     fill={selectedMun === "Uiramutã" ? ZONE_INFO["Uiramutã"].hoverColor : ZONE_INFO["Uiramutã"].color}
                     stroke={selectedMun === "Uiramutã" ? "#eab308" : "#ffffff"}
                     strokeWidth={selectedMun === "Uiramutã" ? "3.5" : "1.5"}
@@ -484,8 +794,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   />
 
                   {/* 4. Normandia */}
-                  <polygon 
-                    points="680,140 750,150 820,120 810,180 780,210 740,240 700,220 680,170"
+                  <path 
+                    d="M 455,250 C 470,225 485,205 485,205 C 500,175 515,165 520,145 C 535,140 560,135 565,120 C 575,125 570,150 585,190 C 575,210 580,245 555,270 C 530,280 513,280 505,275 C 490,265 475,255 455,250 Z"
                     fill={selectedMun === "Normandia" ? ZONE_INFO["Normandia"].hoverColor : ZONE_INFO["Normandia"].color}
                     stroke={selectedMun === "Normandia" ? "#eab308" : "#ffffff"}
                     strokeWidth={selectedMun === "Normandia" ? "3.5" : "1.5"}
@@ -496,8 +806,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   />
 
                   {/* 5. Alto Alegre */}
-                  <polygon 
-                    points="160,200 240,160 300,160 320,180 380,210 480,225 500,220 580,250 560,300 450,310 350,320 280,310 210,340 180,300 150,250"
+                  <path 
+                    d="M 15,110 C 50,130 90,150 160,155 C 160,185 160,200 170,160 C 180,240 210,255 260,295 C 300,290 350,270 350,270 C 335,275 315,290 290,290 C 250,295 240,300 200,295 C 190,315 160,320 115,335 C 105,310 100,275 85,270 C 85,220 75,210 15,110 Z"
                     fill={selectedMun === "Alto Alegre" ? ZONE_INFO["Alto Alegre"].hoverColor : ZONE_INFO["Alto Alegre"].color}
                     stroke={selectedMun === "Alto Alegre" ? "#eab308" : "#ffffff"}
                     strokeWidth={selectedMun === "Alto Alegre" ? "3.5" : "1.5"}
@@ -508,8 +818,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   />
 
                   {/* 6. Boa Vista */}
-                  <polygon 
-                    points="500,200 580,210 590,180 680,170 700,220 690,260 630,270 580,250 500,220"
+                  <path 
+                    d="M 350,270 C 365,255 385,250 405,245 C 410,220 435,200 455,190 C 455,250 475,255 505,275 C 500,310 510,350 505,370 C 490,372 475,365 465,350 C 465,330 445,310 420,290 C 413,285 405,280 403,280 C 400,275 350,270 350,270 Z"
                     fill={selectedMun === "Boa Vista" ? ZONE_INFO["Boa Vista"].hoverColor : ZONE_INFO["Boa Vista"].color}
                     stroke={selectedMun === "Boa Vista" ? "#eab308" : "#ffffff"}
                     strokeWidth={selectedMun === "Boa Vista" ? "3.5" : "1.5"}
@@ -520,8 +830,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   />
 
                   {/* 7. Bonfim */}
-                  <polygon 
-                    points="700,220 740,240 780,210 820,120 830,150 810,180 800,260 810,340 750,350 710,290 690,260"
+                  <path 
+                    d="M 505,275 C 513,280 530,280 555,270 C 557,285 540,300 537,325 C 535,335 555,360 545,385 C 525,380 515,375 505,370 C 510,350 500,310 505,275 Z"
                     fill={selectedMun === "Bonfim" ? ZONE_INFO["Bonfim"].hoverColor : ZONE_INFO["Bonfim"].color}
                     stroke={selectedMun === "Bonfim" ? "#eab308" : "#ffffff"}
                     strokeWidth={selectedMun === "Bonfim" ? "3.5" : "1.5"}
@@ -532,8 +842,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   />
 
                   {/* 8. Cantá */}
-                  <polygon 
-                    points="630,270 690,260 710,290 750,350 780,350 780,410 720,440 650,420 620,380 620,320"
+                  <path 
+                    d="M 420,290 C 445,310 465,330 465,350 C 475,365 490,372 505,370 C 500,395 515,420 485,430 C 460,410 433,390 425,365 C 405,350 410,310 420,290 Z"
                     fill={selectedMun === "Cantá" ? ZONE_INFO["Cantá"].hoverColor : ZONE_INFO["Cantá"].color}
                     stroke={selectedMun === "Cantá" ? "#eab308" : "#ffffff"}
                     strokeWidth={selectedMun === "Cantá" ? "3.5" : "1.5"}
@@ -544,8 +854,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   />
 
                   {/* 9. Mucajaí */}
-                  <polygon 
-                    points="210,340 280,310 350,320 450,310 560,300 580,250 630,270 620,320 620,380 520,380 420,360 320,400 260,390 210,350"
+                  <path 
+                    d="M 200,295 C 240,300 250,295 290,290 C 315,290 335,275 350,270 C 350,270 400,275 403,280 C 405,280 413,285 420,290 C 410,310 405,350 425,365 C 405,360 365,350 285,355 C 215,360 195,360 155,390 C 145,345 165,335 200,295 Z"
                     fill={selectedMun === "Mucajaí" ? ZONE_INFO["Mucajaí"].hoverColor : ZONE_INFO["Mucajaí"].color}
                     stroke={selectedMun === "Mucajaí" ? "#eab308" : "#ffffff"}
                     strokeWidth={selectedMun === "Mucajaí" ? "3.5" : "1.5"}
@@ -556,8 +866,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   />
 
                   {/* 10. Iracema */}
-                  <polygon 
-                    points="260,390 320,400 420,360 520,380 550,380 530,420 560,450 500,480 430,490 340,510 295,490 280,420"
+                  <path 
+                    d="M 155,390 C 195,360 215,360 285,355 C 365,350 405,360 425,365 C 433,390 460,410 485,430 C 470,440 435,442 395,435 C 335,450 265,485 225,435 C 205,445 175,430 155,390 Z"
                     fill={selectedMun === "Iracema" ? ZONE_INFO["Iracema"].hoverColor : ZONE_INFO["Iracema"].color}
                     stroke={selectedMun === "Iracema" ? "#eab308" : "#ffffff"}
                     strokeWidth={selectedMun === "Iracema" ? "3.5" : "1.5"}
@@ -568,8 +878,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   />
 
                   {/* 11. Caracaraí */}
-                  <polygon 
-                    points="340,510 430,490 500,480 560,450 530,420 520,380 620,380 650,420 720,440 780,410 820,450 820,500 750,510 720,530 650,550 640,630 650,710 600,750 585,830 550,830 550,770 560,700 520,630 500,560"
+                  <path 
+                    d="M 225,435 C 265,485 335,450 395,435 C 435,442 470,440 485,430 C 495,450 525,440 525,420 C 535,430 543,425 550,420 C 555,440 565,460 545,490 C 535,500 530,510 535,520 C 515,540 495,560 465,590 C 445,610 395,640 360,690 C 335,720 326,750 323,785 C 320,760 310,740 295,720 C 275,690 265,650 270,595 C 275,540 255,510 225,435 Z"
                     fill={selectedMun === "Caracaraí" ? ZONE_INFO["Caracaraí"].hoverColor : ZONE_INFO["Caracaraí"].color}
                     stroke={selectedMun === "Caracaraí" ? "#eab308" : "#ffffff"}
                     strokeWidth={selectedMun === "Caracaraí" ? "3.5" : "1.5"}
@@ -580,8 +890,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   />
 
                   {/* 12. Rorainópolis */}
-                  <polygon 
-                    points="520,630 560,700 550,770 550,830 585,830 600,750 650,710 650,630 660,610 710,610 750,670 780,720 760,780 720,830 670,880 610,920 600,900"
+                  <path 
+                    d="M 465,590 C 495,560 515,540 535,520 C 543,540 565,560 575,580 C 565,610 525,650 525,690 C 515,730 475,780 460,815 C 435,780 395,720 360,690 C 395,640 445,610 465,590 Z"
                     fill={selectedMun === "Rorainópolis" ? ZONE_INFO["Rorainópolis"].hoverColor : ZONE_INFO["Rorainópolis"].color}
                     stroke={selectedMun === "Rorainópolis" ? "#eab308" : "#ffffff"}
                     strokeWidth={selectedMun === "Rorainópolis" ? "3.5" : "1.5"}
@@ -592,8 +902,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   />
 
                   {/* 13. São Luiz */}
-                  <polygon 
-                    points="750,510 820,500 840,530 840,580 810,610 770,570"
+                  <path 
+                    d="M 525,420 C 535,430 543,425 550,420 C 558,425 565,430 570,435 C 570,450 565,465 555,475 C 545,470 535,470 530,465 C 525,460 525,440 525,420 Z"
                     fill={selectedMun === "São Luiz" ? ZONE_INFO["São Luiz"].hoverColor : ZONE_INFO["São Luiz"].color}
                     stroke={selectedMun === "São Luiz" ? "#eab308" : "#ffffff"}
                     strokeWidth={selectedMun === "São Luiz" ? "3.5" : "1.5"}
@@ -604,8 +914,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   />
 
                   {/* 14. São João da Baliza */}
-                  <polygon 
-                    points="810,610 840,580 870,570 870,610 840,650 820,640"
+                  <path 
+                    d="M 535,520 C 545,510 550,500 545,490 C 555,490 565,495 570,500 C 565,515 555,525 545,530 C 540,530 535,525 535,520 Z"
                     fill={selectedMun === "São João da Baliza" ? ZONE_INFO["São João da Baliza"].hoverColor : ZONE_INFO["São João da Baliza"].color}
                     stroke={selectedMun === "São João da Baliza" ? "#eab308" : "#ffffff"}
                     strokeWidth={selectedMun === "São João da Baliza" ? "3.5" : "1.5"}
@@ -616,8 +926,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   />
 
                   {/* 15. Caroebe */}
-                  <polygon 
-                    points="870,570 940,520 950,580 950,660 900,660 870,610"
+                  <path 
+                    d="M 570,435 C 585,425 590,440 595,460 C 595,490 585,515 570,525 C 565,495 555,490 545,490 C 545,490 555,475 555,475 C 565,465 570,450 570,435 Z"
                     fill={selectedMun === "Caroebe" ? ZONE_INFO["Caroebe"].hoverColor : ZONE_INFO["Caroebe"].color}
                     stroke={selectedMun === "Caroebe" ? "#eab308" : "#ffffff"}
                     strokeWidth={selectedMun === "Caroebe" ? "3.5" : "1.5"}
@@ -628,40 +938,87 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   />
                 </g>
 
-                {/* TEXT LABELS OVER MUNICIPALITIES & ZONES */}
+                {/* TEXT LABELS OVER MUNICIPALITIES & ZONES - STACKED FOR MAXIMUM LEGIBILITY & FIDELITY */}
                 {/* 7ª ZE (Amajari, Pacaraima, Uiramutã) */}
-                <text x="400" y="180" textAnchor="middle" fill="#090d16" fontSize="16" fontWeight="900" className="pointer-events-none">7ª Amajari</text>
-                <text x="560" y="145" textAnchor="middle" fill="#090d16" fontSize="16" fontWeight="900" className="pointer-events-none">7ª Pacaraima</text>
-                <text x="680" y="90" textAnchor="middle" fill="#090d16" fontSize="16" fontWeight="900" className="pointer-events-none">7ª Uiramutã</text>
+                <text x="280" y="210" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                  <tspan x="280" dy="-6">7ª</tspan>
+                  <tspan x="280" dy="12">Amajari</tspan>
+                </text>
+                <text x="390" y="135" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                  <tspan x="390" dy="-6">7ª</tspan>
+                  <tspan x="390" dy="12">Pacaraima</tspan>
+                </text>
+                <text x="495" y="125" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                  <tspan x="495" dy="-6">7ª</tspan>
+                  <tspan x="495" dy="12">Uiramutã</tspan>
+                </text>
                 
                 {/* 3ª ZE */}
-                <text x="320" y="270" textAnchor="middle" fill="#090d16" fontSize="16" fontWeight="900" className="pointer-events-none">3ª Alto Alegre</text>
+                <text x="210" y="245" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                  <tspan x="210" dy="-6">3ª</tspan>
+                  <tspan x="210" dy="12">Alto Alegre</tspan>
+                </text>
                 
                 {/* 1ª / 5ª ZE */}
-                <text x="610" y="225" textAnchor="middle" fill="#090d16" fontSize="16" fontWeight="900" className="pointer-events-none">1ª/5ª Boa Vista</text>
-                <text x="690" y="375" textAnchor="middle" fill="#090d16" fontSize="16" fontWeight="900" className="pointer-events-none">5ª Cantá</text>
+                <text x="430" y="260" textAnchor="middle" className="text-[9px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                  <tspan x="430" dy="-12">1ª</tspan>
+                  <tspan x="430" dy="10">5ª</tspan>
+                  <tspan x="430" dy="12">Boa Vista</tspan>
+                </text>
+                <text x="455" y="335" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                  <tspan x="455" dy="-6">5ª</tspan>
+                  <tspan x="455" dy="12">Cantá</tspan>
+                </text>
                 
                 {/* 9ª ZE */}
-                <text x="760" y="180" textAnchor="middle" fill="#ffffff" fontSize="16" fontWeight="900" className="pointer-events-none">9ª Normandia</text>
-                <text x="760" y="280" textAnchor="middle" fill="#ffffff" fontSize="16" fontWeight="900" className="pointer-events-none">9ª Bonfim</text>
+                <text x="535" y="205" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                  <tspan x="535" dy="-6">9ª</tspan>
+                  <tspan x="535" dy="12">Normandia</tspan>
+                </text>
+                <text x="525" y="315" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                  <tspan x="525" dy="-6">9ª</tspan>
+                  <tspan x="525" dy="12">Bonfim</tspan>
+                </text>
                 
                 {/* 6ª ZE */}
-                <text x="440" y="335" textAnchor="middle" fill="#ffffff" fontSize="16" fontWeight="900" className="pointer-events-none">6ª Mucajaí</text>
-                <text x="390" y="445" textAnchor="middle" fill="#ffffff" fontSize="16" fontWeight="900" className="pointer-events-none">6ª Iracema</text>
+                <text x="290" y="325" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                  <tspan x="290" dy="-6">6ª</tspan>
+                  <tspan x="290" dy="12">Mucajaí</tspan>
+                </text>
+                <text x="280" y="410" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                  <tspan x="280" dy="-6">6ª</tspan>
+                  <tspan x="280" dy="12">Iracema</tspan>
+                </text>
                 
                 {/* 2ª ZE */}
-                <text x="530" y="525" textAnchor="middle" fill="#090d16" fontSize="16" fontWeight="900" className="pointer-events-none">2ª Caracaraí</text>
+                <text x="360" y="525" textAnchor="middle" className="text-[11px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2.5">
+                  <tspan x="360" dy="-6">2ª</tspan>
+                  <tspan x="360" dy="14">Caracaraí</tspan>
+                </text>
                 
                 {/* 8ª ZE */}
-                <text x="620" y="780" textAnchor="middle" fill="#ffffff" fontSize="18" fontWeight="900" className="pointer-events-none">8ª Rorainópolis</text>
+                <text x="450" y="665" textAnchor="middle" className="text-[11px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2.5">
+                  <tspan x="450" dy="-6">8ª</tspan>
+                  <tspan x="450" dy="14">Rorainópolis</tspan>
+                </text>
                 
                 {/* 4ª ZE */}
-                <text x="790" y="540" textAnchor="middle" fill="#090d16" fontSize="13" fontWeight="900" className="pointer-events-none">4ª S. Luiz</text>
-                <text x="840" y="625" textAnchor="middle" fill="#090d16" fontSize="12" fontWeight="900" className="pointer-events-none">4ª S.J. Baliza</text>
-                <text x="910" y="605" textAnchor="middle" fill="#090d16" fontSize="13" fontWeight="900" className="pointer-events-none">4ª Caroebe</text>
+                <text x="515" y="480" textAnchor="middle" className="text-[9px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                  <tspan x="515" dy="-12">4ª</tspan>
+                  <tspan x="515" dy="10">São Luiz</tspan>
+                  <tspan x="515" dy="10">do Anauá</tspan>
+                </text>
+                <text x="530" y="535" textAnchor="middle" className="text-[8px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="1.8">
+                  <tspan x="530" dy="-12">4ª</tspan>
+                  <tspan x="530" dy="10">São João</tspan>
+                  <tspan x="530" dy="10">da Baliza</tspan>
+                </text>
+                <text x="585" y="500" textAnchor="middle" className="text-[9px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                  <tspan x="585" dy="-6">4ª</tspan>
+                  <tspan x="585" dy="11">Caroebe</tspan>
+                </text>
               </svg>
             </div>
-          </div>
 
           {/* Map Footer & Zone Legend matching the image */}
           <div className="border-t border-zinc-100 dark:border-zinc-900 pt-6 mt-4">
@@ -706,6 +1063,104 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
             </div>
           </div>
         </div>
+
+        {/* TAB 3: CONTACT DIRECTORY FOR SELECTED CITY */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm p-5 lg:p-6 shadow-sm">
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-4">
+              <div>
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-900 dark:text-white flex items-center gap-2">
+                  <UserCheck className="w-4 h-4 text-yellow-500" /> Lista Geral de Contatos ({filteredMunicipalVoters.length})
+                </h3>
+                <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-1 opacity-65">Diretório telefônico e colégio de votação</p>
+              </div>
+
+              {/* Sentiment Filter */}
+              <div className="flex gap-1">
+                {['all', 'support', 'neutral', 'opposed'].map((filter) => (
+                  <button
+                    key={filter}
+                    onClick={() => setSentimentFilter(filter)}
+                    className={`px-2.5 py-1 text-[8px] font-black uppercase rounded-xs transition-all ${
+                      sentimentFilter === filter 
+                        ? 'bg-zinc-950 text-white dark:bg-zinc-800' 
+                        : 'bg-zinc-100 dark:bg-zinc-850 hover:bg-zinc-200 text-zinc-600 dark:text-zinc-400'
+                    }`}
+                  >
+                    {filter === 'all' ? 'Tudo' : filter === 'support' ? 'Apoio' : filter === 'neutral' ? 'Neutro' : 'Oposição'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Filter Search within municipality */}
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar nome, fone, colégio em municipal..."
+                className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-3 pl-10 font-bold text-[10px] text-zinc-900 dark:text-white outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-400"
+              />
+              <Search className="absolute left-3.5 top-3 w-4 h-4 text-zinc-400" />
+            </div>
+
+            {/* Voter Cards Container */}
+            <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1.5 custom-scrollbar">
+              {filteredMunicipalVoters.length > 0 ? (
+                filteredMunicipalVoters.map((voter) => (
+                  <div 
+                    key={voter.id}
+                    className="bg-zinc-50 dark:bg-zinc-950 p-4 border border-zinc-100 dark:border-zinc-900 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  >
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-black uppercase text-zinc-900 dark:text-white leading-none">{voter.name}</span>
+                        {voter.sentiment === 'support' && <span className="bg-green-500 text-zinc-950 text-[7px] font-black uppercase px-1.5 rounded-sm">Apoiador</span>}
+                        {voter.sentiment === 'neutral' && <span className="bg-yellow-500 text-zinc-950 text-[7px] font-black uppercase px-1.5 rounded-sm">Neutro</span>}
+                        {voter.sentiment === 'opposed' && <span className="bg-red-500 text-zinc-950 text-[7px] font-black uppercase px-1.5 rounded-sm">Oposição</span>}
+                      </div>
+                      
+                      <div className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 flex flex-wrap gap-x-4 gap-y-1">
+                        {voter.localVotacao && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-yellow-500" /> Local: {voter.localVotacao}
+                          </span>
+                        )}
+                        {voter.referredBy && (
+                          <span className="text-zinc-400">
+                            Indicado por: <span className="text-yellow-600 font-extrabold">{voter.referredBy}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* WhatsApp CTA */}
+                    {voter.phone && (
+                      <div className="shrink-0">
+                        <a 
+                          href={`https://wa.me/55${voter.phone.replace(/\D/g, '')}`} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 bg-green-500 text-zinc-950 px-3.5 py-2 rounded-sm font-black text-[9px] uppercase hover:bg-green-600 hover:text-white transition-all shadow-md shadow-green-500/10 active:scale-95"
+                        >
+                          <Phone className="w-3.5 h-3.5" /> Enviar Mensagem
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-sm text-center">
+                  <Search className="w-8 h-8 text-zinc-300 dark:text-zinc-800 mx-auto mb-2" />
+                  <p className="font-bold text-zinc-450 dark:text-zinc-650 uppercase text-[9px]">Nenhum contato encontrado na busca.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+      </div> {/* Left Column lg:col-span-6 space-y-6 */}
 
         {/* Right Side: Tabulated Operational Analytics for Active Municipality (Cols 7-12) */}
         <div className="lg:col-span-6 space-y-6">
@@ -770,12 +1225,8 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                         <div>
                           <h4 className="text-sm font-black uppercase text-zinc-950 dark:text-white mb-2 leading-none">{team.name}</h4>
                           <span className="bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-[8px] font-black uppercase px-2 py-0.5 rounded-xs">
-                            Status: {team.status || 'Operando'}
+                             Status: {team.status || 'Operando'}
                           </span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-[8px] font-black uppercase text-zinc-400 dark:text-zinc-500">Fatia Direcionada</span>
-                          <p className="text-sm font-black text-zinc-950 dark:text-white">R$ {(team.allocated || 0).toLocaleString('pt-BR')}</p>
                         </div>
                       </div>
 
@@ -833,10 +1284,18 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   </h3>
                   <p className="text-[9px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider mt-1 opacity-60">Visualização de indicações e conexões piramidais</p>
                 </div>
+                {influenceTree.length > 0 && (
+                  <button
+                    onClick={() => setExpandAllInfluence(!expandAllInfluence)}
+                    className="px-2.5 py-1.5 text-[8px] font-black uppercase rounded-xs transition-all bg-zinc-100 dark:bg-zinc-850 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-750 dark:text-zinc-300"
+                  >
+                    {expandAllInfluence ? "Recolher Tudo" : "Expandir Tudo"}
+                  </button>
+                )}
               </div>
 
               {influenceTree.length > 0 ? (
-                <div className="overflow-x-auto max-h-[500px] pr-2 custom-scrollbar space-y-4">
+                <div className="overflow-x-auto max-h-[320px] pr-2 custom-scrollbar space-y-4">
                   {influenceTree.map(rootNode => (
                     <div key={rootNode.id || rootNode.name} className="border border-zinc-150 dark:border-zinc-800 rounded-sm p-4 bg-zinc-50 dark:bg-zinc-950/20">
                       <div className="flex items-center gap-2 mb-2 p-1 border-b border-zinc-200/50 dark:border-zinc-800">
@@ -853,102 +1312,6 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   <p className="font-bold text-zinc-400 dark:text-zinc-600 uppercase text-[9px]">Nenhum eleitor mapeador na rede local ainda.</p>
                 </div>
               )}
-            </div>
-
-            {/* TAB 3: CONTACT DIRECTORY FOR SELECTED CITY */}
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm p-5 lg:p-6 shadow-sm">
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-4">
-                  <div>
-                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-900 dark:text-white flex items-center gap-2">
-                      <UserCheck className="w-4 h-4 text-yellow-500" /> Lista Geral de Contatos ({filteredMunicipalVoters.length})
-                    </h3>
-                    <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-1 opacity-65">Diretório telefônico e colégio de votação</p>
-                  </div>
-
-                  {/* Sentiment Filter */}
-                  <div className="flex gap-1">
-                    {['all', 'support', 'neutral', 'opposed'].map((filter) => (
-                      <button
-                        key={filter}
-                        onClick={() => setSentimentFilter(filter)}
-                        className={`px-2.5 py-1 text-[8px] font-black uppercase rounded-xs transition-all ${
-                          sentimentFilter === filter 
-                            ? 'bg-zinc-950 text-white dark:bg-zinc-800' 
-                            : 'bg-zinc-100 dark:bg-zinc-850 hover:bg-zinc-200 text-zinc-600 dark:text-zinc-400'
-                        }`}
-                      >
-                        {filter === 'all' ? 'Tudo' : filter === 'support' ? 'Apoio' : filter === 'neutral' ? 'Neutro' : 'Oposição'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Filter Search within municipality */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Buscar nome, fone, colégio em municipal..."
-                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-3 pl-10 font-bold text-[10px] text-zinc-900 dark:text-white outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-400"
-                  />
-                  <Search className="absolute left-3.5 top-3 w-4 h-4 text-zinc-400" />
-                </div>
-
-                {/* Voter Cards Container */}
-                <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1.5 custom-scrollbar">
-                  {filteredMunicipalVoters.length > 0 ? (
-                    filteredMunicipalVoters.map((voter) => (
-                      <div 
-                        key={voter.id}
-                        className="bg-zinc-50 dark:bg-zinc-950 p-4 border border-zinc-100 dark:border-zinc-900 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                      >
-                        <div className="space-y-1.5">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-black uppercase text-zinc-900 dark:text-white leading-none">{voter.name}</span>
-                            {voter.sentiment === 'support' && <span className="bg-green-500 text-zinc-950 text-[7px] font-black uppercase px-1.5 rounded-sm">Apoiador</span>}
-                            {voter.sentiment === 'neutral' && <span className="bg-yellow-500 text-zinc-950 text-[7px] font-black uppercase px-1.5 rounded-sm">Neutro</span>}
-                            {voter.sentiment === 'opposed' && <span className="bg-red-500 text-zinc-950 text-[7px] font-black uppercase px-1.5 rounded-sm">Oposição</span>}
-                          </div>
-                          
-                          <div className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 flex flex-wrap gap-x-4 gap-y-1">
-                            {voter.localVotacao && (
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3 text-yellow-500" /> Local: {voter.localVotacao}
-                              </span>
-                            )}
-                            {voter.referredBy && (
-                              <span className="text-zinc-400">
-                                Indicado por: <span className="text-yellow-600 font-extrabold">{voter.referredBy}</span>
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* WhatsApp CTA */}
-                        {voter.phone && (
-                          <div className="shrink-0">
-                            <a 
-                              href={`https://wa.me/55${voter.phone.replace(/\D/g, '')}`} 
-                              target="_blank" 
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 bg-green-500 text-zinc-950 px-3.5 py-2 rounded-sm font-black text-[9px] uppercase hover:bg-green-600 hover:text-white transition-all shadow-md shadow-green-500/10 active:scale-95"
-                            >
-                              <Phone className="w-3.5 h-3.5" /> Enviar Mensagem
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-sm text-center">
-                      <Search className="w-8 h-8 text-zinc-300 dark:text-zinc-800 mx-auto mb-2" />
-                      <p className="font-bold text-zinc-450 dark:text-zinc-650 uppercase text-[9px]">Nenhum contato encontrado na busca.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
 
           </div>

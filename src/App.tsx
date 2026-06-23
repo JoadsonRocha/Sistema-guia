@@ -4072,43 +4072,15 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
               </div>
 
               <div className="p-10 space-y-6 text-left max-h-[60vh] overflow-y-auto">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                <div className="grid grid-cols-2 gap-4 text-center">
                    <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100">
                       <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Contatos</p>
                       <p className="text-xl font-black">{selectedHistoryTeam.contacts || 0}</p>
                    </div>
                    <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100">
-                      <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest text-center">Alocado</p>
-                      <p className="text-xl font-black text-blue-600">R$ {selectedHistoryTeam.allocated || 0}</p>
-                   </div>
-                   <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100">
-                      <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest text-center">Gasto</p>
-                      <p className="text-xl font-black text-red-600">R$ {selectedHistoryTeam.spent || 0}</p>
-                   </div>
-                   <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100">
                       <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest text-center">Ponto</p>
                       <p className="text-sm font-black text-green-600">OK (98%)</p>
                    </div>
-                </div>
-
-                <div className="space-y-3">
-                   <h3 className="text-xs font-black uppercase text-zinc-400 tracking-widest">Últimas Movimentações Financeiras</h3>
-                   {teamHistory.length > 0 ? teamHistory.map((tx: any) => (
-                     <div key={tx.id} className="p-4 bg-white border border-zinc-100 rounded-sm flex justify-between items-center shadow-sm">
-                        <div className="text-left">
-                           <p className="text-sm font-black uppercase text-zinc-800">{tx.description || 'Movimentação sem descrição'}</p>
-                           <p className="text-[10px] text-zinc-500">{tx.purpose || 'Uso operacional'}</p>
-                        </div>
-                        <div className="text-right">
-                           <p className={`font-black text-sm ${tx.type === 'alocacao' ? 'text-blue-600' : 'text-red-600'}`}>
-                             {tx.type === 'alocacao' ? '+' : '-'} R$ {tx.amount?.toLocaleString()}
-                           </p>
-                           <p className="text-[9px] text-zinc-400">{new Date(tx.date).toLocaleDateString()}</p>
-                        </div>
-                     </div>
-                   )) : (
-                     <p className="text-center py-10 text-zinc-400 text-[10px] font-black uppercase">Nenhuma movimentação para esta equipe.</p>
-                   )}
                 </div>
               </div>
             </motion.div>
