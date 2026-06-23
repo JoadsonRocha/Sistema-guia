@@ -42,6 +42,7 @@ import {
   LayoutDashboard,
   DollarSign,
   Briefcase,
+  BookOpen,
   Target,
   Wallet,
   History,
@@ -58,11 +59,10 @@ import {
   Map as MapIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { processarCaos, gerarBriefingCandidato, processarNotaAudio } from './services/geminiService';
 import { reportService } from './services/reportService';
-import FinanceDashboard from './components/FinanceDashboard';
 import { useAuth } from './lib/FirebaseProvider';
 import { firestoreService } from './lib/firestoreService';
 import { 
@@ -105,30 +105,11 @@ const AVAILABLE_COLUMNS_BY_TYPE: Record<string, { header: string; dataKey: strin
     { header: 'Observações', dataKey: 'observations' },
     { header: 'Tags', dataKey: 'tagsStr' }
   ],
-  finance: [
-    { header: 'Equipe', dataKey: 'team' },
-    { header: 'Alocado', dataKey: 'allocatedStr' },
-    { header: 'Gasto', dataKey: 'spentStr' },
-    { header: 'Saldo', dataKey: 'balanceStr' }
-  ],
-  attendance: [
-    { header: 'Colaborador', dataKey: 'userName' },
-    { header: 'Data', dataKey: 'date' },
-    { header: 'Entrada', dataKey: 'checkIn' },
-    { header: 'Saída', dataKey: 'checkOut' },
-    { header: 'Localização', dataKey: 'location' }
-  ],
   materials: [
     { header: 'Material', dataKey: 'name' },
     { header: 'Total', dataKey: 'total' },
     { header: 'Disponível', dataKey: 'current' },
     { header: 'Usado', dataKey: 'used' }
-  ],
-  partners: [
-    { header: 'Aliado', dataKey: 'name' },
-    { header: 'Cargo/Representação', dataKey: 'role' },
-    { header: 'Investimento', dataKey: 'costStr' },
-    { header: 'Status', dataKey: 'statusLabel' }
   ],
   demands: [
     { header: 'Título', dataKey: 'title' },
@@ -273,8 +254,218 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
 /// --- COMPONENTE: DASHBOARD DO COORDENADOR ---
 function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme: (t: 'light' | 'dark') => void }) {
   const { user, login, logout, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'voters' | 'finance' | 'agenda' | 'notes' | 'attendance' | 'materials' | 'partners' | 'demands' | 'reports' | 'proposal'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'voters' | 'agenda' | 'notes' | 'materials' | 'demands' | 'reports'>('overview');
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
+
+  const handleDownloadDoc = () => {
+    const textHtml = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head>
+        <meta charset="utf-8">
+        <title>Manual Inteligente do Coordenador - Sistema Águia</title>
+        <style>
+          body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1a1a1a; margin: 40px; }
+          .header { text-align: center; border-bottom: 3px solid #eab308; padding-bottom: 20px; margin-bottom: 30px; }
+          .title { color: #000000; font-size: 26px; font-weight: bold; text-transform: uppercase; margin: 0; }
+          .subtitle { color: #4b5563; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
+          blockquote { border-left: 4px solid #eab308; padding-left: 20px; font-style: italic; color: #374151; background: #fafafa; padding: 15px; margin: 25px 0; }
+          h2 { color: #000000; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; margin-top: 35px; font-size: 18px; text-transform: uppercase; }
+          .meta-bold { font-weight: bold; color: #111827; }
+          p { font-size: 13px; color: #374151; margin-bottom: 15px; text-align: justify; }
+          .highlight-box { background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 4px; margin-top: 15px; }
+          .highlight-box p { margin: 0; color: #166534; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+          .footer { text-align: center; font-size: 11px; color: #9ca3af; margin-top: 60px; border-top: 1px solid #e5e7eb; padding-top: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="title">Sistema Águia 2026</div>
+          <div class="subtitle">Manual Inteligente do Coordenador de Campanha</div>
+        </div>
+
+        <blockquote style="font-size: 13px;">
+          "A função central é cuidar, ajustar e direcionar a campanha eleitoral de um determinado candidato. O coordenador gerencia os acertos e compromissos diários de campanha. Ele é responsável por articular com parceiros no meio político, seja no âmbito estadual, municipal ou da república. O profissional realiza o gerenciamento das finanças, administrando os valores de campanha repassados pelo partido. O coordenador fatia e distribui o dinheiro para cobrir custos com cabos eleitorais, combustível, escritórios de mídia, santinhos e outros materiais. A figura do coordenador represents o homem de extrema confiança do político. A palavra desse profissional possui muito peso, sendo tratada como se fosse a palavra do próprio candidato. Todas as decisões, ideias, reuniões e resoluções de grupos dentro da campanha precisam passar pelo aval do coordenador."
+        </blockquote>
+
+        <h2>1. Direcionar e Cuidar da Campanha</h2>
+        <p><span class="meta-bold">Função Clássica:</span> Cuidar, ajustar e guiar estrategicamente o progresso e o foco das frentes eleitorais urbana e rural.</p>
+        <p><span class="meta-bold">No Sistema Águia:</span> Por meio do Dashboard Central Unificado (aba Visão Geral), o coordenador monitora em tempo real a estatística consolidada de eleitores cadastrados, metas gerais por equipes, andamento das visitas e nível de atividade de todos os cabos eleitorais integrados.</p>
+        <div class="highlight-box">
+          <p>⚡ Impacto Prático vs. Método Tradicional: Substitui a dependência de telefonemas incertos e relatórios informais por métricas exatas centralizadas. O coordenador ganha poder de intervenção estratégica imediata para recalibrar frentes estagnadas.</p>
+        </div>
+
+        <h2>2. Gerenciamento de Compromissos e Acertos</h2>
+        <p><span class="meta-bold">Função Clássica:</span> Gerenciar a pauta de rua, reuniões territoriais mundanas e compromissos diários do candidato, otimizando o tempo dele.</p>
+        <p><span class="meta-bold">No Sistema Águia:</span> Integrado na aba Mapa e Agenda, permitindo vincular compromissos locais às necessidades comunitárias. Permite cadastrar visitas regionais cruzando dados diretamente com o mapa de demandas prioritárias.</p>
+        <div class="highlight-box">
+          <p>⚡ Impacto Prático vs. Método Tradicional: Evita colisões e redundâncias geográficas. O candidato sobe no palanque dominando minuciosamente quais as reais queixas e demandas geológicas do bairro visitado.</p>
+        </div>
+
+        <h2>3. Articulação com Parceiros Políticos</h2>
+        <p><span class="meta-bold">Função Clássica:</span> Manter contato contínuo e equilibrar parcerias estratégicas regionais, de vereadores a lideranças municipais externas.</p>
+        <p><span class="meta-bold">No Sistema Águia:</span> Integrado na central de Articulação (CRM de Parceiros), permitindo registrar todas as lideranças agregadas, gerenciar o status de relacionamento ("Quente", "Morno", "Frio"), histórico de encontros e monitoramento das metas de angariação particulares a cada um.</p>
+        <div class="highlight-box">
+          <p>⚡ Impacto Prático vs. Método Tradicional: Evita o desengajamento ou o "esfriamento" de redutos eleitorais por falta de comunicação continuada. Cada parceria tem um histórico de atendimento digitalizado indelével.</p>
+        </div>
+
+        <h2>4. Administração das Finanças e Custos de Campanha</h2>
+        <p><span class="meta-bold">Função Clássica:</span> Distribuir fatias financeiras para cabos eleitorais rurais, alimentação de bases, gastos de combustível integrado e confecção de santinhos físicos.</p>
+        <p><span class="meta-bold">No Sistema Águia:</span> Operado através da aba Financeiro e Gestão de Materiais, permitindo destinar limites financeiros exatos a frentes de atuação específicas, autorizar injeções de recursos urgentes no Vault Digital e auditar fotos de recibos e folhas de presença de rua imediatamente.</p>
+        <div class="highlight-box">
+          <p>⚡ Impacto Prático vs. Método Tradicional: Elimina a famosa "caixa-preta" de rua. Toda transação exige comprovação fotográfica, mitigando desvios e cobrando o máximo de rendimento por cada centavo empregado.</p>
+        </div>
+
+        <h2>5. Representação de Confiança e Tomada de Decisão</h2>
+        <p><span class="meta-bold">Função Clássica:</span> Atuar como a voz oficial com autoridade final para chancelar estratégias, pautas civis e responder resoluções internas.</p>
+        <p><span class="meta-bold">No Sistema Águia:</span> Concentrado no painel de Anotações Táticas (dividido em Fórum Comum da Equipe e Observações Privadas do Coordenador), além da central de aprovação de Demandas (Ouvidoria de Campo). Nenhuma questão ganha andamento legal ou visibilidade coletiva sem o endosso prévio do perfil do Coordenador.</p>
+        <div class="highlight-box">
+          <p>⚡ Impacto Prático vs. Método Tradicional: Blinda o comitê contra espionagem por canais públicos (WhatsApp). Centraliza e hierarquiza cronogramas estratégicos de forma unívoca.</p>
+        </div>
+
+        <div class="footer">
+          <p>Documento Oficial Gerado Eletronicamente pelo Ecossistema Águia 2026.</p>
+          <p>Confidencialidade de Nível Governamental e Alta Operação Militar de Campo.</p>
+        </div>
+      </body>
+      </html>
+    `;
+    const blob = new Blob(['\ufeff' + textHtml], { type: 'application/msword;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'MANUAL_INTELIGENTE_DO_COORDENADOR_AGUIA_2026.doc';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF();
+    
+    // Configurações de cores e fontes
+    doc.setTextColor(26, 26, 26);
+    
+    // Título Principal
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.setTextColor(17, 24, 39); // Zinc-900 / Dark
+    doc.text("SISTEMA ÁGUIA 2026", 14, 25);
+    
+    doc.setFontSize(14);
+    doc.setTextColor(100, 100, 100);
+    doc.text("Manual Inteligente do Coordenador de Campanha", 14, 33);
+    
+    // Linha horizontal Amarela
+    doc.setDrawColor(234, 179, 8); // Yellow-500
+    doc.setLineWidth(1.5);
+    doc.line(14, 38, 196, 38);
+    
+    // Bloco de citação
+    doc.setFillColor(250, 250, 250);
+    doc.rect(14, 43, 182, 50, "F");
+    doc.setDrawColor(234, 179, 8);
+    doc.setLineWidth(1);
+    doc.line(14, 43, 14, 93);
+    
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(9.5);
+    doc.setTextColor(55, 65, 81);
+    
+    const quoteText = "A função central é cuidar, ajustar e direcionar a campanha eleitoral de um determinado candidato. O coordenador gerencia os acertos e compromissos diários de campanha. Ele é responsável por articular com parceiros no meio político, seja no âmbito estadual, municipal ou da república. O profissional realiza o gerenciamento das finanças, administrando os valores de campanha repassados pelo partido. O coordenador fatia e distribui o dinheiro para cobrir custos com cabos eleitorais, combustível, escritórios de mídia, santinhos e outros materiais. A figura do coordenador representa o homem de extrema confiança do político. A palavra desse profissional possui muito peso, sendo tratada como se fosse a palavra do próprio candidato.";
+    
+    const quoteLines = doc.splitTextToSize(quoteText, 172);
+    doc.text(quoteLines, 19, 50);
+    
+    let y = 105;
+    
+    // Função auxiliar para desenhar uma seção
+    const drawSection = (title: string, text: string, impact: string) => {
+      if (y > 230) {
+        doc.addPage();
+        y = 25;
+      }
+      
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(17, 24, 39);
+      doc.text(title, 14, y);
+      y += 6;
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(55, 65, 81);
+      const textLines = doc.splitTextToSize(text, 182);
+      doc.text(textLines, 14, y);
+      y += (textLines.length * 5) + 2;
+      
+      // Impact Box
+      doc.setFillColor(240, 253, 244); // f0fdf4
+      const impactLines = doc.splitTextToSize(impact, 172);
+      const boxHeight = (impactLines.length * 4.5) + 6;
+      
+      doc.rect(14, y, 182, boxHeight, "F");
+      doc.setDrawColor(187, 247, 208); // bbf7d0
+      doc.setLineWidth(0.5);
+      doc.rect(14, y, 182, boxHeight, "S");
+      
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(22, 101, 52); // 166534
+      doc.text(impactLines, 19, y + 5);
+      
+      y += boxHeight + 12;
+    };
+    
+    drawSection(
+      "1. Direcionar e Cuidar da Campanha",
+      "Função Clássica: Cuidar, ajustar e guiar estrategicamente o progresso e o foco das frentes eleitorais urbana e rural. No Sistema Águia: Por meio do Dashboard Central Unificado (aba Visão Geral), o coordenador monitora em tempo real a estatística consolidada de eleitores cadastrados, metas gerais por equipes, andamento das visitas e nível de atividade de todos os cabos eleitorais integrados.",
+      "⚡ Impacto Prático vs. Método Tradicional: Substitui a dependência de relatórios informais por métricas exatas centralizadas. O coordenador ganha poder de intervenção estratégica imediata para recalibrar frentes estagnadas."
+    );
+    
+    drawSection(
+      "2. Gerenciamento de Compromissos e Acertos",
+      "Função Clássica: Gerenciar a pauta de rua, reuniões territoriais e compromissos diários do candidato, otimizando o tempo dele. No Sistema Águia: Integrado na aba Mapa e Agenda, permitindo vincular compromissos locais às necessidades comunitárias. Permite cadastrar visitas regionais cruzando dados diretamente com o mapa de demandas prioritárias.",
+      "⚡ Impacto Prático vs. Método Tradicional: Evita colisões e redundâncias geográficas. O candidato sobe no palanque dominando minuciosamente quais as reais queixas e demandas do bairro visitado."
+    );
+    
+    drawSection(
+      "3. Articulação com Parceiros Políticos",
+      "Função Clássica: Manter contato contínuo e equilibrar parcerias estratégicas regionais, de vereadores a lideranças municipais. No Sistema Águia: Integrado na central de Articulação (CRM de Parceiros), permitindo registrar todas as lideranças agregadas, gerenciar o status de relacionamento (Quente, Morno, Frio), histórico de encontros e monitoramento das metas particulares.",
+      "⚡ Impacto Prático vs. Método Tradicional: Evita o desengajamento de redutos eleitorais por falta de comunicação. Cada parceria tem um histórico de atendimento digitalizado indelével."
+    );
+    
+    drawSection(
+      "4. Administração das Finanças e Custos de Campanha",
+      "Função Clássica: Distribuir fatias financeiras para cabos eleitorais rurais, alimentação de bases, gastos de combustível e confecção de santinhos físicos. No Sistema Águia: Operado através da aba Financeiro e Gestão de Materiais, permitindo destinar limites financeiros exatos a frentes de atuação específicas, autorizar injeções de recursos urgentes e auditar fotos de recibos imediatamente.",
+      "⚡ Impacto Prático vs. Método Tradicional: Elimina a famosa fossa financeira de rua. Toda transação exige comprovação fotográfica, mitigando desvios e cobrando o máximo de rendimento por cada centavo empregado."
+    );
+    
+    drawSection(
+      "5. Representação de Confiança e Tomada de Decisão",
+      "Função Clássica: Atuar como a voz oficial com autoridade final para chancelar estratégias, pautas civis e responder resoluções internas. No Sistema Águia: Concentrado no painel de Anotações Táticas (Fórum Comum da Equipe e Observações Privadas do Coordenador), além da central de aprovação de Demandas (Ouvidoria de Campo). Nenhuma questão ganha andamento sem o endosso prévio do Coordenador.",
+      "⚡ Impacto Prático vs. Método Tradicional: Blinda o comitê contra vazamento de dados em canais públicos inseguros. Centraliza e hierarquiza cronogramas estratégicos de forma segura."
+    );
+    
+    // Rodapé final se houver espaço
+    if (y > 250) {
+      doc.addPage();
+      y = 30;
+    }
+    doc.setDrawColor(229, 231, 235);
+    doc.setLineWidth(0.5);
+    doc.line(14, y, 196, y);
+    y += 8;
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(156, 163, 175);
+    doc.text("Documento Oficial Gerado Eletronicamente pelo Ecossistema Águia 2026.", 14, y);
+    doc.text("Confidencialidade de Nível Governamental e Alta Operação Militar de Campo.", 14, y + 4);
+    
+    doc.save("MANUAL_INTELIGENTE_DO_COORDENADOR_AGUIA_2026.pdf");
+  };
+
   
   // Reports State
   const [reportsHistory, setReportsHistory] = useState<any[]>([]);
@@ -285,7 +476,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
   const [selectedReportColumns, setSelectedReportColumns] = useState<string[]>([]);
   const [materials, setMaterials] = useState<any[]>([]);
   const [materialRequests, setMaterialRequests] = useState<any[]>([]);
-  const [partners, setPartners] = useState<any[]>([]);
   const [demandsSummary, setDemandsSummary] = useState<any[]>([]);
   const [dailyOrder, setDailyOrder] = useState<any>(null);
   const [isEditingDailyOrder, setIsEditingDailyOrder] = useState(false);
@@ -294,9 +484,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
   const [chaosText, setChaosText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [aiResult, setAiResult] = useState<any>(null);
-  const [partnerCost, setPartnerCost] = useState('');
-  const [isEditingPartner, setIsEditingPartner] = useState(false);
-  const [editingPartnerId, setEditingPartnerId] = useState<string | null>(null);
 
   const [isEditingMaterial, setIsEditingMaterial] = useState(false);
   const [editingMaterialId, setEditingMaterialId] = useState<string | null>(null);
@@ -309,14 +496,8 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
   const [teams, setTeams] = useState<any[]>([]);
   const [urgencies, setUrgencies] = useState<any[]>([]);
   const [statsData, setStatsData] = useState<any>(null);
-  const [attendance, setAttendance] = useState<any[]>([]);
   const [agendas, setAgendas] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
-
-  // Attendance Filter State
-  const [attendanceFilterDate, setAttendanceFilterDate] = useState('');
-  const [attendanceFilterTeam, setAttendanceFilterTeam] = useState('');
-  const [attendanceFilterLeader, setAttendanceFilterLeader] = useState('');
 
   // Profile State
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -358,6 +539,12 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     tuxauaName: string;
     hasDocPhoto: boolean;
     sentiment: 'support' | 'neutral' | 'opposed';
+    cpf: string;
+    rg: string;
+    titulo: string;
+    zona: string;
+    secao: string;
+    localVotacao: string;
   }>({ 
     name: '', 
     phone: '', 
@@ -375,7 +562,13 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     communityName: '',
     tuxauaName: '',
     hasDocPhoto: false,
-    sentiment: 'neutral'
+    sentiment: 'neutral',
+    cpf: '',
+    rg: '',
+    titulo: '',
+    zona: '',
+    secao: '',
+    localVotacao: ''
   });
 
   const [articulatorFilter, setArticulatorFilter] = useState('');
@@ -435,15 +628,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     }
   };
 
-  const handleDeleteAttendance = async (id: string) => {
-    if (window.confirm("Deseja realmente excluir este registro de frequência? Esta ação não pode ser desfeita.")) {
-      try {
-        await firestoreService.deleteDocument('attendance', id);
-      } catch (err: any) {
-        alert("Erro ao excluir registro: " + err.message);
-      }
-    }
-  };
 
   const handleAddMaterial = async (e: any) => {
     e.preventDefault();
@@ -587,62 +771,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     }
   };
 
-  const handleAddPartner = async (e: any) => {
-    e.preventDefault();
-    const name = e.target.name.value;
-    const role = e.target.role.value;
-    const cost = parseCurrencyToNumber(e.target.cost.value) || 0;
-    const status = e.target.status.value; // 'frio' | 'morno' | 'quente'
-    if (!name) return;
-
-    await firestoreService.addDocument('partners', {
-      name,
-      role,
-      cost,
-      status,
-      lastContact: Date.now()
-    });
-    e.target.reset();
-  };
-
-  const handleEditPartner = (p: any) => {
-    setIsEditingPartner(true);
-    setEditingPartnerId(p.id);
-    setPartnerCost(p.cost?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '');
-  };
-
-  const handleSaveEditPartner = async (e: any) => {
-    e.preventDefault();
-    if (!editingPartnerId) return;
-    try {
-      const name = e.target.name.value.trim();
-      const role = e.target.role.value.trim();
-      const cost = parseCurrencyToNumber(partnerCost);
-      const status = e.target.status.value;
-
-      await firestoreService.updateDocument('partners', editingPartnerId, {
-        name, role, cost, status, updatedAt: Date.now()
-      });
-      setIsEditingPartner(false);
-      setEditingPartnerId(null);
-      setPartnerCost('');
-      e.target.reset();
-      alert("Parceiro atualizado com sucesso!");
-    } catch (err: any) {
-      alert("Erro ao editar parceiro: " + err.message);
-    }
-  };
-
-  const handleDeletePartner = async (id: string) => {
-    if (confirm("Deseja realmente remover este parceiro da articulação estratégica?")) {
-      try {
-        await firestoreService.deleteDocument('partners', id);
-      } catch (err: any) {
-        alert("Erro ao excluir: " + err.message);
-      }
-    }
-  };
-
   // --- REPORT GENERATION LOGIC ---
   const generateReport = async (type: string, filters: any = {}) => {
     const userName = profileData?.name || user?.email || 'Coordenador';
@@ -683,25 +811,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             subtitle = `Listagem detalhada de ${data.length} eleitores vinculados às equipes selecionadas.`;
             break;
 
-          case 'partners':
-            title = 'Relatório Detalhado: Eleitores por Articulador';
-            reportColumns = AVAILABLE_COLUMNS_BY_TYPE['voters'];
-            const activePartners = partners.filter(p => {
-              if (filters.team && p.team !== filters.team) return false; // If partners have teams
-              return true;
-            }).map(p => ({ id: p.id, name: p.name }));
-            
-            data = allVoters.filter(v => activePartners.some(p => p.id === v.articulatorId || p.name === v.referredBy))
-              .map(v => ({
-                ...v,
-                teamDisplay: v.team || v.teamName || 'N/A',
-                votedStatus: v.voted ? 'SIM' : 'NÃO',
-                sentiment: v.sentiment === 'support' ? 'APOIO' : v.sentiment === 'neutral' ? 'NEUTRO' : 'OPOSIÇÃO',
-                referredByDisplay: v.articulatorId ? (allVoters.find(av => av.id === v.articulatorId)?.name || 'Articulador') : (v.referredBy || '---'),
-                tagsStr: v.tags?.join(', ') || ''
-              }));
-            subtitle = `Base de dados de ${data.length} contatos diretos dos articuladores políticos.`;
-            break;
 
           case 'materials':
             title = 'Relatório Detalhado: Movimentação de Materiais';
@@ -760,32 +869,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             subtitle = `${data.length} eleitores filtrados na base estratégica.`;
             break;
 
-          case 'finance':
-            title = 'Relatório Financeiro e Custos';
-            data = teams.map(t => ({
-              ...t,
-              team: t.name,
-              allocatedStr: `R$ ${t.allocated.toLocaleString('pt-BR')}`,
-              spentStr: `R$ ${t.spent.toLocaleString('pt-BR')}`,
-              balanceStr: `R$ ${(t.allocated - t.spent).toLocaleString('pt-BR')}`
-            }));
-            subtitle = `Investimento Total: R$ ${teams.reduce((acc, t) => acc + t.allocated, 0).toLocaleString('pt-BR')}`;
-            break;
-
-          case 'attendance':
-            title = 'Relatório de Auditoria de Ponto';
-            data = attendance.filter(a => {
-              if (filters.startDate && a.timestamp < new Date(filters.startDate).getTime()) return false;
-              if (filters.endDate && a.timestamp > new Date(filters.endDate).getTime()) return false;
-              return true;
-            }).map(a => ({
-              ...a,
-              dateStr: new Date(a.timestamp).toLocaleString(),
-              status: (a.status || 'Pendente').toUpperCase()
-            }));
-            subtitle = `Registros de ponto monitorados: ${data.length}`;
-            break;
-
           case 'materials':
             title = 'Relatório de Gestão de Materiais';
             data = materials.map(m => ({
@@ -793,17 +876,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
               used: (m.total || 0) - (m.current || 0)
             }));
             subtitle = `Controle de estoque de ${data.length} itens.`;
-            break;
-
-          case 'partners':
-            title = 'Relatório de Articulação Política';
-            data = partners.map(p => ({
-              ...p,
-              costStr: `R$ ${(p.cost || 0).toLocaleString('pt-BR')}`,
-              statusLabel: p.status === 'quente' ? 'CONSOLIDADO' : p.status === 'morno' ? 'TRATATIVA' : 'MAPEADO',
-              contactsCount: allVoters.filter(v => v.articulatorId === p.id || v.referredBy === p.name).length
-            }));
-            subtitle = `Articulação com ${data.length} aliados estratégicos.`;
             break;
 
           case 'demands':
@@ -936,10 +1008,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       console.error("Stats sync error details:", JSON.stringify(errInfo));
     });
 
-    const unsubAttendance = firestoreService.subscribeToCollection('attendance', (data) => {
-      setAttendance(data);
-    });
-
     const unsubAgendas = firestoreService.subscribeToCollection('agenda', (data) => {
       setAgendas(data);
     });
@@ -978,10 +1046,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       setMaterialRequests(data);
     });
 
-    const unsubPartners = onSnapshot(collection(db, 'partners'), (snap) => {
-      setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-
     const unsubVoters = onSnapshot(collection(db, 'voters'), (snap) => {
       setAllVoters(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
@@ -994,14 +1058,12 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       unsubTeams();
       unsubUrgencies();
       unsubStats();
-      unsubAttendance();
       unsubAgendas();
       unsubNotesSnap();
       unsubProfile();
       unsubDailyOrder();
       unsubMaterials();
       unsubMaterialRequests();
-      unsubPartners();
       unsubVoters();
       unsubReports();
     };
@@ -1205,17 +1267,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
     return matchesSearch && matchesReferredBy && matchesTags && matchesArticulator;
   });
-
-  const filteredAttendance = attendance.filter(entry => {
-    const entryDate = new Date(entry.timestamp).toISOString().split('T')[0];
-    const matchesDate = !attendanceFilterDate || entryDate === attendanceFilterDate;
-    const matchesTeam = !attendanceFilterTeam || entry.teamName === attendanceFilterTeam;
-    const matchesLeader = !attendanceFilterLeader || entry.leaderName === attendanceFilterLeader;
-    return matchesDate && matchesTeam && matchesLeader;
-  }).sort((a, b) => b.timestamp - a.timestamp);
-
-  const attendanceTeams = Array.from(new Set(attendance.map(a => a.teamName).filter(Boolean)));
-  const attendanceLeaders = Array.from(new Set(attendance.map(a => a.leaderName).filter(Boolean)));
 
   const availableTags = Array.from(new Set(allVoters.flatMap(v => v.tags || [])));
 
@@ -1422,23 +1473,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     }
   };
 
-  const handleManualCheckin = async (leaderId: string, leaderName: string) => {
-    if (!isAdmin) return;
-    try {
-      await firestoreService.setDocument('attendance', `manual_${Date.now()}`, {
-        leaderId,
-        leaderName,
-        timestamp: Date.now(),
-        type: 'manual',
-        status: 'validado',
-        validatedBy: user?.email || user?.uid,
-        observation: 'Validado por exceção pelo coordenador'
-      });
-      alert(`Ponto manual validado para ${leaderName}`);
-    } catch (err: any) {
-      alert("Erro ao validar ponto: " + err.message);
-    }
-  };
 
   const handleGenerateBriefing = async (location: string) => {
     setBriefingLoading(true);
@@ -1509,7 +1543,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             { id: 'demands', label: 'Demandas/Mapa', icon: <Activity className="w-4 h-4" /> },
             { id: 'notes', label: 'Anotações', icon: <MessageSquare className="w-4 h-4" /> },
             { id: 'reports', label: 'Relatórios & BI', icon: <FileDown className="w-4 h-4" /> },
-            { id: 'proposal', label: 'Proposta Comercial 💼', icon: <Briefcase className="w-4 h-4" /> }
+            { id: 'proposal', label: 'Manual Coordenador 🎓', icon: <BookOpen className="w-4 h-4" /> }
           ].map((item) => (
             <button
               key={item.id}
@@ -2178,7 +2212,13 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                                      communityName: voter.communityName || '',
                                      tuxauaName: voter.tuxauaName || '',
                                      hasDocPhoto: voter.hasDocPhoto || false,
-                                     sentiment: voter.sentiment || 'neutral'
+                                     sentiment: voter.sentiment || 'neutral',
+                                      cpf: voter.cpf || '',
+                                      rg: voter.rg || '',
+                                      titulo: voter.titulo || '',
+                                      zona: voter.zona || '',
+                                      secao: voter.secao || '',
+                                      localVotacao: voter.localVotacao || ''
                                    });
                                    setIsVoterEditModalOpen(true);
                                  }}
@@ -2324,181 +2364,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     </div>
                   </div>
                 </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'attendance' && (
-              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4 md:space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4 md:pb-6">
-                  <div>
-                    <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Controle de Frequência (GPS)</h2>
-                    <p className="text-[var(--text-secondary)] text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-2 md:mt-3 opacity-70">Auditoria de localização e horários em tempo real para unidades de campo</p>
-                  </div>
-                  <div className="flex gap-3 w-full md:w-auto">
-                    <button 
-                      onClick={async () => {
-                        if(window.confirm("Deseja exportar o relatório de ponto em PDF?")) {
-                          alert("Gerando relatório... O download iniciará em instantes.");
-                        }
-                      }}
-                      className="w-full md:w-auto bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-primary)] px-4 md:px-5 py-3 md:py-3.5 rounded-sm font-black text-[9px] md:text-[10px] uppercase flex items-center justify-center gap-2 md:gap-3 shadow-[var(--shadow-sm)] hover:bg-[var(--bg-tertiary)] transition-all active:scale-95"
-                    >
-                      <FileDown className="w-4 h-4" /> Exportar Relatório PDF
-                    </button>
-                  </div>
-                </div>
-
-                {/* Filtros de Pesquisa */}
-                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 shadow-[var(--shadow-sm)]">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] opacity-60 flex items-center gap-2">
-                      <Calendar className="w-3 h-3" /> Filtrar por Data
-                    </label>
-                    <input 
-                      type="date" 
-                      value={attendanceFilterDate}
-                      onChange={(e) => setAttendanceFilterDate(e.target.value)}
-                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-3.5 rounded-sm font-bold text-xs outline-none focus:border-yellow-500 transition-all font-mono"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] opacity-60 flex items-center gap-2">
-                      <Users className="w-3 h-3" /> Filtrar por Equipe
-                    </label>
-                    <select 
-                      value={attendanceFilterTeam}
-                      onChange={(e) => setAttendanceFilterTeam(e.target.value)}
-                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-3.5 rounded-sm font-bold text-xs outline-none focus:border-yellow-500 transition-all cursor-pointer"
-                    >
-                      <option value="">Todas as Equipes</option>
-                      {attendanceTeams.map(team => (
-                        <option key={team} value={team}>{team}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] opacity-60 flex items-center gap-2">
-                      <ShieldCheck className="w-3 h-3" /> Filtrar por Líder
-                    </label>
-                    <select 
-                      value={attendanceFilterLeader}
-                      onChange={(e) => setAttendanceFilterLeader(e.target.value)}
-                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-3.5 rounded-sm font-bold text-xs outline-none focus:border-yellow-500 transition-all cursor-pointer"
-                    >
-                      <option value="">Todos os Líderes</option>
-                      {attendanceLeaders.map(leader => (
-                        <option key={leader} value={leader}>{leader}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex items-end">
-                    <button 
-                      onClick={() => {
-                        setAttendanceFilterDate('');
-                        setAttendanceFilterTeam('');
-                        setAttendanceFilterLeader('');
-                      }}
-                      className="w-full h-[46px] bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-secondary)] rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all active:scale-95 flex items-center justify-center gap-2"
-                    >
-                      <X className="w-3.5 h-3.5" /> Limpar Filtros
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center px-1">
-                  <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] opacity-40">
-                    Exibindo <span className="text-yellow-600 dark:text-yellow-500">{filteredAttendance.length}</span> de <span className="text-[var(--text-primary)]">{attendance.length}</span> registros auditados
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4">
-                  {filteredAttendance.length > 0 ? (
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm overflow-hidden shadow-[var(--shadow-sm)]">
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
-                            <tr className="bg-[var(--bg-tertiary)] border-b border-[var(--border-color)]">
-                              <th className="p-3.5 md:p-5 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60">Agente de Campo</th>
-                              <th className="p-3.5 md:p-5 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60">Registro Temporal</th>
-                              <th className="p-3.5 md:p-5 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60">Geolocalização</th>
-                              <th className="p-3.5 md:p-5 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-60 text-right">Validação</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-[var(--border-color)]">
-                            {filteredAttendance.map((entry) => (
-                              <tr key={entry.id} className="hover:bg-[var(--bg-tertiary)]/50 transition-colors group/row">
-                                <td className="p-3.5 md:p-5">
-                                  <div className="flex items-center gap-3 md:gap-4">
-                                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-sm bg-zinc-950 flex items-center justify-center font-black text-white text-[10px] overflow-hidden border border-[var(--border-color)] group-hover/row:border-yellow-500/30 shadow-inner">
-                                      {entry.leaderPhoto ? (
-                                        <img src={entry.leaderPhoto} alt={entry.leaderName} className="w-full h-full object-cover" />
-                                      ) : (
-                                        <span className="text-yellow-500">{entry.leaderName?.charAt(0)}</span>
-                                      )}
-                                    </div>
-                                    <div className="flex flex-col">
-                                      <span className="text-xs font-black text-[var(--text-primary)] uppercase leading-none">{entry.leaderName}</span>
-                                      <span className="text-[9px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-widest mt-2 leading-none">{entry.teamName || 'Equipe Alpha'}</span>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="p-3.5 md:p-5">
-                                  <div className="flex flex-col">
-                                    <span className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-tight">{new Date(entry.timestamp).toLocaleDateString()}</span>
-                                    <span className="text-[10px] font-bold text-[var(--text-secondary)] mt-1 opacity-60">{new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                                  </div>
-                                </td>
-                                <td className="p-3.5 md:p-5">
-                                  {entry.location ? (
-                                    <a 
-                                      href={`https://www.google.com/maps?q=${entry.location.lat},${entry.location.lng}`} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-2.5 px-2.5 py-1.5 rounded-sm bg-blue-500/5 text-blue-600 dark:text-blue-400 font-black text-[9px] md:text-[10px] uppercase hover:bg-blue-500/10 transition-colors border border-blue-500/10"
-                                    >
-                                      <MapPin className="w-3 md:w-3.5 h-3 md:h-3.5" /> Ver Coordenadas
-                                    </a>
-                                  ) : (
-                                    <span className="text-[9px] md:text-[10px] font-black text-[var(--text-secondary)] uppercase opacity-30 italic">GPS Não Sincronizado</span>
-                                  )}
-                                </td>
-                                <td className="p-3.5 md:p-5 text-right">
-                                  <div className="flex items-center justify-end gap-3">
-                                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 text-[9px] font-black uppercase tracking-widest border border-emerald-500/20 shadow-inner">
-                                      <CheckCircle2 className="w-3 h-3" /> Validado
-                                    </span>
-                                    <button 
-                                      onClick={() => handleDeleteAttendance(entry.id)}
-                                      className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-all"
-                                      title="Excluir Registro"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="py-24 bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-sm text-center grayscale opacity-40">
-                      <Clock className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
-                      <p className="font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] text-[10px]">
-                        {attendanceFilterDate || attendanceFilterTeam || attendanceFilterLeader 
-                          ? "Nenhum registro tático encontrado para os parâmetros selecionados." 
-                          : "Aguardando registros de check-in em tempo real..."}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'finance' && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <FinanceDashboard isNested />
               </motion.div>
             )}
 
@@ -2746,152 +2611,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                 </div>
               </motion.div>
             )}
-             {activeTab === 'partners' && (
-              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 md:space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4 md:pb-6">
-                  <div>
-                    <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Articulação Política</h2>
-                    <p className="text-[var(--text-secondary)] text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-1.5 md:mt-3 opacity-70">CRM de Relacionamento e Mobilização</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-8">
-                  {/* QUICK ADD */}
-                  <div className="lg:col-span-1 bg-zinc-950 rounded-sm p-4 md:p-8 shadow-2xl text-white relative h-fit dark:bg-zinc-900 border border-white/5">
-                    <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
-                      <Handshake className="w-24 h-24 text-yellow-500" />
-                    </div>
-                    <h3 className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-yellow-500 mb-5 md:mb-8 relative z-10">
-                      {isEditingPartner ? 'Editar Aliado' : 'Mapear Aliado'}
-                    </h3>
-                    <form onSubmit={isEditingPartner ? handleSaveEditPartner : async (e: any) => {
-                      e.preventDefault();
-                      await handleAddPartner(e);
-                      setPartnerCost('');
-                    }} className="space-y-5 relative z-10">
-                      <input name="name" required defaultValue={isEditingPartner ? partners.find(p => p.id === editingPartnerId)?.name : ''} className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" placeholder="Nome do Influenciador/Líder" />
-                      <input name="role" defaultValue={isEditingPartner ? partners.find(p => p.id === editingPartnerId)?.role : ''} className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" placeholder="Cargo/Representação" />
-                      <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-zinc-500">R$</span>
-                        <input 
-                          name="cost" 
-                          type="text" 
-                          value={partnerCost}
-                          onChange={(e) => setPartnerCost(maskCurrency(e.target.value))}
-                          className="w-full bg-white/10 border border-white/5 rounded-sm p-4 pl-10 text-[11px] font-bold outline-none focus:ring-1 focus:ring-yellow-500/50" 
-                          placeholder="Investimento (R$)" 
-                        />
-                      </div>
-                      <select name="status" defaultValue={isEditingPartner ? partners.find(p => p.id === editingPartnerId)?.status : 'frio'} className="w-full bg-white/10 border border-white/5 rounded-sm p-4 text-[11px] font-bold outline-none cursor-pointer">
-                        <option value="frio" className="text-zinc-950">❄️ Relacionamento Frio</option>
-                        <option value="morno" className="text-zinc-950">🔥 Em Negociação</option>
-                        <option value="quente" className="text-zinc-950">💎 Apoio Confirmado</option>
-                      </select>
-                      <div className="flex gap-2">
-                        {isEditingPartner && (
-                          <button 
-                            type="button"
-                            onClick={() => { setIsEditingPartner(false); setEditingPartnerId(null); setPartnerCost(''); }}
-                            className="bg-zinc-800 text-white px-4 rounded-sm hover:bg-zinc-700 transition-all font-black text-[9px] uppercase tracking-widest"
-                          >
-                            Cancelar
-                          </button>
-                        )}
-                        <button className="flex-1 bg-yellow-500 text-zinc-950 py-4.5 rounded-sm font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-yellow-500/20 hover:bg-yellow-400">
-                          {isEditingPartner ? 'Salvar Alterações' : 'Incluir no COMANDO'}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-
-                  {/* LIST */}
-                  <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {partners.length > 0 ? partners.map(p => {
-                      const associatedVoters = allVoters.filter(v => v.articulatorId === p.id || v.referredBy === p.name).length;
-                      const efficiency = (p.cost || 0) / (associatedVoters || 1);
-                      
-                      return (
-                        <div key={p.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 flex flex-col gap-4 md:gap-5 group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)] relative overflow-hidden">
-                          {/* Top Section: Icon, Name, Status */}
-                          <div className="flex items-start justify-between gap-2 flex-wrap">
-                            <div className="flex items-center gap-3 md:gap-4">
-                              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-sm flex items-center justify-center border-2 shadow-inner transition-colors ${
-                                p.status === 'quente' ? 'bg-yellow-500/10 border-yellow-500/20' : 
-                                p.status === 'morno' ? 'bg-orange-500/10 border-orange-500/20' : 'bg-blue-500/10 border-blue-500/20'
-                              }`}>
-                                <Handshake className={`w-5 h-5 md:w-6 md:h-6 ${
-                                  p.status === 'quente' ? 'text-yellow-500' : 
-                                  p.status === 'morno' ? 'text-orange-500' : 'text-blue-500'
-                                }`} />
-                              </div>
-                              <div>
-                                <h4 className="font-black text-[var(--text-primary)] uppercase leading-none tracking-tight text-xs md:text-sm font-sans">{p.name}</h4>
-                                <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-60 mt-1.5 font-mono">{p.role || 'SEM FUNÇÃO DEFINIDA'}</p>
-                              </div>
-                            </div>
-                            <span className={`text-[7px] md:text-[8px] font-black uppercase tracking-widest px-2 md:px-3 py-1 md:py-1.5 rounded-sm shadow-sm ${
-                              p.status === 'quente' ? 'bg-yellow-500 text-zinc-950' : 
-                              p.status === 'morno' ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
-                            }`}>
-                              {p.status === 'quente' ? '💎 CONSOLIDADO' : p.status === 'morno' ? '🔥 TRATATIVA' : '❄️ MAPEADO'}
-                            </span>
-                          </div>
-
-                          {/* Stats Grid */}
-                          <div className="grid grid-cols-2 gap-3 py-4 border-y border-[var(--border-color)] border-dashed">
-                            <div className="bg-[var(--bg-tertiary)]/50 p-3 rounded-sm border border-[var(--border-color)] flex flex-col gap-1.5">
-                               <p className="text-[7px] font-black text-zinc-400 uppercase tracking-[0.2em]">Votos Identificados</p>
-                               <div className="flex items-baseline gap-1">
-                                 <span className="text-base font-black text-yellow-600 dark:text-yellow-500 leading-none">{associatedVoters}</span>
-                                 <span className="text-[9px] font-black text-zinc-400 uppercase">Projetados</span>
-                               </div>
-                            </div>
-                            <div className="bg-[var(--bg-tertiary)]/50 p-3 rounded-sm border border-[var(--border-color)] flex flex-col gap-1.5">
-                               <p className="text-[7px] font-black text-zinc-400 uppercase tracking-[0.2em]">Custo p/ Conversão</p>
-                               <div className="flex items-baseline gap-1">
-                                 <span className="text-[10px] font-black text-zinc-400">R$</span>
-                                 <span className="text-sm font-black text-emerald-600 leading-none">
-                                   {efficiency.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                 </span>
-                               </div>
-                            </div>
-                          </div>
-
-                          {/* Actions Footer */}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1">
-                              <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest">Investimento Total:</p>
-                              <p className="text-[8px] font-black text-[var(--text-primary)]">R$ {(p.cost || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button 
-                                onClick={() => handleEditPartner(p)} 
-                                className="w-8 h-8 rounded-sm flex items-center justify-center text-zinc-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all border border-transparent hover:border-blue-500/20"
-                                title="Editar Cadastro"
-                              >
-                                <Edit3 className="w-3.5 h-3.5" />
-                              </button>
-                              <button 
-                                onClick={() => handleDeletePartner(p.id)} 
-                                className="w-8 h-8 rounded-sm flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20"
-                                title="Excluir Mapeamento"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }) : (
-                      <div className="col-span-full py-24 text-center bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-sm grayscale opacity-30">
-                        <Handshake className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
-                        <p className="text-[var(--text-secondary)] font-black uppercase tracking-[0.2em] text-[10px]">Sem Parceiros: Inicie o mapeamento regional.</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            )}
 
             {activeTab === 'demands' && (
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
@@ -3060,401 +2779,287 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             )}
 
             {activeTab === 'proposal' && (
-              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
-                {/* Cabeçalho da Proposta */}
-                <div className="relative overflow-hidden bg-gradient-to-r from-zinc-950 to-zinc-900 border border-yellow-500/20 rounded-sm p-8 md:p-12 shadow-2xl">
-                  <div className="absolute top-0 right-0 w-80 h-80 bg-yellow-500/5 rounded-full blur-[100px]"></div>
+              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 md:space-y-8">
+                {/* Cabeçalho do Manual */}
+                <div className="relative overflow-hidden bg-gradient-to-r from-zinc-950 to-zinc-900 border border-yellow-500/20 rounded-sm p-6 md:p-10 shadow-2xl">
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-yellow-500/5 rounded-full blur-[100px] pointer-events-none"></div>
                   <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div>
-                      <span className="inline-block px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 font-black text-[9px] uppercase tracking-[0.25em] rounded-sm mb-4">
-                        Dossiê Técnico-Comercial de Venda
+                      <span className="inline-block px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 font-black text-[8px] md:text-[9px] uppercase tracking-[0.25em] rounded-sm mb-3">
+                        Manual & Tutorial Estratégico de Operações
                       </span>
-                      <h2 className="text-3xl md:text-4xl font-black uppercase text-white tracking-tighter leading-none">
-                        ECOSSISTEMA ÁGUIA 2026
+                      <h2 className="text-2xl md:text-3.5xl font-black uppercase text-white tracking-tighter leading-none">
+                        MANUAL INTELIGENTE DO COORDENADOR
                       </h2>
-                      <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest mt-4">
-                        Apresentação Comercial & Proposta de Venda para Candidata a Deputada Estadual por Roraima
+                      <p className="text-zinc-400 text-[10px] md:text-xs font-bold uppercase tracking-widest mt-2">
+                        Como o Sistema Águia automatiza, blinda e multiplica os resultados da inteligência de campo política
                       </p>
                     </div>
-                    <div>
-                      <a 
-                        href="/PROPOSTA_COMERCIAL_AGUIA_2026.doc" 
-                        download="PROPOSTA_COMERCIAL_AGUIA_2026.doc"
-                        className="flex items-center gap-3 px-6 py-4 bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-black text-xs uppercase tracking-widest rounded-sm shadow-xl hover:shadow-yellow-500/10 transition-all duration-300"
+                    <div className="shrink-0 flex flex-wrap gap-3">
+                      <button
+                        onClick={handleDownloadDoc}
+                        className="flex items-center gap-2.5 px-5 py-3 md:px-6 md:py-3.5 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-sm shadow-md active:scale-95 transition-all duration-300 group"
+                        title="Baixar Manual Completo em Word (.DOC)"
                       >
-                        <FileDown className="w-5 h-5 text-zinc-950 animate-bounce" /> Baixar Proposta em Word (.doc)
-                      </a>
+                        <FileDown className="w-4 h-4 text-zinc-400 group-hover:scale-110 transition-transform duration-300" /> Baixar Manual (.DOC)
+                      </button>
+                      <button
+                        onClick={handleDownloadPdf}
+                        className="flex items-center gap-2.5 px-5 py-3 md:px-6 md:py-3.5 bg-yellow-500 hover:bg-white text-zinc-950 font-black text-[9px] md:text-[10px] uppercase tracking-widest rounded-sm shadow-xl hover:shadow-yellow-500/20 active:scale-95 transition-all duration-300 group"
+                        title="Baixar Manual Completo em PDF (.PDF)"
+                      >
+                        <FileText className="w-4 h-4 text-zinc-950 group-hover:scale-110 transition-transform duration-300" /> Baixar Manual (.PDF)
+                      </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Bloco de Filosofia de Dores e Soluções */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-black uppercase text-[var(--text-primary)] tracking-tighter border-b border-[var(--border-color)] pb-3 font-sans">
-                    🔥 MAPEAMENTO DE GARGALOS OPERACIONAIS E CURAS TECNOLÓGICAS (DE CABO A RABO)
-                  </h3>
-                  <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest leading-relaxed">
-                    Veja em detalhes como cada funcionalidade vital do sistema ÁGUIA sana as piores dores de infraestrutura rural e urbana de campo no território de Roraima:
-                  </p>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Bloco 1 */}
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 hover:border-orange-500/30 transition-all shadow-sm">
-                      <div className="flex items-center gap-2 mb-3 text-orange-500">
-                        <span className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
-                          DOR CRÍTICA RURAL #1
-                        </span>
-                        <h4 className="text-xs font-black uppercase tracking-tight">O "Cabo de Papel" (Fraude de Rua)</h4>
-                      </div>
-                      <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest leading-relaxed mb-4">
-                        Cumpriores de agenda que recebem doações de campanha, mas mentem sobre as rotas ou visitas rurais.
-                      </p>
-                      <div className="mt-4 pt-4 border-t border-[var(--border-color)]">
-                        <div className="flex items-center gap-2 mb-2 text-yellow-500">
-                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
-                            A OPERAÇÃO ÁGUIA
-                          </span>
-                          <h5 className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Assinatura GPS Inviolável</h5>
-                        </div>
-                        <p className="text-xs text-[var(--text-secondary)] font-bold uppercase tracking-widest leading-relaxed">
-                          Os líderes registram ponto nas comunidades e vicinais de Roraima com precisão métrica de satélite e trava de simulador de GPS.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Bloco 2 */}
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 hover:border-orange-500/30 transition-all shadow-sm">
-                      <div className="flex items-center gap-2 mb-3 text-orange-500">
-                        <span className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
-                          DOR CRÍTICA RURAL #2
-                        </span>
-                        <h4 className="text-xs font-black uppercase tracking-tight">Candidato Desconectado no Palanque</h4>
-                      </div>
-                      <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest leading-relaxed mb-4">
-                        Subir nos carros de som com discursos fracos por ignorar a demanda específica e factual da localidade visitada.
-                      </p>
-                      <div className="mt-4 pt-4 border-t border-[var(--border-color)]">
-                        <div className="flex items-center gap-2 mb-2 text-yellow-500">
-                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
-                            A OPERAÇÃO ÁGUIA
-                          </span>
-                          <h5 className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Auditoria Georreferenciada de Demandas</h5>
-                        </div>
-                        <p className="text-xs text-[var(--text-secondary)] font-bold uppercase tracking-widest leading-relaxed">
-                          Cada líder municipal mapeia reclamações locais (bueiro no Cantá, ponte no Caracaraí). O candidato discursa sabendo todos os detalhes geográficos.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Bloco 3 */}
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 hover:border-orange-500/30 transition-all shadow-sm">
-                      <div className="flex items-center gap-2 mb-3 text-orange-500">
-                        <span className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
-                          DOR CRÍTICA RURAL #3
-                        </span>
-                        <h4 className="text-xs font-black uppercase tracking-tight">Perda Financeira (Caixa Preta de Rua)</h4>
-                      </div>
-                      <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest leading-relaxed mb-4">
-                        Desvio de vales-combustível e alimentação distribuídos de forma manual sem documentação ou recibo.
-                      </p>
-                      <div className="mt-4 pt-4 border-t border-[var(--border-color)]">
-                        <div className="flex items-center gap-2 mb-2 text-yellow-500">
-                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
-                            A OPERAÇÃO ÁGUIA
-                          </span>
-                          <h5 className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Vault Financeiro & Recibos Rápidos</h5>
-                        </div>
-                        <p className="text-xs text-[var(--text-secondary)] font-bold uppercase tracking-widest leading-relaxed">
-                          Divisão tática de custos por núcleo e emissão instantânea de contra-recibos digitais assinados via painel do coordenador e do líder.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Bloco 4 */}
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 hover:border-orange-500/30 transition-all shadow-sm">
-                      <div className="flex items-center gap-2 mb-3 text-orange-500">
-                        <span className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
-                          DOR CRÍTICA RURAL #4
-                        </span>
-                        <h4 className="text-xs font-black uppercase tracking-tight">O "Eleitor Fantasma" no Dia de Trabalho</h4>
-                      </div>
-                      <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest leading-relaxed mb-4">
-                        Bases infladas na véspera com cadastros rasos e duplicados que se desintegram na hora crítica de contagem de voto.
-                      </p>
-                      <div className="mt-4 pt-4 border-t border-[var(--border-color)]">
-                        <div className="flex items-center gap-2 mb-2 text-yellow-500">
-                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 rounded-sm font-black text-[8px] uppercase tracking-widest">
-                            A OPERAÇÃO ÁGUIA
-                          </span>
-                          <h5 className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Network CRM (Rede de Influência)</h5>
-                        </div>
-                        <p className="text-xs text-[var(--text-secondary)] font-bold uppercase tracking-widest leading-relaxed">
-                          Nomes atrelados a indicados originais, pontuação de confiabilidade de voto (Loyalty Score) e dados rurais completos como Maloca/Tuxaua correspondente.
-                        </p>
-                      </div>
-                    </div>
+                {/* Filosofia do Coordenador - Citação Reconfigurada */}
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-4 md:p-6 rounded-sm shadow-sm space-y-3.5 relative overflow-hidden">
+                  <div className="absolute top-0 right-[-10px] p-6 opacity-5 pointer-events-none">
+                    <BookOpen className="w-24 h-24 text-[var(--text-primary)]" />
                   </div>
+                  <h3 className="text-xs font-black uppercase text-yellow-600 dark:text-yellow-500 tracking-widest flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-ping" />
+                    O Papel Doutrinário do Coordenador de Campanha
+                  </h3>
+                  <blockquote className="border-l-2 border-yellow-500 pl-4 py-1 italic text-zinc-600 dark:text-zinc-400 text-xs leading-relaxed max-w-4xl space-y-2">
+                    <p>
+                      "A função central é cuidar, ajustar e direcionar a campanha eleitoral de um determinado candidato. O coordenador gerencia os acertos e compromissos diários de campanha. Ele é responsável por articular com parceiros no meio político, seja no âmbito estadual, municipal ou da república... O profissional realiza o gerenciamento das finanças, fatiando e distribuindo o dinheiro para cobrir custos com cabos eleitorais, combustível, mídias e materiais..."
+                    </p>
+                    <p className="text-[10px] uppercase font-black tracking-wider text-[var(--test-secondary)] opacity-60 not-italic">
+                      — Diretrizes de Alta Liderança e Comando Eleitoral
+                    </p>
+                  </blockquote>
                 </div>
 
-                {/* ⚡ PLANEJAMENTO TÁTICO: O QUE FAZER COM O GRUPO DE 94 APOIADORES ATUAIS? */}
-                <div className="bg-gradient-to-r from-zinc-950 to-zinc-900 border border-yellow-500/20 rounded-sm p-6 md:p-8">
-                  <span className="inline-block px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 font-black text-[9px] uppercase tracking-[0.25em] rounded-sm mb-4">
-                    ESTRATÉGIA DE ACELERAÇÃO DIGITAL
-                  </span>
-                  <h3 className="text-xl font-black text-white uppercase tracking-tight mb-3">
-                    Aceleração Rápida: O Poder do seu Grupo de 94 Apoiadores no WhatsApp
+                {/* Pilares de Equivalência e Comparação Crítica */}
+                <div className="space-y-4 md:space-y-6">
+                  <h3 className="text-base md:text-lg font-black uppercase text-[var(--text-primary)] tracking-tighter border-b border-[var(--border-color)] pb-3 font-sans flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-yellow-500" />
+                    CORRELAÇÃO OPERACIONAL: FUNÇÃO CLÁSSICA VS. PODER DA TECNOLOGIA ÁGUIA
                   </h3>
-                  <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest leading-relaxed mb-6">
-                    Muitos candidatos acham que um grupo de WhatsApp é suficiente para gerenciar uma campanha. Isso é um erro tático grave. O grupo de WhatsApp é o **combustível**, mas o **Ecossistema ÁGUIA** é o motor que converte esse calor em votos auditados e vitória nas urnas. Veja como agregamos valor sem descartar sua base atual:
-                  </p>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Alavanca 1: Triagem de Super-Lideranças */}
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm">
-                      <div className="flex items-center gap-2 mb-3 text-yellow-500">
-                        <Users className="w-5 h-5" />
-                        <h4 className="text-xs font-black uppercase tracking-tight">1. Recrutar os Super-Líderes</h4>
-                      </div>
-                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest leading-relaxed">
-                        Do grupo de 94 membros, identificamos as **10 a 15 pessoas mais influentes** de diferentes bairros de Boa Vista e distritos do interior.
-                      </p>
-                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest leading-relaxed mt-3 pt-3 border-t border-[var(--border-color)]">
-                        👉 **Ação**: Eles recebem login de Líder no aplicativo para iniciar mapeamentos sérios e auditados em suas micro-regiões.
-                      </p>
-                    </div>
-
-                    {/* Alavanca 2: Meta de Multiplicação Geométrica */}
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm">
-                      <div className="flex items-center gap-2 mb-3 text-yellow-500">
-                        <TrendingUp className="w-5 h-5" />
-                        <h4 className="text-xs font-black uppercase tracking-tight">2. Multiplicação de Rede</h4>
-                      </div>
-                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest leading-relaxed">
-                        Cada super-líder recebe a meta de cadastrar **20 eleitores reais** no CRM do aplicativo, validando nome e Loyalty Score.
-                      </p>
-                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest leading-relaxed mt-3 pt-3 border-t border-[var(--border-color)]">
-                        📈 **Resultado**: Seus 94 membros desorganizados no WhatsApp escalam rapidamente para **mais de 300 eleitores fiéis em nossa central**.
-                      </p>
-                    </div>
-
-                    {/* Alavanca 3: Blindagem e Segurança */}
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm">
-                      <div className="flex items-center gap-2 mb-3 text-yellow-500">
-                        <ShieldCheck className="w-5 h-5" />
-                        <h4 className="text-xs font-black uppercase tracking-tight">3. Proteção contra Espionagem</h4>
-                      </div>
-                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest leading-relaxed">
-                        Em grupos de WhatsApp, qualquer concorrente ou infiltrado pode roubar sua lista de contatos e copiar seus números.
-                      </p>
-                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest leading-relaxed mt-3 pt-3 border-t border-[var(--border-color)]">
-                        🔒 **Segurança**: Com o ÁGUIA, os dados dos eleitores ficam em banco de dados militarizado do Google Cloud, e um líder nunca vê a base do outro.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 p-4 rounded-sm bg-yellow-500/5 border border-yellow-500/10 text-[var(--text-secondary)] text-[10px] uppercase font-black tracking-widest leading-relaxed">
-                    🎯 **O PITCH PARA A CANDIDATA**: 
-                    "Doutora, nós não vamos acabar com o seu grupo de apoiadores. Pelo contrário: nós vamos dar uma meta de crescimento para que esse grupo de 94 vire um exército organizado de 500 cabos eleitorais ativos, cada um alimentando o nosso sistema com mapa de dores regionais e controle de fidelidade de eleitores."
-                  </div>
-                </div>
-
-                {/* Tabela de Dimensionamento Real de Uso de Banco */}
-                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 md:p-8 mt-6">
-                  <h3 className="text-sm font-black uppercase text-[var(--text-primary)] tracking-widest mb-6 flex items-center gap-2">
-                    📊 TABELA DE DIMENSIONAMENTO DE INFRAESTRUTURA DE BANCO DE DADOS (FIRESTORE)
-                  </h3>
-                  <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-widest leading-relaxed mb-8">
-                    Análise técnica que comprova a viabilidade matemática e custo extremamente enxuto e escalável da plataforma sob regime de alta carga de mobilização de campo:
-                  </p>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left font-mono">
-                      <thead>
-                        <tr className="border-b border-[var(--border-color)] text-[var(--text-secondary)] text-[9px] uppercase tracking-widest">
-                          <th className="py-4 font-black">Escala de Equipe</th>
-                          <th className="py-4 font-black">Usuários Ativos / Dia</th>
-                          <th className="py-4 font-black">Leituras / Dia</th>
-                          <th className="py-4 font-black">Escritas / Dia</th>
-                          <th className="py-4 font-black">Custo Google Firestore</th>
-                          <th className="py-4 font-black">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[var(--border-color)] text-[10px] font-bold text-[var(--text-primary)] text-zinc-400">
-                        <tr>
-                          <td className="py-4 font-black text-white">Local / Familiar</td>
-                          <td className="py-4">Até 50 lideranças</td>
-                          <td className="py-4">~15.000 / dia</td>
-                          <td className="py-4">~5.000 / dia</td>
-                          <td className="py-4 text-emerald-500 font-bold">R$ 0,00 (100% Gratuito)</td>
-                          <td className="py-4 uppercase text-[9px]">Corte de Cota Atende</td>
-                        </tr>
-                        <tr>
-                          <td className="py-4 font-black text-white">Médio Porte</td>
-                          <td className="py-4">150 lideranças</td>
-                          <td className="py-4">~45.000 / dia</td>
-                          <td className="py-4">~15.000 / dia</td>
-                          <td className="py-4 text-emerald-500 font-bold">R$ 0,00 (100% Gratuito)</td>
-                          <td className="py-4 uppercase text-[9px]">Corte de Cota Atende</td>
-                        </tr>
-                        <tr>
-                          <td className="py-4 font-black text-white">Escala Deputado Estadual</td>
-                          <td className="py-4">500 lideranças</td>
-                          <td className="py-4">~150.000 / dia</td>
-                          <td className="py-4">~40.000 / dia</td>
-                          <td className="py-4 text-yellow-500 font-bold">~R$ 4,50 / dia</td>
-                          <td className="py-4 uppercase text-[9px]">Regime Pay-as-you-go</td>
-                        </tr>
-                        <tr>
-                          <td className="py-4 font-black text-white">Gigante Metropolitana</td>
-                          <td className="py-4">2.000 lideranças</td>
-                          <td className="py-4">~600.000 / dia</td>
-                          <td className="py-4">~150.000 / dia</td>
-                          <td className="py-4 text-orange-500 font-bold">~R$ 18,50 / dia</td>
-                          <td className="py-4 uppercase text-[9px]">Pico Máximo Estabilizado</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="mt-6 p-4 rounded-sm bg-yellow-500/5 border border-yellow-500/10 text-[var(--text-secondary)] text-[10px] uppercase font-black tracking-widest leading-relaxed">
-                    💡 **OPERAÇÃO 100% LIVRE DE TAXAS DE INTELIGÊNCIA ARTIFICIAL**: 
-                    As rotinas de anotações táticas de voz e o organizador de demandas de campo funcionam de forma determinística nativa da nossa agência sem consumir créditos ou requisições adicionais de APIs externas. Custo operacional fixado.
-                  </div>
-                </div>
-
-                {/* Proposta de Investimento e Retorno - Dois Cenários Estratégicos */}
-                <div className="space-y-6 mt-10">
-                  <h3 className="text-lg font-black uppercase text-[var(--text-primary)] tracking-tighter border-b border-[var(--border-color)] pb-3 font-sans">
-                    💼 MODELOS DE COMERCIALIZAÇÃO E CENÁRIOS ESTRATÉGICOS
-                  </h3>
-                  <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest leading-relaxed">
-                    Apresentamos duas modelagens financeiras personalizadas que se alinham perfeitamente com os rumos e desdobramentos políticos da candidatura à Assembleia Legislativa:
-                  </p>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Cenário 1: Vitória Eleitoral & Mandato Continuado */}
-                    <div className="relative overflow-hidden bg-gradient-to-br from-zinc-950 to-zinc-905 border-2 border-yellow-500/30 rounded-sm p-8 shadow-2xl">
-                      <div className="absolute top-0 right-0 px-3 py-1 bg-yellow-500 text-zinc-950 font-black text-[9px] uppercase tracking-widest rounded-bl-sm">
-                        RECOMENDADO • ALTA PERFORMANCE
-                      </div>
-                      
-                      <span className="inline-block px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 font-black text-[9px] uppercase tracking-[0.25em] rounded-sm mb-4">
-                        CENÁRIO 1: VITÓRIA ELEITORAL & MANDATO ATIVO
-                      </span>
-                      
-                      <h4 className="text-xl font-black text-white uppercase tracking-tight mb-2">
-                        Presença de Rua Convertida em Mandato Histórico
-                      </h4>
-                      <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest leading-relaxed mb-6 border-b border-zinc-800 pb-4">
-                        Foco na eleição do Candidato e transição automática para a gestão parlamentar no Legislativo de Roraima.
-                      </p>
-
-                      <div className="space-y-4 mb-8">
-                        <div>
-                          <p className="text-zinc-500 text-[8px] font-black uppercase tracking-widest">Fase de Campanha (Até Outubro/2026)</p>
-                          <p className="text-2xl font-black text-white tracking-widest">3x R$ 2.450,00</p>
-                          <p className="text-zinc-400 text-[9px] font-bold uppercase tracking-widest">Implantação, suporte "War Room" em Boa Vista e interiores, treinamento de equipes de rua.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    
+                    {/* Pilar 1 */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 hover:border-yellow-500/30 transition-all shadow-sm flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
+                            Função Classica #1
+                          </span>
+                          <h4 className="text-[11px] md:text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Direcionar e Cuidar da Campanha</h4>
                         </div>
-                        <div className="pt-4 border-t border-zinc-800">
-                          <p className="text-yellow-500 text-[8px] font-black uppercase tracking-widest">Fase de Mandato (Transição Pós-Vitória)</p>
-                          <p className="text-2xl font-black text-yellow-500 tracking-widest">R$ 1.250,00 <span className="text-xs text-zinc-400 font-bold tracking-normal">/ mensal</span></p>
-                          <p className="text-[var(--text-secondary)] text-[9px] font-bold uppercase tracking-widest leading-relaxed mt-2">
-                            Assinatura mensal para manutenção da infraestrutura, atualizações de segurança e disponibilização de novas ferramentas táticas parlamentares.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-sm space-y-3">
-                        <p className="text-white text-[10px] uppercase font-black tracking-widest">⚙️ Expansão Inclusa para Mandato Parlamentar:</p>
-                        <ul className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider space-y-2">
-                          <li className="flex items-start gap-2">
-                            <span className="text-yellow-500">✔</span> 
-                            <span>**Gabinete Conectado**: Portal web interno de solicitações populares georreferenciadas mapeadas pelas frentes.</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="text-yellow-500">✔</span> 
-                            <span>**Rastreador de Emendas**: Inteligência integrada para acompanhar a destinação e andamento das emendas parlamentares.</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="text-yellow-500">✔</span> 
-                            <span>**Fomento Continuado de Base**: Conversão do banco de eleitores da campanha em base permanente de diálogo e apoio contínuo.</span>
-                          </li>
-                        </ul>
-                      </div>
-
-                      <div className="mt-6 p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-sm">
-                        <p className="text-emerald-400 text-[9px] font-black uppercase tracking-widest leading-relaxed">
-                          🎯 **Justificativa de Valor**: Evita que o precioso banco de apoiadores coletado a campo se perca pós-eleição. O parlamentar mantém comunicação direta permanente em Rorainópolis, Bonfim, Pacaraima e capital, pavimentando o prestígio e o caminho de reeleição de forma cientifica.
+                        <p className="text-[10px] md:text-[11px] text-zinc-500 font-bold uppercase tracking-widest leading-loose mb-4">
+                          "Cuidar, ajustar e direcionar a campanha de um determinado candidato com precisão e controle de movimentações."
                         </p>
-                      </div>
-                    </div>
-
-                    {/* Cenário 2: Operação Cabos de Guerra (Até Outubro) */}
-                    <div className="relative overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-8 shadow-sm">
-                      <span className="inline-block px-3 py-1 bg-zinc-800 border border-zinc-700 text-zinc-400 font-black text-[9px] uppercase tracking-[0.25em] rounded-sm mb-4">
-                        CENÁRIO 2: OPERAÇÃO ELEITORAL TÁTICA FOCAL
-                      </span>
-                      
-                      <h4 className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tight mb-2">
-                        Máxima Engenharia de Guerra até o Dia D
-                      </h4>
-                      <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest leading-relaxed mb-6 border-b border-[var(--border-color)] pb-4">
-                        Ferramental focado estritamente na caminhada eleitoral ativa, sem recorrências ou contratos pós-Outubro.
-                      </p>
-
-                      <div className="space-y-6 mb-11">
-                        <div>
-                          <p className="text-zinc-500 text-[8px] font-black uppercase tracking-widest">Taxa Única de Operação Coletiva (Foco Outubro/2026)</p>
-                          <p className="text-3xl font-black text-[var(--text-primary)] tracking-widest">R$ 8.500,00 <span className="text-xs text-zinc-500 font-bold tracking-normal">Taxa Única</span></p>
-                          <p className="text-zinc-400 text-[9px] font-bold uppercase tracking-widest mt-2">
-                            Acesso ilimitado, implantação tática completa, treinamento, suporte premium permanente e auditoria integral durante todo o período eleitoral ativo.
-                          </p>
-                        </div>
                         
-                        <div className="pt-4 border-t border-[var(--border-color)]">
-                          <p className="text-orange-500 text-[8px] font-black uppercase tracking-widest">Fluxo Pós-Eleição (Após Outubro/2026)</p>
-                          <p className="text-lg font-black text-orange-500 tracking-tight">Hibernação Segura & Exportação de Dados</p>
-                          <p className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest leading-relaxed mt-2">
-                            Nenhum custo extra ou mensalidade continuada subsequente. O contrato é encerrado automaticamente com a entrega dos backups criptografados.
+                        <div className="mt-4 pt-4 border-t border-[var(--border-color)] space-y-2">
+                          <div className="flex items-center gap-2 text-emerald-500">
+                            <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
+                              No Sistema Águia
+                            </span>
+                            <h5 className="text-[10px] md:text-xs font-black uppercase tracking-tight">Dashboard Central Unificado</h5>
+                          </div>
+                          <p className="text-[10px] text-[var(--text-secondary)] font-medium leading-relaxed">
+                            O coordenador visualiza o painel geral consolidado com indicadores de total de contatos ativos, metas e ocorrências regionais. O sistema atualiza o status de rede de cada regional tática de forma imediata.
                           </p>
                         </div>
                       </div>
 
-                      <div className="bg-zinc-900/10 border border-[var(--border-color)] p-4 rounded-sm space-y-3">
-                        <p className="text-[var(--text-primary)] text-[10px] uppercase font-black tracking-widest">📦 Pacote de Fechamento de Ciclo Incluso:</p>
-                        <ul className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider space-y-2">
-                          <li className="flex items-start gap-2">
-                            <span className="text-zinc-600">✔</span> 
-                            <span>**Backup Militarizado de Eleitores**: Exportação estruturada segura das listas completas com Loyalty Score e dados rurais.</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="text-zinc-600">✔</span> 
-                            <span>**Conformidade Eleitoral**: Destruição programada segura dos servidores em nuvem de homologação em 30 dias.</span>
-                          </li>
-                        </ul>
-                      </div>
-
-                      <div className="mt-6 p-4 bg-yellow-500/5 border border-yellow-500/10 rounded-sm">
-                        <p className="text-[var(--text-secondary)] text-[9px] font-black uppercase tracking-widest leading-relaxed">
-                          🎯 **Justificativa de Valor**: Caso a candidata opte por uma abordagem restrita de curto prazo para mobilização de campanha com encerramento contábil garantido, este cenário mitiga custos de custódia e entrega um ativo de dados altamente catalogado de Roraima para futuras alianças partidárias.
-                        </p>
+                      <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-relaxed">
+                        ⚡ **Impacto vs. Tradicional**: No tradicional, o coordenador depende de impressões físicas e conversas casuais. No Águia, ele tem uma visão holística instantânea com tomada de decisão baseada em números exatos.
                       </div>
                     </div>
+
+                    {/* Pilar 2 */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 hover:border-yellow-500/30 transition-all shadow-sm flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
+                            Função Classica #2
+                          </span>
+                          <h4 className="text-[11px] md:text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Acertos e Compromissos Diários</h4>
+                        </div>
+                        <p className="text-[10px] md:text-[11px] text-zinc-500 font-bold uppercase tracking-widest leading-loose mb-4">
+                          "Gerenciar o cronograma operacional de rua, otimizando as visitas de candidatos aos distritos e bairros."
+                        </p>
+                        
+                        <div className="mt-4 pt-4 border-t border-[var(--border-color)] space-y-2">
+                          <div className="flex items-center gap-2 text-emerald-500">
+                            <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
+                              No Sistema Águia
+                            </span>
+                            <h5 className="text-[10px] md:text-xs font-black uppercase tracking-tight">Mapa Dinâmico & Triagem de Horas</h5>
+                          </div>
+                          <p className="text-[10px] text-[var(--text-secondary)] font-medium leading-relaxed">
+                            O coordenador acessa a aba <strong className="font-extrabold text-[var(--text-primary)]">Mapa & Agenda</strong> para vincular compromissos a eixos temáticos e traçar caminhos geo-mapeados de alto impacto das equipes e de deslocamento do candidato.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-relaxed">
+                        ⚡ **Impacto vs. Tradicional**: Sem "colisão" ou furos de agenda física. Evita deslocamentos redundantes e garante cobertura de rotas táticas com menor consumo de verbas logísticas.
+                      </div>
+                    </div>
+
+                    {/* Pilar 3 */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 hover:border-yellow-500/30 transition-all shadow-sm flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
+                            Função Classica #3
+                          </span>
+                          <h4 className="text-[11px] md:text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Articulação de Parceiros Ambientais</h4>
+                        </div>
+                        <p className="text-[10px] md:text-[11px] text-zinc-500 font-bold uppercase tracking-widest leading-loose mb-4">
+                          "Coordenar de forma inteligente coligados municipais, líderes estaduais e vereadores garantindo engajamento mútuo."
+                        </p>
+                        
+                        <div className="mt-4 pt-4 border-t border-[var(--border-color)] space-y-2">
+                          <div className="flex items-center gap-2 text-emerald-500">
+                            <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
+                              No Sistema Águia
+                            </span>
+                            <h5 className="text-[10px] md:text-xs font-black uppercase tracking-tight">CRM de Articulação Política</h5>
+                          </div>
+                          <p className="text-[10px] text-[var(--text-secondary)] font-medium leading-relaxed">
+                            A aba <strong className="font-extrabold text-[var(--text-primary)]">Articulação</strong> disponibiliza um CRM completo com graus de proximidade dos parceiros / líderes ("quente", "morno", "frio") e monitoramento de metas de influência.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-relaxed">
+                        ⚡ **Impacto vs. Tradicional**: Substitui pastas de contatos desorganizadas por um funil estratégico de aliados que impede o esfriamento de bases importantes por esquecimento ou falta de acompanhamento.
+                      </div>
+                    </div>
+
+                    {/* Pilar 4 */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 hover:border-yellow-500/30 transition-all shadow-sm flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
+                            Função Classica #4
+                          </span>
+                          <h4 className="text-[11px] md:text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Gerenciamento Técnico de Finanças</h4>
+                        </div>
+                        <p className="text-[10px] md:text-[11px] text-zinc-500 font-bold uppercase tracking-widest leading-loose mb-4">
+                          "Repassar e direcionar verbas partidárias estratégicas para cobrir doações de campanha, combustíveis e material impresso."
+                        </p>
+                        
+                        <div className="mt-4 pt-4 border-t border-[var(--border-color)] space-y-2">
+                          <div className="flex items-center gap-2 text-emerald-500">
+                            <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
+                              No Sistema Águia
+                            </span>
+                            <h5 className="text-[10px] md:text-xs font-black uppercase tracking-tight">Vault de Controle e Alocações & Materiais</h5>
+                          </div>
+                          <p className="text-[10px] text-[var(--text-secondary)] font-medium leading-relaxed">
+                            As abas <strong className="font-extrabold text-[var(--text-primary)]">Financeiro</strong> e <strong className="font-extrabold text-[var(--text-primary)]">Materiais</strong> controlam o teto de gastos por frentes táticas, injeção de recursos imediatos pelo coordenador e auditoria de recibos por equipe de rua de forma contínua.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-relaxed">
+                        ⚡ **Impacto vs. Tradicional**: Zero 'caixa-preta' de gastos manuais. Fim do desvio de combustível e materiais porque toda saída exige registro de recibos ou contra-provas do líder de equipe.
+                      </div>
+                    </div>
+
+                    {/* Pilar 5 */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 hover:border-yellow-500/30 transition-all shadow-sm flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest text-center leading-none">
+                            Função Classica #5
+                          </span>
+                          <h4 className="text-[11px] md:text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Homem de Confiança / Aval Final</h4>
+                        </div>
+                        <p className="text-[10px] md:text-[11px] text-zinc-500 font-bold uppercase tracking-widest leading-loose mb-4">
+                          "Garantir que todas as decisões, notas e resoluções passem pelo controle direto e crivo do coordenador."
+                        </p>
+                        
+                        <div className="mt-4 pt-4 border-t border-[var(--border-color)] space-y-2">
+                          <div className="flex items-center gap-2 text-emerald-500">
+                            <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
+                              No Sistema Águia
+                            </span>
+                            <h5 className="text-[10px] md:text-xs font-black uppercase tracking-tight">Fórum do Comitê de Anotações Táticas</h5>
+                          </div>
+                          <p className="text-[10px] text-[var(--text-secondary)] font-medium leading-relaxed">
+                            Através da aba <strong className="font-extrabold text-[var(--text-primary)]">Anotações Táticas</strong> e do sistema descentralizado de convites e links, nenhuma nova unidade entra em operação ou acessa dados sem a autorização de link único criada no painel principal.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-relaxed">
+                        ⚡ **Impacto vs. Tradicional**: Centralização absoluta da soberania militar da campanha. Somente indivíduos credenciados têm visibilidade das frentes, eliminando riscos de espionagem eleitoral.
+                      </div>
+                    </div>
+
+                    {/* Pilar 6 */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 hover:border-yellow-500/30 transition-all shadow-sm flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
+                            Função Classica #6
+                          </span>
+                          <h4 className="text-[11px] md:text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Preparação de Discurso do Candidato</h4>
+                        </div>
+                        <p className="text-[10px] md:text-[11px] text-zinc-500 font-bold uppercase tracking-widest leading-loose mb-4">
+                          "Alimentar o palanque com as pautas factuais e necessidades mais candentes das comunidades visitadas."
+                        </p>
+                        
+                        <div className="mt-4 pt-4 border-t border-[var(--border-color)] space-y-2">
+                          <div className="flex items-center gap-2 text-emerald-500">
+                            <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-sm font-black text-[7px] md:text-[8px] uppercase tracking-widest leading-none">
+                              No Sistema Águia
+                            </span>
+                            <h5 className="text-[10px] md:text-xs font-black uppercase tracking-tight">Georreferenciamento de Demandas e IA</h5>
+                          </div>
+                          <p className="text-[10px] text-[var(--text-secondary)] font-medium leading-relaxed">
+                            O coordenador usa a aba <strong className="font-extrabold text-[var(--text-primary)]">Demandas/Mapa</strong> para analisar relatos de asfalto, fiação e saneamento coletados pelos líderes rurais. A inteligência do ecossistema sintetiza as dores locais em um compêndio que molda o palanque em segundos.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-relaxed">
+                        ⚡ **Impacto vs. Tradicional**: Sai do discursonismo vago e sobe no palanque dominando as pautas locais com assertividade, criando conexão imediata com o eleitorado local.
+                      </div>
+                    </div>
+
                   </div>
                 </div>
 
-                {/* Rodapé de Ação */}
-                <div className="flex flex-col sm:flex-row justify-between items-center bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 mt-10 gap-4">
-                  <p className="text-zinc-500 text-[9px] font-black uppercase tracking-widest">
-                    Prepara esta Proposta Comercial de alto nível para enviar ao Comitê Eleitoral 🦅
-                  </p>
-                  <a 
-                    href="/PROPOSTA_COMERCIAL_AGUIA_2026.doc" 
-                    download="PROPOSTA_COMERCIAL_AGUIA_2026.doc"
-                    className="flex items-center gap-2 px-6 py-3.5 bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-black text-[10px] uppercase tracking-widest rounded-sm shadow-xl transition-all"
-                  >
-                    <FileDown className="w-4 h-4 text-zinc-950" /> Baixar Documento Oficial (.doc)
-                  </a>
+                {/* Seção Operacional Secundária - Tutoriais de Procedimento de Comando */}
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-4 md:p-8 rounded-sm space-y-6">
+                  <h3 className="text-xs md:text-sm font-black uppercase text-[var(--text-primary)] tracking-widest flex items-center gap-2 border-b border-[var(--border-color)] pb-3">
+                    <BookOpen className="w-4 h-4 text-yellow-500" />
+                    PROCEDIMENTO OPERACIONAL PADRÃO (P.O.P.) DA CAMPANHA ÁGUIA
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-[10px] uppercase font-black tracking-widest">
+                    <div className="space-y-2">
+                      <h4 className="text-yellow-600 dark:text-yellow-500 font-extrabold">1. Credenciamento de Novos Líderes</h4>
+                      <p className="text-zinc-500 font-bold leading-relaxed not-italic uppercase">
+                        Vá na aba <span className="text-[var(--text-primary)]">"Equipes"</span>, clique em "Adicionar Equipe/Base", defina o líder e configure o teto financeiro e bases operacionais da facção. Copie o link exclusivo de login gerado no cartão da equipe e envie para o celular do líder de rua.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h4 className="text-yellow-600 dark:text-yellow-500 font-extrabold">2. Mobilização de Rua & Audit de Ponto</h4>
+                      <p className="text-zinc-500 font-bold leading-relaxed not-italic uppercase">
+                        Acompanhe diariamente a aba <span className="text-[var(--text-primary)]">"Audit. Ponto"</span> para auditar a geolocalização e as assinaturas digitais por satélite das equipes em vicinais ou comunidades rurais de difícil mapeamento convencional.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h4 className="text-yellow-600 dark:text-yellow-500 font-extrabold">3. Consolidação Financeira e Suprimentos</h4>
+                      <p className="text-zinc-500 font-bold leading-relaxed not-italic uppercase">
+                        Alimente a aba <span className="text-[var(--text-primary)]">"Financeiro"</span> com aportes de recursos recebidos, atrelando os fatiamentos de combustível e materiais táticos às metas de multiplicação geométrica de votantes locais.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -4169,7 +3774,13 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                                         communityName: vx.communityName || '',
                                         tuxauaName: vx.tuxauaName || '',
                                         hasDocPhoto: vx.hasDocPhoto || false,
-                                        sentiment: vx.sentiment || 'neutral'
+                                        sentiment: vx.sentiment || 'neutral',
+                                         cpf: vx.cpf || '',
+                                         rg: vx.rg || '',
+                                         titulo: vx.titulo || '',
+                                         zona: vx.zona || '',
+                                         secao: vx.secao || '',
+                                         localVotacao: vx.localVotacao || ''
                                       });
                                       setSelectedVoter(vx);
                                       setIsVoterEditModalOpen(true);
@@ -4247,6 +3858,37 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Endereço / Referência</label>
                   <input type="text" value={voterEditForm.address} onChange={e => setVoterEditForm({...voterEditForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Rua, Bairro, N..." />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">CPF</label>
+                    <input type="text" value={voterEditForm.cpf || ''} onChange={e => setVoterEditForm({...voterEditForm, cpf: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="000.000.000-00" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">RG</label>
+                    <input type="text" value={voterEditForm.rg || ''} onChange={e => setVoterEditForm({...voterEditForm, rg: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Alistamento RG..." />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-1 col-span-1">
+                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Título</label>
+                    <input type="text" value={voterEditForm.titulo || ''} onChange={e => setVoterEditForm({...voterEditForm, titulo: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Nº Título..." />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Zona</label>
+                    <input type="text" value={voterEditForm.zona || ''} onChange={e => setVoterEditForm({...voterEditForm, zona: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Zona..." />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Seção</label>
+                    <input type="text" value={voterEditForm.secao || ''} onChange={e => setVoterEditForm({...voterEditForm, secao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Seção..." />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Local de Votação</label>
+                  <input type="text" value={voterEditForm.localVotacao || ''} onChange={e => setVoterEditForm({...voterEditForm, localVotacao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Nome da Escola ou Local..." />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Observações Estratégicas</label>
@@ -4917,7 +4559,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
           { id: 'demands', label: 'Mapa', icon: <Activity className="w-5 h-5" /> },
           { id: 'notes', label: 'Notas', icon: <MessageSquare className="w-5 h-5" /> },
           { id: 'reports', label: 'Relatórios', icon: <FileDown className="w-5 h-5" /> },
-          { id: 'proposal', label: 'Proposta', icon: <Briefcase className="w-5 h-5" /> }
+          { id: 'proposal', label: 'Manual', icon: <BookOpen className="w-5 h-5" /> }
         ].map(tab => (
           <button 
             key={tab.id}
@@ -5017,7 +4659,13 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     referredBy: string;
     tags: string[];
     articulatorId?: string;
-  }>({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [], articulatorId: '' });
+    cpf: string;
+    rg: string;
+    titulo: string;
+    zona: string;
+    secao: string;
+    localVotacao: string;
+  }>({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [], articulatorId: '', cpf: '', rg: '', titulo: '', zona: '', secao: '', localVotacao: '' });
   const [currentTag, setCurrentTag] = useState('');
 
   const [isFuelModalOpen, setIsFuelModalOpen] = useState(false);
@@ -5441,7 +5089,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
       setIsVoterModalOpen(false);
       setIsEditingVoter(false);
       setEditingVoterId(null);
-      setVoterForm({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [], articulatorId: '' });
+      setVoterForm({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [], articulatorId: '', cpf: '', rg: '', titulo: '', zona: '', secao: '', localVotacao: '' });
     } catch (err: any) {
       alert("Erro ao salvar: " + err.message);
     }
@@ -6541,6 +6189,49 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                     </div>
                   )}
 
+                  {/* Informações Oficiais / Eleitorais */}
+                  {(selectedVoter.cpf || selectedVoter.rg || selectedVoter.titulo || selectedVoter.zona || selectedVoter.secao || selectedVoter.localVotacao) && (
+                    <div className="bg-zinc-50 border border-zinc-100 p-4 rounded-sm space-y-3">
+                      <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none">Dados Documentais e Eleitorais</p>
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        {selectedVoter.cpf && (
+                          <div>
+                            <span className="font-bold text-zinc-400 block text-[8px] uppercase tracking-wider">CPF</span>
+                            <span className="font-extrabold text-zinc-900">{selectedVoter.cpf}</span>
+                          </div>
+                        )}
+                        {selectedVoter.rg && (
+                          <div>
+                            <span className="font-bold text-zinc-400 block text-[8px] uppercase tracking-wider">RG</span>
+                            <span className="font-extrabold text-zinc-900">{selectedVoter.rg}</span>
+                          </div>
+                        )}
+                        {selectedVoter.titulo && (
+                          <div>
+                            <span className="font-bold text-zinc-400 block text-[8px] uppercase tracking-wider">Título de Eleitor</span>
+                            <span className="font-extrabold text-zinc-900">{selectedVoter.titulo}</span>
+                          </div>
+                        )}
+                        {(selectedVoter.zona || selectedVoter.secao) && (
+                          <div>
+                            <span className="font-bold text-zinc-400 block text-[8px] uppercase tracking-wider">Zona / Seção</span>
+                            <span className="font-extrabold text-zinc-900">
+                              {selectedVoter.zona || '—'} / {selectedVoter.secao || '—'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      {selectedVoter.localVotacao && (
+                        <div className="border-t border-zinc-100 pt-2 mt-2 text-xs">
+                          <span className="font-bold text-zinc-400 block text-[8px] uppercase tracking-wider">Local de Votação</span>
+                          <span className="font-extrabold text-zinc-950 flex items-center gap-1.5 uppercase">
+                            <MapPin className="w-3.5 h-3.5 text-zinc-500 inline" /> {selectedVoter.localVotacao}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex items-start gap-4">
                     <div className="bg-zinc-100 p-3 rounded-sm text-zinc-950"><MapPin className="w-5 h-5" /></div>
                     <div>
@@ -6570,7 +6261,13 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                         observations: selectedVoter.observations || '',
                         referredBy: selectedVoter.referredBy || '',
                         tags: selectedVoter.tags || [],
-                        articulatorId: selectedVoter.articulatorId || ''
+                        articulatorId: selectedVoter.articulatorId || '',
+                        cpf: selectedVoter.cpf || '',
+                        rg: selectedVoter.rg || '',
+                        titulo: selectedVoter.titulo || '',
+                        zona: selectedVoter.zona || '',
+                        secao: selectedVoter.secao || '',
+                        localVotacao: selectedVoter.localVotacao || ''
                       });
                       setEditingVoterId(selectedVoter.id);
                       setIsEditingVoter(true);
@@ -6610,7 +6307,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                    setIsVoterModalOpen(false);
                    setIsEditingVoter(false);
                    setEditingVoterId(null);
-                   setVoterForm({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [], articulatorId: '' });
+                   setVoterForm({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [], articulatorId: '', cpf: '', rg: '', titulo: '', zona: '', secao: '', localVotacao: '' });
                 }} 
                 className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
@@ -6634,6 +6331,37 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Localização Operacional</label>
                   <input type="text" value={voterForm.address} onChange={e => setVoterForm({...voterForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Rua, Bairro ou Referência..." />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">CPF</label>
+                    <input type="text" value={voterForm.cpf || ''} onChange={e => setVoterForm({...voterForm, cpf: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="000.000.000-00" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">RG</label>
+                    <input type="text" value={voterForm.rg || ''} onChange={e => setVoterForm({...voterForm, rg: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Registro Geral RG..." />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-1.5 col-span-1">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Título</label>
+                    <input type="text" value={voterForm.titulo || ''} onChange={e => setVoterForm({...voterForm, titulo: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Nº Título..." />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Zona</label>
+                    <input type="text" value={voterForm.zona || ''} onChange={e => setVoterForm({...voterForm, zona: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Zona..." />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Seção</label>
+                    <input type="text" value={voterForm.secao || ''} onChange={e => setVoterForm({...voterForm, secao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Seção..." />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Local de Votação</label>
+                  <input type="text" value={voterForm.localVotacao || ''} onChange={e => setVoterForm({...voterForm, localVotacao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Nome da Escola / Seção..." />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Articulador / Parceiro Associado</label>
