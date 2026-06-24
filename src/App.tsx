@@ -66,6 +66,7 @@ import { reportService } from './services/reportService';
 import { useAuth } from './lib/FirebaseProvider';
 import { firestoreService } from './lib/firestoreService';
 import RoraimaMapComponent from './components/RoraimaMapComponent';
+import EleitoralDashboard from './components/EleitoralDashboard';
 import { 
   BarChart, 
   Bar, 
@@ -80,6 +81,7 @@ import {
 import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from './lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from './lib/agendaLogic';
+import * as XLSX from 'xlsx';
 
 const safeLocalStorage = {
   getItem: (key: string): string | null => {
@@ -282,7 +284,7 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
 /// --- COMPONENTE: DASHBOARD DO COORDENADOR ---
 function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme: (t: 'light' | 'dark') => void }) {
   const { user, login, logout, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral'>('overview');
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
 
   const handleDownloadDoc = () => {
@@ -1176,14 +1178,6 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       iconColor: 'bg-emerald-100 dark:bg-emerald-500/20',
       action: () => setActiveTab('voters')
     },
-    { 
-      label: 'Recursos Totais', 
-      value: `R$ ${teams.reduce((acc, t) => acc + (t.allocated || 0), 0).toLocaleString()}`, 
-      sub: 'Gestão Financeira', 
-      color: 'text-yellow-600 dark:text-yellow-500',
-      iconColor: 'bg-yellow-50 dark:bg-yellow-500/10',
-      action: () => setActiveTab('finance')
-    },
   ];
 
   const handleCreateOrUpdateAgenda = async (e: React.FormEvent) => {
@@ -1581,7 +1575,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
             { id: 'voters', label: 'Eleitores Geral', icon: <Target className="w-4 h-4" /> },
             { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
             { id: 'mapa', label: 'Mapa Regional', icon: <MapIcon className="w-4 h-4" /> },
-            { id: 'finance', label: 'Financeiro', icon: <DollarSign className="w-4 h-4" /> },
+            { id: 'analise_eleitoral', label: 'Análise Eleitoral', icon: <TrendingUp className="w-4 h-4" /> },
             { id: 'materials', label: 'Materiais', icon: <Package className="w-4 h-4" /> },
             { id: 'demands', label: 'Demandas', icon: <Activity className="w-4 h-4" /> },
             { id: 'notes', label: 'Anotações', icon: <MessageSquare className="w-4 h-4" /> },
@@ -2825,6 +2819,12 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     )}
                   </div>
                 </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'analise_eleitoral' && (
+              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }}>
+                <EleitoralDashboard isCoordinator={true} campaignVoters={allVoters} />
               </motion.div>
             )}
           </div>
@@ -4288,7 +4288,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
           { id: 'teams', label: 'Equipes', icon: <Users className="w-5 h-5" /> },
           { id: 'voters', label: 'Eleitores', icon: <Target className="w-5 h-5" /> },
           { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-5 h-5" /> },
-          { id: 'finance', label: 'Finanças', icon: <DollarSign className="w-5 h-5" /> },
+          { id: 'analise_eleitoral', label: 'Análise', icon: <TrendingUp className="w-5 h-5" /> },
           { id: 'materials', label: 'Materia', icon: <Package className="w-5 h-5" /> },
           { id: 'demands', label: 'Mapa', icon: <Activity className="w-5 h-5" /> },
           { id: 'notes', label: 'Notas', icon: <MessageSquare className="w-5 h-5" /> },
@@ -4360,7 +4360,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [queueCount, setQueueCount] = useState(0);
   const [isLocating, setIsLocating] = useState(false);
-  const [activeTab, setActiveTab] = useState<'equipe' | 'logistica' | 'ouvidoria' | 'financeiro' | 'notas' | 'materiais' | 'feed'>('logistica');
+  const [activeTab, setActiveTab] = useState<'equipe' | 'logistica' | 'ouvidoria' | 'financeiro' | 'notas' | 'materiais' | 'feed' | 'analise_eleitoral'>('logistica');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [dailyOrder, setDailyOrder] = useState<any>(null);
   
@@ -4384,6 +4384,12 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
   const [expenseForm, setExpenseForm] = useState({ amount: '', description: '', purpose: '' });
   
   const [isVoterModalOpen, setIsVoterModalOpen] = useState(false);
+  const [registerMode, setRegisterMode] = useState<'individual' | 'lote'>('individual');
+  const [bulkFileError, setBulkFileError] = useState<string | null>(null);
+  const [bulkFileSuccess, setBulkFileSuccess] = useState<string | null>(null);
+  const [parsedVoters, setParsedVoters] = useState<any[]>([]);
+  const [isProcessingBulk, setIsProcessingBulk] = useState(false);
+
   const [voterForm, setVoterForm] = useState<{
     name: string;
     phone: string;
@@ -4834,6 +4840,236 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     }
   };
 
+  const downloadVoterTemplate = () => {
+    const headers = [
+      "Nome", 
+      "WhatsApp", 
+      "CPF", 
+      "RG", 
+      "Titulo", 
+      "Zona", 
+      "Secao", 
+      "LocalVotacao", 
+      "Endereco", 
+      "Tags", 
+      "IndicadoPor", 
+      "Observacoes"
+    ];
+    const sampleRows = [
+      [
+        "José da Silva", 
+        "(95) 99123-4567", 
+        "123.456.789-00", 
+        "1234567-SSP", 
+        "123456789012", 
+        "001", 
+        "0150", 
+        "Escola Estadual Getúlio Vargas", 
+        "Av. Ville Roy, 1234 - Centro, Boa Vista - RR", 
+        "Apoiador, Influenciador, Familia", 
+        "Maria de Souza", 
+        "Eleitor muito influente no bairro, solicitou visitas."
+      ],
+      [
+        "Ana Paula Oliveira", 
+        "(95) 98401-2233", 
+        "987.654.321-11", 
+        "7654321-SSP", 
+        "987654321012", 
+        "005", 
+        "0042", 
+        "Colégio Militarizado Elza Lacerda", 
+        "Rua das Flores, 456 - Asa Branca, Boa Vista - RR", 
+        "Lideranca, Setor Sul", 
+        "Articulador João", 
+        "Necessita de material para panfletagem no comércio."
+      ]
+    ];
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...sampleRows]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Modelo Eleitores");
+    XLSX.writeFile(wb, "modelo_cadastro_eleitores.xlsx");
+  };
+
+  const handleBulkFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setBulkFileError(null);
+    setBulkFileSuccess(null);
+    setParsedVoters([]);
+    
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    
+    if (fileExtension === 'doc' || fileExtension === 'docx' || fileExtension === 'pdf') {
+      setBulkFileError(
+        "⚠️ Arquivos de texto (.doc, .docx) ou documentos formatados (.pdf) não possuem estrutura tabular garantida. " +
+        "Para garantir que nomes, CPFs, contatos e locais de votação sejam preenchidos individualmente nos campos corretos e sem erros, " +
+        "o cadastro em lote exige a estrutura padronizada da Planilha Excel do Modelo. " +
+        "Por favor, use a opção de baixar o modelo abaixo e preencha os dados em formato de tabela Excel para importar com 100% de segurança!"
+      );
+      e.target.value = '';
+      return;
+    }
+
+    if (!['xlsx', 'xls', 'csv'].includes(fileExtension || '')) {
+      setBulkFileError("Por favor, selecione um arquivo de planilha válido (.xlsx, .xls ou .csv).");
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws, { header: 1 }) as any[];
+        
+        if (data.length <= 1) {
+          setBulkFileError("A planilha selecionada parece estar vazia ou conter apenas o cabeçalho.");
+          return;
+        }
+
+        const headers = data[0].map((h: any) => String(h || '').trim().toLowerCase().replace(/\s+/g, ''));
+        
+        const nameIdx = headers.findIndex((h: string) => h.includes('nome'));
+        const phoneIdx = headers.findIndex((h: string) => h.includes('whatsapp') || h.includes('telefone') || h.includes('celular'));
+        const cpfIdx = headers.findIndex((h: string) => h.includes('cpf'));
+        const rgIdx = headers.findIndex((h: string) => h.includes('rg'));
+        const tituloIdx = headers.findIndex((h: string) => h.includes('titulo') || h.includes('título'));
+        const zonaIdx = headers.findIndex((h: string) => h.includes('zona'));
+        const secaoIdx = headers.findIndex((h: string) => h.includes('secao') || h.includes('seção'));
+        const localIdx = headers.findIndex((h: string) => h.includes('local') || h.includes('escola') || h.includes('votacao') || h.includes('votação'));
+        const addrIdx = headers.findIndex((h: string) => h.includes('endereco') || h.includes('endereço') || h.includes('localizacao') || h.includes('localização'));
+        const tagsIdx = headers.findIndex((h: string) => h.includes('tags') || h.includes('categoria') || h.includes('segmento'));
+        const refIdx = headers.findIndex((h: string) => h.includes('indicado') || h.includes('referencia') || h.includes('referência'));
+        const obsIdx = headers.findIndex((h: string) => h.includes('observacao') || h.includes('observação') || h.includes('observacoes') || h.includes('observações'));
+
+        if (nameIdx === -1) {
+          setBulkFileError("Coluna 'Nome' não encontrada na planilha. Certifique-se de usar o modelo padrão de Excel.");
+          return;
+        }
+
+        const list: any[] = [];
+        for (let i = 1; i < data.length; i++) {
+          const row = data[i];
+          if (!row || row.length === 0) continue;
+          
+          const name = String(row[nameIdx] || '').trim();
+          if (!name) continue;
+
+          const phone = phoneIdx !== -1 ? String(row[phoneIdx] || '').trim() : '';
+          const cpf = cpfIdx !== -1 ? String(row[cpfIdx] || '').trim() : '';
+          const rg = rgIdx !== -1 ? String(row[rgIdx] || '').trim() : '';
+          const titulo = tituloIdx !== -1 ? String(row[tituloIdx] || '').trim() : '';
+          const zona = zonaIdx !== -1 ? String(row[zonaIdx] || '').trim() : '';
+          const secao = secaoIdx !== -1 ? String(row[secaoIdx] || '').trim() : '';
+          const localVotacao = localIdx !== -1 ? String(row[localIdx] || '').trim() : '';
+          const address = addrIdx !== -1 ? String(row[addrIdx] || '').trim() : '';
+          const tagsStr = tagsIdx !== -1 ? String(row[tagsIdx] || '').trim() : '';
+          const referredBy = refIdx !== -1 ? String(row[refIdx] || '').trim() : '';
+          const observations = obsIdx !== -1 ? String(row[obsIdx] || '').trim() : '';
+
+          const tags = tagsStr ? tagsStr.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
+
+          list.push({
+            name,
+            phone,
+            cpf,
+            rg,
+            titulo,
+            zona,
+            secao,
+            localVotacao,
+            address,
+            tags,
+            referredBy,
+            observations
+          });
+        }
+
+        if (list.length === 0) {
+          setBulkFileError("Nenhum eleitor válido pôde ser importado da planilha. Verifique se a coluna 'Nome' está preenchida.");
+          return;
+        }
+
+        setParsedVoters(list);
+        setBulkFileSuccess(`✓ Planilha lida com sucesso! Encontrados ${list.length} eleitores prontos para cadastro.`);
+      } catch (err: any) {
+        setBulkFileError("Erro ao processar arquivo: " + err.message);
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  const handleBulkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      alert("Usuário não autenticado.");
+      return;
+    }
+    if (parsedVoters.length === 0) {
+      alert("Nenhum dado de eleitor carregado para salvar.");
+      return;
+    }
+
+    setIsProcessingBulk(true);
+    let successCount = 0;
+    let duplicateCount = 0;
+    let errorCount = 0;
+
+    try {
+      for (const voter of parsedVoters) {
+        try {
+          if (voter.phone && voter.phone.length > 5) {
+            const q = query(collection(db, 'voters'), where('phone', '==', voter.phone));
+            const checkSnap = await getDocs(q);
+            if (!checkSnap.empty) {
+              duplicateCount++;
+              continue;
+            }
+          }
+
+          const payload = {
+            ...voter,
+            leaderId: user.uid,
+            leaderName: profileData.name || user.displayName || "Líder",
+            team: profileData.zone || "Base",
+            createdAt: Date.now(),
+            registeredBy: user.email || user.uid,
+            createdBy: user.uid,
+            location: null
+          };
+
+          await firestoreService.setDocument('voters', `voter_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, payload);
+          successCount++;
+        } catch (err) {
+          console.error("Erro ao cadastrar eleitor em lote:", err);
+          errorCount++;
+        }
+      }
+
+      alert(
+        `🎉 PROCESSO CONCLUÍDO!\n\n` +
+        `• Sucesso: ${successCount} novos eleitores cadastrados\n` +
+        `• Duplicados ignorados: ${duplicateCount}\n` +
+        `• Erros: ${errorCount}`
+      );
+
+      setIsVoterModalOpen(false);
+      setParsedVoters([]);
+      setBulkFileSuccess(null);
+      setBulkFileError(null);
+      setRegisterMode('individual');
+    } catch (err: any) {
+      alert("Erro durante o processo de lote: " + err.message);
+    } finally {
+      setIsProcessingBulk(false);
+    }
+  };
+
   const handleFuelSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -5084,7 +5320,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
           {[
             { id: 'logistica', label: 'Painel Tático', icon: <MapPin className="w-4 h-4" /> },
             { id: 'equipe', label: 'Base de Eleitores', icon: <Users className="w-4 h-4" /> },
-            { id: 'financeiro', label: 'Operacional Financeiro', icon: <Wallet className="w-4 h-4" /> },
+            { id: 'analise_eleitoral', label: 'Análise Eleitoral', icon: <TrendingUp className="w-4 h-4" /> },
             { id: 'materiais', label: 'Gestão Materiais', icon: <Package className="w-4 h-4" /> },
             { id: 'notas', label: 'Notas de Voz', icon: <Mic className="w-4 h-4" /> },
             { id: 'feed', label: 'Feed Tático', icon: <MessageSquare className="w-4 h-4" /> }
@@ -5741,6 +5977,10 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
               )}
             </div>
           </motion.div>
+        ) : activeTab === 'analise_eleitoral' ? (
+          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }}>
+            <EleitoralDashboard isCoordinator={false} campaignVoters={voters} />
+          </motion.div>
         ) : (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <div className="bg-[var(--bg-secondary)] p-10 rounded-sm border border-[var(--border-color)] shadow-[var(--shadow-sm)]">
@@ -6034,11 +6274,11 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         {isVoterModalOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+            className="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-hidden"
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-zinc-200"
+              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-zinc-200 flex flex-col max-h-[90vh] md:max-h-[85vh]"
             >
               <button 
                 onClick={() => {
@@ -6046,132 +6286,270 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                    setIsEditingVoter(false);
                    setEditingVoterId(null);
                    setVoterForm({ name: '', phone: '', address: '', observations: '', referredBy: '', tags: [], articulatorId: '', cpf: '', rg: '', titulo: '', zona: '', secao: '', localVotacao: '' });
+                   setRegisterMode('individual');
+                   setBulkFileError(null);
+                   setBulkFileSuccess(null);
+                   setParsedVoters([]);
+                   setIsProcessingBulk(false);
                 }} 
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95 z-10"
               >
                 <X className="w-4 h-4" />
               </button>
-              <div className="bg-zinc-950 p-6">
+              <div className="bg-zinc-950 p-6 flex-shrink-0">
                 <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
                   {isEditingVoter ? 'Editar Registro' : 'Novo Alistamento'}
                 </h2>
                 <p className="text-zinc-400 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Inteligência Territorial e Base de Dados</p>
               </div>
-              <form onSubmit={handleVoterSubmit} className="p-6 space-y-4 text-left">
-                <div className="space-y-1.5">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo do Cidadão</label>
-                  <input required type="text" value={voterForm.name} onChange={e => setVoterForm({...voterForm, name: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Digite identificação oficial..." />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">WhatsApp / Terminal Celular</label>
-                  <input type="text" value={voterForm.phone} onChange={e => setVoterForm({...voterForm, phone: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="(00) 00000-0000" />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Localização Operacional</label>
-                  <input type="text" value={voterForm.address} onChange={e => setVoterForm({...voterForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Rua, Bairro ou Referência..." />
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">CPF</label>
-                    <input type="text" value={voterForm.cpf || ''} onChange={e => setVoterForm({...voterForm, cpf: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="000.000.000-00" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">RG</label>
-                    <input type="text" value={voterForm.rg || ''} onChange={e => setVoterForm({...voterForm, rg: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Registro Geral RG..." />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-1.5 col-span-1">
-                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Título</label>
-                    <input type="text" value={voterForm.titulo || ''} onChange={e => setVoterForm({...voterForm, titulo: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Nº Título..." />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Zona</label>
-                    <input type="text" value={voterForm.zona || ''} onChange={e => setVoterForm({...voterForm, zona: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Zona..." />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Seção</label>
-                    <input type="text" value={voterForm.secao || ''} onChange={e => setVoterForm({...voterForm, secao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Seção..." />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Local de Votação</label>
-                  <input type="text" value={voterForm.localVotacao || ''} onChange={e => setVoterForm({...voterForm, localVotacao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Nome da Escola / Seção..." />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Articulador / Parceiro Associado</label>
-                  <select 
-                    value={voterForm.articulatorId} 
-                    onChange={e => setVoterForm({...voterForm, articulatorId: e.target.value})}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all appearance-none"
+              {!isEditingVoter && (
+                <div className="flex border-b border-zinc-200 bg-zinc-50 p-1 flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setRegisterMode('individual')}
+                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-wider text-center transition-all rounded-sm ${
+                      registerMode === 'individual'
+                        ? 'bg-yellow-500 text-zinc-950 shadow-sm'
+                        : 'text-zinc-500 hover:text-zinc-800'
+                    }`}
                   >
-                    <option value="">NENHUM ARTICULADOR SELECIONADO</option>
-                    {partners.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
+                    ✦ Cadastro Individual
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRegisterMode('lote')}
+                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-wider text-center transition-all rounded-sm ${
+                      registerMode === 'lote'
+                        ? 'bg-yellow-500 text-zinc-950 shadow-sm'
+                        : 'text-zinc-500 hover:text-zinc-800'
+                    }`}
+                  >
+                    🗂️ Importar em Lote (Excel)
+                  </button>
                 </div>
+              )}
 
-                <div className="space-y-1.5">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Indicado por (Referência Manual)</label>
-                  <input type="text" value={voterForm.referredBy} onChange={e => setVoterForm({...voterForm, referredBy: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Nome de quem o indicou..." />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Tags de Segmentação</label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {voterForm.tags.map(tag => (
-                      <span key={tag} className="bg-yellow-500/10 text-yellow-600 px-3 py-1 rounded-sm text-[9px] font-black uppercase flex items-center gap-2">
-                        {tag}
-                        <button type="button" onClick={() => setVoterForm({...voterForm, tags: voterForm.tags.filter(t => t !== tag)})}>
-                          <X className="w-2 h-2" />
-                        </button>
-                      </span>
-                    ))}
+              {registerMode === 'individual' || isEditingVoter ? (
+                <form onSubmit={handleVoterSubmit} className="flex-1 overflow-y-auto p-6 space-y-4 text-left">
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo do Cidadão</label>
+                    <input required type="text" value={voterForm.name} onChange={e => setVoterForm({...voterForm, name: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Digite identificação oficial..." />
                   </div>
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      value={currentTag} 
-                      onChange={e => setCurrentTag(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">WhatsApp / Terminal Celular</label>
+                    <input type="text" value={voterForm.phone} onChange={e => setVoterForm({...voterForm, phone: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="(00) 00000-0000" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Localização Operacional</label>
+                    <input type="text" value={voterForm.address} onChange={e => setVoterForm({...voterForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Rua, Bairro ou Referência..." />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">CPF</label>
+                      <input type="text" value={voterForm.cpf || ''} onChange={e => setVoterForm({...voterForm, cpf: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="000.000.000-00" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">RG</label>
+                      <input type="text" value={voterForm.rg || ''} onChange={e => setVoterForm({...voterForm, rg: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Registro Geral RG..." />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-1.5 col-span-1">
+                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Título</label>
+                      <input type="text" value={voterForm.titulo || ''} onChange={e => setVoterForm({...voterForm, titulo: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Nº Título..." />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Zona</label>
+                      <input type="text" value={voterForm.zona || ''} onChange={e => setVoterForm({...voterForm, zona: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Zona..." />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Seção</label>
+                      <input type="text" value={voterForm.secao || ''} onChange={e => setVoterForm({...voterForm, secao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Seção..." />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Local de Votação</label>
+                    <input type="text" value={voterForm.localVotacao || ''} onChange={e => setVoterForm({...voterForm, localVotacao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Nome da Escola / Seção..." />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Articulador / Parceiro Associado</label>
+                    <select 
+                      value={voterForm.articulatorId} 
+                      onChange={e => setVoterForm({...voterForm, articulatorId: e.target.value})}
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all appearance-none"
+                    >
+                      <option value="">NENHUM ARTICULADOR SELECIONADO</option>
+                      {partners.map(p => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Indicado por (Referência Manual)</label>
+                    <input type="text" value={voterForm.referredBy} onChange={e => setVoterForm({...voterForm, referredBy: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Nome de quem o indicou..." />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Tags de Segmentação</label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {voterForm.tags.map(tag => (
+                        <span key={tag} className="bg-yellow-500/10 text-yellow-600 px-3 py-1 rounded-sm text-[9px] font-black uppercase flex items-center gap-2">
+                          {tag}
+                          <button type="button" onClick={() => setVoterForm({...voterForm, tags: voterForm.tags.filter(t => t !== tag)})}>
+                            <X className="w-2 h-2" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={currentTag} 
+                        onChange={e => setCurrentTag(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (currentTag.trim() && !voterForm.tags.includes(currentTag.trim())) {
+                              setVoterForm({...voterForm, tags: [...voterForm.tags, currentTag.trim()]});
+                              setCurrentTag('');
+                            }
+                          }
+                        }}
+                        className="flex-1 bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" 
+                        placeholder="Adicionar tag (Enter)..." 
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => {
                           if (currentTag.trim() && !voterForm.tags.includes(currentTag.trim())) {
                             setVoterForm({...voterForm, tags: [...voterForm.tags, currentTag.trim()]});
                             setCurrentTag('');
                           }
-                        }
-                      }}
-                      className="flex-1 bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" 
-                      placeholder="Adicionar tag (Enter)..." 
-                    />
-                    <button 
+                        }}
+                        className="bg-zinc-950 text-white px-4 rounded-sm"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Observações Técnicas de Campo</label>
+                    <textarea value={voterForm.observations} onChange={e => setVoterForm({...voterForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Histórico de engajamento ou demandas específicas..." />
+                  </div>
+                  <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-yellow-500/10 hover:bg-yellow-600 transition-all active:scale-[0.98] mt-2">
+                    {isEditingVoter ? 'ATUALIZAR REGISTRO' : 'EFETIVAR ALISTAMENTO'}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleBulkSubmit} className="flex-1 overflow-y-auto p-6 space-y-5 text-left">
+                  <div className="bg-zinc-50 border border-zinc-200 rounded-sm p-4 space-y-3">
+                    <h3 className="text-xs font-black uppercase text-zinc-900 flex items-center gap-1.5">
+                      <FileDown className="w-4 h-4 text-yellow-500" />
+                      Como funciona o Cadastro em Lote?
+                    </h3>
+                    <p className="text-[11px] text-zinc-600 leading-relaxed font-bold">
+                      Cadastre dezenas de eleitores de uma vez só! Utilize nossa planilha modelo para preencher as colunas padronizadas de dados e suba o arquivo abaixo para importação instantânea.
+                    </p>
+                    
+                    <button
                       type="button"
-                      onClick={() => {
-                        if (currentTag.trim() && !voterForm.tags.includes(currentTag.trim())) {
-                          setVoterForm({...voterForm, tags: [...voterForm.tags, currentTag.trim()]});
-                          setCurrentTag('');
-                        }
-                      }}
-                      className="bg-zinc-950 text-white px-4 rounded-sm"
+                      onClick={downloadVoterTemplate}
+                      className="flex items-center gap-2 px-4 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-zinc-950 rounded-sm font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95"
                     >
-                      <Plus className="w-4 h-4" />
+                      <FileDown className="w-4 h-4" />
+                      Baixar Modelo de Planilha (.XLSX)
                     </button>
                   </div>
-                </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Observações Técnicas de Campo</label>
-                  <textarea value={voterForm.observations} onChange={e => setVoterForm({...voterForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Histórico de engajamento ou demandas específicas..." />
-                </div>
-                <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-yellow-500/10 hover:bg-yellow-600 transition-all active:scale-[0.98] mt-2">
-                  {isEditingVoter ? 'ATUALIZAR REGISTRO' : 'EFETIVAR ALISTAMENTO'}
-                </button>
-              </form>
+                  <div className="space-y-1.5">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">
+                      Selecione o arquivo para Cadastro em Lote
+                    </label>
+                    <div className="border-2 border-dashed border-zinc-300 rounded-sm p-8 text-center hover:border-yellow-500 transition-all bg-zinc-50 relative cursor-pointer group">
+                      <input
+                        type="file"
+                        accept=".xlsx,.xls,.csv,.doc,.docx,.pdf"
+                        onChange={handleBulkFileChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <Upload className="w-8 h-8 text-zinc-400 group-hover:text-yellow-500 transition-colors" />
+                        <span className="text-[11px] font-black uppercase text-zinc-700">
+                          Clique ou arraste a planilha aqui
+                        </span>
+                        <span className="text-[9px] text-zinc-400 font-bold uppercase block">
+                          Suporta arquivos de planilha (.xlsx, .xls, .csv)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {bulkFileError && (
+                    <div className="bg-red-50 border border-red-200 rounded-sm p-4 text-[11px] text-red-600 font-bold leading-relaxed whitespace-pre-wrap shadow-inner">
+                      {bulkFileError}
+                    </div>
+                  )}
+
+                  {bulkFileSuccess && (
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-sm p-4 text-[11px] text-emerald-600 font-bold leading-relaxed shadow-inner">
+                      {bulkFileSuccess}
+                    </div>
+                  )}
+
+                  {parsedVoters.length > 0 && (
+                    <div className="space-y-2">
+                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">
+                        Pré-visualização do Lote (Primeiros 5 registros)
+                      </label>
+                      <div className="border border-zinc-200 rounded-sm overflow-hidden text-[10px] bg-white">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="bg-zinc-100 border-b border-zinc-200 text-[8px] font-black uppercase text-zinc-500">
+                              <th className="py-2 px-3">Nome</th>
+                              <th className="py-2 px-3">WhatsApp</th>
+                              <th className="py-2 px-3">Zona/Seção</th>
+                              <th className="py-2 px-3">Local de Votação</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-zinc-100">
+                            {parsedVoters.slice(0, 5).map((pv, idx) => (
+                              <tr key={idx} className="bg-white text-zinc-700 font-bold">
+                                <td className="py-2 px-3 uppercase truncate max-w-[120px]">{pv.name}</td>
+                                <td className="py-2 px-3 font-mono">{pv.phone || '---'}</td>
+                                <td className="py-2 px-3 font-mono">{pv.zona ? `${pv.zona}/${pv.secao}` : '---'}</td>
+                                <td className="py-2 px-3 truncate max-w-[150px] uppercase">{pv.localVotacao || '---'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        {parsedVoters.length > 5 && (
+                          <div className="bg-zinc-50 p-2 text-center text-[9px] font-black text-zinc-500 border-t border-zinc-200 uppercase">
+                            e mais {parsedVoters.length - 5} eleitores na lista...
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={parsedVoters.length === 0 || isProcessingBulk}
+                    className={`w-full py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl transition-all active:scale-[0.98] mt-2 ${
+                      parsedVoters.length === 0 || isProcessingBulk
+                        ? 'bg-zinc-100 text-zinc-400 border border-zinc-200 cursor-not-allowed shadow-none'
+                        : 'bg-yellow-500 text-zinc-950 shadow-yellow-500/10 hover:bg-yellow-600'
+                    }`}
+                  >
+                    {isProcessingBulk ? 'SALVANDO LOTE NO FIRESTORE...' : `IMPORTAR ${parsedVoters.length} ELEITORES EM LOTE`}
+                  </button>
+                </form>
+              )}
             </motion.div>
           </motion.div>
         )}
@@ -6591,8 +6969,8 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         {[
           { id: 'logistica', label: 'Tático', icon: <MapPin className="w-5 h-5" /> },
           { id: 'equipe', label: 'Equipe', icon: <Users className="w-5 h-5" /> },
+          { id: 'analise_eleitoral', label: 'BI', icon: <TrendingUp className="w-5 h-5" /> },
           { id: 'notas', label: 'Notas', icon: <Mic className="w-5 h-5" /> },
-          { id: 'financeiro', label: 'Caixa', icon: <Wallet className="w-5 h-5" /> },
           { id: 'feed', label: 'Feed', icon: <History className="w-5 h-5" /> }
         ].map(tab => (
           <button 
