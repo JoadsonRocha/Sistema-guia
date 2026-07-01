@@ -1,0 +1,391 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+  <meta charset="utf-8">
+  <title>REDE ÁGUIA 2026 - Dossier Comercial e Tecnológico</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      line-height: 1.6;
+      color: #1e293b;
+      margin: 40px;
+      background-color: #ffffff;
+    }
+    .header-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+      background-color: #0b0f19;
+      color: #ffffff;
+    }
+    .header-td {
+      padding: 30px;
+      border: none;
+    }
+    .brand-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: #ffffff;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .brand-subtitle {
+      font-size: 14px;
+      color: #eab308;
+      font-weight: 600;
+      margin: 5px 0 0 0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    .meta-info {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 15px;
+      border-top: 1px solid #1e293b;
+      padding-top: 10px;
+    }
+    h1 {
+      color: #0f172a;
+      font-size: 22px;
+      font-weight: 800;
+      border-bottom: 3px solid #eab308;
+      padding-bottom: 6px;
+      margin-top: 45px;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+    }
+    h2 {
+      color: #0f172a;
+      font-size: 16px;
+      font-weight: 700;
+      margin-top: 30px;
+      text-transform: uppercase;
+      border-left: 4px solid #eab308;
+      padding-left: 10px;
+    }
+    p {
+      font-size: 12px;
+      color: #334155;
+      margin-bottom: 12px;
+      text-align: justify;
+    }
+    ul, ol {
+      font-size: 12px;
+      color: #334155;
+      margin-bottom: 16px;
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    .menu-card {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 20px;
+      margin-bottom: 25px;
+      border-radius: 6px;
+    }
+    .emphasis-card {
+      background-color: #fffbeb;
+      border: 2px solid #fef08a;
+      padding: 25px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .emphasis-badge {
+      background-color: #fef08a;
+      color: #854d0e;
+      font-size: 10px;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      display: inline-block;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+    .menu-card-header {
+      background-color: #0f172a;
+      color: #ffffff;
+      padding: 10px 15px;
+      font-size: 13px;
+      font-weight: bold;
+      border-radius: 4px 4px 0 0;
+      text-transform: uppercase;
+      margin: -20px -20px 15px -20px;
+      border-bottom: 3px solid #eab308;
+    }
+    .role-section {
+      background-color: #f1f5f9;
+      border-left: 3px solid #64748b;
+      padding: 10px 15px;
+      margin-top: 12px;
+      font-size: 11px;
+      border-radius: 0 4px 4px 0;
+    }
+    .role-title {
+      font-weight: bold;
+      color: #0f172a;
+      text-transform: uppercase;
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+    .highlight-gold {
+      background-color: #fffbeb;
+      color: #854d0e;
+      font-weight: bold;
+      padding: 1px 3px;
+      border-radius: 2px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 11px;
+    }
+    th {
+      background-color: #0f172a;
+      color: #ffffff;
+      padding: 10px;
+      text-align: left;
+      font-weight: bold;
+      text-transform: uppercase;
+      border: 1px solid #0f172a;
+    }
+    td {
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+
+  <table class="header-table">
+    <tr>
+      <td class="header-td">
+        <div class="brand-title">REDE ÁGUIA 2026</div>
+        <div class="brand-subtitle">Dossier de Inteligência Operacional, Mobilização e Gestão Eleitoral</div>
+        <div class="meta-info">
+          Documento Técnico-Comercial de Alta Performance • Material de Apresentação e Venda do Sistema • Campanha Presidencial / Governador / Senador / Deputado
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <p>No cenário eleitoral contemporâneo, a vitória não pertence mais a quem faz mais barulho, mas a quem possui a melhor <strong>infraestrutura de dados, governança de rua e velocidade tática</strong>. Campanhas vencedoras são aquelas que operam como empresas de alta performance: otimizando recursos escassos, cobrando produtividade por metas reais e tomando decisões baseadas em ciência de dados espacial e estatística.</p>
+
+  <p>O <strong>Rede Águia 2026 (Estratégia 2026)</strong> foi desenvolvido para preencher essa lacuna fundamental. Ele é um ecossistema completo de governança política que conecta o candidato e o coordenador de campanha (através de um painel estratégico analítico) diretamente aos líderes e cabos eleitorais que estão na rua (através de um aplicativo tático ultra-responsivo).</p>
+
+  <p>Este relatório apresenta de forma fiel, exaustiva e estruturada as <strong>10 opções do menu do Coordenador</strong>, exatamente como estão construídas e entregues no sistema, fornecendo argumentos comerciais infalíveis para reuniões de venda de alto nível.</p>
+
+  <h1>ESTRUTURA COMPLETA DAS 10 FUNÇÕES DO MENU DO COORDENADOR</h1>
+
+  <!-- 1. DASHBOARD -->
+  <div class="menu-card">
+    <div class="menu-card-header">1. DASHBOARD</div>
+    <p><strong>O que faz no sistema:</strong> É a "Torre de Controle" da campanha. Reúne em uma única tela e em tempo real todos os principais indicadores de tração eleitoral: número total de eleitores cadastrados, progresso geral das metas, gráficos resumidos de desempenho, volume de materiais distribuídos e solicitações abertas. Conta com um feed dinâmico de movimentações e as últimas notificações da militância de rua.</p>
+    
+    <p><strong>Relevância para a campanha:</strong> Permite ao coordenador e ao candidato saber, em 5 segundos, se a campanha está crescendo no ritmo correto ou se estagnou. Dá clareza absoluta sobre o tamanho real da base de apoio.</p>
+    
+    <div class="role-section">
+      <div class="role-title">🎯 Dores que Sana por Perfil:</div>
+      <strong>Para o Coordenador:</strong> Acaba com a dependência de relatórios semanais atrasados e planilhas desconexas. O coordenador tem a verdade dos números sempre visível.<br/>
+      <strong>Para o Candidato:</strong> Sana a ansiedade e a incerteza de "não saber se a campanha está pegando tração".<br/>
+      <strong>Para o Líder:</strong> O trabalho dele ganha visibilidade instantânea na tela do chefe, motivando a equipe.
+    </div>
+  </div>
+
+  <!-- 2. EQUIPES -->
+  <div class="menu-card">
+    <div class="menu-card-header">2. EQUIPES</div>
+    <p><strong>O que faz no sistema:</strong> Módulo de estruturação de metas e controle humano. Permite criar equipes territoriais (ex: Zona Norte, Centro, Distrito Rural), cadastrar líderes e cabos eleitorais gerando credenciais automáticas de login, e definir metas numéricas rígidas de captação de apoiadores para cada um deles. O coordenador acompanha o ranking de progresso de cada equipe através de barras percentuais.</p>
+    
+    <p><strong>Relevância para a campanha:</strong> Introduz a cultura de <i>Gestão por Resultados</i> na militância. Transforma cabos eleitorais em agentes de alta produtividade que sabem exatamente o que precisa ser entregue semana a semana.</p>
+    
+    <div class="role-section">
+      <div class="role-title">🎯 Dores que Sana por Perfil:</div>
+      <strong>Para o Coordenador:</strong> Resolve o problema crônico dos "militantes invisíveis" ou "fantasmas" que recebem salário da campanha mas não produzem resultados tangíveis.<br/>
+      <strong>Para o Candidato:</strong> Permite descentralizar o comando da campanha com a certeza matemática de que cada coordenador regional está cumprindo seu dever.<br/>
+      <strong>Para o Líder:</strong> Fornece um norte claro e metas justas, além de dar visibilidade ao trabalho dele em relação a outros grupos.
+    </div>
+  </div>
+
+  <!-- 3. ELEITORES GERAL -->
+  <div class="menu-card">
+    <div class="menu-card-header">3. ELEITORES GERAL</div>
+    <p><strong>O que faz no sistema:</strong> O CRM de inteligência eleitoral do sistema. Lista todos os eleitores cadastrados, permitindo busca instantânea e filtros avançados por Bairro, Articulador Responsável, Zona, Seção e Local exato de Votação (Escola). Oferece também a poderosa <strong>Importação em Lote via Planilha Excel (.xlsx)</strong> com pré-visualização interativa para referência de dados e validação de duplicidades (CPF/WhatsApp).</p>
+    
+    <p><strong>Relevância para a campanha:</strong> Transforma uma pilha de papéis de reuniões em um banco de dados estruturado e higienizado. O comitê passa a saber quem é, onde vota, qual o telefone e quem levou cada eleitor para o projeto.</p>
+    
+    <div class="role-section">
+      <div class="role-title">🎯 Dores que Sana por Perfil:</div>
+      <strong>Para o Coordenador:</strong> Acaba com a perda de cadastros coletados em reuniões físicas de bairro e impede que cabos eleitorais "dupliquem" cadastros para cobrar pagamentos repetidos.<br/>
+      <strong>Para o Candidato:</strong> Garante um ativo eleitoral valiosíssimo e real. Se o candidato sabe onde estão seus eleitores, ele sabe exatamente onde concentrar os esforços no Dia "D".<br/>
+      <strong>Para o Líder:</strong> Permite digitar de forma offline no Excel as fichas físicas coletadas em caminhadas e importá-las em lote em segundos no sistema, economizando horas de digitação manual.
+    </div>
+  </div>
+
+  <!-- 4. AGENDA -->
+  <div class="menu-card">
+    <div class="menu-card-header">4. AGENDA</div>
+    <p><strong>O que faz no sistema:</strong> Gerenciador estratégico de compromissos do candidato e de seus apoiadores de ponta. Possui um validador de conflito de rotas e horários. Permite que líderes enviem propostas de eventos de campo que entram no fluxo de aprovação da coordenação geral de campanha.</p>
+    
+    <p><strong>Relevância para a campanha:</strong> Protege o bem mais precioso do candidato: o seu tempo. Garante que ele esteja apenas em reuniões qualificadas e com alta densidade de público, evitando furos ou atrasos logísticos que prejudicam sua imagem.</p>
+    
+    <div class="role-section">
+      <div class="role-title">🎯 Dores que Sana por Perfil:</div>
+      <strong>Para o Coordenador:</strong> Elimina as discussões de bastidores sobre "qual compromisso priorizar". O sistema filtra as melhores propostas de forma racional.<br/>
+      <strong>Para o Candidato:</strong> Evita o cansaço extremo causado por rotas geográficas desconexas no mesmo dia ou reuniões esvaziadas que não dão retorno eleitoral.<br/>
+      <strong>Para o Líder:</strong> Facilita a comunicação para agendar uma visita do candidato à sua região, sem burocracia ou intermediários.
+    </div>
+  </div>
+
+  <!-- 5. MAPA REGIONAL -->
+  <div class="menu-card">
+    <div class="menu-card-header">5. MAPA REGIONAL</div>
+    <p><strong>O que faz no sistema:</strong> Mapa de calor dinâmico georreferenciado de alta precisão. Mostra graficamente a densidade de apoiadores e eleitores cadastrados em cada bairro, zona, colégio eleitoral e rua. Revela instantaneamente "manchas" fortes e vazios eleitorais no território mapeado.</p>
+    
+    <p><strong>Relevância para a campanha:</strong> Geomarketing político na prática. Orienta com precisão científica as caminhadas do candidato, a distribuição de materiais físicos e os investimentos em tráfego pago geolocalizado na internet.</p>
+    
+    <div class="role-section">
+      <div class="role-title">🎯 Dores que Sana por Perfil:</div>
+      <strong>Para o Coordenador:</strong> Resolve o erro clássico de enviar dezenas de militantes para panfletar onde a campanha já está ganha, deixando de fora bairros altamente estratégicos e populosos que estão abandonados pela oposição.<br/>
+      <strong>Para o Candidato:</strong> Dá a exata dimensão visual de sua força territorial de votação.<br/>
+      <strong>Para o Líder:</strong> Demonstra visualmente para a coordenação se a área sob sua liderança está de fato coberta e mapeada.
+    </div>
+  </div>
+
+  <!-- 6. ANÁLISE ELEITORAL (REESCRITO DE ACORDO COM AS DIRETRIZES DA PLANILHA TRE E CRUZAMENTO INTELIGENTE) -->
+  <div class="emphasis-card">
+    <div class="emphasis-badge">Módulo Reescrito de Alta Performance Técnica</div>
+    <div class="feature-title" style="font-size: 18px; color: #1e3a8a; border-bottom: 2px solid #3b82f6;">
+      6. ANÁLISE ELEITORAL (DADOS OFICIAIS DO TRE & CRUZAMENTO INTELIGENTE)
+    </div>
+    <p><strong>O que faz no sistema na sua totalidade:</strong> Este módulo é um poderoso sistema de Business Intelligence (BI) e cruzamento analítico que opera em duas frentes integradas em abas principais no submenu: <strong>Dados Oficiais do TRE</strong> e <strong>Cruzamento de Dados & Estratégia</strong>.</p>
+    
+    <h3 style="color:#0f172a; text-transform:uppercase; font-size:11px; margin-top:15px; border-bottom:1px solid #cbd5e1; padding-bottom:3px;">✦ Aba 1: Dados Oficiais do TRE</h3>
+    <ul>
+      <li><strong>Importador Inteligente de Planilhas Excel (.xlsx, .xls, .csv):</strong> Um motor leitor robusto baseado na biblioteca <i>SheetJS (xlsx)</i> que processa instantaneamente arquivos oficiais do TRE. Possui um algoritmo de mapeamento flexível tolerante a variações menores em nomes de colunas, capturando automaticamente os dados de: <i>Município, Zona Eleitoral, Bairro, Local de Votação, Endereço, Seção</i> e <i>Quantidade de Eleitores Aptos</i>.</li>
+      <li><strong>Cálculo de Seções Automatizado:</strong> O sistema detecta e quantifica automaticamente o número de urnas/seções ativas de cada ponto físico ao processar e mapear os valores separados por vírgulas nas tabelas.</li>
+      <li><strong>Persistência Local Segura:</strong> Armazena os dados processados de forma rápida no <i>localStorage</i> do navegador, garantindo que a base do TRE permaneça íntegra mesmo após atualizações de página.</li>
+      <li><strong>Geração Nativa de Modelo Excel para Download:</strong> Possui um botão para baixar o arquivo <code>modelo_planilha_tre_aguia.xlsx</code> estruturado nativamente na largura correta, com exemplos reais do TRE para instruir o preenchimento sem erros.</li>
+      <li><strong>Controle Estrito de Acesso Administrativo:</strong> Apenas o Coordenador visualiza e opera os botões de upload de planilhas, download do modelo, zeramento do banco de dados e massa de testes. Líderes ou cabos eleitorais visualizam uma mensagem amigável indicando que a base de dados do TRE está aguardando a importação inicial do comitê central.</li>
+      <li><strong>Painel Geral com Resumo Executivo e Filtros em Cascata:</strong> Exibe cartões superiores consolidados com: <i>Total Geral de Eleitores Aptos, Municípios Analisados, Locais de Votação Ativos e Seções Registradas</i>. Possui filtros inteligentes hierárquicos (município filtra zonas/bairros correspondentes e locais de votação de forma limpa) com botão para limpar filtros num clique.</li>
+      <li><strong>Painel Municipal com Cálculos Dinâmicos:</strong> Ao isolar uma cidade, o sistema gera dinamicamente o número de eleitores aptos locais, total de seções, pontos físicos de votação e calcula automaticamente a representatividade percentual daquela localidade em relação ao estado todo.</li>
+      <li><strong>Indicadores Chave de Performance (KPIs) Territoriais:</strong>
+        <ul>
+          <li><i>Maior Local de Votação:</i> Identifica o colégio eleitoral mais denso com seu percentual de impacto.</li>
+          <li><i>Menor Local de Votação:</i> Exibe o ponto de votação mais disperso do filtro selecionado.</li>
+          <li><i>Média de Eleitores:</i> Calcula a média de eleitores aptos por ponto no escopo ativo.</li>
+          <li><i>Concentração Acumulada (Top 5):</i> Informa o percentual consolidado de votos concentrados apenas nos 5 maiores colégios eleitorais mapeados no filtro.</li>
+        </ul>
+      </li>
+      <li><strong>Gráficos Interativos Dinâmicos (Recharts):</strong>
+        <ul>
+          <li><i>Gráfico 1 (Ranking Local):</i> Barras horizontais ordenadas de forma decrescente com os maiores colégios eleitorais ativos.</li>
+          <li><i>Gráfico 2 (Participação %):</i> Gráfico de pizza/rosca demonstrando a proporção de cada ponto de votação, aglutinando registros menores sob a rubrica "Outros" para máxima clareza.</li>
+          <li><i>Gráfico 3 (Ranking Municipal):</i> Barras verticais ordenadas decrescentemente para analisar a força política de cada cidade.</li>
+        </ul>
+      </li>
+      <li><strong>Tabela Dinâmica Detalhada:</strong> Listagem inferior completa com ordenação decrescente automática por eleitores (reordenável clicando no cabeçalho das colunas), exibindo: <i>Município, Zona/Bairro, Local, Endereço/Seções, Eleitores Aptos, % do Município e % do Estado</i>.</li>
+    </ul>
+
+    <h3 style="color:#0f172a; text-transform:uppercase; font-size:11px; margin-top:15px; border-bottom:1px solid #cbd5e1; padding-bottom:3px;">✦ Aba 2: Cruzamento de Dados & Estratégia</h3>
+    <ul>
+      <li><strong>Índice de Penetração por Município:</strong> Um algoritmo que compara em tempo real o volume de apoiadores cadastrados por suas equipes no sistema com a massa de eleitores oficiais aptos do TRE do respectivo município, gerando o percentual de alcance real da campanha.</li>
+      <li><strong>Priorização Automática e Inteligente:</strong> Ranqueia os territórios instantaneamente sob duas óticas de inteligência eleitoral: <i>Menor Cobertura</i> (foco defensivo onde a presença é frágil) ou <i>Volume Faltante</i> (foco ofensivo onde residem os maiores volumes de votos não conquistados).</li>
+      <li><strong>Gráfico de Barras Tático Colorizado por Risco:</strong> Exibe o índice de penetração de forma altamente visual, colorindo os municípios por patamares de segurança de votação:
+        <br/>🔴 <span class="highlight-gold" style="background-color:#fee2e2; color:#ef4444;">Status Crítico:</span> abaixo de 0.5% de cobertura territorial.
+        <br/>🟠 <span class="highlight-gold" style="background-color:#ffedd5; color:#f97316;">Status Baixo:</span> de 0.5% a 1.5% de cobertura.
+        <br/>🟡 <span class="highlight-gold" style="background-color:#fef9c3; color:#eab308;">Status Médio:</span> de 1.5% a 4.0% de cobertura.
+        <br/>🟢 <span class="highlight-gold" style="background-color:#dcfce7; color:#22c55e;">Status Consolidado:</span> acima de 4.0% de penetração.
+      </li>
+      <li><strong>Diagnóstico Regional & Plano de Ação Automatizado:</strong> Ao clicar em qualquer barra do gráfico ou linha da tabela, um card lateral interativo e dinâmico faz a leitura do cenário daquele município e gera recomendações estratégicas imediatas (ex: alocação de articuladores de rua, realização de visitas oficiais do candidato, envio de materiais prioritários).</li>
+    </ul>
+
+    <p><strong>Relevância extrema para a campanha:</strong> Transforma dados frios do Tribunal Regional Eleitoral em decisões cirúrgicas de guerrilha política. O comitê central para de agir às cegas ou por intuição e passa a gerenciar a campanha com precisão cirúrgica de guerra, cruzando a meta oficial do TRE com a produtividade real de seus cabos eleitorais no mapa.</p>
+
+    <div class="role-section" style="margin-top:15px;">
+      <div class="role-title">🎯 Dores que Sana por Perfil:</div>
+      <strong>Para o Coordenador:</strong> Resolve a falta de dados estruturados do TRE e o retrabalho de processar grandes bases de dados no Excel. O sistema automatiza o diagnóstico de vulnerabilidade e indica onde a oposição está avançando ou onde a campanha corre sério risco.<br/>
+      <strong>Para o Candidato:</strong> Elimina o "achismo" de achar que está forte em uma cidade e fraco em outra. Mostra graficamente qual a penetração em cada cidade de Roraima de forma transparente.<br/>
+      <strong>Para o Líder:</strong> Dá clareza sobre o tamanho real do colégio eleitoral em que ele trabalha, focando seus esforços nos bairros e pontos físicos com maior densidade de votos aptos.
+    </div>
+  </div>
+
+  <!-- 7. MATERIAIS -->
+  <div class="menu-card">
+    <div class="menu-card-header">7. MATERIAIS</div>
+    <p><strong>O que faz no sistema:</strong> Controle de almoxarifado político de alta performance. Registra o estoque central de santinhos, praguinhas, bandeiras, camisetas e adesivos. Controla as saídas, registrando qual líder retirou os materiais, que quantidade levou, a data exata e o destino de distribuição.</p>
+    
+    <p><strong>Relevância para a campanha:</strong> Materiais gráficos e promocionais costumam consumir mais de 35% do orçamento tático de uma campanha. Esse controle rigoroso impede o desperdício, desvios e garante que a propaganda política chegue de fato às mãos do eleitor.</p>
+    
+    <div class="role-section">
+      <div class="role-title">🎯 Dores que Sana por Perfil:</div>
+      <strong>Para o Coordenador:</strong> Acaba com o sumiço misterioso de lotes de materiais e evita o desperdício de ter santinhos estocados e mofando em comitês regionais enquanto falta material nas caminhadas oficiais.<br/>
+      <strong>Para o Candidato:</strong> Evita gastos descontrolados com novas impressões e garante o cumprimento de leis de prestação de contas de materiais.<br/>
+      <strong>Para o Líder:</strong> Garante que ele sempre tenha o estoque necessário para suas ações sem depender do favoritismo de funcionários do almoxarifado.
+    </div>
+  </div>
+
+  <!-- 8. DEMANDAS -->
+  <div class="menu-card">
+    <div class="menu-card-header">8. DEMANDAS</div>
+    <p><strong>O que faz no sistema:</strong> O canal de ouvidoria social e solução de problemas. Coleta reclamações e demandas reais captadas nas ruas pelos líderes (ex: buraco na via, falta de iluminação, esgoto estourado, filas no postinho). Permite triar por gravidade, encaminhar para assessores responsáveis do candidato e acompanhar o status de resolução.</p>
+    
+    <p><strong>Relevância para a campanha:</strong> Dá ao candidato um portfólio de ações reais. Mostra que o candidato é útil e atua resolvendo os problemas das pessoas antes mesmo do dia da votação, gerando uma conexão de enorme gratidão com a comunidade.</p>
+    
+    <div class="role-section">
+      <div class="role-title">🎯 Dores que Sana por Perfil:</div>
+      <strong>Para o Coordenador:</strong> Permite municiar o candidato com dados hiper-locais sobre os problemas de cada bairro para ele usar em debates de TV, rádio ou discursos em palanque.<br/>
+      <strong>Para o Candidato:</strong> Evita a vergonha de visitar um bairro e não saber quais as reais dores que afligem os moradores locais.<br/>
+      <strong>Para o Líder:</strong> Dá a ele uma "ferramenta de prestação de serviço" na ponta. Ele não vai apenas pedir votos, ele vai escutar e registrar as necessidades da população para encaminhar ao candidato.
+    </div>
+  </div>
+
+  <!-- 9. ANOTAÇÕES -->
+  <div class="menu-card">
+    <div class="menu-card-header">9. ANOTAÇÕES</div>
+    <p><strong>O que faz no sistema:</strong> Canal de inteligência qualitativa e áudio-relatórios. Os líderes e cabos eleitorais gravam relatórios de áudio rápidos em suas caminhadas, que são salvos no sistema. A coordenação e o candidato podem ouvir e ler atas geradas a partir dessas interações, captando fofocas de opositores, acordos políticos ou observações cruciais.</p>
+    
+    <p><strong>Relevância para a campanha:</strong> Em uma campanha política de rua, os cabos eleitorais ouvem segredos, queixas e informações táticas valiosíssimas que normalmente morrem de boca em boca. Este módulo cria um banco de dados de inteligência verbalizada ultra-rápido.</p>
+    
+    <div class="role-section">
+      <div class="role-title">🎯 Dores que Sana por Perfil:</div>
+      <strong>Para o Coordenador:</strong> Acaba com os relatórios burocráticos de papel ou dezenas de mensagens perdidas em grupos de WhatsApp pessoal. Consolida tudo em um único feed organizado.<br/>
+      <strong>Para o Candidato:</strong> Permite-lhe sintonizar com o sentimento da rua de forma direta, escutando a voz das comunidades periféricas e rurais sem barreiras.<br/>
+      <strong>Para o Líder:</strong> Permite-lhe enviar relatórios exaustivos em segundos apenas gravando sua própria voz enquanto caminha de volta para casa ou comitê.
+    </div>
+  </div>
+
+  <!-- 10. RELATÓRIOS & BI -->
+  <div class="menu-card">
+    <div class="menu-card-header">10. RELATÓRIOS & BI</div>
+    <p><strong>O que faz no sistema:</strong> A central de exportação analítica e auditoria da campanha. O coordenador pode selecionar colunas específicas e exportar tabelas customizadas completas para Excel (eleitores cadastrados, desempenho financeiro das equipes, demandas resolvidas, etc), aplicando filtros de dados em tempo real.</p>
+    
+    <p><strong>Relevância para a campanha:</strong> Permite cruzar dados com outras ferramentas, disparadores em massa de WhatsApp ou entregar planilhas para equipes de call-center da campanha. Garante transparência total na prestação de contas.</p>
+    
+    <div class="role-section">
+      <div class="role-title">🎯 Dores que Sana por Perfil:</div>
+      <strong>Para o Coordenador:</strong> Economiza centenas de horas de trabalho de formatação manual. Exporta dados limpos e perfeitamente estruturados em um clique para apresentar ao candidato ou investidores de campanha.<br/>
+      <strong>Para o Candidato:</strong> Transmite profissionalismo inquestionável de sua equipe tática diante dos comitês centrais e financiadores partidários.<br/>
+      <strong>Para o Líder:</strong> Permite receber listas físicas impressas das pessoas de sua própria região para realizar ações paralelas ou reuniões táticas.</p>
+    </div>
+  </div>
+
+  <h1>ARGUMENTOS COMERCIAIS CHAVE PARA O SEU MATERIAL DE APRESENTAÇÃO</h1>
+  <p>Ao apresentar a <strong>Rede Águia 2026</strong> para potenciais candidatos e prefeitos, enfatize estes três pilares comerciais que justificam o investimento de olhos fechados:</p>
+  
+  <ol>
+    <li><strong>Rastreabilidade Total do Investimento:</strong> "Doutor, você sabe exatamente quanto do seu dinheiro está virando voto real na urna. Cada santinho entregue, cada líder pago tem seu resultado auditável na tela."</li>
+    <li><strong>Mitigação de Riscos de Campanha (Compliance):</strong> "O controle de materiais e a validação de dados evitam as multas da justiça eleitoral e as fraudes de duplicação de dados cometidas por cabos eleitorais mal-intencionados."</li>
+    <li><strong>Velocidade de Reação:</strong> "Se o seu oponente atacar na Zona Norte pela manhã, no almoço você já tem os áudios e demandas da população de lá estruturados para rebater nas suas redes sociais e rádio."</li>
+  </ol>
+
+  <p style="text-align: center; margin-top: 50px; font-size: 10px; color: #94a3b8; border-top: 1px solid #cbd5e1; padding-top: 20px;">
+    Rede Águia © 2026 • Inteligência Territorial de Alta Performance • Tecnologia Desenvolvida para Vencer Eleições.
+  </p>
+
+</body>
+</html>

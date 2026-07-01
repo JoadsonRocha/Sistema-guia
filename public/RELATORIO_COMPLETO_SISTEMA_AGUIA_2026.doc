@@ -1,0 +1,343 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+  <meta charset="utf-8">
+  <title>Relatório Completo de Inteligência Operacional - Rede Águia 2026</title>
+  <style>
+    body {
+      font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif;
+      line-height: 1.6;
+      color: #1a1a1a;
+      margin: 30px;
+    }
+    .header-box {
+      background-color: #0f172a;
+      color: #ffffff;
+      padding: 30px;
+      border-radius: 6px;
+      margin-bottom: 40px;
+      border-bottom: 5px solid #eab308;
+    }
+    .header-box h1 {
+      color: #ffffff;
+      font-size: 28px;
+      margin: 0 0 10px 0;
+      padding: 0;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+    }
+    .header-box p {
+      color: #cbd5e1;
+      font-size: 14px;
+      margin: 0;
+    }
+    h1 {
+      color: #0f172a;
+      font-size: 22px;
+      border-bottom: 2px solid #eab308;
+      padding-bottom: 8px;
+      margin-top: 40px;
+      text-transform: uppercase;
+    }
+    h2 {
+      color: #1e293b;
+      font-size: 18px;
+      margin-top: 30px;
+      border-left: 4px solid #eab308;
+      padding-left: 12px;
+    }
+    h3 {
+      color: #334155;
+      font-size: 14px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    p {
+      font-size: 12px;
+      color: #334155;
+      margin-bottom: 12px;
+      text-align: justify;
+    }
+    ul, ol {
+      font-size: 12px;
+      color: #334155;
+      margin-bottom: 16px;
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    .feature-card {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 20px;
+      margin-bottom: 25px;
+      border-radius: 6px;
+    }
+    .emphasis-card {
+      background-color: #fffbeb;
+      border: 2px solid #fef08a;
+      padding: 25px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .emphasis-badge {
+      background-color: #fef08a;
+      color: #854d0e;
+      font-size: 10px;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      display: inline-block;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+    .feature-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #0f172a;
+      margin-top: 0;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      border-bottom: 1px dashed #cbd5e1;
+      padding-bottom: 6px;
+    }
+    .highlight-yellow {
+      background-color: #fef9c3;
+      color: #854d0e;
+      font-weight: bold;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 11px;
+    }
+    th {
+      background-color: #0f172a;
+      color: #ffffff;
+      padding: 10px;
+      text-align: left;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    td {
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .alert-box {
+      background-color: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-box">
+    <h1>Rede Águia 2026</h1>
+    <p>Manual de Inteligência Territorial, Mobilização e Gestão Eleitoral de Alta Performance</p>
+    <p style="font-size: 11px; color: #94a3b8; margin-top: 15px;">Documento Técnico-Operacional e Estratégico Especialmente Focado em Gestão de Equipes e Base de Dados de Eleitores</p>
+  </div>
+
+  <p>Este relatório fornece uma análise detalhada e exaustiva de todas as funcionalidades operacionais do ecossistema <strong>Rede Águia 2026</strong>. O sistema foi desenvolvido sob conceitos rigorosos de segurança de dados, alta escalabilidade baseada no <i>Google Firebase/Firestore</i>, e interfaces analíticas robustas. O ecossistema é dividido em dois grandes núcleos funcionais: o <strong>Painel do Coordenador</strong> (foco estratégico e analítico) e o <strong>Painel do Líder/Cabo Eleitoral</strong> (foco tático e operacional de campo). Atendendo à necessidade estratégica da coordenação, as seções a seguir trazem <strong>ênfase máxima e detalhamento cirúrgico nos dois módulos mais importantes do Painel do Coordenador: a Gestão de Equipes/Metas e a Base de Eleitores com Cadastro em Lote.</strong></p>
+
+  <h1>PARTE 1: O PAINEL DO COORDENADOR (Estratégico e Decisor)</h1>
+  <p>O Painel do Coordenador é o centro de gravidade e inteligência tática da campanha. Projetado para o candidato, coordenador-geral e estrategistas políticos, ele unifica dados coletados em tempo real na rua e oferece ferramentas sofisticadas de tomada de decisão. Abaixo detalhamos todos os seus módulos, com <strong>destaque ultra-aprofundado para Gestão de Equipes e Gestão/Importação de Eleitores</strong>.</p>
+
+  <!-- DESTAQUE 1: GESTÃO DE EQUIPES E ARTICULADORES -->
+  <div class="emphasis-card">
+    <div class="emphasis-badge">Módulo de Ênfase Máxima 01</div>
+    <div class="feature-title" style="font-size: 18px; color: #1e3a8a; border-bottom: 2px solid #3b82f6;">
+      ✦ Gestão de Equipes, Articuladores e Definição de Metas (TEAMS)
+    </div>
+    <p><strong>O que faz na sua totalidade:</strong> Este módulo é o motor de controle humano da campanha. Ele permite ao coordenador-geral estruturar toda a hierarquia de liderança da campanha. Nele, é possível cadastrar novos coordenadores adjuntos, líderes regionais e cabos eleitorais (articuladores de ponta), definir e distribuir metas numéricas rígidas de captação de apoiadores/votos, monitorar em tempo real a produtividade individual e coletiva através de gráficos de barras e barras de progresso percentual, e vincular articuladores a territórios e bairros específicos.</p>
+    
+    <p><strong>Como usar na prática (Passo a Passo):</strong>
+      <ol>
+        <li>O Coordenador abre a aba <strong>"Equipes"</strong> e clica em <strong>"Criar Nova Equipe"</strong>.</li>
+        <li>Preenche o nome identificador da equipe (ex: <i>"Frente Zona Sul - Cabos Ativos"</i>), associa um líder geral responsável e define a <strong>meta exata de votos/alistamentos</strong> (ex: 750 eleitores).</li>
+        <li>O sistema gera credenciais automáticas de login seguro para que os líderes dessa equipe acessem seu próprio Painel do Líder.</li>
+        <li>Durante o andamento da campanha, o coordenador acompanha visualmente um ranking dinâmico de produção. A barra verde avança conforme os cadastros entram no banco de dados. Caso uma equipe esteja com apenas 10% da meta cumprida faltando 30 dias para o pleito, a coordenação visualiza o gargalo imediatamente.</li>
+      </ol>
+    </p>
+
+    <p><strong>Relevância extrema para a campanha:</strong> Em campanhas eleitorais tradicionais, o coordenador depende da "palavra falada" dos cabos eleitorais sobre a quantidade de pessoas que eles mobilizaram. O módulo de equipes traz a cultura da <strong>gestão por resultados (OKRs)</strong> para a política. Ele converte a militância em uma rede de alta performance controlada por metas auditáveis e mensuráveis.</p>
+
+    <p><strong>A dor real que resolve:</strong> 
+      <ul>
+        <li><strong>Fim da "Militância Fantasma":</strong> Acaba com os cabos eleitorais de alto custo financeiro que prometem milhares de votos em reuniões fechadas, mas na prática não cadastram nem mobilizam ninguém na rua. O sistema expõe a realidade nua e crua através de dados frios e atualizados em tempo real.</li>
+        <li><strong>Descentralização com Controle Absoluto:</strong> Permite que o candidato delegue poder para dezenas de líderes locais sem perder o controle estratégico sobre quem de fato está trabalhando e onde.</li>
+        <li><strong>Inércia de Campo:</strong> O ranking visual de produtividade gera uma competição saudável e motivacional entre as diferentes frentes regionais de trabalho.</li>
+      </ul>
+    </p>
+  </div>
+
+  <!-- DESTAQUE 2: BASE DE ELEITORES COM CADASTRO EM LOTE -->
+  <div class="emphasis-card">
+    <div class="emphasis-badge">Módulo de Ênfase Máxima 02</div>
+    <div class="feature-title" style="font-size: 18px; color: #1e3a8a; border-bottom: 2px solid #3b82f6;">
+      🗂️ Base Geral de Eleitores, Segmentação e Importação em Lote via Excel (VOTERS)
+    </div>
+    <p><strong>O que faz na sua totalidade:</strong> Este módulo é um CRM (Customer Relationship Management) de nível corporativo e inteligência territorial, adaptado para legislação brasileira. Ele centraliza a totalidade dos dados cadastrais dos eleitores conquistados. Oferece mecanismos para cadastrar individualmente ou fazer a <strong>Importação em Lote via Planilha Excel (.xlsx, .xls, .csv)</strong>. Permite filtragem cirúrgica por Zona Eleitoral, Seção, Local exato de Votação (ex: nome da escola), Bairro, Articulador Responsável e tags personalizadas de segmentação comportamental e demandas sociais.</p>
+    
+    <p><strong>Como usar na prática (Passo a Passo):</strong>
+      <ol>
+        <li><strong>Cadastro Individual:</strong> Para casos isolados, o formulário completo coleta: Nome, WhatsApp (com link direto), CPF, RG, Título de Eleitor, Zona, Seção, Local de Votação, Endereço e quem o indicou, além de observações específicas de campo.</li>
+        <li><strong>Cadastro e Importação em Lote (Excel) - ALTA PERFORMANCE:</strong> Quando a campanha realiza reuniões massivas e coleta dados em listas físicas, o líder ou o digitador abre a aba de importação, faz o download do <strong>Modelo de Planilha Padronizada (.xlsx)</strong>, preenche as colunas idênticas offline e realiza o upload do arquivo. O sistema lê as informações, faz uma <strong>pré-visualização interativa</strong> instantânea dos dados na tela para validação visual (exibindo os primeiros registros para conferência), analisa duplicidade de CPFs/WhatsApp para evitar fraudes e insere dezenas ou centenas de registros no banco de dados Firestore em poucos segundos.</li>
+        <li><strong>Segmentação Estratégica:</strong> O coordenador filtra, por exemplo: todos os eleitores que votam na <i>Escola X</i>, que foram indicados pelo <i>Articulador Y</i> e que possuem a tag de demanda <i>"Saúde"</i>. Em segundos, ele possui a lista de contatos exata para uma ação focada de panfletagem ou disparo.</li>
+      </ol>
+    </p>
+
+    <p><strong>Relevância extrema para a campanha:</strong> Informação é poder, mas informação desestruturada é apenas ruído. Este módulo transforma pilhas de papéis rabiscados de reuniões de bairro em um ativo digital de valor inestimável. A importação em lote acelera a transição do papel para o digital sem travar a equipe de digitação. Conhecer a localização operacional de cada voto garante que na semana que antecede a eleição, a equipe de logística de transporte e boca de urna saiba exatamente onde bater e quem chamar pelo nome.</p>
+
+    <p><strong>A dor real que resolve:</strong> 
+      <ul>
+        <li><strong>Gargalo de Digitação e Lentidão de Cadastro:</strong> Elimina a necessidade de digitar nome por nome de fichas de papel de reuniões de 500 pessoas. A planilha Excel de importação em lote faz em 5 segundos o trabalho que demoraria dias.</li>
+        <li><strong>Duplicidade e Fraude de Cadastros:</strong> Evita que cabos eleitorais diferentes cadastrem a mesma pessoa e "cobrem" duas vezes pela captação do mesmo eleitor. O sistema valida de forma inteligente a unicidade do eleitor no banco de dados.</li>
+        <li><strong>Desconexão com o Local de Votação (Dia D):</strong> No dia da eleição, muitas campanhas perdem votos porque o eleitor esqueceu onde vota ou mudou de seção. Com esse módulo, a campanha gera listas de lembrete personalizadas em massa ("Seu local de votação é a Escola X, Seção Y"), garantindo a conversão do apoio em voto real na urna.</li>
+      </ul>
+    </p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-title">3. Visão Geral (Overview)</div>
+    <p><strong>O que faz:</strong> Centraliza os principais KPIs (Indicadores-Chave de Desempenho) da campanha. Exibe o total consolidado de eleitores cadastrados, o volume de apoiadores por meta setorial, as últimas interações de campo, status financeiro resumido e um feed tático atualizado minuto a minuto.</p>
+    <p><strong>Como usar na prática:</strong> O coordenador inicia o dia abrindo esta tela. Ele verifica instantaneamente se as metas diárias de cadastros estão sendo atingidas e se há alertas urgentes na ouvidoria ou no feed que exijam ação prioritária.</p>
+    <p><strong>Relevância para a campanha:</strong> Em uma campanha política, tempo é o recurso mais escasso. Ter uma central que consolida os dados de dezenas de líderes de rua evita reuniões de status diárias demoradas e de baixa produtividade.</p>
+    <p><strong>Dor que resolve:</strong> <i>Falta de controle imediato.</i> Elimina o "ponto cego" do coordenador que, sem o sistema, precisava ligar para vários articuladores para descobrir o andamento das frentes de trabalho ou consolidar planilhas desconectadas.</p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-title">4. Agenda, Eventos & Planejamento Inteligente (Agenda)</div>
+    <p><strong>O que faz:</strong> Centraliza a agenda oficial do candidato e de seus representantes. Possui uma funcionalidade de validação inteligente de sugestões enviadas pelos líderes de campo, que analisa conflitos de horários, viabilidade logística e prioridade política antes da aprovação.</p>
+    <p><strong>Como usar na prática:</strong> Quando um líder sugere um comício no bairro X, a sugestão aparece no painel da coordenação. O sistema faz um cruzamento automático de horários e aponta se o candidato já tem compromissos na mesma faixa ou se a logística é inviável, permitindo ao coordenador aprovar, recusar ou reagendar em um clique.</p>
+    <p><strong>Relevância para a campanha:</strong> Otimização extrema do tempo do candidato. Evita atrasos que queimam a imagem pública e garante que o candidato esteja presente nos locais de maior relevância eleitoral e com menor tempo de deslocamento.</p>
+    <p><strong>Dor que resolve:</strong> <i>Furos de agenda e futilidade tática.</i> Elimina o estresse de marcar eventos conflitantes no mesmo horário ou gastar o tempo precioso do candidato em reuniões de baixo quórum propostas sem critério.</p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-title">5. Mapa Territorial de Calor (Mapa)</div>
+    <p><strong>O que faz:</strong> Exibe a distribuição espacial de eleitores cadastrados por meio de georreferenciamento e mapas de calor de alta densidade (integrado ao <i>RoraimaMapComponent</i> ou mapas padrão). Mostra visualmente onde a campanha está forte (densidade vermelha/amarela) e onde há vácuos de atuação de campo.</p>
+    <p><strong>Como usar na prática:</strong> Ao analisar o mapa, o coordenador percebe que um colégio eleitoral importante no centro da cidade possui pouquíssimos cadastros. Ele mobiliza imediatamente uma equipe de rua para atuar intensamente naquela coordenada específica.</p>
+    <p><strong>Relevância para a campanha:</strong> Inteligência de dados geográfica aplicada à política (Geomarketing Político). Substitui o "eu acho que estamos fortes lá" por certezas baseadas em densidade de votos mapeada e consolidada.</p>
+    <p><strong>Dor que resolve:</strong> <i>Erro na alocação de equipes de rua.</i> Resolve o problema de enviar cabos eleitorais para locais onde a campanha já está saturada, deixando regiões estratégicas e populosas completamente desassistidas.</p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-title">6. Transcritor de Notas de Voz & IA (Notes)</div>
+    <p><strong>O que faz:</strong> Um canal ágil de registro estratégico onde relatórios de campo gravados em áudio pelos líderes são automaticamente processados e estruturados textualmente. Utiliza IA para organizar as ideias faladas, gerando atas claras e extraindo demandas pontuadas de forma rápida.</p>
+    <p><strong>Como usar na prática:</strong> O coordenador ouve as notas enviadas pelos cabos eleitorais que acabaram de sair de uma reunião comunitária e lê a ata gerada pela IA, identificando em segundos os pontos chaves e as lideranças locais mencionadas no áudio.</p>
+    <p><strong>Relevância para a campanha:</strong> Rapidez na transmissão de dados. Cabos eleitorais raramente têm tempo para redigir longos relatórios escritos após caminhadas exaustivas; gravar um áudio é natural, e o sistema se encarrega de transformá-lo em dados estratégicos estruturados.</p>
+    <p><strong>Dor que resolve:</strong> <i>Perda de informações estratégicas de campo.</i> Evita que conversas cruciais com presidentes de bairros, promessas de apoio ou críticas severas fiquem esquecidas na memória dos cabos de campo e nunca cheguem ao comitê central.</p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-title">7. Controle de Materiais de Campanha (Materials)</div>
+    <p><strong>O que faz:</strong> Gerencia o estoque e a distribuição de materiais promocionais e de propaganda (ex: santinhos, praguinhas, bandeiras, adesivos, camisetas). Controla o saldo geral do comitê central, registra as retiradas feitas por cada líder/cabo de campo, e gera um histórico de quem retirou, quanto, quando e para qual finalidade.</p>
+    <p><strong>Como usar na prática:</strong> O coordenador cadastra a entrada de 50.000 santinhos. Quando o articulador João solicita 5.000 unidades, o funcionário do estoque registra a saída para a equipe de João. O sistema debita do estoque geral e gera um recibo digital de controle.</p>
+    <p><strong>Relevância para a campanha:</strong> Compliance e economia financeira extrema. Materiais de campanha representam um custo altíssimo. Saber exatamente quem retirou os materiais evita desperdício, desvio para outras finalidades ou abandono de materiais em garagens de comitês.</p>
+    <p><strong>Dor que resolve:</strong> <i>Sumiço de materiais e descontrole de estoque.</i> Resolve o clássico mistério de "para onde foram os 100 mil santinhos que mandamos rodar na gráfica?" e evita que falte adesivos nas vésperas de grandes carreatas.</p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-title">8. Ouvidoria & Gestão de Demandas (Demands)</div>
+    <p><strong>O que faz:</strong> Centraliza solicitações de urgência e demandas de infraestrutura, saúde ou assistência social identificadas nas comunidades (ex: "falta de iluminação na rua Y", "esgoto estourado no bairro Z"). Permite classificar a urgência, atribuir responsáveis dentro da equipe técnica do candidato, mudar o status de resolução e anexar históricos.</p>
+    <p><strong>Como usar na prática:</strong> O coordenador abre a lista de demandas e filtra por "Alta Prioridade". Ele vê uma queixa coletiva sobre falta de água e instrui a assessoria de imprensa do candidato a fazer uma cobrança pública oficial, ou aciona um parceiro técnico para intermediar uma solução legal emergencial.</p>
+    <p><strong>Relevância para a campanha:</strong> Transforma o candidato em um agente ativo de resolução de problemas antes mesmo da eleição. Gera credibilidade inquestionável junto às comunidades afetadas e fornece "munição" programática real para debates e discursos.</p>
+    <p><strong>Dor que resolve:</strong> <i>Esquecimento de promessas de campanha.</i> Evita que o candidato visite um bairro, ouça uma queixa grave, prometa cobrar as autoridades e simplesmente esqueça o assunto, gerando frustração extrema e perda do voto na comunidade.</p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-title">9. Análise Avançada de Dados Eleitorais (Analise Eleitoral)</div>
+    <p><strong>O que faz:</strong> Um painel inteligente e dinâmico de Business Intelligence (BI) focado em dados eleitorais históricos. Apresenta gráficos em <i>recharts/d3</i> com o perfil demográfico de eleitores por faixa etária, gênero, bairros prioritários, evolução diária de novos alistados e projeções matemáticas de votos necessários para atingir o quociente eleitoral.</p>
+    <p><strong>Como usar na prática:</strong> O estrategista político analisa os gráficos de projeção para entender qual a porcentagem de votos válidos necessária para eleger o candidato. O gráfico de evolução indica se a curva de engajamento está crescendo no ritmo esperado ou se a campanha entrou em platô.</p>
+    <p><strong>Relevância para a campanha:</strong> Decisões pragmáticas baseadas em ciência de dados pura. Direciona os recursos financeiros, publicidade digital e esforços humanos para onde há a maior probabilidade estatística de retorno em votos válidos.</p>
+    <p><strong>Dor que resolve:</strong> <i>Cegueira estatística e achismo.</i> Elimina o risco de a campanha focar em narrativas ou territórios que não movem o ponteiro eleitoral ou estimar metas irrealistas de votação sem fundamentação empírica.</p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-title">10. Central de Relatórios e Exportação (Reports)</div>
+    <p><strong>O que faz:</strong> Motor de relatórios customizáveis da plataforma. Permite selecionar colunas específicas e exportar planilhas dinâmicas em formato Excel de eleitores, transações financeiras, demandas registradas ou desempenho das equipes de campo, aplicando filtros cirúrgicos antes da geração do arquivo.</p>
+    <p><strong>Como usar na prática:</strong> O coordenador precisa enviar uma lista física de contatos e telefones para o call-center da campanha. Ele seleciona as colunas "Nome" e "WhatsApp", filtra por "Bairro Centro", clica em "Exportar Excel" e o sistema gera o arquivo perfeitamente estruturado instantaneamente.</p>
+    <p><strong>Relevância para a campanha:</strong> Portabilidade absoluta dos dados e integração com ferramentas terceiras (ex: disparadores de mensagens, softwares de CRM, planilhas gerenciais externas).</p>
+    <p><strong>Dor que resolve:</strong> <i>Silenciamento de dados dentro de sistemas fechados.</i> Evita que o coordenador precise copiar e colar dados manualmente para utilizá-los em outras ferramentas de marketing ou relatórios físicos para reuniões.</p>
+  </div>
+
+  <h1>PARTE 2: O PAINEL DO LÍDER / CABO ELEITORAL (Atuação e Execução de Rua)</h1>
+  <p>O Painel do Líder é a ferramenta de trabalho para quem está na "ponta da linha" (rua, bairros, distritos). Ele possui uma interface simplificada, focada em carregamento rápido em redes móveis e facilidade extrema de uso debaixo do sol, direto no celular.</p>
+
+  <div class="feature-card">
+    <div class="feature-title">1. Painel Tático (Logística)</div>
+    <p><strong>O que faz:</strong> É a central de operações do líder. Exibe o painel de ordens diárias enviadas pelo comitê central (Daily Orders), resumo financeiro simplificado das despesas de campo autorizadas para aquela equipe (combustível, alimentação) e a contagem de eleitores conquistados por ele.</p>
+    <p><strong>Como usar na prática:</strong> Logo ao iniciar o trabalho de rua, o líder abre esta aba e lê as diretrizes do dia enviadas pelo coordenador (ex: "Focar panfletagem no entorno do mercado municipal devido ao fluxo de feirantes"). Ele também acompanha se as despesas cadastradas por ele já foram aprovadas pela coordenação.</p>
+    <p><strong>Relevância para a campanha:</strong> Sincronismo perfeito entre a estratégia (comitê) e a tática (rua). Garante que todos os cabos de campo estejam alinhados com o discurso e as ações prioritárias do dia.</p>
+    <p><strong>Dor que resolve:</strong> <i>Líderes de campo "soltos" e sem rumo.</i> Acaba com a descoordenação onde cada cabo eleitoral faz o que quer na rua, muitas vezes agindo de forma contraproducente ou contrária às estratégias do candidato.</p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-title">2. Base de Eleitores (Equipe) - COM CADASTRO INDIVIDUAL E EM LOTE</div>
+    <p><strong>O que faz:</strong> É o motor de cadastro de novos eleitores sob a responsabilidade do líder. Possui duas modalidades extremamente modernas e completas de cadastro:
+      <ul>
+        <li><strong>Cadastro Individual:</strong> Formulário inteligente com validação e campos completos: Nome, WhatsApp, CPF, RG, Título de Eleitor, Zona, Seção, Local de Votação (Escola), Endereço, Articulador Associado, Indicador por (Referência), Tags de Segmentação e Observações de Campo.</li>
+        <li><strong>Importação em Lote via Planilha Excel:</strong> Permite ao líder baixar uma planilha modelo padronizada (.xlsx), preenchê-la offline com dezenas de eleitores e carregá-la diretamente de uma só vez. O sistema analisa duplicidades de telefones contra o banco de dados geral antes de salvar, garantindo a integridade dos dados e evitando cadastros repetidos.</li>
+      </ul>
+    </p>
+    <p><strong>Como usar na prática:</strong> 
+      Na rua, ao conversar com um morador, o líder preenche o formulário individual em menos de 1 minuto no celular e salva. 
+      Se o líder recebeu uma lista física preenchida de uma reunião na noite anterior com 100 nomes, ele abre o notebook, digita os dados na planilha modelo baixada diretamente no painel, arrasta o arquivo para a área de upload do painel em lote, confere a pré-visualização das linhas lidas pelo sistema e clica em "Importar em Lote" para cadastrar todos instantaneamente no Firestore.
+    </p>
+    <p><strong>Relevância para a campanha:</strong> Escalabilidade exponencial no cadastro de apoiadores. Garante que todas as informações burocráticas (zona, seção, colégio eleitoral) e pessoais sejam coletadas sem erros, mapeando com precisão milimétrica a base de votos do candidato.</p>
+    <p><strong>Dor que resolve:</strong> 
+      <i>Lentidão operacional e planilhas em papel perdidas.</i> 
+      Resolve a dor de ter dezenas de cadernos com nomes elegíveis que se molham, somem ou contêm letras ilegíveis. 
+      A importação em lote resolve o gargalo de digitação manual de grandes volumes de contatos, convertendo listas físicas em dados digitais seguros e limpos em segundos.
+    </p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-title">3. Análise Eleitoral Local</div>
+    <p><strong>O que faz:</strong> Uma visão estatística simplificada mas poderosa dos resultados específicos alcançados por aquele líder e sua equipe. Mostra o crescimento da sua base, a divisão geográfica por bairros sob sua atuação e o percentual de cumprimento da sua meta individual.</p>
+    <p><strong>Como usar na prática:</strong> O líder utiliza os gráficos deste painel para motivar seus apoiadores em reuniões setoriais, provando graficamente a evolução do grupo de apoio na região deles.</p>
+    <p><strong>Relevância para a campanha:</strong> Gamificação positiva e empoderamento do líder. Líderes que conseguem ver seu próprio crescimento trabalham com muito mais entusiasmo e senso de responsabilidade.</p>
+    <p><strong>Dor que resolve:</strong> <i>Falta de feedback e desmotivação.</i> Resolve o sentimento comum de líderes de rua que acham que seu esforço não está sendo enxergado ou valorizado pelo comitê central do candidato.</p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-title">4. Gestão de Materiais Recebidos (Materiais)</div>
+    <p><strong>O que faz:</strong> Exibe a lista de materiais retirados por aquele líder no comitê central de campanha e seu status de distribuição. Permite que o líder preste contas do que distribuiu nas ruas, justificando o uso do material promocional.</p>
+    <p><strong>Como usar na prática:</strong> O líder visualiza que retirou 10.000 santinhos e que ainda possui cerca de 2.000 em mãos. Ele registra uma atualização informando que os 8.000 restantes foram distribuídos no "Bairro Liberdade" durante a caminhada de ontem.</p>
+    <p><strong>Relevância para a campanha:</strong> Responsabilização e precisão logística. Evita desperdícios e garante que materiais caros cheguem de fato às mãos do eleitorado-alvo.</p>
+    <p><strong>Dor que resolve:</strong> <i>Acúmulo de material inútil e desperdício de verba.</i> Evita que materiais fiquem estocados inutilmente em porta-malas ou garagens de cabos eleitorais sem nunca serem entregues aos cidadãos.</p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-title">5. Notas de Voz & Relatórios de Áudio (Notas)</div>
+    <p><strong>O que faz:</strong> Permite ao líder gravar ou ditar relatórios rápidos de campo e transmiti-los diretamente à coordenação. Os áudios são salvos de forma organizada na base do Firestore, associados à equipe e data de envio.</p>
+    <p><strong>Como usar na prática:</strong> Após finalizar uma reunião de porta em porta estressante ou muito produtiva, o líder clica no microfone, grava uma nota de voz rápida de 40 segundos resumindo as principais queixas dos moradores e envia diretamente pelo painel.</p>
+    <p><strong>Relevância para a campanha:</strong> Comunicação desimpedida e em tempo real. Permite que fofocas políticas de opositores, boatos locais ou demandas urgentes cheguem à mesa do comitê em minutos.</p>
+    <p><strong>Dor que resolve:</strong> <i>Barreira de digitação e burocracia de relatórios.</i> Líderes de rua não têm tempo nem paciência para digitar no teclado do celular sob Sol forte ou chuva; a nota de voz preserva 100% da informação de forma instantânea e sem esforço físico.</p>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-title">6. Feed Tático Colaborativo (Feed)</div>
+    <p><strong>O que faz:</strong> Uma rede social interna e extremamente segura para os membros da campanha. Funciona como uma timeline tática onde líderes e coordenadores compartilham notícias importantes de campo, fotos de caminhadas vitoriosas, alertas de infiltração adversária ou mensagens motivacionais em tempo real.</p>
+    <p><strong>Como usar na prática:</strong> O líder tira uma foto da carreata lotada no bairro X e publica no Feed Tático com uma legenda rápida: "O povo abraçou nossa causa! 300 pessoas presentes no setor norte!". Todos os outros líderes do município visualizam e reagem.</p>
+    <p><strong>Relevância para a campanha:</strong> Eleva o moral e o senso de unidade da equipe. Em campanhas de rua, manter o ânimo elevado é vital para manter os voluntários e contratados trabalhando com paixão e união.</p>
+    <p><strong>Dor que resolve:</strong> <i>Isolamento das equipes de rua e desânimo.</i> Combate o desânimo de equipes que atuam em bairros difíceis, conectando-as à vibração positiva de outras equipes vitoriosas pela cidade.</p>
+  </div>
+
+  <h1>SÍNTESE DA ARQUITETURA DE DADOS E COMPLIANCE</h1>
+  <p>A união simbiótica destes dois painéis cria uma engrenagem de mobilização imbatível. A coordenação planeja e monitora via painéis dinâmicos e exportações parametrizadas, enquanto os líderes de rua alimentam o sistema em tempo real de forma natural e sem fricção burocrática, seja por formulários ágeis, gravação de notas de voz ou pela robusta importação em lote de planilhas Excel offline. Todas as operações são auditáveis, protegidas por regras estritas de segurança do Firebase Firestore e projetadas para as eleições brasileiras de 2026.</p>
+
+  <p style="text-align: center; margin-top: 50px; font-size: 10px; color: #94a3b8; border-t: 1px solid #cbd5e1; padding-top: 20px;">
+    Rede Águia © 2026 - Tecnologia e Inteligência Territorial Aplicada. Todos os direitos reservados.
+  </p>
+
+</body>
+</html>

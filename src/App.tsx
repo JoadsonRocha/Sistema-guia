@@ -1298,7 +1298,9 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       voter.referredBy?.toLowerCase().includes(voterFilterReferredBy.toLowerCase());
 
     const matchesTags = voterFilterTags.length === 0 || 
-      voterFilterTags.every((tag: string) => voter.tags?.includes(tag));
+      voterFilterTags.every((tag: string) => 
+        voter.tags?.some((vTag: string) => vTag.trim().toUpperCase() === tag)
+      );
 
     const matchesArticulator = !articulatorFilter || 
       voter.articulatorId === articulatorFilter;
@@ -1306,7 +1308,11 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     return matchesSearch && matchesReferredBy && matchesTags && matchesArticulator;
   });
 
-  const availableTags = Array.from(new Set(allVoters.flatMap(v => v.tags || [])));
+  const availableTags = Array.from(new Set(
+    allVoters.flatMap(v => (v.tags || []) as string[])
+      .map(t => t.trim().toUpperCase())
+      .filter(t => t !== "")
+  )) as string[];
 
   const handleProcessCaos = async () => {
     setIsProcessing(true);
@@ -3753,14 +3759,14 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                        </div>
                      </div>
                    )}
-                </div>
+                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Família / Comunidade / Grupamento</label>
-                  <input type="text" value={voterEditForm.familyCommunity} onChange={e => setVoterEditForm({...voterEditForm, familyCommunity: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Ex: Família Silva, Com. Ribeirinha, Igreja..." />
-                </div>
+                 <div className="space-y-1">
+                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Família / Comunidade / Grupamento</label>
+                   <input type="text" value={voterEditForm.familyCommunity} onChange={e => setVoterEditForm({...voterEditForm, familyCommunity: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Ex: Família Silva, Com. Ribeirinha, Igreja..." />
+                 </div>
 
-                {!voterEditForm.isArticulator && (
+                 {!voterEditForm.isArticulator && (
                   <div className="space-y-1">
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Articulador Responsável</label>
                     <select 
@@ -3806,8 +3812,8 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
-                          if (currentEditTag.trim() && !voterEditForm.tags.includes(currentEditTag.trim())) {
-                            setVoterEditForm({...voterEditForm, tags: [...voterEditForm.tags, currentEditTag.trim()]});
+                          if (currentEditTag.trim() && !voterEditForm.tags?.some(t => t.trim().toUpperCase() === currentEditTag.trim().toUpperCase())) {
+                            setVoterEditForm({...voterEditForm, tags: [...(voterEditForm.tags || []), currentEditTag.trim()]});
                             setCurrentEditTag('');
                           }
                         }
@@ -3818,8 +3824,8 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     <button 
                       type="button"
                       onClick={() => {
-                        if (currentEditTag.trim() && !voterEditForm.tags.includes(currentEditTag.trim())) {
-                          setVoterEditForm({...voterEditForm, tags: [...voterEditForm.tags, currentEditTag.trim()]});
+                        if (currentEditTag.trim() && !voterEditForm.tags?.some(t => t.trim().toUpperCase() === currentEditTag.trim().toUpperCase())) {
+                          setVoterEditForm({...voterEditForm, tags: [...(voterEditForm.tags || []), currentEditTag.trim()]});
                           setCurrentEditTag('');
                         }
                       }}
@@ -3828,6 +3834,44 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
+
+                  {availableTags.length > 0 && (
+                    <div className="mt-2.5">
+                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block mb-1">Tags Disponíveis no Sistema (Clique para Adicionar)</label>
+                      <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 bg-zinc-50 border border-zinc-100 rounded-sm">
+                        {availableTags.map(tag => {
+                          const isSelected = voterEditForm.tags?.some(t => t.trim().toUpperCase() === tag.toUpperCase());
+                          return (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => {
+                                const currentTags = voterEditForm.tags || [];
+                                if (!isSelected) {
+                                  setVoterEditForm({
+                                    ...voterEditForm,
+                                    tags: [...currentTags, tag]
+                                  });
+                                } else {
+                                  setVoterEditForm({
+                                    ...voterEditForm,
+                                    tags: currentTags.filter(t => t.trim().toUpperCase() !== tag.toUpperCase())
+                                  });
+                                }
+                              }}
+                              className={`px-2 py-1 text-[9px] font-black uppercase rounded-sm border transition-all ${
+                                isSelected
+                                  ? 'bg-yellow-500/20 text-yellow-600 border-yellow-500/40 hover:bg-yellow-500/10'
+                                  : 'bg-white text-zinc-600 border-zinc-200 hover:border-yellow-500/50 hover:text-zinc-850'
+                              }`}
+                            >
+                              {isSelected ? `✓ ${tag}` : `+ ${tag}`}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-sm font-black text-base shadow-xl shadow-zinc-200 mt-2 active:scale-95 transition-all">
@@ -4640,12 +4684,18 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
       voter.phone?.includes(voterSearch);
     
     const matchesTags = voterFilterTags.length === 0 || 
-      voterFilterTags.every((tag: string) => voter.tags?.includes(tag));
+      voterFilterTags.every((tag: string) => 
+        voter.tags?.some((vTag: string) => vTag.trim().toUpperCase() === tag)
+      );
 
     return matchesSearch && matchesTags;
   });
 
-  const availableTags = Array.from(new Set(voters.flatMap(v => v.tags || [])));
+  const availableTags = Array.from(new Set(
+    voters.flatMap(v => (v.tags || []) as string[])
+      .map(t => t.trim().toUpperCase())
+      .filter(t => t !== "")
+  )) as string[];
 
   // --- COMPONENTE INTERNO: MAPA DE INDICAÇÕES (LISTA) ---
   const ReferralNetwork = ({ voters }: { voters: any[] }) => {
@@ -6414,7 +6464,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
-                            if (currentTag.trim() && !voterForm.tags.includes(currentTag.trim())) {
+                            if (currentTag.trim() && !voterForm.tags.some(t => t.trim().toUpperCase() === currentTag.trim().toUpperCase())) {
                               setVoterForm({...voterForm, tags: [...voterForm.tags, currentTag.trim()]});
                               setCurrentTag('');
                             }
@@ -6426,7 +6476,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                       <button 
                         type="button"
                         onClick={() => {
-                          if (currentTag.trim() && !voterForm.tags.includes(currentTag.trim())) {
+                          if (currentTag.trim() && !voterForm.tags.some(t => t.trim().toUpperCase() === currentTag.trim().toUpperCase())) {
                             setVoterForm({...voterForm, tags: [...voterForm.tags, currentTag.trim()]});
                             setCurrentTag('');
                           }
@@ -6436,6 +6486,43 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                         <Plus className="w-4 h-4" />
                       </button>
                     </div>
+
+                    {availableTags.length > 0 && (
+                      <div className="mt-2.5">
+                        <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block mb-1">Tags Disponíveis no Sistema (Clique para Adicionar)</label>
+                        <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 bg-zinc-50 border border-zinc-200 rounded-sm">
+                          {availableTags.map(tag => {
+                            const isSelected = voterForm.tags.some(t => t.trim().toUpperCase() === tag.toUpperCase());
+                            return (
+                              <button
+                                key={tag}
+                                type="button"
+                                onClick={() => {
+                                  if (!isSelected) {
+                                    setVoterForm({
+                                      ...voterForm,
+                                      tags: [...voterForm.tags, tag]
+                                    });
+                                  } else {
+                                    setVoterForm({
+                                      ...voterForm,
+                                      tags: voterForm.tags.filter(t => t.trim().toUpperCase() !== tag.toUpperCase())
+                                    });
+                                  }
+                                }}
+                                className={`px-2 py-1 text-[9px] font-black uppercase rounded-sm border transition-all ${
+                                  isSelected
+                                    ? 'bg-yellow-500/20 text-yellow-600 border-yellow-500/40 hover:bg-yellow-500/10'
+                                    : 'bg-white text-zinc-600 border-zinc-200 hover:border-yellow-500/50 hover:text-zinc-850'
+                                }`}
+                              >
+                                {isSelected ? `✓ ${tag}` : `+ ${tag}`}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
