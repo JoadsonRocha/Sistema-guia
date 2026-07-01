@@ -139,5 +139,26 @@ export const firestoreService = {
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, path);
     });
+  },
+
+  subscribeToCollectionFiltered<T>(path: string, coordinatorId: string, callback: (data: T[]) => void) {
+    const q = query(collection(db, path), where('coordinatorId', '==', coordinatorId));
+    return onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+      callback(data);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, path);
+    });
+  },
+
+  async getCollectionFiltered<T>(path: string, coordinatorId: string): Promise<T[]> {
+    try {
+      const q = query(collection(db, path), where('coordinatorId', '==', coordinatorId));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.LIST, path);
+      return [];
+    }
   }
 };

@@ -283,7 +283,7 @@ function NoteCard({ note, user, isAdmin, onDelete, currentUserName }: any) {
 
 /// --- COMPONENTE: DASHBOARD DO COORDENADOR ---
 function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme: (t: 'light' | 'dark') => void }) {
-  const { user, login, logout, isAdmin } = useAuth();
+  const { user, login, logout, isAdmin, coordinatorId } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral'>('overview');
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
 
@@ -685,6 +685,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
           name,
           total: qty,
           current: qty,
+          coordinatorId: coordinatorId || user?.uid || '',
           createdAt: Date.now()
         });
         alert("Material registrado com sucesso!");
@@ -1009,18 +1010,18 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
   });
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !coordinatorId) return;
 
-    // Subs para dados reais
-    const unsubTeams = firestoreService.subscribeToCollection('teams', (data) => {
+    // Subs para dados reais filtrados por coordenador
+    const unsubTeams = firestoreService.subscribeToCollectionFiltered('teams', coordinatorId, (data) => {
       setTeams(data);
     });
     
-    const unsubUrgencies = firestoreService.subscribeToCollection('urgencies', (data) => {
+    const unsubUrgencies = firestoreService.subscribeToCollectionFiltered('urgencies', coordinatorId, (data) => {
       setUrgencies(data);
     });
 
-    const unsubStats = onSnapshot(doc(db, 'stats', 'global'), (snapshot) => {
+    const unsubStats = onSnapshot(doc(db, 'stats', `stats_${coordinatorId}`), (snapshot) => {
       if (snapshot.exists()) {
         setStatsData(snapshot.data());
       }
@@ -1028,7 +1029,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       const errInfo = {
         error: err.message,
         operationType: 'get',
-        path: 'stats/global',
+        path: `stats/stats_${coordinatorId}`,
         authInfo: {
           userId: auth.currentUser?.uid,
           email: auth.currentUser?.email,
@@ -1038,11 +1039,15 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       console.error("Stats sync error details:", JSON.stringify(errInfo));
     });
 
-    const unsubAgendas = firestoreService.subscribeToCollection('agenda', (data) => {
+    const unsubAgendas = firestoreService.subscribeToCollectionFiltered('agenda', coordinatorId, (data) => {
       setAgendas(data);
     });
 
-    const unsubNotes = query(collection(db, 'notes'), orderBy('createdAt', 'desc'));
+    const unsubNotes = query(
+      collection(db, 'notes'), 
+      where('coordinatorId', '==', coordinatorId),
+      orderBy('createdAt', 'desc')
+    );
     const unsubNotesSnap = onSnapshot(unsubNotes, (snapshot) => {
       setNotes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     }, (err) => {
@@ -1065,7 +1070,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     };
     checkAndSeed();
 
-    const unsubDailyOrder = onSnapshot(doc(db, 'config', 'dailyOrder'), (snap) => {
+    const unsubDailyOrder = onSnapshot(doc(db, 'config', `dailyOrder_${coordinatorId}`), (snap) => {
       if (snap.exists()) {
         setDailyOrder(snap.data());
         setNewDailyOrder(snap.data().text || '');
@@ -1074,27 +1079,43 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       console.warn("DailyOrder sync error:", err.message);
     });
 
-    const unsubMaterials = onSnapshot(collection(db, 'materials'), (snap) => {
-      setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => {
-      console.warn("Materials sync error:", err.message);
-    });
+    const unsubMaterials = onSnapshot(
+      query(collection(db, 'materials'), where('coordinatorId', '==', coordinatorId)), 
+      (snap) => {
+        setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, 
+      (err) => {
+        console.warn("Materials sync error:", err.message);
+      }
+    );
 
-    const unsubMaterialRequests = firestoreService.subscribeToCollection('material_requests', (data) => {
+    const unsubMaterialRequests = firestoreService.subscribeToCollectionFiltered('material_requests', coordinatorId, (data) => {
       setMaterialRequests(data);
     });
 
-    const unsubVoters = onSnapshot(collection(db, 'voters'), (snap) => {
-      setAllVoters(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => {
-      console.warn("Voters sync error:", err.message);
-    });
+    const unsubVoters = onSnapshot(
+      query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId)), 
+      (snap) => {
+        setAllVoters(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, 
+      (err) => {
+        console.warn("Voters sync error:", err.message);
+      }
+    );
 
-    const unsubReports = onSnapshot(query(collection(db, 'reports'), orderBy('createdAt', 'desc')), (snap) => {
-      setReportsHistory(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => {
-      console.warn("Reports sync error:", err.message);
-    });
+    const unsubReports = onSnapshot(
+      query(
+        collection(db, 'reports'), 
+        where('coordinatorId', '==', coordinatorId),
+        orderBy('createdAt', 'desc')
+      ), 
+      (snap) => {
+        setReportsHistory(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, 
+      (err) => {
+        console.warn("Reports sync error:", err.message);
+      }
+    );
 
     return () => {
       unsubTeams();
@@ -1109,7 +1130,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       unsubVoters();
       unsubReports();
     };
-  }, [user, isAdmin]);
+  }, [user, isAdmin, coordinatorId]);
 
   // --- GLOBAL SEARCH LOGIC ---
   useEffect(() => {
@@ -1190,6 +1211,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
         status: editingAgenda ? editingAgenda.status : 'confirmado',
         sugeridoPorId: user?.uid,
         sugeridoPor: 'Coordenação',
+        coordinatorId: coordinatorId || user?.uid || '',
         createdAt: editingAgenda ? editingAgenda.createdAt : Date.now(),
         updatedAt: Date.now()
       });
@@ -1340,6 +1362,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
         authorRole: 'coordinator',
         teamName: 'Liderança',
         type: type,
+        coordinatorId: coordinatorId || user?.uid || '',
         createdAt: Date.now()
       });
       setChaosText('');
@@ -1370,6 +1393,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
         demands: Number(newTeam.demands) || 0,
         fuel: Number(newTeam.fuel) || 0,
         tempPassword: isEditMode ? ((newTeam as any).tempPassword || defaultPassword) : defaultPassword, // Manter ou criar senha
+        coordinatorId: coordinatorId || user?.uid || '',
         updatedAt: Date.now(),
         createdAt: isEditMode ? ((newTeam as any).createdAt || Date.now()) : Date.now()
       });
@@ -1386,6 +1410,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
           location: newTeam.location,
           tempPassword: defaultPassword,
           role: 'lider',
+          coordinatorId: coordinatorId || user?.uid || '',
           createdAt: Date.now()
         });
         
@@ -1445,7 +1470,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
         // 1. Limpar Coleções Principais
         const collections = ['transactions', 'attendance', 'notes', 'urgencies', 'agenda', 'voters'];
         for (const coll of collections) {
-          const docs = await firestoreService.getCollection<any>(coll);
+          const docs = await firestoreService.getCollectionFiltered<any>(coll, coordinatorId || '');
           for (const d of docs) {
             await firestoreService.deleteDocument(coll, d.id);
           }
@@ -1523,7 +1548,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     setBriefingLocation(location);
     try {
       // Buscar demandas desse município
-      const allUrgencies = await firestoreService.getCollection<any>('urgencies');
+      const allUrgencies = await firestoreService.getCollectionFiltered<any>('urgencies', coordinatorId || '');
       const localDemands = allUrgencies.filter(u => u.team === location && u.type === 'demanda');
       
       const res = await gerarBriefingCandidato(location, localDemands);
@@ -4400,7 +4425,7 @@ const getDistanceInMeters = (lat1: number, lon1: number, lat2: number, lon2: num
 
 // --- COMPONENTE: DASHBOARD DO CABO ELEITORAL (PWA) ---
 function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme: (t: 'light' | 'dark') => void }) {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, coordinatorId } = useAuth();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [queueCount, setQueueCount] = useState(0);
   const [isLocating, setIsLocating] = useState(false);
@@ -4482,7 +4507,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
 
   // Sincronizar Perfil, Time e Eleitores com Firestore
   useEffect(() => {
-    if (user) {
+    if (user && coordinatorId) {
       let unsubTx: (() => void) | null = null;
       
       const unsubProfile = onSnapshot(doc(db, 'users', user.uid), async (docSnap) => {
@@ -4506,7 +4531,11 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
           // Subscribe to transactions whenever team info is available
           if (teamName) {
             if (unsubTx) unsubTx();
-            const txQuery = query(collection(db, 'transactions'), where('team', '==', teamName));
+            const txQuery = query(
+              collection(db, 'transactions'), 
+              where('team', '==', teamName),
+              where('coordinatorId', '==', coordinatorId)
+            );
             unsubTx = onSnapshot(txQuery, (snapshot) => {
               const txs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
               setTeamTransactions(txs.sort((a, b) => (b.date || 0) - (a.date || 0)));
@@ -4543,7 +4572,12 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         console.error("Erro ao escutar agendas do líder:", err);
       });
 
-      const notesQuery = query(collection(db, 'notes'), where('type', '==', 'tactical'), orderBy('createdAt', 'desc'));
+      const notesQuery = query(
+        collection(db, 'notes'), 
+        where('type', '==', 'tactical'), 
+        where('coordinatorId', '==', coordinatorId),
+        orderBy('createdAt', 'desc')
+      );
       const unsubNotes = onSnapshot(notesQuery, (snapshot) => {
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setNotes(data);
@@ -4551,25 +4585,33 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         console.error("Erro ao escutar notas:", err);
       });
 
-      const unsubDailyOrder = onSnapshot(doc(db, 'config', 'dailyOrder'), (snap) => {
+      const unsubDailyOrder = onSnapshot(doc(db, 'config', `dailyOrder_${coordinatorId}`), (snap) => {
         if (snap.exists()) setDailyOrder(snap.data());
       }, (err) => {
         console.warn("DailyOrder Cabo sync error:", err.message);
       });
 
-      const unsubMaterials = onSnapshot(collection(db, 'materials'), (snap) => {
-        setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, (err) => {
-        console.warn("Materials Cabo sync error:", err.message);
-      });
+      const unsubMaterials = onSnapshot(
+        query(collection(db, 'materials'), where('coordinatorId', '==', coordinatorId)), 
+        (snap) => {
+          setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        }, 
+        (err) => {
+          console.warn("Materials Cabo sync error:", err.message);
+        }
+      );
 
-      const unsubPartners = onSnapshot(collection(db, 'partners'), (snap) => {
-        setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, (err) => {
-        console.warn("Partners Cabo sync error:", err.message);
-      });
+      const unsubPartners = onSnapshot(
+        query(collection(db, 'partners'), where('coordinatorId', '==', coordinatorId)), 
+        (snap) => {
+          setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        }, 
+        (err) => {
+          console.warn("Partners Cabo sync error:", err.message);
+        }
+      );
 
-      const unsubMaterialRequests = firestoreService.subscribeToCollection('material_requests', (data) => {
+      const unsubMaterialRequests = firestoreService.subscribeToCollectionFiltered('material_requests', coordinatorId, (data) => {
         setMaterialRequests(data);
       });
 
@@ -4585,7 +4627,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         unsubMaterialRequests();
       };
     }
-  }, [user]);
+  }, [user, coordinatorId]);
 
   // Monitor de Conectividade
   useEffect(() => {
@@ -4643,7 +4685,8 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             timestamp: Date.now(),
             location: { lat: latitude, lng: longitude },
             type: 'selfie',
-            status: 'validado'
+            status: 'validado',
+            coordinatorId: coordinatorId || ''
           };
           
           const queue = JSON.parse(safeLocalStorage.getItem('aguia_offline_queue') || '[]');
@@ -4836,6 +4879,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
       qty,
       reason,
       status: 'pendente',
+      coordinatorId: coordinatorId || '',
       createdAt: Date.now()
     });
     e.target.reset();
@@ -4850,9 +4894,13 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     }
 
     try {
-      // Verificar se já existe um eleitor com este telefone antes de criar um novo
+      // Verificar se já existe um eleitor com este telefone antes de criar um novo dentro da mesma campanha
       if (!isEditingVoter && voterForm.phone && voterForm.phone.length > 5) {
-        const q = query(collection(db, 'voters'), where('phone', '==', voterForm.phone));
+        const q = query(
+          collection(db, 'voters'), 
+          where('phone', '==', voterForm.phone),
+          where('coordinatorId', '==', coordinatorId)
+        );
         const checkSnap = await getDocs(q);
         if (!checkSnap.empty) {
           alert("🚨 ATENÇÃO: Este telefone já está cadastrado na base geral da campanha! Não é permitido duplicar eleitores.");
@@ -4863,6 +4911,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
       if (isEditingVoter && editingVoterId) {
         await firestoreService.updateDocument('voters', editingVoterId, {
           ...voterForm,
+          coordinatorId: coordinatorId || '',
           updatedAt: Date.now()
         });
         alert("✅ CADASTRO ATUALIZADO COM SUCESSO!");
@@ -4875,6 +4924,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
           createdAt: Date.now(),
           registeredBy: user.email || user.uid,
           createdBy: user.uid,
+          coordinatorId: coordinatorId || '',
           location: null
         };
         await firestoreService.setDocument('voters', `voter_${Date.now()}`, payload);
@@ -5074,7 +5124,11 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
       for (const voter of parsedVoters) {
         try {
           if (voter.phone && voter.phone.length > 5) {
-            const q = query(collection(db, 'voters'), where('phone', '==', voter.phone));
+            const q = query(
+              collection(db, 'voters'), 
+              where('phone', '==', voter.phone),
+              where('coordinatorId', '==', coordinatorId)
+            );
             const checkSnap = await getDocs(q);
             if (!checkSnap.empty) {
               duplicateCount++;
@@ -5090,6 +5144,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             createdAt: Date.now(),
             registeredBy: user.email || user.uid,
             createdBy: user.uid,
+            coordinatorId: coordinatorId || '',
             location: null
           };
 
@@ -5133,6 +5188,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         leaderId: user.uid,
         leaderName: profileData.name || user.displayName || 'Líder',
         team: profileData.zone || 'Pacaraima',
+        coordinatorId: coordinatorId || '',
         createdAt: Date.now()
       });
       setIsFuelModalOpen(false);
@@ -5155,6 +5211,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         leaderId: user.uid,
         leaderName: profileData.name || user.displayName || 'Líder',
         team: profileData.zone || 'Pacaraima',
+        coordinatorId: coordinatorId || '',
         createdAt: Date.now()
       });
       setIsDemandModalOpen(false);
@@ -5170,8 +5227,8 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     if (!user) return;
 
     try {
-      // TAREFA 3: VALIDAR CHOQUE LOGÍSTICO
-      const confirmedAgendas = await firestoreService.getCollection<any>('agenda');
+      // TAREFA 3: VALIDAR CHOQUE LOGÍSTICO (filtrado por campanha do coordenador)
+      const confirmedAgendas = await firestoreService.getCollectionFiltered<any>('agenda', coordinatorId || '');
       const validation = validarSugestaoAgenda(
         agendaForm as AgendaItem, 
         confirmedAgendas.filter(a => a.status === 'confirmado')
@@ -5187,6 +5244,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         status: 'pendente',
         sugeridoPorId: user.uid,
         sugeridoPor: profileData.name || user.displayName,
+        coordinatorId: coordinatorId || '',
         createdAt: Date.now(),
         team: profileData.zone
       });
@@ -5228,6 +5286,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         team: teamData.name,
         description: expenseForm.description,
         purpose: expenseForm.purpose,
+        coordinatorId: coordinatorId || '',
         date: Date.now()
       });
 
@@ -5311,6 +5370,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         team: profileData.zone,
         teamName: profileData.zone,
         type: activeTab === 'feed' ? 'tactical' : 'private',
+        coordinatorId: coordinatorId || '',
         createdAt: Date.now()
       });
       setNoteText('');
@@ -7214,6 +7274,7 @@ export default function App() {
                 address: preRegDoc.address,
                 teamName: preRegDoc.teamName,
                 teamId: preRegDoc.teamId,
+                coordinatorId: preRegDoc.coordinatorId || '',
                 forcePasswordChange: true // Obrigar a trocar a senha
               });
               

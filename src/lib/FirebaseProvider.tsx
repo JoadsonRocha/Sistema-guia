@@ -19,10 +19,11 @@ interface AuthContextType {
   forcePasswordChange: boolean;
   login: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
-  signupWithEmail: (email: string, pass: string, role: 'coordenador' | 'lider') => Promise<void>;
+  signupWithEmail: (email: string, pass: string, role: 'coordenador' | 'lider', extraData?: any) => Promise<void>;
   logout: () => Promise<void>;
   changePassword: (newPass: string) => Promise<void>;
   isAdmin: boolean;
+  coordinatorId: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,6 +34,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [forcePasswordChange, setForcePasswordChange] = useState(false);
+  const [coordinatorId, setCoordinatorId] = useState<string | null>(null);
 
   useEffect(() => {
     let unsubProfile: (() => void) | null = null;
@@ -71,10 +73,12 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
             setRole(data.role);
             setForcePasswordChange(!!data.forcePasswordChange);
             setIsAdmin(data.role === 'coordenador' || currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com");
+            setCoordinatorId(data.role === 'coordenador' ? currentUser.uid : (data.coordinatorId || null));
           } else if (currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com") {
             setIsAdmin(true);
             setRole('coordenador');
             setForcePasswordChange(false);
+            setCoordinatorId(currentUser.uid);
           }
           setLoading(false);
         }, (err) => {
@@ -85,6 +89,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
         setRole(null);
         setIsAdmin(false);
         setForcePasswordChange(false);
+        setCoordinatorId(null);
         setLoading(false);
       }
     });
@@ -160,7 +165,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, role, loading, login, loginWithEmail, signupWithEmail, logout, isAdmin, forcePasswordChange, changePassword }}>
+    <AuthContext.Provider value={{ user, role, loading, login, loginWithEmail, signupWithEmail, logout, isAdmin, forcePasswordChange, changePassword, coordinatorId }}>
       {(!loading || user) ? children : (
         <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-8">
            <div className="w-16 h-16 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mb-4"></div>
