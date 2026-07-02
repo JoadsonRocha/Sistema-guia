@@ -300,8 +300,9 @@ export default function EleitoralDashboard({
       }
 
       // 5. Team name matching (optional fallback)
-      if (!location && voter.teamName) {
-        const tLower = voter.teamName.toLowerCase();
+      const teamValue = voter.teamName || voter.team;
+      if (!location && teamValue) {
+        const tLower = teamValue.toLowerCase();
         for (const mun of MUNICIPALITIES) {
           if (tLower.includes(mun.toLowerCase())) {
             location = mun;

@@ -972,7 +972,8 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
         createdByDisplayName: profileData?.name || user?.email,
         createdAt: serverTimestamp(),
         detailLevel: filters.detailLevel || 'summary',
-        itemCount: data.length
+        itemCount: data.length,
+        coordinatorId: coordinatorId || ''
       });
 
     } catch (err: any) {
@@ -1096,7 +1097,22 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     const unsubVoters = onSnapshot(
       query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId)), 
       (snap) => {
-        setAllVoters(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const rawData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+        // Deduplicar para a visão geral: prioriza o registro mais completo ou mais recente
+        const uniqueMap = new Map();
+        rawData.forEach((v: any) => {
+          const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, v);
+          } else {
+            // Se já existe, mantém o que tem mais campos preenchidos (ex: articulatorId)
+            const existing = uniqueMap.get(key);
+            if (!existing.articulatorId && v.articulatorId) {
+              uniqueMap.set(key, v);
+            }
+          }
+        });
+        setAllVoters(Array.from(uniqueMap.values()));
       }, 
       (err) => {
         console.warn("Voters sync error:", err.message);
@@ -1249,20 +1265,28 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
   // Sincronizar eleitores da equipe gerenciada pelo coordenador
   useEffect(() => {
-    if (selectedManagingTeam && isAdmin) {
+    if (selectedManagingTeam && isAdmin && coordinatorId) {
       const leaderEmail = selectedManagingTeam.leaderEmail?.toLowerCase();
       if (!leaderEmail) return;
 
       const fetchLeaderAndVoters = async () => {
         try {
           const usersRef = collection(db, 'users');
-          const qUser = query(usersRef, where('email', '==', leaderEmail));
+          const qUser = query(
+            usersRef, 
+            where('email', '==', leaderEmail),
+            where('coordinatorId', '==', coordinatorId)
+          );
           const userSnap = await getDocs(qUser);
           
           if (!userSnap.empty) {
             const leaderId = userSnap.docs[0].id;
             const votersRef = collection(db, 'voters');
-            const qVoters = query(votersRef, where('leaderId', '==', leaderId));
+            const qVoters = query(
+              votersRef, 
+              where('leaderId', '==', leaderId),
+              where('coordinatorId', '==', coordinatorId)
+            );
             
             const unsub = onSnapshot(qVoters, (snapshot) => {
               const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -1281,35 +1305,9 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       fetchLeaderAndVoters().then(u => unsub = u);
       return () => unsub && unsub();
     }
-  }, [selectedManagingTeam, isAdmin]);
+  }, [selectedManagingTeam, isAdmin, coordinatorId]);
 
-  // Sincronizar todos os eleitores para o coordenador (Tab Eleitores)
-  useEffect(() => {
-    if (activeTab === 'voters' && isAdmin) {
-      const votersRef = collection(db, 'voters');
-      const unsub = onSnapshot(votersRef, (snapshot) => {
-        const rawData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
-        // Deduplicar para a visão geral: prioriza o registro mais completo ou mais recente
-        const uniqueMap = new Map();
-        rawData.forEach((v: any) => {
-          const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, v);
-          } else {
-            // Se já existe, mantém o que tem mais campos preenchidos (ex: articulatorId)
-            const existing = uniqueMap.get(key);
-            if (!existing.articulatorId && v.articulatorId) {
-              uniqueMap.set(key, v);
-            }
-          }
-        });
-        setAllVoters(Array.from(uniqueMap.values()));
-      }, (err) => {
-        console.warn("Error listening to all voters:", err.message);
-      });
-      return () => unsub();
-    }
-  }, [activeTab, isAdmin]);
+
 
   const filteredVoters = allVoters.filter(voter => {
     const matchesSearch = !voterSearch || 
@@ -1568,6 +1566,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
       const q = query(
         collection(db, 'transactions'),
         where('team', '==', team.name),
+        where('coordinatorId', '==', coordinatorId),
         orderBy('date', 'desc'),
         limit(20)
       );
@@ -3813,8 +3812,21 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Indicado por (Referência)</label>
-                  <input type="text" value={voterEditForm.referredBy} onChange={e => setVoterEditForm({...voterEditForm, referredBy: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Nome de quem o indicou..." />
+                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Indicado por (Selecione um eleitor cadastrado)</label>
+                  <select 
+                    value={voterEditForm.referredBy} 
+                    onChange={e => setVoterEditForm({...voterEditForm, referredBy: e.target.value})} 
+                    className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm outline-none appearance-none"
+                  >
+                    <option value="">NENHUM INDICIADOR SELECIONADO</option>
+                    {[...allVoters]
+                      .filter(v => v.id !== selectedVoter?.id)
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map(v => (
+                        <option key={v.id} value={v.name}>{v.name} {v.phone ? `(${v.phone})` : ''}</option>
+                      ))
+                    }
+                  </select>
                 </div>
 
                 <div className="space-y-1">
@@ -4504,6 +4516,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
   const [isVoterDetailOpen, setIsVoterDetailOpen] = useState(false);
   const [isEditingVoter, setIsEditingVoter] = useState(false);
   const [editingVoterId, setEditingVoterId] = useState<string | null>(null);
+  const [campaignVoters, setCampaignVoters] = useState<any[]>([]);
 
   // Sincronizar Perfil, Time e Eleitores com Firestore
   useEffect(() => {
@@ -4615,6 +4628,24 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         setMaterialRequests(data);
       });
 
+      const unsubCampaignVoters = onSnapshot(
+        query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId)),
+        (snap) => {
+          const rawData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+          const uniqueMap = new Map();
+          rawData.forEach((v: any) => {
+            const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
+            if (!uniqueMap.has(key)) {
+              uniqueMap.set(key, v);
+            }
+          });
+          setCampaignVoters(Array.from(uniqueMap.values()));
+        },
+        (err) => {
+          console.warn("CampaignVoters Cabo sync error:", err.message);
+        }
+      );
+
       return () => {
         unsubProfile();
         unsubVoters();
@@ -4625,6 +4656,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         unsubMaterials();
         unsubPartners();
         unsubMaterialRequests();
+        unsubCampaignVoters();
       };
     }
   }, [user, coordinatorId]);
@@ -6500,8 +6532,23 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Indicado por (Referência Manual)</label>
-                    <input type="text" value={voterForm.referredBy} onChange={e => setVoterForm({...voterForm, referredBy: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Nome de quem o indicou..." />
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Indicado por (Selecione um eleitor cadastrado)</label>
+                    <div className="relative">
+                      <select 
+                        value={voterForm.referredBy} 
+                        onChange={e => setVoterForm({...voterForm, referredBy: e.target.value})} 
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all appearance-none"
+                      >
+                        <option value="">NENHUM INDICIADOR SELECIONADO</option>
+                        {[...campaignVoters]
+                          .filter(v => !isEditingVoter || v.id !== editingVoterId)
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map(v => (
+                            <option key={v.id} value={v.name}>{v.name} {v.phone ? `(${v.phone})` : ''}</option>
+                          ))
+                        }
+                      </select>
+                    </div>
                   </div>
 
                   <div className="space-y-1.5">
