@@ -42,10 +42,14 @@ service cloud.firestore {
 
     // Voters
     match /voters/{voterId} {
-      allow read: if isSignedIn() && resource.data.coordinatorId == getCoordinatorId();
-      allow create: if isSignedIn() && request.resource.data.coordinatorId == getCoordinatorId();
-      allow update: if isSignedIn() && resource.data.coordinatorId == getCoordinatorId() && request.resource.data.coordinatorId == getCoordinatorId();
-      allow delete: if isSignedIn() && resource.data.coordinatorId == getCoordinatorId();
+      allow read: if isSignedIn() && (resource.data.coordinatorId == getCoordinatorId() || resource.data.leaderId == request.auth.uid || resource.data.createdBy == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.coordinatorId == getCoordinatorId() || request.resource.data.leaderId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+      allow update: if isSignedIn() && (
+        (resource.data.coordinatorId == getCoordinatorId() && request.resource.data.coordinatorId == getCoordinatorId()) || 
+        resource.data.leaderId == request.auth.uid || 
+        resource.data.createdBy == request.auth.uid
+      );
+      allow delete: if isSignedIn() && (resource.data.coordinatorId == getCoordinatorId() || resource.data.leaderId == request.auth.uid || resource.data.createdBy == request.auth.uid);
     }
 
     // Urgencies

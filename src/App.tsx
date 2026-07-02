@@ -78,7 +78,7 @@ import {
   PieChart,
   Pie
 } from 'recharts';
-import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, getDoc, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db, auth } from './lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from './lib/agendaLogic';
 import * as XLSX from 'xlsx';
@@ -4534,11 +4534,61 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             zone: teamName
           });
           
+          let resolvedCoordId = data.coordinatorId || coordinatorId || '';
+
           if (data.teamId) {
             const teamSnap = await getDoc(doc(db, 'teams', data.teamId));
             if (teamSnap.exists()) {
-              setTeamData({ ...teamSnap.data(), id: teamSnap.id });
+              const teamDataRaw = teamSnap.data();
+              setTeamData({ ...teamDataRaw, id: teamSnap.id });
+              if (!resolvedCoordId && teamDataRaw.coordinatorId) {
+                resolvedCoordId = teamDataRaw.coordinatorId;
+              }
             }
+          }
+
+          if (resolvedCoordId) {
+            // Auto-heal existing voters and material requests with empty/missing coordinatorId
+            const healVotersAndRequests = async (rCoordId: string) => {
+              try {
+                // 1. Heal Voters
+                const qVoters = query(collection(db, 'voters'), where('leaderId', '==', user.uid));
+                const snapVoters = await getDocs(qVoters);
+                const voterPromises = snapVoters.docs
+                  .filter(doc => {
+                    const d = doc.data();
+                    return !d.coordinatorId || d.coordinatorId === '';
+                  })
+                  .map(vDoc => 
+                    updateDoc(doc(db, 'voters', vDoc.id), {
+                      coordinatorId: rCoordId
+                    })
+                  );
+                
+                // 2. Heal Material Requests
+                const qRequests = query(collection(db, 'material_requests'), where('leaderId', '==', user.uid));
+                const snapRequests = await getDocs(qRequests);
+                const requestPromises = snapRequests.docs
+                  .filter(doc => {
+                    const d = doc.data();
+                    return !d.coordinatorId || d.coordinatorId === '';
+                  })
+                  .map(rDoc => 
+                    updateDoc(doc(db, 'material_requests', rDoc.id), {
+                      coordinatorId: rCoordId
+                    })
+                  );
+
+                const totalPromises = [...voterPromises, ...requestPromises];
+                if (totalPromises.length > 0) {
+                  await Promise.all(totalPromises);
+                  console.log(`🧠 [Healer] Successfully healed ${totalPromises.length} records for leader ${user.uid} with coordinatorId: ${rCoordId}`);
+                }
+              } catch (err) {
+                console.error("Error healing records:", err);
+              }
+            };
+            healVotersAndRequests(resolvedCoordId);
           }
 
           // Subscribe to transactions whenever team info is available
@@ -4547,7 +4597,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             const txQuery = query(
               collection(db, 'transactions'), 
               where('team', '==', teamName),
-              where('coordinatorId', '==', coordinatorId)
+              where('coordinatorId', '==', resolvedCoordId || coordinatorId)
             );
             unsubTx = onSnapshot(txQuery, (snapshot) => {
               const txs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
@@ -4911,7 +4961,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
       qty,
       reason,
       status: 'pendente',
-      coordinatorId: coordinatorId || '',
+      coordinatorId: coordinatorId || teamData?.coordinatorId || '',
       createdAt: Date.now()
     });
     e.target.reset();
@@ -4926,12 +4976,13 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     }
 
     try {
+      const activeCoordId = coordinatorId || teamData?.coordinatorId || '';
       // Verificar se já existe um eleitor com este telefone antes de criar um novo dentro da mesma campanha
       if (!isEditingVoter && voterForm.phone && voterForm.phone.length > 5) {
         const q = query(
           collection(db, 'voters'), 
           where('phone', '==', voterForm.phone),
-          where('coordinatorId', '==', coordinatorId)
+          where('coordinatorId', '==', activeCoordId)
         );
         const checkSnap = await getDocs(q);
         if (!checkSnap.empty) {
@@ -4943,7 +4994,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
       if (isEditingVoter && editingVoterId) {
         await firestoreService.updateDocument('voters', editingVoterId, {
           ...voterForm,
-          coordinatorId: coordinatorId || '',
+          coordinatorId: activeCoordId,
           updatedAt: Date.now()
         });
         alert("✅ CADASTRO ATUALIZADO COM SUCESSO!");
@@ -4956,7 +5007,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
           createdAt: Date.now(),
           registeredBy: user.email || user.uid,
           createdBy: user.uid,
-          coordinatorId: coordinatorId || '',
+          coordinatorId: activeCoordId,
           location: null
         };
         await firestoreService.setDocument('voters', `voter_${Date.now()}`, payload);
@@ -5155,11 +5206,12 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     try {
       for (const voter of parsedVoters) {
         try {
+          const activeCoordId = coordinatorId || teamData?.coordinatorId || '';
           if (voter.phone && voter.phone.length > 5) {
             const q = query(
               collection(db, 'voters'), 
               where('phone', '==', voter.phone),
-              where('coordinatorId', '==', coordinatorId)
+              where('coordinatorId', '==', activeCoordId)
             );
             const checkSnap = await getDocs(q);
             if (!checkSnap.empty) {
@@ -5176,7 +5228,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             createdAt: Date.now(),
             registeredBy: user.email || user.uid,
             createdBy: user.uid,
-            coordinatorId: coordinatorId || '',
+            coordinatorId: activeCoordId,
             location: null
           };
 

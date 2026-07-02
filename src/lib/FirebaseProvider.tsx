@@ -67,13 +67,42 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (currentUser) {
-        unsubProfile = onSnapshot(doc(db, 'users', currentUser.uid), (snapshot) => {
+        unsubProfile = onSnapshot(doc(db, 'users', currentUser.uid), async (snapshot) => {
           if (snapshot.exists()) {
             const data = snapshot.data();
             setRole(data.role);
             setForcePasswordChange(!!data.forcePasswordChange);
-            setIsAdmin(data.role === 'coordenador' || currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com");
-            setCoordinatorId(data.role === 'coordenador' ? currentUser.uid : (data.coordinatorId || null));
+            const isCoordOrAdmin = data.role === 'coordenador' || currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com";
+            setIsAdmin(isCoordOrAdmin);
+            
+            if (isCoordOrAdmin) {
+              setCoordinatorId(currentUser.uid);
+            } else if (data.coordinatorId) {
+              setCoordinatorId(data.coordinatorId);
+            } else if (data.teamId) {
+              try {
+                const teamSnap = await getDoc(doc(db, 'teams', data.teamId));
+                if (teamSnap.exists()) {
+                  const teamData = teamSnap.data();
+                  if (teamData.coordinatorId) {
+                    setCoordinatorId(teamData.coordinatorId);
+                    await setDoc(doc(db, 'users', currentUser.uid), {
+                      coordinatorId: teamData.coordinatorId
+                    }, { merge: true });
+                    console.log(`🧠 [Auth] Healed missing coordinatorId for leader ${currentUser.uid}`);
+                  } else {
+                    setCoordinatorId(null);
+                  }
+                } else {
+                  setCoordinatorId(null);
+                }
+              } catch (e) {
+                console.error("Error healing coordinatorId:", e);
+                setCoordinatorId(null);
+              }
+            } else {
+              setCoordinatorId(null);
+            }
           } else if (currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com") {
             setIsAdmin(true);
             setRole('coordenador');
