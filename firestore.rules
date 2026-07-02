@@ -5,26 +5,40 @@ service cloud.firestore {
     // Helpers
     function isSignedIn() { return request.auth != null; }
     
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    function hasUserData() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    
+    function getUserRole() {
+      return hasUserData() ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'none') : 'none';
+    }
+    
+    function getUserCoordinatorId() {
+      return hasUserData() ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('coordinatorId', '') : '';
     }
     
     function isAdmin() { 
       return isSignedIn() && (
-        getUserData().role == 'coordenador' ||
-        request.auth.token.email.lower() == 'sergiosilvabezerra@gmail.com'
+        request.auth.token.email.matches('(?i)sergiosilvabezerra@gmail.com') ||
+        getUserRole() == 'coordenador'
       );
     }
     
     function getCoordinatorId() {
-      return getUserData().role == 'coordenador' ? request.auth.uid : getUserData().coordinatorId;
+      return request.auth.token.email.matches('(?i)sergiosilvabezerra@gmail.com') ? request.auth.uid : (
+        getUserRole() == 'coordenador' ? request.auth.uid : getUserCoordinatorId()
+      );
+    }
+    
+    function isTeamCoordinator(teamId) {
+      return isSignedIn() && exists(/databases/$(database)/documents/teams/$(teamId)) && get(/databases/$(database)/documents/teams/$(teamId)).data.get('coordinatorId', '') == request.auth.uid;
     }
     
     function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
     
     // Users
     match /users/{userId} {
-      allow read: if isOwner(userId) || (isSignedIn() && getUserData().role == 'coordenador' && resource.data.coordinatorId == request.auth.uid);
+      allow read: if isOwner(userId) || (isSignedIn() && getUserRole() == 'coordenador' && resource.data.get('coordinatorId', '') == request.auth.uid);
       allow write: if isOwner(userId) || isAdmin();
     }
 
@@ -42,14 +56,31 @@ service cloud.firestore {
 
     // Voters
     match /voters/{voterId} {
-      allow read: if isSignedIn() && (resource.data.coordinatorId == getCoordinatorId() || resource.data.leaderId == request.auth.uid || resource.data.createdBy == request.auth.uid);
-      allow create: if isSignedIn() && (request.resource.data.coordinatorId == getCoordinatorId() || request.resource.data.leaderId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+      allow read: if isSignedIn() && (
+        resource.data.coordinatorId == getCoordinatorId() || 
+        resource.data.leaderId == request.auth.uid || 
+        resource.data.createdBy == request.auth.uid ||
+        (resource.data.teamId != null && isTeamCoordinator(resource.data.teamId))
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.coordinatorId == getCoordinatorId() || 
+        request.resource.data.leaderId == request.auth.uid || 
+        request.resource.data.createdBy == request.auth.uid ||
+        (request.resource.data.teamId != null && isTeamCoordinator(request.resource.data.teamId))
+      );
       allow update: if isSignedIn() && (
         (resource.data.coordinatorId == getCoordinatorId() && request.resource.data.coordinatorId == getCoordinatorId()) || 
         resource.data.leaderId == request.auth.uid || 
-        resource.data.createdBy == request.auth.uid
+        resource.data.createdBy == request.auth.uid ||
+        (resource.data.teamId != null && isTeamCoordinator(resource.data.teamId)) ||
+        (request.resource.data.teamId != null && isTeamCoordinator(request.resource.data.teamId))
       );
-      allow delete: if isSignedIn() && (resource.data.coordinatorId == getCoordinatorId() || resource.data.leaderId == request.auth.uid || resource.data.createdBy == request.auth.uid);
+      allow delete: if isSignedIn() && (
+        resource.data.coordinatorId == getCoordinatorId() || 
+        resource.data.leaderId == request.auth.uid || 
+        resource.data.createdBy == request.auth.uid ||
+        (resource.data.teamId != null && isTeamCoordinator(resource.data.teamId))
+      );
     }
 
     // Urgencies
@@ -78,8 +109,16 @@ service cloud.firestore {
 
     // Material Requests
     match /material_requests/{id} {
-      allow read: if isSignedIn() && resource.data.coordinatorId == getCoordinatorId();
-      allow write: if isSignedIn() && request.resource.data.coordinatorId == getCoordinatorId();
+      allow read: if isSignedIn() && (
+        resource.data.coordinatorId == getCoordinatorId() || 
+        resource.data.leaderId == request.auth.uid ||
+        (resource.data.teamId != null && isTeamCoordinator(resource.data.teamId))
+      );
+      allow write: if isSignedIn() && (
+        request.resource.data.coordinatorId == getCoordinatorId() || 
+        request.resource.data.leaderId == request.auth.uid ||
+        (request.resource.data.teamId != null && isTeamCoordinator(request.resource.data.teamId))
+      );
     }
 
     // Transactions

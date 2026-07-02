@@ -1148,6 +1148,57 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     };
   }, [user, isAdmin, coordinatorId]);
 
+  useEffect(() => {
+    if (!coordinatorId || teams.length === 0) return;
+
+    const healCoordinatorVotersAndRequests = async () => {
+      try {
+        const promises: Promise<any>[] = [];
+        
+        for (const team of teams) {
+          const teamId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
+          
+          // 1. Heal Voters belonging to this team
+          const qVoters = query(collection(db, 'voters'), where('teamId', '==', teamId));
+          const snapVoters = await getDocs(qVoters);
+          snapVoters.docs.forEach((vDoc) => {
+            const data = vDoc.data();
+            if (data.coordinatorId !== coordinatorId) {
+              promises.push(
+                updateDoc(doc(db, 'voters', vDoc.id), {
+                  coordinatorId: coordinatorId
+                })
+              );
+            }
+          });
+
+          // 2. Heal Material Requests belonging to this team
+          const qReqs = query(collection(db, 'material_requests'), where('teamId', '==', teamId));
+          const snapReqs = await getDocs(qReqs);
+          snapReqs.docs.forEach((rDoc) => {
+            const data = rDoc.data();
+            if (data.coordinatorId !== coordinatorId) {
+              promises.push(
+                updateDoc(doc(db, 'material_requests', rDoc.id), {
+                  coordinatorId: coordinatorId
+                })
+              );
+            }
+          });
+        }
+        
+        if (promises.length > 0) {
+          await Promise.all(promises);
+          console.log(`🧠 [Healer] Coordenador successfully healed ${promises.length} records for their teams!`);
+        }
+      } catch (err) {
+        console.error("Error healing coordinator records:", err);
+      }
+    };
+
+    healCoordinatorVotersAndRequests();
+  }, [teams, coordinatorId]);
+
   // --- GLOBAL SEARCH LOGIC ---
   useEffect(() => {
     if (!searchQuery.trim() || searchQuery.length < 2) {
