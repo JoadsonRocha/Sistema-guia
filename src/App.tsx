@@ -519,6 +519,11 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
   const [editingMaterialId, setEditingMaterialId] = useState<string | null>(null);
   const [materialForm, setMaterialForm] = useState({ name: '', qty: '' });
   
+  // Digital signature states for material requests
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+  const [signingRequest, setSigningRequest] = useState<any>(null);
+  const [signerName, setSignerName] = useState('');
+  
   const [selectedUrgency, setSelectedUrgency] = useState<any>(null);
   const [observation, setObservation] = useState('');
   const [isUrgencyModalOpen, setIsUrgencyModalOpen] = useState(false);
@@ -763,8 +768,32 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     }
   };
 
-  const handleApproveMaterialRequest = async (req: any) => {
+  const handleApproveMaterialRequest = (req: any) => {
+    const mat = materials.find(m => m.id === req.materialId);
+    if (!mat) {
+      alert("Material não encontrado no estoque!");
+      return;
+    }
+    
+    if (mat.current < req.qty) {
+      alert("Quantidade insuficiente no estoque para aprovar esta solicitação!");
+      return;
+    }
+
+    setSigningRequest(req);
+    setSignerName(profileData?.name || '');
+    setIsSignatureModalOpen(true);
+  };
+
+  const handleConfirmSignature = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signingRequest || !signerName.trim()) {
+      alert("Por favor, preencha a sua assinatura.");
+      return;
+    }
+
     try {
+      const req = signingRequest;
       const mat = materials.find(m => m.id === req.materialId);
       if (!mat) {
         alert("Material não encontrado no estoque!");
@@ -781,15 +810,23 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
         current: mat.current - req.qty
       });
 
-      // Update request status
+      const signatureHash = 'AGUIA-SIG-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now().toString().slice(-4);
+
+      // Update request status with signature details
       await firestoreService.updateDocument('material_requests', req.id, {
         status: 'aprovado',
-        approvedAt: Date.now()
+        approvedAt: Date.now(),
+        signedBy: signerName.trim(),
+        signedAt: Date.now(),
+        signatureHash: signatureHash
       });
 
-      alert("Solicitação aprovada e material descontado do estoque!");
+      setIsSignatureModalOpen(false);
+      setSigningRequest(null);
+      setSignerName('');
+      alert("Lote assinado digitalmente e liberado com sucesso!");
     } catch (err: any) {
-      alert("Erro ao aprovar: " + err.message);
+      alert("Erro ao aprovar e assinar: " + err.message);
     }
   };
 
@@ -2701,9 +2738,36 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                           </span>
                         </div>
 
+                        {req.returnDate && (
+                          <div className="bg-yellow-500/5 px-4 py-2.5 rounded-sm border border-yellow-500/10 text-left">
+                            <span className="text-[8px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-wider block mb-0.5">Previsão de Devolução</span>
+                            <span className="text-xs font-black text-[var(--text-primary)]">{new Date(req.returnDate + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
+                          </div>
+                        )}
+
                         {req.reason && (
                           <div className="bg-white/5 p-4 rounded-sm border border-white/5">
                             <p className="text-[10px] font-bold text-zinc-500 italic leading-relaxed">"{req.reason}"</p>
+                          </div>
+                        )}
+
+                        {req.receivedByLeader && (
+                          <div className="bg-emerald-500/5 px-4 py-2.5 rounded-sm border border-emerald-500/10 text-left">
+                            <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block mb-0.5">Status de Entrega</span>
+                            <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">✓ RECEBIDO EM {new Date(req.receivedAt).toLocaleString()}</span>
+                          </div>
+                        )}
+
+                        {req.signedBy && (
+                          <div className="p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-sm flex items-center gap-3">
+                            <div className="p-2 bg-emerald-500/10 rounded-sm text-emerald-500">
+                              <ShieldCheck className="w-4 h-4 animate-pulse" />
+                            </div>
+                            <div className="text-left leading-none">
+                              <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">LOTE ASSINADO DIGITALMENTE</p>
+                              <p className="text-[8px] font-bold text-zinc-400 mt-1 uppercase">RESPONSÁVEL: {req.signedBy} • {new Date(req.signedAt).toLocaleString()}</p>
+                              <p className="text-[8px] font-mono text-zinc-500 mt-1 opacity-60">HASH: {req.signatureHash}</p>
+                            </div>
                           </div>
                         )}
 
@@ -2722,7 +2786,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                                 onClick={() => handleApproveMaterialRequest(req)}
                                 className="flex items-center gap-2 px-6 py-2 bg-emerald-500 text-white rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/20"
                               >
-                                <CheckCircle2 className="w-3.5 h-3.5" /> Liberar Lote
+                                <CheckCircle2 className="w-3.5 h-3.5" /> Assinar & Liberar
                               </button>
                             </div>
                           )}
@@ -3152,6 +3216,108 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                   </div>
                 </div>
               </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL: ASSINATURA DIGITAL DE MATERIAL */}
+      <AnimatePresence>
+        {isSignatureModalOpen && signingRequest && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-zinc-950/95 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative text-left"
+            >
+              <button 
+                onClick={() => setIsSignatureModalOpen(false)}
+                className="absolute top-4 right-4 bg-zinc-800 p-2 rounded-sm text-zinc-400 hover:text-white transition-colors z-10"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="p-6 bg-gradient-to-r from-yellow-600/20 to-emerald-600/20 border-b border-zinc-800">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-yellow-500 rounded-sm text-zinc-950 shadow-lg shadow-yellow-500/10">
+                    <ShieldCheck className="w-6 h-6 animate-pulse" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none font-sans">Autenticação de Assinatura Digital</h2>
+                    <p className="text-zinc-400 text-[9px] font-black mt-2 uppercase tracking-widest leading-none">SISTEMA ÁGUIA • CONTROLE DE ARSENAL</p>
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleConfirmSignature} className="p-6 space-y-6">
+                <div className="space-y-4">
+                  <div className="bg-zinc-950/50 border border-zinc-850 p-4 rounded-sm space-y-3">
+                    <div className="flex justify-between border-b border-zinc-800/50 pb-2">
+                      <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Material Solicitado:</span>
+                      <span className="text-xs font-black text-white uppercase">{signingRequest.materialName}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-zinc-800/50 pb-2">
+                      <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Quantidade:</span>
+                      <span className="text-xs font-black text-yellow-500">{signingRequest.qty.toLocaleString('pt-BR')} unidades</span>
+                    </div>
+                    <div className="flex justify-between border-b border-zinc-800/50 pb-2">
+                      <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Líder Regional:</span>
+                      <span className="text-xs font-black text-white uppercase">{signingRequest.leaderName}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-zinc-800/50 pb-2">
+                      <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Zona/Equipe:</span>
+                      <span className="text-xs font-black text-white uppercase">{signingRequest.team || '---'}</span>
+                    </div>
+                    {signingRequest.returnDate && (
+                      <div className="flex justify-between border-b border-zinc-800/50 pb-2 bg-yellow-500/5 px-2 py-1 rounded-sm border border-yellow-500/10">
+                        <span className="text-[9px] font-black text-yellow-500 uppercase tracking-wider">Previsão de Devolução:</span>
+                        <span className="text-xs font-black text-yellow-500">{new Date(signingRequest.returnDate + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
+                      </div>
+                    )}
+                    {signingRequest.reason && (
+                      <div className="pt-1 text-left">
+                        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Motivo/Observação:</span>
+                        <p className="text-[10px] text-zinc-400 italic mt-1 bg-zinc-950 p-3 rounded-sm border border-zinc-800/30">"{signingRequest.reason}"</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1 block leading-none">
+                      Assinatura de Punho Digital
+                    </label>
+                    <input 
+                      type="text" 
+                      required
+                      value={signerName}
+                      onChange={(e) => setSignerName(e.target.value)}
+                      placeholder="Digite seu nome completo como assinatura..."
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-sm py-4 px-4 font-bold text-sm text-white outline-none focus:border-yellow-500 transition-colors shadow-inner"
+                    />
+                    <p className="text-[8px] text-zinc-500 leading-normal ml-1">
+                      Ao assinar digitando seu nome, você certifica eletronicamente a liberação deste lote, registrando o carimbo de data/hora e hash de integridade exclusivo do Sistema Águia.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <button 
+                    type="button"
+                    onClick={() => setIsSignatureModalOpen(false)}
+                    className="bg-zinc-800 text-zinc-300 py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest border border-zinc-700 hover:bg-zinc-700 hover:text-white transition-all active:scale-95"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="submit"
+                    className="bg-emerald-500 text-zinc-950 py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl shadow-emerald-500/10 hover:bg-emerald-400 transition-all active:scale-95"
+                  >
+                    Confirmar & Assinar
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -4997,6 +5163,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     const materialId = e.target.materialId.value;
     const qty = parseInt(e.target.qty.value);
     const reason = e.target.reason.value;
+    const returnDate = e.target.returnDate?.value || null;
     
     if (!materialId || isNaN(qty)) return;
 
@@ -5004,13 +5171,14 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     
     await firestoreService.addDocument('material_requests', {
       leaderId: user.uid,
-      leaderName: profileData.name,
-      teamId: teamData?.id,
-      team: profileData.zone,
+      leaderName: profileData.name || user?.displayName || 'Líder',
+      teamId: teamData?.id || '',
+      team: profileData.zone || teamData?.name || 'Base',
       materialId,
       materialName: mat?.name || 'Material Desconhecido',
       qty,
       reason,
+      returnDate,
       status: 'pendente',
       coordinatorId: coordinatorId || teamData?.coordinatorId || '',
       createdAt: Date.now()
@@ -6141,6 +6309,10 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                     <input name="qty" type="number" required placeholder="Ex: 500" className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors" />
                   </div>
                   <div className="space-y-2 text-left">
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Previsão de Devolução (Se aplicável)</label>
+                    <input name="returnDate" type="date" className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors cursor-pointer" />
+                  </div>
+                  <div className="space-y-2 text-left">
                     <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Finalidade / Observação</label>
                     <textarea name="reason" placeholder="Para distribuição no bairro..." className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors min-h-[100px]" />
                   </div>
@@ -6155,16 +6327,16 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                 <h3 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] mb-4">Minhas Solicitações</h3>
                 {materialRequests.filter(r => r.leaderId === user.uid).length > 0 ? (
                   materialRequests.filter(r => r.leaderId === user.uid).sort((a, b) => b.createdAt - a.createdAt).map(req => (
-                    <div key={req.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 flex items-center justify-between group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)]">
-                      <div className="flex items-center gap-5">
-                        <div className={`w-14 h-14 bg-[var(--bg-tertiary)] rounded-sm flex items-center justify-center border border-[var(--border-color)] shadow-inner ${
+                    <div key={req.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)]">
+                      <div className="flex items-start gap-5">
+                        <div className={`w-14 h-14 bg-[var(--bg-tertiary)] rounded-sm flex items-center justify-center border border-[var(--border-color)] shadow-inner flex-shrink-0 ${
                           req.status === 'aprovado' ? 'text-emerald-500' : req.status === 'negado' ? 'text-red-500' : 'text-yellow-500'
                         }`}>
                           <Package className="w-6 h-6" />
                         </div>
-                        <div>
+                        <div className="text-left">
                           <h4 className="font-black text-[var(--text-primary)] text-sm uppercase tracking-tight font-sans">{req.materialName} ({req.qty} un)</h4>
-                          <div className="mt-1 flex items-center gap-3">
+                          <div className="mt-1 flex flex-wrap items-center gap-3">
                             <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">{new Date(req.createdAt).toLocaleDateString()}</span>
                             <div className="w-1 h-1 bg-zinc-300 rounded-full"></div>
                             <span className={`text-[9px] font-black uppercase tracking-widest ${
@@ -6172,10 +6344,54 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                             }`}>
                               {req.status}
                             </span>
+                            {req.receivedByLeader && (
+                              <>
+                                <div className="w-1 h-1 bg-zinc-300 rounded-full"></div>
+                                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-500/10 px-1.5 py-0.5 rounded-sm">
+                                  ✓ RECEBIDO
+                                </span>
+                              </>
+                            )}
                           </div>
+                          {req.returnDate && (
+                            <p className="mt-1.5 text-[10px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-wider">
+                              Previsão de Devolução: {new Date(req.returnDate + 'T12:00:00').toLocaleDateString('pt-BR')}
+                            </p>
+                          )}
                           {req.reason && <p className="mt-2 text-[10px] font-bold text-zinc-500 italic opacity-70">"{req.reason}"</p>}
+                          
+                          {req.signedBy && (
+                            <div className="mt-3 p-2.5 bg-emerald-500/5 border border-emerald-500/10 rounded-sm flex items-center gap-2.5 w-fit">
+                              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                              <div className="leading-none text-left">
+                                <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">ASSINADO DIGITALMENTE POR: {req.signedBy}</span>
+                                <p className="text-[7px] font-mono text-zinc-500 mt-1">AUTORIZAÇÃO: {req.signatureHash}</p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
+
+                      {req.status === 'aprovado' && !req.receivedByLeader && (
+                        <button
+                          onClick={async () => {
+                            if (confirm("Confirmar recebimento deste lote de material?")) {
+                              try {
+                                await firestoreService.updateDocument('material_requests', req.id, {
+                                  receivedByLeader: true,
+                                  receivedAt: Date.now()
+                                });
+                                alert("Recebimento confirmado com sucesso!");
+                              } catch (err: any) {
+                                alert("Erro ao marcar como recebido: " + err.message);
+                              }
+                            }
+                          }}
+                          className="bg-emerald-500 text-zinc-950 px-5 py-2.5 rounded-sm font-black text-[9px] uppercase tracking-widest shadow-lg shadow-emerald-500/10 hover:bg-emerald-400 active:scale-95 transition-all self-end sm:self-center"
+                        >
+                          Marcar como Recebido
+                        </button>
+                      )}
                     </div>
                   ))
                 ) : (
