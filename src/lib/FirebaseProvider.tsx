@@ -9,7 +9,7 @@ import {
   createUserWithEmailAndPassword,
   updatePassword
 } from './firebase';
-import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from './firebase';
 
 interface AuthContextType {
@@ -101,7 +101,24 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                 setCoordinatorId(null);
               }
             } else {
-              setCoordinatorId(null);
+              // Buscar o primeiro coordenador no banco como fallback de segurança
+              try {
+                const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'), limit(1));
+                const snapCoords = await getDocs(qCoords);
+                if (!snapCoords.empty) {
+                  const coordId = snapCoords.docs[0].id;
+                  setCoordinatorId(coordId);
+                  await setDoc(doc(db, 'users', currentUser.uid), {
+                    coordinatorId: coordId
+                  }, { merge: true });
+                  console.log(`🧠 [Auth] Encontrado e atribuído coordinatorId fallback: ${coordId}`);
+                } else {
+                  setCoordinatorId(null);
+                }
+              } catch (e) {
+                console.error("Erro ao buscar coordenador fallback:", e);
+                setCoordinatorId(null);
+              }
             }
           } else if (currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com") {
             setIsAdmin(true);
