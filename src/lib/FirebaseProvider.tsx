@@ -125,6 +125,16 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
             setRole('coordenador');
             setForcePasswordChange(false);
             setCoordinatorId(currentUser.uid);
+            try {
+              await setDoc(doc(db, 'users', currentUser.uid), {
+                name: currentUser.displayName || 'Sérgio Silva Bezerra',
+                email: currentUser.email,
+                role: 'coordenador',
+                createdAt: Date.now()
+              }, { merge: true });
+            } catch (err) {
+              console.error("Erro ao salvar perfil do coordenador:", err);
+            }
           }
           setLoading(false);
         }, (err) => {

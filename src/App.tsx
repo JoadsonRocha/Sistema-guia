@@ -4661,6 +4661,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
   const [activeTab, setActiveTab] = useState<'equipe' | 'logistica' | 'ouvidoria' | 'financeiro' | 'notas' | 'materiais' | 'feed' | 'analise_eleitoral'>('logistica');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [dailyOrder, setDailyOrder] = useState<any>(null);
+  const [resolvedCoordinatorId, setResolvedCoordinatorId] = useState<string | null>(null);
   
   // Notas State
   const [notes, setNotes] = useState<any[]>([]);
@@ -4734,11 +4735,17 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
   const [isEditingVoter, setIsEditingVoter] = useState(false);
   const [editingVoterId, setEditingVoterId] = useState<string | null>(null);
   const [campaignVoters, setCampaignVoters] = useState<any[]>([]);
-
-  // Sincronizar Perfil, Time e Eleitores com Firestore
   useEffect(() => {
-    if (user && coordinatorId) {
+    if (user) {
       let unsubTx: (() => void) | null = null;
+      let unsubNotes: (() => void) | null = null;
+      let unsubDailyOrder: (() => void) | null = null;
+      let unsubMaterials: (() => void) | null = null;
+      let unsubPartners: (() => void) | null = null;
+      let unsubMaterialRequests: (() => void) | null = null;
+      let unsubCampaignVoters: (() => void) | null = null;
+      
+      let currentSubscribedCoordId: string | null = null;
       
       const unsubProfile = onSnapshot(doc(db, 'users', user.uid), async (docSnap) => {
         if (docSnap.exists()) {
@@ -4764,7 +4771,21 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             }
           }
 
+          if (!resolvedCoordId) {
+            try {
+              const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'), limit(1));
+              const snapCoords = await getDocs(qCoords);
+              if (!snapCoords.empty) {
+                resolvedCoordId = snapCoords.docs[0].id;
+              }
+            } catch (e) {
+              console.error("Erro ao buscar coordenador fallback:", e);
+            }
+          }
+
           if (resolvedCoordId) {
+            setResolvedCoordinatorId(resolvedCoordId);
+            
             // Auto-heal existing voters and material requests with empty/missing coordinatorId
             const healVotersAndRequests = async (rCoordId: string) => {
               try {
@@ -4823,6 +4844,77 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
               console.error("Erro ao escutar transações da equipe:", err);
             });
           }
+
+          if (resolvedCoordId && resolvedCoordId !== currentSubscribedCoordId) {
+            currentSubscribedCoordId = resolvedCoordId;
+
+            if (unsubNotes) unsubNotes();
+            const notesQuery = query(
+              collection(db, 'notes'), 
+              where('type', '==', 'tactical'), 
+              where('coordinatorId', '==', resolvedCoordId),
+              orderBy('createdAt', 'desc')
+            );
+            unsubNotes = onSnapshot(notesQuery, (snapshot) => {
+              const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              setNotes(data);
+            }, (err) => {
+              console.error("Erro ao escutar notas:", err);
+            });
+
+            if (unsubDailyOrder) unsubDailyOrder();
+            unsubDailyOrder = onSnapshot(doc(db, 'config', `dailyOrder_${resolvedCoordId}`), (snap) => {
+              if (snap.exists()) setDailyOrder(snap.data());
+            }, (err) => {
+              console.warn("DailyOrder Cabo sync error:", err.message);
+            });
+
+            if (unsubMaterials) unsubMaterials();
+            unsubMaterials = onSnapshot(
+              query(collection(db, 'materials'), where('coordinatorId', '==', resolvedCoordId)), 
+              (snap) => {
+                setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+              }, 
+              (err) => {
+                console.warn("Materials Cabo sync error:", err.message);
+              }
+            );
+
+            if (unsubPartners) unsubPartners();
+            unsubPartners = onSnapshot(
+              query(collection(db, 'partners'), where('coordinatorId', '==', resolvedCoordId)), 
+              (snap) => {
+                setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+              }, 
+              (err) => {
+                console.warn("Partners Cabo sync error:", err.message);
+              }
+            );
+
+            if (unsubMaterialRequests) unsubMaterialRequests();
+            unsubMaterialRequests = firestoreService.subscribeToCollectionFiltered('material_requests', resolvedCoordId, (data) => {
+              setMaterialRequests(data);
+            });
+
+            if (unsubCampaignVoters) unsubCampaignVoters();
+            unsubCampaignVoters = onSnapshot(
+              query(collection(db, 'voters'), where('coordinatorId', '==', resolvedCoordId)),
+              (snap) => {
+                const rawData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+                const uniqueMap = new Map();
+                rawData.forEach((v: any) => {
+                  const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
+                  if (!uniqueMap.has(key)) {
+                    uniqueMap.set(key, v);
+                  }
+                });
+                setCampaignVoters(Array.from(uniqueMap.values()));
+              },
+              (err) => {
+                console.warn("CampaignVoters Cabo sync error:", err.message);
+              }
+            );
+          }
         }
       }, (error) => {
         console.error("Erro ao escutar perfil:", error);
@@ -4852,78 +4944,17 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         console.error("Erro ao escutar agendas do líder:", err);
       });
 
-      const notesQuery = query(
-        collection(db, 'notes'), 
-        where('type', '==', 'tactical'), 
-        where('coordinatorId', '==', coordinatorId),
-        orderBy('createdAt', 'desc')
-      );
-      const unsubNotes = onSnapshot(notesQuery, (snapshot) => {
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setNotes(data);
-      }, (err) => {
-        console.error("Erro ao escutar notas:", err);
-      });
-
-      const unsubDailyOrder = onSnapshot(doc(db, 'config', `dailyOrder_${coordinatorId}`), (snap) => {
-        if (snap.exists()) setDailyOrder(snap.data());
-      }, (err) => {
-        console.warn("DailyOrder Cabo sync error:", err.message);
-      });
-
-      const unsubMaterials = onSnapshot(
-        query(collection(db, 'materials'), where('coordinatorId', '==', coordinatorId)), 
-        (snap) => {
-          setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        }, 
-        (err) => {
-          console.warn("Materials Cabo sync error:", err.message);
-        }
-      );
-
-      const unsubPartners = onSnapshot(
-        query(collection(db, 'partners'), where('coordinatorId', '==', coordinatorId)), 
-        (snap) => {
-          setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        }, 
-        (err) => {
-          console.warn("Partners Cabo sync error:", err.message);
-        }
-      );
-
-      const unsubMaterialRequests = firestoreService.subscribeToCollectionFiltered('material_requests', coordinatorId, (data) => {
-        setMaterialRequests(data);
-      });
-
-      const unsubCampaignVoters = onSnapshot(
-        query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId)),
-        (snap) => {
-          const rawData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
-          const uniqueMap = new Map();
-          rawData.forEach((v: any) => {
-            const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
-            if (!uniqueMap.has(key)) {
-              uniqueMap.set(key, v);
-            }
-          });
-          setCampaignVoters(Array.from(uniqueMap.values()));
-        },
-        (err) => {
-          console.warn("CampaignVoters Cabo sync error:", err.message);
-        }
-      );
-
       return () => {
         unsubProfile();
         unsubVoters();
         unsubAgendas();
-        unsubNotes();
+        if (unsubNotes) unsubNotes();
         if (unsubTx) unsubTx();
-        unsubDailyOrder();
-        unsubMaterials();
-        unsubPartners();
-        unsubMaterialRequests();
-        unsubCampaignVoters();
+        if (unsubDailyOrder) unsubDailyOrder();
+        if (unsubMaterials) unsubMaterials();
+        if (unsubPartners) unsubPartners();
+        if (unsubMaterialRequests) unsubMaterialRequests();
+        if (unsubCampaignVoters) unsubCampaignVoters();
       };
     }
   }, [user, coordinatorId]);
@@ -4985,7 +5016,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             location: { lat: latitude, lng: longitude },
             type: 'selfie',
             status: 'validado',
-            coordinatorId: coordinatorId || ''
+            coordinatorId: resolvedCoordinatorId || coordinatorId || ''
           };
           
           const queue = JSON.parse(safeLocalStorage.getItem('aguia_offline_queue') || '[]');
@@ -5180,7 +5211,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
       reason,
       returnDate,
       status: 'pendente',
-      coordinatorId: coordinatorId || teamData?.coordinatorId || '',
+      coordinatorId: resolvedCoordinatorId || coordinatorId || teamData?.coordinatorId || '',
       createdAt: Date.now()
     });
     e.target.reset();
@@ -5195,7 +5226,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     }
 
     try {
-      const activeCoordId = coordinatorId || teamData?.coordinatorId || '';
+      const activeCoordId = resolvedCoordinatorId || coordinatorId || teamData?.coordinatorId || '';
       // Verificar se já existe um eleitor com este telefone antes de criar um novo dentro da mesma campanha
       if (!isEditingVoter && voterForm.phone && voterForm.phone.length > 5) {
         const q = query(
@@ -5425,7 +5456,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
     try {
       for (const voter of parsedVoters) {
         try {
-          const activeCoordId = coordinatorId || teamData?.coordinatorId || '';
+          const activeCoordId = resolvedCoordinatorId || coordinatorId || teamData?.coordinatorId || '';
           if (voter.phone && voter.phone.length > 5) {
             const q = query(
               collection(db, 'voters'), 
@@ -5491,7 +5522,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         leaderId: user.uid,
         leaderName: profileData.name || user.displayName || 'Líder',
         team: profileData.zone || 'Pacaraima',
-        coordinatorId: coordinatorId || '',
+        coordinatorId: resolvedCoordinatorId || coordinatorId || '',
         createdAt: Date.now()
       });
       setIsFuelModalOpen(false);
@@ -5514,7 +5545,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         leaderId: user.uid,
         leaderName: profileData.name || user.displayName || 'Líder',
         team: profileData.zone || 'Pacaraima',
-        coordinatorId: coordinatorId || '',
+        coordinatorId: resolvedCoordinatorId || coordinatorId || '',
         createdAt: Date.now()
       });
       setIsDemandModalOpen(false);
@@ -5531,7 +5562,8 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
 
     try {
       // TAREFA 3: VALIDAR CHOQUE LOGÍSTICO (filtrado por campanha do coordenador)
-      const confirmedAgendas = await firestoreService.getCollectionFiltered<any>('agenda', coordinatorId || '');
+      const activeCoordId = resolvedCoordinatorId || coordinatorId || '';
+      const confirmedAgendas = await firestoreService.getCollectionFiltered<any>('agenda', activeCoordId);
       const validation = validarSugestaoAgenda(
         agendaForm as AgendaItem, 
         confirmedAgendas.filter(a => a.status === 'confirmado')
@@ -5547,7 +5579,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         status: 'pendente',
         sugeridoPorId: user.uid,
         sugeridoPor: profileData.name || user.displayName,
-        coordinatorId: coordinatorId || '',
+        coordinatorId: activeCoordId,
         createdAt: Date.now(),
         team: profileData.zone
       });
@@ -5589,7 +5621,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         team: teamData.name,
         description: expenseForm.description,
         purpose: expenseForm.purpose,
-        coordinatorId: coordinatorId || '',
+        coordinatorId: resolvedCoordinatorId || coordinatorId || '',
         date: Date.now()
       });
 
