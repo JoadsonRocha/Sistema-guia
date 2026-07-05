@@ -115,9 +115,13 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
               }
             } else {
               // No coordinatorId and no teamId in user document.
-              // Try to find if there is a team where leaderEmail matches user's email
+              // Try to find if there is a team where leaderEmail matches user's email (handling capitalization)
               try {
-                const qTeams = query(collection(db, 'teams'), where('leaderEmail', '==', currentUser.email?.toLowerCase() || ''));
+                const emailVariants = Array.from(new Set([
+                  currentUser.email?.toLowerCase() || '',
+                  currentUser.email || ''
+                ])).filter(Boolean);
+                const qTeams = query(collection(db, 'teams'), where('leaderEmail', 'in', emailVariants));
                 const snapTeams = await getDocs(qTeams);
                 if (!snapTeams.empty) {
                   const teamId = snapTeams.docs[0].id;
@@ -189,8 +193,11 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                   });
                   console.log(`🧠 [Auth] Created missing profile from pre_registration for ${currentUser.email}`);
                 } else {
-                  // Try to find if there is a team where leaderEmail matches user's email
-                  const qTeams = query(collection(db, 'teams'), where('leaderEmail', '==', currentUser.email.toLowerCase()));
+                  const emailVariants = Array.from(new Set([
+                    currentUser.email.toLowerCase(),
+                    currentUser.email
+                  ])).filter(Boolean);
+                  const qTeams = query(collection(db, 'teams'), where('leaderEmail', 'in', emailVariants));
                   const snapTeams = await getDocs(qTeams);
                   if (!snapTeams.empty) {
                     const teamId = snapTeams.docs[0].id;

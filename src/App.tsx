@@ -4825,22 +4825,26 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
           }
 
           if (!resolvedCoordId) {
-            try {
-              // Try by role first
-              const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'), limit(1));
-              const snapCoords = await getDocs(qCoords);
-              if (!snapCoords.empty) {
-                resolvedCoordId = snapCoords.docs[0].id;
-              } else {
-                // Try by exact email of the main coordinator as fallback
-                const qEmail = query(collection(db, 'users'), where('email', '==', 'sergiosilvabezerra@gmail.com'), limit(1));
-                const snapEmail = await getDocs(qEmail);
-                if (!snapEmail.empty) {
-                  resolvedCoordId = snapEmail.docs[0].id;
+            if (user.email?.toLowerCase() === 'sergiosilvabezerra@gmail.com') {
+              resolvedCoordId = user.uid;
+            } else {
+              try {
+                // Try by role first
+                const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'), limit(1));
+                const snapCoords = await getDocs(qCoords);
+                if (!snapCoords.empty) {
+                  resolvedCoordId = snapCoords.docs[0].id;
+                } else {
+                  // Try by exact email variants as fallback (Firestore queries are case sensitive)
+                  const qEmail = query(collection(db, 'users'), where('email', 'in', ['sergiosilvabezerra@gmail.com', 'SERGIOSILVABEZERRA@gmail.com']), limit(1));
+                  const snapEmail = await getDocs(qEmail);
+                  if (!snapEmail.empty) {
+                    resolvedCoordId = snapEmail.docs[0].id;
+                  }
                 }
+              } catch (e) {
+                console.error("Erro ao buscar coordenador fallback:", e);
               }
-            } catch (e) {
-              console.error("Erro ao buscar coordenador fallback:", e);
             }
           }
 
