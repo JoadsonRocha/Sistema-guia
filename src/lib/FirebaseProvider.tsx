@@ -101,22 +101,38 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                 setCoordinatorId(null);
               }
             } else {
-              // Buscar o primeiro coordenador no banco como fallback de segurança
+              // No coordinatorId and no teamId in user document.
+              // Try to find if there is a team where leaderEmail matches user's email
               try {
-                const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'), limit(1));
-                const snapCoords = await getDocs(qCoords);
-                if (!snapCoords.empty) {
-                  const coordId = snapCoords.docs[0].id;
-                  setCoordinatorId(coordId);
+                const qTeams = query(collection(db, 'teams'), where('leaderEmail', '==', currentUser.email?.toLowerCase() || ''));
+                const snapTeams = await getDocs(qTeams);
+                if (!snapTeams.empty) {
+                  const teamId = snapTeams.docs[0].id;
+                  const teamData = snapTeams.docs[0].data();
+                  setCoordinatorId(teamData.coordinatorId || null);
                   await setDoc(doc(db, 'users', currentUser.uid), {
-                    coordinatorId: coordId
+                    teamId: teamId,
+                    teamName: teamData.name || '',
+                    coordinatorId: teamData.coordinatorId || ''
                   }, { merge: true });
-                  console.log(`🧠 [Auth] Encontrado e atribuído coordinatorId fallback: ${coordId}`);
+                  console.log(`🧠 [Auth] Healed leader profile using matching team: ${teamId}`);
                 } else {
-                  setCoordinatorId(null);
+                  // Fallback: search for first coordinator
+                  const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'), limit(1));
+                  const snapCoords = await getDocs(qCoords);
+                  if (!snapCoords.empty) {
+                    const coordId = snapCoords.docs[0].id;
+                    setCoordinatorId(coordId);
+                    await setDoc(doc(db, 'users', currentUser.uid), {
+                      coordinatorId: coordId
+                    }, { merge: true });
+                    console.log(`🧠 [Auth] Assigned coordinatorId fallback: ${coordId}`);
+                  } else {
+                    setCoordinatorId(null);
+                  }
                 }
               } catch (e) {
-                console.error("Erro ao buscar coordenador fallback:", e);
+                console.error("Error healing missing team/coordinator:", e);
                 setCoordinatorId(null);
               }
             }
@@ -134,6 +150,77 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
               }, { merge: true });
             } catch (err) {
               console.error("Erro ao salvar perfil do coordenador:", err);
+            }
+          } else {
+            // The user document does not exist, and it's not the admin.
+            // Let's check if there is a pre_registration for this email.
+            if (currentUser.email) {
+              try {
+                const preRegSnap = await getDoc(doc(db, 'pre_registrations', currentUser.email.toLowerCase()));
+                if (preRegSnap.exists()) {
+                  const preRegData = preRegSnap.data();
+                  setRole('lider');
+                  setForcePasswordChange(true);
+                  setCoordinatorId(preRegData.coordinatorId || null);
+                  await setDoc(doc(db, 'users', currentUser.uid), {
+                    email: currentUser.email.toLowerCase(),
+                    role: 'lider',
+                    name: preRegData.name || currentUser.displayName || 'Líder',
+                    phone: preRegData.phone || '',
+                    address: preRegData.address || '',
+                    teamName: preRegData.teamName || '',
+                    teamId: preRegData.teamId || '',
+                    coordinatorId: preRegData.coordinatorId || '',
+                    forcePasswordChange: true,
+                    createdAt: Date.now()
+                  });
+                  console.log(`🧠 [Auth] Created missing profile from pre_registration for ${currentUser.email}`);
+                } else {
+                  // Try to find if there is a team where leaderEmail matches user's email
+                  const qTeams = query(collection(db, 'teams'), where('leaderEmail', '==', currentUser.email.toLowerCase()));
+                  const snapTeams = await getDocs(qTeams);
+                  if (!snapTeams.empty) {
+                    const teamId = snapTeams.docs[0].id;
+                    const teamData = snapTeams.docs[0].data();
+                    setRole('lider');
+                    setForcePasswordChange(false);
+                    setCoordinatorId(teamData.coordinatorId || null);
+                    await setDoc(doc(db, 'users', currentUser.uid), {
+                      email: currentUser.email.toLowerCase(),
+                      role: 'lider',
+                      name: teamData.leader || currentUser.displayName || 'Líder',
+                      phone: teamData.leaderPhone || '',
+                      address: teamData.leaderAddress || '',
+                      teamName: teamData.name || '',
+                      teamId: teamId,
+                      coordinatorId: teamData.coordinatorId || '',
+                      createdAt: Date.now()
+                    });
+                    console.log(`🧠 [Auth] Created profile from matching team for ${currentUser.email}`);
+                  } else {
+                    // Fallback: No pre_registration or team. Create a default leader profile linked to first coordinator
+                    let fallbackCoordId = '';
+                    const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'), limit(1));
+                    const snapCoords = await getDocs(qCoords);
+                    if (!snapCoords.empty) {
+                      fallbackCoordId = snapCoords.docs[0].id;
+                    }
+                    setRole('lider');
+                    setForcePasswordChange(false);
+                    setCoordinatorId(fallbackCoordId || null);
+                    await setDoc(doc(db, 'users', currentUser.uid), {
+                      email: currentUser.email.toLowerCase(),
+                      role: 'lider',
+                      name: currentUser.displayName || 'Líder Regional',
+                      coordinatorId: fallbackCoordId,
+                      createdAt: Date.now()
+                    });
+                    console.log(`🧠 [Auth] Created default leader profile for ${currentUser.email}`);
+                  }
+                }
+              } catch (e) {
+                console.error("Error healing missing profile:", e);
+              }
             }
           }
           setLoading(false);
