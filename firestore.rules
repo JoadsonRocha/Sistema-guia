@@ -41,7 +41,11 @@ service cloud.firestore {
     
     // Users
     match /users/{userId} {
-      allow read: if isOwner(userId) || (isSignedIn() && getUserRole() == 'coordenador' && resource.data.get('coordinatorId', '') == request.auth.uid);
+      allow read: if isOwner(userId) || (isSignedIn() && (
+        getUserRole() == 'coordenador' || 
+        resource.data.get('role', '') == 'coordenador' ||
+        (getUserRole() == 'coordenador' && resource.data.get('coordinatorId', '') == request.auth.uid)
+      ));
       allow write: if isOwner(userId) || isAdmin();
     }
 
@@ -53,7 +57,10 @@ service cloud.firestore {
 
     // Teams
     match /teams/{teamId} {
-      allow read: if isSignedIn() && resource.data.coordinatorId == getCoordinatorId();
+      allow read: if isSignedIn() && (
+        resource.data.coordinatorId == getCoordinatorId() || 
+        (resource.data.leaderEmail != null && resource.data.leaderEmail.toLowerCase() == request.auth.token.email.toLowerCase())
+      );
       allow write: if isSignedIn() && request.resource.data.coordinatorId == getCoordinatorId();
     }
 

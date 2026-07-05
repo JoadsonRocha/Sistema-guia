@@ -4814,16 +4814,41 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
           let resolvedCoordId = data.coordinatorId || coordinatorId || '';
 
           if (data.teamId) {
-            const teamSnap = await getDoc(doc(db, 'teams', data.teamId));
-            if (teamSnap.exists()) {
-              const teamDataRaw = teamSnap.data();
-              setTeamData({ ...teamDataRaw, id: teamSnap.id });
-              if (!resolvedCoordId && teamDataRaw.coordinatorId) {
-                resolvedCoordId = teamDataRaw.coordinatorId;
+            try {
+              const teamSnap = await getDoc(doc(db, 'teams', data.teamId));
+              if (teamSnap.exists()) {
+                const teamDataRaw = teamSnap.data();
+                setTeamData({ ...teamDataRaw, id: teamSnap.id });
+                if (!resolvedCoordId && teamDataRaw.coordinatorId) {
+                  resolvedCoordId = teamDataRaw.coordinatorId;
+                }
               }
+            } catch (err) {
+              console.warn("Erro ao buscar equipe por teamId:", err);
             }
           }
 
+          // Fallback 1: Query teams collection where leaderEmail matches user's email
+          if (!resolvedCoordId && user.email) {
+            try {
+              const emailVariants = Array.from(new Set([
+                user.email.toLowerCase(),
+                user.email
+              ])).filter(Boolean);
+              const qTeams = query(collection(db, 'teams'), where('leaderEmail', 'in', emailVariants));
+              const snapTeams = await getDocs(qTeams);
+              if (!snapTeams.empty) {
+                const teamDataRaw = snapTeams.docs[0].data();
+                setTeamData({ ...teamDataRaw, id: snapTeams.docs[0].id });
+                resolvedCoordId = teamDataRaw.coordinatorId || '';
+                console.log(`🧠 [Healer] Resolved coordinatorId: ${resolvedCoordId} from matching team`);
+              }
+            } catch (err) {
+              console.warn("Erro ao buscar equipe por leaderEmail:", err);
+            }
+          }
+
+          // Fallback 2: Query coordinator user from users collection
           if (!resolvedCoordId) {
             if (user.email?.toLowerCase() === 'sergiosilvabezerra@gmail.com') {
               resolvedCoordId = user.uid;
