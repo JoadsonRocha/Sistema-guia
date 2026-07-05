@@ -106,7 +106,7 @@ service cloud.firestore {
 
     // Materials
     match /materials/{id} {
-      allow read: if isSignedIn() && resource.data.coordinatorId == getCoordinatorId();
+      allow read: if isSignedIn();
       allow write: if isSignedIn() && request.resource.data.coordinatorId == getCoordinatorId();
     }
 

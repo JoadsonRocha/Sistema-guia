@@ -4826,10 +4826,18 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
 
           if (!resolvedCoordId) {
             try {
+              // Try by role first
               const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'), limit(1));
               const snapCoords = await getDocs(qCoords);
               if (!snapCoords.empty) {
                 resolvedCoordId = snapCoords.docs[0].id;
+              } else {
+                // Try by exact email of the main coordinator as fallback
+                const qEmail = query(collection(db, 'users'), where('email', '==', 'sergiosilvabezerra@gmail.com'), limit(1));
+                const snapEmail = await getDocs(qEmail);
+                if (!snapEmail.empty) {
+                  resolvedCoordId = snapEmail.docs[0].id;
+                }
               }
             } catch (e) {
               console.error("Erro ao buscar coordenador fallback:", e);
@@ -7658,7 +7666,7 @@ const parseCurrencyToNumber = (value: string) => {
 };
 
 export default function App() {
-  const { user, login, loginWithEmail, signupWithEmail, logout, loading, isAdmin, forcePasswordChange, changePassword } = useAuth();
+  const { user, login, loginWithEmail, signupWithEmail, logout, loading, isAdmin, forcePasswordChange, changePassword, resetPassword } = useAuth();
   const [view, setView] = useState<'coord' | 'cabo'>('cabo');
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (safeLocalStorage.getItem('aguia-theme') as 'light' | 'dark') || 'light';
@@ -7790,7 +7798,21 @@ export default function App() {
         }
       }
     } catch (err: any) {
-      setAuthError(err.message || 'Erro na autenticação. Verifique suas credenciais.');
+      console.error("Auth error caught:", err);
+      const errorMsg = err.message || '';
+      const errorCode = err.code || '';
+
+      if (errorCode === 'auth/email-already-in-use' || errorMsg.includes('email-already-in-use')) {
+        setAuthError('Este e-mail já possui uma conta ativa no Firebase. Se você é o líder João Cardoso e já criou uma senha personalizada anteriormente, por favor faça o login usando a SUA SENHA cadastrada (e não a senha temporária). Caso tenha esquecido, clique em "Esqueceu a senha?" abaixo para redefinir.');
+      } else if (errorCode === 'auth/invalid-credential' || errorMsg.includes('invalid-credential') || errorMsg.includes('INVALID_LOGIN_CREDENTIALS')) {
+        setAuthError('Chave de acesso (senha) incorreta para este operador. Se você recebeu uma senha temporária por WhatsApp, verifique se digitou as letras e números exatamente iguais.');
+      } else if (errorCode === 'auth/user-not-found' || errorMsg.includes('user-not-found')) {
+        setAuthError('Operador não encontrado. Se você é um líder novo, certifique-se de que o coordenador cadastrou o seu e-mail corretamente.');
+      } else if (errorCode === 'auth/too-many-requests' || errorMsg.includes('too-many-requests')) {
+        setAuthError('Acesso bloqueado temporariamente por excesso de tentativas incorretas. Aguarde alguns instantes ou mude sua senha.');
+      } else {
+        setAuthError(errorMsg || 'Erro na autenticação. Verifique suas credenciais.');
+      }
     }
   };
 
@@ -7882,7 +7904,31 @@ export default function App() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 block opacity-60">Chave de Acesso</label>
+              <div className="flex justify-between items-center">
+                <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 block opacity-60">Chave de Acesso</label>
+                {!isRegistering && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!email) {
+                        alert("Por favor, digite o seu e-mail no campo acima antes de solicitar a redefinição.");
+                        return;
+                      }
+                      if (confirm(`Deseja enviar um e-mail de redefinição de senha para ${email}?`)) {
+                        try {
+                          await resetPassword(email);
+                          alert(`E-mail de redefinição enviado com sucesso para ${email}! Verifique sua caixa de entrada (e pasta de Spam).`);
+                        } catch (err: any) {
+                          alert(`Erro ao enviar e-mail de redefinição: ${err.message || err}`);
+                        }
+                      }
+                    }}
+                    className="text-[9px] font-black text-yellow-600 hover:text-yellow-500 uppercase tracking-widest transition-colors focus:outline-none"
+                  >
+                    Esqueceu a senha?
+                  </button>
+                )}
+              </div>
               <input 
                 type="password" 
                 value={password}

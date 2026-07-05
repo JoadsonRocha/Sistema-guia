@@ -7,7 +7,8 @@ import {
   auth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  updatePassword
+  updatePassword,
+  sendPasswordResetEmail
 } from './firebase';
 import { doc, getDoc, setDoc, onSnapshot, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from './firebase';
@@ -22,6 +23,7 @@ interface AuthContextType {
   signupWithEmail: (email: string, pass: string, role: 'coordenador' | 'lider', extraData?: any) => Promise<void>;
   logout: () => Promise<void>;
   changePassword: (newPass: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   isAdmin: boolean;
   coordinatorId: string | null;
 }
@@ -75,6 +77,17 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
             const isCoordOrAdmin = data.role === 'coordenador' || (data.role !== 'lider' && currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com");
             setIsAdmin(isCoordOrAdmin);
             
+            if (currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com" && data.role !== 'coordenador') {
+              try {
+                await setDoc(doc(db, 'users', currentUser.uid), {
+                  role: 'coordenador'
+                }, { merge: true });
+                console.log("🧠 [Auth] Healed coordinator role in Firestore for Sérgio");
+              } catch (e) {
+                console.error("Error healing coordinator role:", e);
+              }
+            }
+
             if (isCoordOrAdmin) {
               setCoordinatorId(currentUser.uid);
             } else if (data.coordinatorId) {
@@ -307,8 +320,17 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const resetPassword = async (userEmail: string) => {
+    try {
+      await sendPasswordResetEmail(auth, userEmail);
+    } catch (error) {
+      console.error("Password reset email failed:", error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, role, loading, login, loginWithEmail, signupWithEmail, logout, isAdmin, forcePasswordChange, changePassword, coordinatorId }}>
+    <AuthContext.Provider value={{ user, role, loading, login, loginWithEmail, signupWithEmail, logout, isAdmin, forcePasswordChange, changePassword, resetPassword, coordinatorId }}>
       {(!loading || user) ? children : (
         <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-8">
            <div className="w-16 h-16 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mb-4"></div>
