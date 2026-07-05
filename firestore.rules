@@ -19,13 +19,16 @@ service cloud.firestore {
     
     function isAdmin() { 
       return isSignedIn() && (
-        request.auth.token.email.matches('(?i)sergiosilvabezerra@gmail.com') ||
-        getUserRole() == 'coordenador'
+        getUserRole() == 'coordenador' || (
+          request.auth.token.email.matches('(?i)sergiosilvabezerra@gmail.com') && getUserRole() != 'lider'
+        )
       );
     }
     
     function getCoordinatorId() {
-      return request.auth.token.email.matches('(?i)sergiosilvabezerra@gmail.com') ? request.auth.uid : (
+      return request.auth.token.email.matches('(?i)sergiosilvabezerra@gmail.com') ? (
+        getUserRole() == 'lider' ? getUserCoordinatorId() : request.auth.uid
+      ) : (
         getUserRole() == 'coordenador' ? request.auth.uid : getUserCoordinatorId()
       );
     }

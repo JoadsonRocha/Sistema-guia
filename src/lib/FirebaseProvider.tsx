@@ -72,7 +72,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
             const data = snapshot.data();
             setRole(data.role);
             setForcePasswordChange(!!data.forcePasswordChange);
-            const isCoordOrAdmin = data.role === 'coordenador' || currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com";
+            const isCoordOrAdmin = data.role === 'coordenador' || (data.role !== 'lider' && currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com");
             setIsAdmin(isCoordOrAdmin);
             
             if (isCoordOrAdmin) {

@@ -839,6 +839,27 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
     }
   };
 
+  const handleConfirmReturnMaterialRequest = async (req: any) => {
+    if (confirm(`Confirmar recebimento de volta do material: ${req.materialName} (${req.qty} un) de ${req.leaderName}?`)) {
+      try {
+        const mat = materials.find(m => m.id === req.materialId);
+        if (mat) {
+          await firestoreService.updateDocument('materials', req.materialId, {
+            current: (mat.current || 0) + req.qty
+          });
+        }
+        await firestoreService.updateDocument('material_requests', req.id, {
+          status: 'devolvido',
+          returnApprovedByCoord: true,
+          returnApprovedAt: Date.now()
+        });
+        alert("Devolução confirmada e estoque atualizado com sucesso!");
+      } catch (err: any) {
+        alert("Erro ao confirmar devolução: " + err.message);
+      }
+    }
+  };
+
   // --- REPORT GENERATION LOGIC ---
   const generateReport = async (type: string, filters: any = {}) => {
     const userName = profileData?.name || user?.email || 'Coordenador';
@@ -2718,11 +2739,15 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     {materialRequests.length > 0 ? materialRequests.sort((a, b) => b.createdAt - a.createdAt).map(req => (
                       <div key={req.id} className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-6 flex flex-col gap-5 hover:border-yellow-500/30 transition-all shadow-inner relative overflow-hidden group">
                         {req.status === 'pendente' && <div className="absolute top-0 right-0 w-2 h-full bg-yellow-500"></div>}
+                        {req.status === 'devolucao_pendente' && <div className="absolute top-0 right-0 w-2 h-full bg-blue-500 animate-pulse"></div>}
                         
                         <div className="flex justify-between items-start">
                           <div className="flex items-center gap-4">
                             <div className={`w-12 h-12 rounded-sm flex items-center justify-center shadow-inner border border-[var(--border-color)] ${
-                              req.status === 'aprovado' ? 'bg-emerald-500/10 text-emerald-500' : req.status === 'negado' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500'
+                              req.status === 'aprovado' ? 'bg-emerald-500/10 text-emerald-500' : 
+                              req.status === 'devolucao_pendente' ? 'bg-blue-500/10 text-blue-500' :
+                              req.status === 'devolvido' ? 'bg-zinc-500/10 text-zinc-400' :
+                              req.status === 'negado' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500'
                             }`}>
                               <Package className="w-5 h-5" />
                             </div>
@@ -2732,9 +2757,12 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                             </div>
                           </div>
                           <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-sm shadow-sm ${
-                            req.status === 'aprovado' ? 'bg-emerald-500 text-white' : req.status === 'negado' ? 'bg-red-500 text-white' : 'bg-yellow-500 text-zinc-950'
+                            req.status === 'aprovado' ? 'bg-emerald-500 text-white' : 
+                            req.status === 'devolucao_pendente' ? 'bg-blue-600 text-white' :
+                            req.status === 'devolvido' ? 'bg-zinc-500 text-white' :
+                            req.status === 'negado' ? 'bg-red-500 text-white' : 'bg-yellow-500 text-zinc-950'
                           }`}>
-                            {req.status}
+                            {req.status === 'devolucao_pendente' ? 'devolução pendente' : req.status}
                           </span>
                         </div>
 
@@ -2758,6 +2786,20 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                           </div>
                         )}
 
+                        {req.returnedAt && (
+                          <div className="bg-blue-500/5 px-4 py-2.5 rounded-sm border border-blue-500/10 text-left">
+                            <span className="text-[8px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider block mb-0.5">Devolução Solicitada</span>
+                            <span className="text-xs font-black text-blue-600 dark:text-blue-400">✓ DEVOLVIDO PELO LÍDER EM {new Date(req.returnedAt).toLocaleString()}</span>
+                          </div>
+                        )}
+
+                        {req.returnApprovedAt && (
+                          <div className="bg-emerald-500/5 px-4 py-2.5 rounded-sm border border-emerald-500/10 text-left">
+                            <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block mb-0.5">Devolução Confirmada</span>
+                            <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">✓ CONFIRMADO EM {new Date(req.returnApprovedAt).toLocaleString()}</span>
+                          </div>
+                        )}
+
                         {req.signedBy && (
                           <div className="p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-sm flex items-center gap-3">
                             <div className="p-2 bg-emerald-500/10 rounded-sm text-emerald-500">
@@ -2774,22 +2816,33 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                         <div className="flex items-center justify-between pt-4 border-t border-[var(--border-color)]">
                           <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">{new Date(req.createdAt).toLocaleString()}</p>
                           
-                          {req.status === 'pendente' && (
-                            <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3">
+                            {req.status === 'pendente' && (
+                              <>
+                                <button 
+                                  onClick={() => handleDenyMaterialRequest(req.id)}
+                                  className="flex items-center gap-2 px-4 py-2 border border-red-500/30 text-red-500 rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-red-500/10"
+                                >
+                                  <XCircle className="w-3.5 h-3.5" /> Negar
+                                </button>
+                                <button 
+                                  onClick={() => handleApproveMaterialRequest(req)}
+                                  className="flex items-center gap-2 px-6 py-2 bg-emerald-500 text-white rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/20"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" /> Assinar & Liberar
+                                </button>
+                              </>
+                            )}
+
+                            {req.status === 'devolucao_pendente' && (
                               <button 
-                                onClick={() => handleDenyMaterialRequest(req.id)}
-                                className="flex items-center gap-2 px-4 py-2 border border-red-500/30 text-red-500 rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-red-500/10"
+                                onClick={() => handleConfirmReturnMaterialRequest(req)}
+                                className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-blue-500 transition-all active:scale-95 shadow-lg shadow-blue-500/20"
                               >
-                                <XCircle className="w-3.5 h-3.5" /> Negar
+                                <CheckCircle2 className="w-3.5 h-3.5" /> Confirmar Devolução
                               </button>
-                              <button 
-                                onClick={() => handleApproveMaterialRequest(req)}
-                                className="flex items-center gap-2 px-6 py-2 bg-emerald-500 text-white rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/20"
-                              >
-                                <CheckCircle2 className="w-3.5 h-3.5" /> Assinar & Liberar
-                              </button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     )) : (
@@ -6374,7 +6427,10 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                     <div key={req.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)]">
                       <div className="flex items-start gap-5">
                         <div className={`w-14 h-14 bg-[var(--bg-tertiary)] rounded-sm flex items-center justify-center border border-[var(--border-color)] shadow-inner flex-shrink-0 ${
-                          req.status === 'aprovado' ? 'text-emerald-500' : req.status === 'negado' ? 'text-red-500' : 'text-yellow-500'
+                          req.status === 'aprovado' ? 'text-emerald-500' : 
+                          req.status === 'devolucao_pendente' ? 'text-blue-500 animate-pulse' :
+                          req.status === 'devolvido' ? 'text-zinc-500' :
+                          req.status === 'negado' ? 'text-red-500' : 'text-yellow-500'
                         }`}>
                           <Package className="w-6 h-6" />
                         </div>
@@ -6384,9 +6440,12 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                             <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">{new Date(req.createdAt).toLocaleDateString()}</span>
                             <div className="w-1 h-1 bg-zinc-300 rounded-full"></div>
                             <span className={`text-[9px] font-black uppercase tracking-widest ${
-                              req.status === 'aprovado' ? 'text-emerald-600' : req.status === 'negado' ? 'text-red-600' : 'text-yellow-600'
+                              req.status === 'aprovado' ? 'text-emerald-600' : 
+                              req.status === 'devolucao_pendente' ? 'text-blue-600' :
+                              req.status === 'devolvido' ? 'text-zinc-500' :
+                              req.status === 'negado' ? 'text-red-600' : 'text-yellow-600'
                             }`}>
-                              {req.status}
+                              {req.status === 'devolucao_pendente' ? 'Devolução Pendente' : req.status}
                             </span>
                             {req.receivedByLeader && (
                               <>
@@ -6400,6 +6459,16 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                           {req.returnDate && (
                             <p className="mt-1.5 text-[10px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-wider">
                               Previsão de Devolução: {new Date(req.returnDate + 'T12:00:00').toLocaleDateString('pt-BR')}
+                            </p>
+                          )}
+                          {req.returnedAt && (
+                            <p className="mt-1.5 text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                              Enviado para Devolução em: {new Date(req.returnedAt).toLocaleString('pt-BR')}
+                            </p>
+                          )}
+                          {req.returnApprovedAt && (
+                            <p className="mt-1.5 text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                              Devolução Confirmada em: {new Date(req.returnApprovedAt).toLocaleString('pt-BR')}
                             </p>
                           )}
                           {req.reason && <p className="mt-2 text-[10px] font-bold text-zinc-500 italic opacity-70">"{req.reason}"</p>}
@@ -6434,6 +6503,28 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                           className="bg-emerald-500 text-zinc-950 px-5 py-2.5 rounded-sm font-black text-[9px] uppercase tracking-widest shadow-lg shadow-emerald-500/10 hover:bg-emerald-400 active:scale-95 transition-all self-end sm:self-center"
                         >
                           Marcar como Recebido
+                        </button>
+                      )}
+
+                      {req.status === 'aprovado' && req.receivedByLeader && !req.returnedByLeader && (
+                        <button
+                          onClick={async () => {
+                            if (confirm(`Confirmar devolução do material: ${req.materialName}?`)) {
+                              try {
+                                await firestoreService.updateDocument('material_requests', req.id, {
+                                  status: 'devolucao_pendente',
+                                  returnedByLeader: true,
+                                  returnedAt: Date.now()
+                                });
+                                alert("Devolução registrada! O coordenador confirmará o recebimento de volta ao estoque.");
+                              } catch (err: any) {
+                                alert("Erro ao registrar devolução: " + err.message);
+                              }
+                            }
+                          }}
+                          className="bg-blue-600 text-white px-5 py-2.5 rounded-sm font-black text-[9px] uppercase tracking-widest shadow-lg shadow-blue-500/10 hover:bg-blue-500 active:scale-95 transition-all self-end sm:self-center"
+                        >
+                          Devolver Material
                         </button>
                       )}
                     </div>
