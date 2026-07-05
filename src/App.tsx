@@ -4786,6 +4786,18 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
           if (resolvedCoordId) {
             setResolvedCoordinatorId(resolvedCoordId);
             
+            // Auto-heal: propagate resolved coordinatorId back to user document so security rules can approve reads
+            if (data.coordinatorId !== resolvedCoordId) {
+              try {
+                await updateDoc(doc(db, 'users', user.uid), {
+                  coordinatorId: resolvedCoordId
+                });
+                console.log(`🧠 [Healer] Propagated coordinatorId: ${resolvedCoordId} to user profile in Firestore`);
+              } catch (err) {
+                console.error("Error writing coordinatorId to user profile:", err);
+              }
+            }
+            
             // Auto-heal existing voters and material requests with empty/missing coordinatorId
             const healVotersAndRequests = async (rCoordId: string) => {
               try {
