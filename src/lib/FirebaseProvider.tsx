@@ -90,66 +90,84 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
 
             if (isCoordOrAdmin) {
               setCoordinatorId(currentUser.uid);
-            } else if (data.coordinatorId) {
-              setCoordinatorId(data.coordinatorId);
-            } else if (data.teamId) {
-              try {
-                const teamSnap = await getDoc(doc(db, 'teams', data.teamId));
-                if (teamSnap.exists()) {
-                  const teamData = teamSnap.data();
-                  if (teamData.coordinatorId) {
-                    setCoordinatorId(teamData.coordinatorId);
-                    await setDoc(doc(db, 'users', currentUser.uid), {
-                      coordinatorId: teamData.coordinatorId
-                    }, { merge: true });
-                    console.log(`🧠 [Auth] Healed missing coordinatorId for leader ${currentUser.uid}`);
-                  } else {
-                    setCoordinatorId(null);
-                  }
-                } else {
-                  setCoordinatorId(null);
-                }
-              } catch (e) {
-                console.error("Error healing coordinatorId:", e);
-                setCoordinatorId(null);
-              }
             } else {
-              // No coordinatorId and no teamId in user document.
-              // Try to find if there is a team where leaderEmail matches user's email (handling capitalization)
-              try {
-                const emailVariants = Array.from(new Set([
-                  currentUser.email?.toLowerCase() || '',
-                  currentUser.email || ''
-                ])).filter(Boolean);
-                const qTeams = query(collection(db, 'teams'), where('leaderEmail', 'in', emailVariants));
-                const snapTeams = await getDocs(qTeams);
-                if (!snapTeams.empty) {
-                  const teamId = snapTeams.docs[0].id;
-                  const teamData = snapTeams.docs[0].data();
-                  setCoordinatorId(teamData.coordinatorId || null);
-                  await setDoc(doc(db, 'users', currentUser.uid), {
-                    teamId: teamId,
-                    teamName: teamData.name || '',
-                    coordinatorId: teamData.coordinatorId || ''
-                  }, { merge: true });
-                  console.log(`🧠 [Auth] Healed leader profile using matching team: ${teamId}`);
-                } else {
-                  // Fallback: search for first coordinator
+              // Priority 1: Check teamId's coordinatorId (source of truth)
+              let resolvedCoordId = '';
+              if (data.teamId) {
+                try {
+                  const teamSnap = await getDoc(doc(db, 'teams', data.teamId));
+                  if (teamSnap.exists()) {
+                    const teamData = teamSnap.data();
+                    if (teamData.coordinatorId) {
+                      resolvedCoordId = teamData.coordinatorId;
+                      console.log(`🧠 [Auth] Resolved coordinatorId ${resolvedCoordId} from teamId: ${data.teamId}`);
+                    }
+                  }
+                } catch (e) {
+                  console.error("Error reading team for auth coordinatorId:", e);
+                }
+              }
+
+              // Priority 2: Fallback to leader email match
+              if (!resolvedCoordId && currentUser.email) {
+                try {
+                  const emailVariants = Array.from(new Set([
+                    currentUser.email.toLowerCase(),
+                    currentUser.email
+                  ])).filter(Boolean);
+                  const qTeams = query(collection(db, 'teams'), where('leaderEmail', 'in', emailVariants));
+                  const snapTeams = await getDocs(qTeams);
+                  if (!snapTeams.empty) {
+                    const teamId = snapTeams.docs[0].id;
+                    const teamData = snapTeams.docs[0].data();
+                    resolvedCoordId = teamData.coordinatorId || '';
+                    if (resolvedCoordId) {
+                      await setDoc(doc(db, 'users', currentUser.uid), {
+                        teamId: teamId,
+                        teamName: teamData.name || '',
+                        coordinatorId: resolvedCoordId
+                      }, { merge: true });
+                      console.log(`🧠 [Auth] Healed leader profile using matching team: ${teamId}`);
+                    }
+                  }
+                } catch (e) {
+                  console.error("Error matching team by email for auth:", e);
+                }
+              }
+
+              // Priority 3: Fallback to user document's coordinatorId
+              if (!resolvedCoordId && data.coordinatorId) {
+                resolvedCoordId = data.coordinatorId;
+              }
+
+              // Priority 4: Fallback to first coordinator query
+              if (!resolvedCoordId) {
+                try {
                   const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'), limit(1));
                   const snapCoords = await getDocs(qCoords);
                   if (!snapCoords.empty) {
-                    const coordId = snapCoords.docs[0].id;
-                    setCoordinatorId(coordId);
+                    resolvedCoordId = snapCoords.docs[0].id;
+                    console.log(`🧠 [Auth] Assigned coordinatorId fallback from users collection: ${resolvedCoordId}`);
+                  }
+                } catch (e) {
+                  console.error("Error querying first coordinator for auth:", e);
+                }
+              }
+
+              // Apply the resolved coordinatorId
+              if (resolvedCoordId) {
+                setCoordinatorId(resolvedCoordId);
+                if (data.coordinatorId !== resolvedCoordId) {
+                  try {
                     await setDoc(doc(db, 'users', currentUser.uid), {
-                      coordinatorId: coordId
+                      coordinatorId: resolvedCoordId
                     }, { merge: true });
-                    console.log(`🧠 [Auth] Assigned coordinatorId fallback: ${coordId}`);
-                  } else {
-                    setCoordinatorId(null);
+                    console.log(`🧠 [Auth] Propagated correct coordinatorId ${resolvedCoordId} to user profile`);
+                  } catch (e) {
+                    console.error("Error writing propagated coordinatorId:", e);
                   }
                 }
-              } catch (e) {
-                console.error("Error healing missing team/coordinator:", e);
+              } else {
                 setCoordinatorId(null);
               }
             }

@@ -4811,16 +4811,18 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             zone: teamName
           });
           
-          let resolvedCoordId = data.coordinatorId || coordinatorId || '';
+          let resolvedCoordId = '';
 
+          // Priority 1: Check Team first if teamId is available (Ultimate Source of Truth)
           if (data.teamId) {
             try {
               const teamSnap = await getDoc(doc(db, 'teams', data.teamId));
               if (teamSnap.exists()) {
                 const teamDataRaw = teamSnap.data();
                 setTeamData({ ...teamDataRaw, id: teamSnap.id });
-                if (!resolvedCoordId && teamDataRaw.coordinatorId) {
+                if (teamDataRaw.coordinatorId) {
                   resolvedCoordId = teamDataRaw.coordinatorId;
+                  console.log(`🧠 [Healer] Resolved coordinatorId: ${resolvedCoordId} from teamId: ${data.teamId}`);
                 }
               }
             } catch (err) {
@@ -4828,7 +4830,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             }
           }
 
-          // Fallback 1: Query teams collection where leaderEmail matches user's email
+          // Priority 2: Fallback 1 - Query teams collection where leaderEmail matches user's email
           if (!resolvedCoordId && user.email) {
             try {
               const emailVariants = Array.from(new Set([
@@ -4848,7 +4850,17 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             }
           }
 
-          // Fallback 2: Query coordinator user from users collection
+          // Priority 3: Fallback 2 - Check the leader's user document 'coordinatorId' field
+          if (!resolvedCoordId && data.coordinatorId) {
+            resolvedCoordId = data.coordinatorId;
+          }
+
+          // Priority 4: Fallback 3 - Check context 'coordinatorId'
+          if (!resolvedCoordId && coordinatorId) {
+            resolvedCoordId = coordinatorId;
+          }
+
+          // Priority 5: Fallback 4 - Default coordinator search from users
           if (!resolvedCoordId) {
             if (user.email?.toLowerCase() === 'sergiosilvabezerra@gmail.com') {
               resolvedCoordId = user.uid;
