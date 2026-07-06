@@ -4800,7 +4800,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
       
       let currentSubscribedCoordId: string | null = null;
       
-      const unsubProfile = onSnapshot(doc(db, 'users', user.uid), async (docSnap) => {
+      const unsubProfile = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           const teamName = data.teamName || data.zone || data.team || '';
@@ -4811,78 +4811,57 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             zone: teamName
           });
           
-          let resolvedCoordId = '';
+          // Synchronous fast-track resolution of coordinatorId
+          let resolvedCoordId = data.coordinatorId || coordinatorId || '';
 
-          // Priority 1: Check Team first if teamId is available (Ultimate Source of Truth)
-          if (data.teamId) {
-            try {
-              const teamSnap = await getDoc(doc(db, 'teams', data.teamId));
+          // If we have a teamId, fetch team details in the background
+          if (data.teamId && (!teamData || teamData.id !== data.teamId)) {
+            getDoc(doc(db, 'teams', data.teamId)).then((teamSnap) => {
               if (teamSnap.exists()) {
                 const teamDataRaw = teamSnap.data();
                 setTeamData({ ...teamDataRaw, id: teamSnap.id });
-                if (teamDataRaw.coordinatorId) {
-                  resolvedCoordId = teamDataRaw.coordinatorId;
-                  console.log(`🧠 [Healer] Resolved coordinatorId: ${resolvedCoordId} from teamId: ${data.teamId}`);
+                if (!resolvedCoordId && teamDataRaw.coordinatorId) {
+                  updateDoc(doc(db, 'users', user.uid), {
+                    coordinatorId: teamDataRaw.coordinatorId
+                  }).catch(err => console.error("Error healing coordinatorId from team:", err));
                 }
               }
-            } catch (err) {
-              console.warn("Erro ao buscar equipe por teamId:", err);
-            }
+            }).catch(err => console.warn("Erro ao buscar equipe por teamId:", err));
           }
 
-          // Priority 2: Fallback 1 - Query teams collection where leaderEmail matches user's email
+          // If still no coordinatorId and we have user email, heal in the background
           if (!resolvedCoordId && user.email) {
-            try {
-              const emailVariants = Array.from(new Set([
-                user.email.toLowerCase(),
-                user.email
-              ])).filter(Boolean);
-              const qTeams = query(collection(db, 'teams'), where('leaderEmail', 'in', emailVariants));
-              const snapTeams = await getDocs(qTeams);
+            const emailVariants = Array.from(new Set([
+              user.email.toLowerCase(),
+              user.email
+            ])).filter(Boolean);
+            const qTeams = query(collection(db, 'teams'), where('leaderEmail', 'in', emailVariants));
+            getDocs(qTeams).then((snapTeams) => {
               if (!snapTeams.empty) {
+                const teamId = snapTeams.docs[0].id;
                 const teamDataRaw = snapTeams.docs[0].data();
-                setTeamData({ ...teamDataRaw, id: snapTeams.docs[0].id });
-                resolvedCoordId = teamDataRaw.coordinatorId || '';
-                console.log(`🧠 [Healer] Resolved coordinatorId: ${resolvedCoordId} from matching team`);
-              }
-            } catch (err) {
-              console.warn("Erro ao buscar equipe por leaderEmail:", err);
-            }
-          }
-
-          // Priority 3: Fallback 2 - Check the leader's user document 'coordinatorId' field
-          if (!resolvedCoordId && data.coordinatorId) {
-            resolvedCoordId = data.coordinatorId;
-          }
-
-          // Priority 4: Fallback 3 - Check context 'coordinatorId'
-          if (!resolvedCoordId && coordinatorId) {
-            resolvedCoordId = coordinatorId;
-          }
-
-          // Priority 5: Fallback 4 - Default coordinator search from users
-          if (!resolvedCoordId) {
-            if (user.email?.toLowerCase() === 'sergiosilvabezerra@gmail.com') {
-              resolvedCoordId = user.uid;
-            } else {
-              try {
-                // Try by role first
-                const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'), limit(1));
-                const snapCoords = await getDocs(qCoords);
-                if (!snapCoords.empty) {
-                  resolvedCoordId = snapCoords.docs[0].id;
-                } else {
-                  // Try by exact email variants as fallback (Firestore queries are case sensitive)
-                  const qEmail = query(collection(db, 'users'), where('email', 'in', ['sergiosilvabezerra@gmail.com', 'SERGIOSILVABEZERRA@gmail.com']), limit(1));
-                  const snapEmail = await getDocs(qEmail);
-                  if (!snapEmail.empty) {
-                    resolvedCoordId = snapEmail.docs[0].id;
-                  }
+                setTeamData({ ...teamDataRaw, id: teamId });
+                const foundCoordId = teamDataRaw.coordinatorId || '';
+                if (foundCoordId) {
+                  updateDoc(doc(db, 'users', user.uid), {
+                    teamId: teamId,
+                    teamName: teamDataRaw.name || '',
+                    coordinatorId: foundCoordId
+                  }).catch(err => console.error("Error healing profile with matching team:", err));
                 }
-              } catch (e) {
-                console.error("Erro ao buscar coordenador fallback:", e);
+              } else {
+                // Fallback: Query first coordinator by role
+                const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'), limit(1));
+                getDocs(qCoords).then((snapCoords) => {
+                  if (!snapCoords.empty) {
+                    const fallbackCoordId = snapCoords.docs[0].id;
+                    updateDoc(doc(db, 'users', user.uid), {
+                      coordinatorId: fallbackCoordId
+                    }).catch(err => console.error("Error healing fallback coordinatorId:", err));
+                  }
+                }).catch(err => console.error("Error querying fallback coordinator:", err));
               }
-            }
+            }).catch(err => console.warn("Erro ao buscar equipe por leaderEmail:", err));
           }
 
           if (resolvedCoordId) {
@@ -4890,14 +4869,9 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             
             // Auto-heal: propagate resolved coordinatorId back to user document so security rules can approve reads
             if (data.coordinatorId !== resolvedCoordId) {
-              try {
-                await updateDoc(doc(db, 'users', user.uid), {
-                  coordinatorId: resolvedCoordId
-                });
-                console.log(`🧠 [Healer] Propagated coordinatorId: ${resolvedCoordId} to user profile in Firestore`);
-              } catch (err) {
-                console.error("Error writing coordinatorId to user profile:", err);
-              }
+              updateDoc(doc(db, 'users', user.uid), {
+                coordinatorId: resolvedCoordId
+              }).catch(err => console.error("Error writing coordinatorId to user profile:", err));
             }
             
             // Auto-heal existing voters and material requests with empty/missing coordinatorId
