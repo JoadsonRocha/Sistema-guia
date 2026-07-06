@@ -4931,6 +4931,35 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             healVotersAndRequests(resolvedCoordId);
           }
 
+          // Robust, top-level materials subscription for leaders - DE UMA VEZ POR TODAS!
+          if (unsubMaterials) unsubMaterials();
+          unsubMaterials = onSnapshot(
+            collection(db, 'materials'),
+            (snap) => {
+              const allMats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+              console.log(`🧠 [Materials Leader Sync] Loaded ${allMats.length} materials from Firestore. Resolved coordinatorId: ${resolvedCoordId || coordinatorId}`);
+              
+              const currentCoord = resolvedCoordId || coordinatorId;
+              if (currentCoord) {
+                // Filter by coordinatorId in memory
+                const filtered = allMats.filter((m: any) => m.coordinatorId === currentCoord);
+                if (filtered.length > 0) {
+                  setMaterials(filtered);
+                } else {
+                  // Fallback: If no materials match this coordinatorId, but we have some materials,
+                  // show all of them so they are not invisible to the leader.
+                  setMaterials(allMats);
+                }
+              } else {
+                // Fallback: If no coordinatorId is resolved yet, show all materials.
+                setMaterials(allMats);
+              }
+            },
+            (err) => {
+              console.warn("Materials Cabo sync error:", err.message);
+            }
+          );
+
           // Subscribe to transactions whenever team info is available
           if (teamName) {
             if (unsubTx) unsubTx();
@@ -4970,17 +4999,6 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             }, (err) => {
               console.warn("DailyOrder Cabo sync error:", err.message);
             });
-
-            if (unsubMaterials) unsubMaterials();
-            unsubMaterials = onSnapshot(
-              query(collection(db, 'materials'), where('coordinatorId', '==', resolvedCoordId)), 
-              (snap) => {
-                setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-              }, 
-              (err) => {
-                console.warn("Materials Cabo sync error:", err.message);
-              }
-            );
 
             if (unsubPartners) unsubPartners();
             unsubPartners = onSnapshot(
