@@ -4799,6 +4799,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
       let unsubCampaignVoters: (() => void) | null = null;
       
       let currentSubscribedCoordId: string | null = null;
+      let subscribedMaterials = false;
       
       const unsubProfile = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
         if (docSnap.exists()) {
@@ -4810,6 +4811,22 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
             photoUrl: data.photoUrl || user.photoURL || '',
             zone: teamName
           });
+          
+          if (!subscribedMaterials) {
+            subscribedMaterials = true;
+            if (unsubMaterials) unsubMaterials();
+            unsubMaterials = onSnapshot(
+              collection(db, 'materials'),
+              (snap) => {
+                const mats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                console.log(`🧠 [Materials Leader Sync] Loaded ${mats.length} total materials from Firestore`);
+                setMaterials(mats);
+              },
+              (err) => {
+                console.warn("Materials Cabo sync error:", err.message);
+              }
+            );
+          }
           
           // Synchronous fast-track resolution of coordinatorId
           let resolvedCoordId = data.coordinatorId || coordinatorId || '';
@@ -4935,19 +4952,6 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
 
           if (resolvedCoordId && resolvedCoordId !== currentSubscribedCoordId) {
             currentSubscribedCoordId = resolvedCoordId;
-
-            if (unsubMaterials) unsubMaterials();
-            unsubMaterials = onSnapshot(
-              query(collection(db, 'materials'), where('coordinatorId', '==', resolvedCoordId)),
-              (snap) => {
-                const mats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                console.log(`🧠 [Materials Leader Sync] Loaded ${mats.length} materials strictly for coordinator ${resolvedCoordId}`);
-                setMaterials(mats);
-              },
-              (err) => {
-                console.warn("Materials Cabo sync error:", err.message);
-              }
-            );
 
             if (unsubNotes) unsubNotes();
             const notesQuery = query(
@@ -6419,11 +6423,15 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                     <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Tipo de Material</label>
                     <select name="materialId" required className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors cursor-pointer">
                       <option value="">Selecione o Material</option>
-                      {materials.map(m => (
-                        <option key={m.id} value={m.id} disabled={m.current <= 0}>
-                          {m.name} ({m.current} disponíveis)
-                        </option>
-                      ))}
+                      {(() => {
+                        const filtered = materials.filter(m => !resolvedCoordinatorId || m.coordinatorId === resolvedCoordinatorId);
+                        const listToRender = filtered.length > 0 ? filtered : materials;
+                        return listToRender.map(m => (
+                          <option key={m.id} value={m.id} disabled={m.current <= 0}>
+                            {m.name} ({m.current} disponíveis)
+                          </option>
+                        ));
+                      })()}
                     </select>
                   </div>
                   <div className="space-y-2 text-left">
