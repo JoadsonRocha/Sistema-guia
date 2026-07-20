@@ -4711,7 +4711,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [queueCount, setQueueCount] = useState(0);
   const [isLocating, setIsLocating] = useState(false);
-  const [activeTab, setActiveTab] = useState<'equipe' | 'logistica' | 'ouvidoria' | 'financeiro' | 'notas' | 'materiais' | 'feed' | 'analise_eleitoral'>('logistica');
+  const [activeTab, setActiveTab] = useState<'equipe' | 'logistica' | 'ouvidoria' | 'financeiro' | 'notas' | 'materiais' | 'feed'>('logistica');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [dailyOrder, setDailyOrder] = useState<any>(null);
   const [resolvedCoordinatorId, setResolvedCoordinatorId] = useState<string | null>(null);
@@ -5859,7 +5859,6 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
           {[
             { id: 'logistica', label: 'Painel Tático', icon: <MapPin className="w-4 h-4" /> },
             { id: 'equipe', label: 'Base de Eleitores', icon: <Users className="w-4 h-4" /> },
-            { id: 'analise_eleitoral', label: 'Análise Eleitoral', icon: <TrendingUp className="w-4 h-4" /> },
             { id: 'materiais', label: 'Gestão Materiais', icon: <Package className="w-4 h-4" /> },
             { id: 'notas', label: 'Notas de Voz', icon: <Mic className="w-4 h-4" /> },
             { id: 'feed', label: 'Feed Tático', icon: <MessageSquare className="w-4 h-4" /> }
@@ -7650,7 +7649,6 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
         {[
           { id: 'logistica', label: 'Tático', icon: <MapPin className="w-5 h-5" /> },
           { id: 'equipe', label: 'Equipe', icon: <Users className="w-5 h-5" /> },
-          { id: 'analise_eleitoral', label: 'BI', icon: <TrendingUp className="w-5 h-5" /> },
           { id: 'notas', label: 'Notas', icon: <Mic className="w-5 h-5" /> },
           { id: 'feed', label: 'Feed', icon: <History className="w-5 h-5" /> }
         ].map(tab => (
