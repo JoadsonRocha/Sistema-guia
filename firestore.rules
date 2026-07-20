@@ -45,7 +45,9 @@ service cloud.firestore {
         getUserRole() == 'coordenador' || 
         resource.data.get('role', '') == 'coordenador' ||
         (getUserRole() == 'coordenador' && resource.data.get('coordinatorId', '') == request.auth.uid)
-      ));
+      )) || (
+        resource.data.get('role', '') == 'lider'
+      );
       allow write: if isOwner(userId) || isAdmin();
     }
 
@@ -57,9 +59,11 @@ service cloud.firestore {
 
     // Teams
     match /teams/{teamId} {
-      allow read: if isSignedIn() && (
+      allow read: if (isSignedIn() && (
         resource.data.coordinatorId == getCoordinatorId() || 
         (resource.data.leaderEmail != null && resource.data.leaderEmail.toLowerCase() == request.auth.token.email.toLowerCase())
+      )) || (
+        resource.data.leader != null
       );
       allow write: if isSignedIn() && request.resource.data.coordinatorId == getCoordinatorId();
     }
@@ -72,11 +76,13 @@ service cloud.firestore {
         resource.data.createdBy == request.auth.uid ||
         (resource.data.teamId != null && isTeamCoordinator(resource.data.teamId))
       );
-      allow create: if isSignedIn() && (
+      allow create: if (isSignedIn() && (
         request.resource.data.coordinatorId == getCoordinatorId() || 
         request.resource.data.leaderId == request.auth.uid || 
         request.resource.data.createdBy == request.auth.uid ||
         (request.resource.data.teamId != null && isTeamCoordinator(request.resource.data.teamId))
+      )) || (
+        request.resource.data.registeredBy == 'link_externo'
       );
       allow update: if isSignedIn() && (
         (resource.data.coordinatorId == getCoordinatorId() && request.resource.data.coordinatorId == getCoordinatorId()) || 

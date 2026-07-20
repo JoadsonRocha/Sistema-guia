@@ -67,6 +67,7 @@ import { useAuth } from './lib/FirebaseProvider';
 import { firestoreService } from './lib/firestoreService';
 import RoraimaMapComponent from './components/RoraimaMapComponent';
 import EleitoralDashboard from './components/EleitoralDashboard';
+import PublicVoterRegister from './components/PublicVoterRegister';
 import { 
   BarChart, 
   Bar, 
@@ -286,6 +287,7 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
   const { user, login, logout, isAdmin, coordinatorId } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral'>('overview');
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
+  const [selectedLinkTeam, setSelectedLinkTeam] = useState('');
 
   const handleDownloadDoc = () => {
     const textHtml = `
@@ -2052,6 +2054,58 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
                     <Plus className="w-4 h-4 text-zinc-950" /> Cadastrar Nova Unidade
                   </button>
                 </div>
+
+                {/* Gerador de Link de Autocadastro de Eleitor para Equipes */}
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 space-y-4 shadow-xl">
+                  <div className="flex items-center gap-2 border-b border-[var(--border-color)] pb-3">
+                    <UserPlus className="w-4 h-4 text-yellow-500" />
+                    <h3 className="text-xs font-black uppercase text-[var(--text-primary)] tracking-wider">Gerador de Link de Autocadastro</h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div className="space-y-1.5 col-span-1">
+                      <label className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Selecione a Equipe</label>
+                      <select
+                        value={selectedLinkTeam}
+                        onChange={(e) => setSelectedLinkTeam(e.target.value)}
+                        className="w-full bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-yellow-500 transition-all"
+                      >
+                        <option value="">-- Escolha uma equipe --</option>
+                        {teams.map((t) => (
+                          <option key={t.id || t.name} value={t.id || t.name.replace(/\s/g, '_').toLowerCase()}>
+                            {t.name} (Líder: {t.leader || 'N/A'})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1.5 col-span-2">
+                      <label className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Link Gerado</label>
+                      <div className="flex gap-2">
+                        <input
+                          readOnly
+                          type="text"
+                          value={selectedLinkTeam ? `${window.location.origin}/?teamId=${selectedLinkTeam}` : 'Por favor, selecione uma equipe acima...'}
+                          className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-secondary)] rounded-sm p-3 font-mono text-xs outline-none select-all"
+                        />
+                        <button
+                          type="button"
+                          disabled={!selectedLinkTeam}
+                          onClick={() => {
+                            if (!selectedLinkTeam) return;
+                            navigator.clipboard.writeText(`${window.location.origin}/?teamId=${selectedLinkTeam}`);
+                            alert("✅ Link copiado para a área de transferência!");
+                          }}
+                          className={`px-5 py-3 rounded-sm font-black text-[10px] uppercase tracking-wider transition-all active:scale-95 flex items-center gap-1.5 ${
+                            selectedLinkTeam
+                              ? 'bg-yellow-500 hover:bg-yellow-600 text-zinc-950'
+                              : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border border-[var(--border-color)] cursor-not-allowed'
+                          }`}
+                        >
+                          Copiar Link
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 
                 <div className="grid grid-cols-1 gap-3 md:gap-4">
                   {teams.length > 0 ? teams.map((team) => (
@@ -2121,6 +2175,17 @@ function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', se
 
                       <div className="flex flex-col sm:flex-row lg:flex-col gap-2 justify-end relative z-10 w-full lg:w-auto">
                         <div className="flex gap-2 w-full lg:w-auto">
+                           <button 
+                             onClick={() => {
+                               const tId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
+                               navigator.clipboard.writeText(`${window.location.origin}/?teamId=${tId}`);
+                               alert(`✅ Link de autocadastro da equipe "${team.name}" copiado com sucesso!`);
+                             }}
+                             className="flex-1 lg:flex-none p-2.5 md:p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)] flex items-center justify-center"
+                             title="Copiar Link de Autocadastro de Eleitores"
+                           >
+                             <UserPlus className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                           </button>
                            <button 
                              onClick={() => handleCopyAccessLink(team)}
                              className="flex-1 lg:flex-none p-2.5 md:p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)] flex items-center justify-center"
@@ -4736,7 +4801,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
   const [expenseForm, setExpenseForm] = useState({ amount: '', description: '', purpose: '' });
   
   const [isVoterModalOpen, setIsVoterModalOpen] = useState(false);
-  const [registerMode, setRegisterMode] = useState<'individual' | 'lote'>('individual');
+  const [registerMode, setRegisterMode] = useState<'individual' | 'lote' | 'link'>('individual');
   const [bulkFileError, setBulkFileError] = useState<string | null>(null);
   const [bulkFileSuccess, setBulkFileSuccess] = useState<string | null>(null);
   const [parsedVoters, setParsedVoters] = useState<any[]>([]);
@@ -6942,7 +7007,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                         : 'text-zinc-500 hover:text-zinc-800'
                     }`}
                   >
-                    ✦ Cadastro Individual
+                    ✦ Individual
                   </button>
                   <button
                     type="button"
@@ -6953,7 +7018,18 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                         : 'text-zinc-500 hover:text-zinc-800'
                     }`}
                   >
-                    🗂️ Importar em Lote (Excel)
+                    🗂️ Lote
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRegisterMode('link')}
+                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-wider text-center transition-all rounded-sm ${
+                      registerMode === 'link'
+                        ? 'bg-yellow-500 text-zinc-950 shadow-sm'
+                        : 'text-zinc-500 hover:text-zinc-800'
+                    }`}
+                  >
+                    🔗 Link Externo
                   </button>
                 </div>
               )}
@@ -7126,7 +7202,7 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                     {isEditingVoter ? 'ATUALIZAR REGISTRO' : 'EFETIVAR ALISTAMENTO'}
                   </button>
                 </form>
-              ) : (
+              ) : registerMode === 'lote' ? (
                 <form onSubmit={handleBulkSubmit} className="flex-1 overflow-y-auto p-6 space-y-5 text-left">
                   <div className="bg-zinc-50 border border-zinc-200 rounded-sm p-4 space-y-3">
                     <h3 className="text-xs font-black uppercase text-zinc-900 flex items-center gap-1.5">
@@ -7229,6 +7305,39 @@ function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme:
                     {isProcessingBulk ? 'SALVANDO LOTE NO FIRESTORE...' : `IMPORTAR ${parsedVoters.length} ELEITORES EM LOTE`}
                   </button>
                 </form>
+              ) : (
+                <div className="flex-1 overflow-y-auto p-6 space-y-6 text-left">
+                  <div className="bg-zinc-50 border border-zinc-200 rounded-sm p-5 space-y-3">
+                    <h3 className="text-xs font-black uppercase text-zinc-900 flex items-center gap-1.5">
+                      ✦ Link de Autocadastro de Eleitor
+                    </h3>
+                    <p className="text-[11px] text-zinc-600 leading-relaxed font-bold">
+                      Compartilhe este link exclusivo para que os eleitores realizem o próprio cadastro de forma rápida. Todos que se cadastrarem por este link serão automaticamente alocados na sua equipe tática.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Seu Link de Cadastro</label>
+                    <div className="flex gap-2">
+                      <input 
+                        readOnly 
+                        type="text" 
+                        value={`${window.location.origin}/?leaderId=${user?.uid}`} 
+                        className="flex-1 bg-zinc-100 border border-zinc-200 rounded-sm p-4 font-mono text-[11px] text-zinc-700 outline-none select-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/?leaderId=${user?.uid}`);
+                          alert("✅ Link copiado para a área de transferência!");
+                        }}
+                        className="px-5 bg-yellow-500 hover:bg-yellow-600 text-zinc-950 font-black text-[10px] uppercase tracking-wider rounded-sm active:scale-95 transition-all"
+                      >
+                        Copiar
+                      </button>
+                    </div>
+                  </div>
+                </div>
               )}
             </motion.div>
           </motion.div>
@@ -7695,6 +7804,19 @@ export default function App() {
     return (safeLocalStorage.getItem('aguia-theme') as 'light' | 'dark') || 'light';
   });
 
+  const [isExternalRegister] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.has('leaderId') || params.has('liderId') || params.has('teamId');
+  });
+  const [extLeaderId] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('leaderId') || params.get('liderId');
+  });
+  const [extTeamId] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('teamId');
+  });
+
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
     safeLocalStorage.setItem('aguia-theme', theme);
@@ -7746,6 +7868,10 @@ export default function App() {
        }
     }
   }, [user]);
+
+  if (isExternalRegister) {
+    return <PublicVoterRegister leaderId={extLeaderId} teamId={extTeamId} />;
+  }
 
   if (loading) {
     return (
