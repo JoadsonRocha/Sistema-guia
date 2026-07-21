@@ -173,7 +173,7 @@ export default function App() {
       const errorCode = err.code || '';
 
       if (errorCode === 'auth/email-already-in-use' || errorMsg.includes('email-already-in-use')) {
-        setAuthError('Este e-mail já possui uma conta ativa no Firebase. Se você é o líder João Cardoso e já criou uma senha personalizada anteriormente, por favor faça o login usando a SUA SENHA cadastrada. Caso tenha esquecido, clique em "Esqueceu a senha?" abaixo para redefinir.');
+        setAuthError('Este e-mail já possui uma conta activa no Firebase. Se você é o líder João Cardoso e já criou uma senha personalizada anteriormente, por favor faça o login usando a SUA SENHA cadastrada. Caso tenha esquecido, clique em "Esqueceu a senha?" abaixo para redefinir.');
       } else if (errorCode === 'auth/invalid-credential' || errorMsg.includes('invalid-credential') || errorMsg.includes('INVALID_LOGIN_CREDENTIALS')) {
         setAuthError('Chave de acesso (senha) incorreta para este operador. Se você recebeu uma senha temporária por WhatsApp, verifique se digitou as letras e números exatamente iguais.');
       } else if (errorCode === 'auth/user-not-found' || errorMsg.includes('user-not-found')) {
@@ -182,6 +182,27 @@ export default function App() {
         setAuthError('Acesso bloqueado temporariamente por excesso de tentativas incorretas. Aguarde alguns instantes ou mude sua senha.');
       } else {
         setAuthError(errorMsg || 'Erro na autenticação. Verifique suas credenciais.');
+      }
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setAuthError('');
+    try {
+      await login();
+    } catch (err: any) {
+      console.error("Google Auth error caught:", err);
+      const errorMsg = err.message || '';
+      const errorCode = err.code || '';
+      
+      if (errorCode === 'auth/unauthorized-domain' || errorMsg.includes('unauthorized-domain')) {
+        setAuthError('Domínio de visualização não autorizado no Firebase. Adicione os domínios do AI Studio em "Authentication > Settings > Authorized domains" no Firebase Console.');
+      } else if (errorCode === 'auth/popup-blocked' || errorMsg.includes('popup-blocked')) {
+        setAuthError('O popup de login foi bloqueado pelo navegador. Ative as permissões de popups para este domínio.');
+      } else if (errorCode === 'auth/operation-not-allowed' || errorMsg.includes('operation-not-allowed')) {
+        setAuthError('O login do Google não está ativado no Firebase. Ative o Google em "Authentication > Sign-in method" no Console.');
+      } else {
+        setAuthError(errorMsg || 'Erro na autenticação com Google. Verifique o console do navegador.');
       }
     }
   };
@@ -329,7 +350,7 @@ export default function App() {
           </div>
 
           <button 
-            onClick={login}
+            onClick={handleGoogleAuth}
             className="w-full bg-[var(--bg-tertiary)] text-[var(--text-primary)] py-4.5 rounded-sm font-black text-[10px] uppercase flex items-center justify-center gap-4 border border-[var(--border-color)] hover:bg-[var(--bg-secondary)] transition-all shadow-sm relative z-10"
           >
             <svg className="w-4 h-4 text-yellow-500" viewBox="0 0 24 24">
