@@ -58,6 +58,8 @@ export default function App() {
   const [userRole, setUserRole] = useState<'coordenador' | 'lider'>('coordenador');
   const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [showDomainGuide, setShowDomainGuide] = useState(false);
+  const [copiedDomain, setCopiedDomain] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
 
   // Handle URL Params for Easy Access
@@ -188,6 +190,7 @@ export default function App() {
 
   const handleGoogleAuth = async () => {
     setAuthError('');
+    setShowDomainGuide(false);
     try {
       await login();
     } catch (err: any) {
@@ -196,7 +199,8 @@ export default function App() {
       const errorCode = err.code || '';
       
       if (errorCode === 'auth/unauthorized-domain' || errorMsg.includes('unauthorized-domain')) {
-        setAuthError('Domínio de visualização não autorizado no Firebase. Adicione os domínios do AI Studio em "Authentication > Settings > Authorized domains" no Firebase Console.');
+        setAuthError('Domínio de visualização não autorizado no Firebase.');
+        setShowDomainGuide(true);
       } else if (errorCode === 'auth/popup-blocked' || errorMsg.includes('popup-blocked')) {
         setAuthError('O popup de login foi bloqueado pelo navegador. Ative as permissões de popups para este domínio.');
       } else if (errorCode === 'auth/operation-not-allowed' || errorMsg.includes('operation-not-allowed')) {
@@ -331,9 +335,55 @@ export default function App() {
             </div>
 
             {authError && (
-              <p className="text-red-500 text-[10px] font-black uppercase text-center bg-red-500/10 py-3 rounded-sm border border-red-500/20 tracking-wider">
-                {authError}
-              </p>
+              <div className="space-y-3">
+                <p className="text-red-500 text-[10px] font-black uppercase text-center bg-red-500/10 py-3 rounded-sm border border-red-500/20 tracking-wider">
+                  {authError}
+                </p>
+                
+                {showDomainGuide && (
+                  <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-sm p-4 text-left space-y-3 animate-fadeIn">
+                    <h4 className="text-[10px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-wider flex items-center gap-1.5">
+                      ⚠️ Passo a Passo de Configuração do Firebase:
+                    </h4>
+                    <p className="text-[10px] font-bold text-[var(--text-secondary)] leading-relaxed uppercase opacity-80">
+                      O login com Google exige que o domínio do site seja registrado nas configurações do seu Firebase Console.
+                    </p>
+                    
+                    <div className="space-y-2 mt-2">
+                      <span className="text-[8px] font-black uppercase tracking-wider text-[var(--text-secondary)]">1. Domínios para copiar:</span>
+                      
+                      {[
+                        window.location.hostname,
+                        'ais-dev-dye2oi5jv222xt5xsmwfv2-57947564316.us-west2.run.app',
+                        'ais-pre-dye2oi5jv222xt5xsmwfv2-57947564316.us-west2.run.app'
+                      ].filter((val, idx, self) => self.indexOf(val) === idx).map((dom) => (
+                        <div key={dom} className="flex items-center justify-between bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-2 rounded-sm gap-2">
+                          <code className="text-[9px] font-mono select-all truncate text-[var(--text-primary)]">{dom}</code>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(dom);
+                              setCopiedDomain(dom);
+                              setTimeout(() => setCopiedDomain(null), 2000);
+                            }}
+                            className="px-2 py-1 text-[8px] font-black uppercase tracking-wider bg-yellow-500 text-zinc-950 rounded-sm hover:bg-yellow-400 active:scale-95 transition-all shrink-0"
+                          >
+                            {copiedDomain === dom ? 'Copiado!' : 'Copiar'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="text-[9px] text-[var(--text-secondary)] leading-relaxed space-y-1.5 pt-2 border-t border-[var(--border-color)]">
+                      <p className="font-bold uppercase"><span className="text-yellow-600 dark:text-yellow-500 font-black">2.</span> Acesse o <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="underline text-yellow-600 dark:text-yellow-500 font-black">Firebase Console</a> e abra seu projeto.</p>
+                      <p className="font-bold uppercase"><span className="text-yellow-600 dark:text-yellow-500 font-black">3.</span> Na barra lateral, clique em <strong className="text-[var(--text-primary)]">Authentication</strong>.</p>
+                      <p className="font-bold uppercase"><span className="text-yellow-600 dark:text-yellow-500 font-black">4.</span> Clique na aba <strong className="text-[var(--text-primary)]">Settings</strong> (Configurações) no topo.</p>
+                      <p className="font-bold uppercase"><span className="text-yellow-600 dark:text-yellow-500 font-black">5.</span> No menu esquerdo, vá em <strong className="text-[var(--text-primary)]">Authorized domains</strong> (Domínios autorizados).</p>
+                      <p className="font-bold uppercase"><span className="text-yellow-600 dark:text-yellow-500 font-black">6.</span> Clique em <strong className="text-[var(--text-primary)]">Add domain</strong>, cole cada domínio copiado acima e clique em <strong className="text-[var(--text-primary)]">Add</strong>.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
 
             <button 
