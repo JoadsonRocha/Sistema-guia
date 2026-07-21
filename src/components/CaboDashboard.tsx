@@ -60,7 +60,7 @@ import { firestoreService } from '../lib/firestoreService';
 import NoteCard from './NoteCard';
 import RoraimaMapComponent from './RoraimaMapComponent';
 import EleitoralDashboard from './EleitoralDashboard';
-import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, getDoc, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, getDoc, addDoc, serverTimestamp, updateDoc, getCountFromServer } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from '../lib/agendaLogic';
 import * as XLSX from 'xlsx';
@@ -162,6 +162,12 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
   const [voterSearch, setVoterSearch] = useState('');
   const [voterFilterTags, setVoterFilterTags] = useState<string[]>([]);
   const [voterViewState, setVoterViewState] = useState<'list' | 'network'>('list');
+
+  const [paginatedVotersList, setPaginatedVotersList] = useState<any[]>([]);
+  const [loadingPaginatedVoters, setLoadingPaginatedVoters] = useState(false);
+  const [totalVotersCount, setTotalVotersCount] = useState(0);
+  const [votedVotersCount, setVotedVotersCount] = useState(0);
+  const [hasMoreVoters, setHasMoreVoters] = useState(false);
 
   // Carregar cache local de eleitores para carregamento imediato
   useEffect(() => {
@@ -391,23 +397,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
             });
 
             if (unsubCampaignVoters) unsubCampaignVoters();
-            unsubCampaignVoters = onSnapshot(
-              query(collection(db, 'voters'), where('coordinatorId', '==', resolvedCoordId)),
-              (snap) => {
-                const rawData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
-                const uniqueMap = new Map();
-                rawData.forEach((v: any) => {
-                  const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
-                  if (!uniqueMap.has(key)) {
-                    uniqueMap.set(key, v);
-                  }
-                });
-                setCampaignVoters(Array.from(uniqueMap.values()));
-              },
-              (err) => {
-                console.warn("CampaignVoters Cabo sync error:", err.message);
-              }
-            );
+            // campaignVoters is now lazy-loaded on demand only when the voter modal is open to save document reads.
 
             if (unsubUrgencies) unsubUrgencies();
             unsubUrgencies = firestoreService.subscribeToCollectionFiltered('urgencies', resolvedCoordId, (data) => {
@@ -419,10 +409,109 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
         console.error("Erro ao escutar perfil:", error);
       });
 
-      const votersQuery = query(collection(db, 'voters'), where('leaderId', '==', user.uid));
-      const unsubVoters = onSnapshot(votersQuery, (snapshot) => {
-        const rawData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
-        // Deduplicar para o líder também, garantindo lista limpa
+       // We remove the full unsubVoters from here because it's replaced by the new paginated effect hook below
+
+       const agendasQuery = query(collection(db, 'agenda'), where('sugeridoPorId', '==', user.uid));
+       const unsubAgendas = onSnapshot(agendasQuery, (snapshot) => {
+         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+         setMyAgendas(data);
+       }, (err) => {
+         console.error("Erro ao escutar agendas do líder:", err);
+       });
+
+       return () => {
+         unsubProfile();
+         unsubAgendas();
+         if (unsubNotes) unsubNotes();
+         if (unsubTx) unsubTx();
+         if (unsubDailyOrder) unsubDailyOrder();
+         if (unsubMaterials) unsubMaterials();
+         if (unsubPartners) unsubPartners();
+         if (unsubMaterialRequests) unsubMaterialRequests();
+         if (unsubUrgencies) unsubUrgencies();
+       };
+     }
+   }, [user, coordinatorId]);
+
+  // 1. Recarrega as estatísticas de contagem do líder diretamente do servidor sem puxar todos os documentos
+  const fetchServerCounts = async () => {
+    if (!user?.uid) return;
+    try {
+      const qTotal = query(collection(db, 'voters'), where('leaderId', '==', user.uid));
+      const snapTotal = await getCountFromServer(qTotal);
+      setTotalVotersCount(snapTotal.data().count);
+
+      const qVoted = query(collection(db, 'voters'), where('leaderId', '==', user.uid), where('voted', '==', true));
+      const snapVoted = await getCountFromServer(qVoted);
+      setVotedVotersCount(snapVoted.data().count);
+    } catch (err) {
+      console.warn("Erro ao buscar contagens agregadas do líder:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.uid) {
+      fetchServerCounts();
+    }
+  }, [user?.uid, activeTab]);
+
+  // 2. Sincronização reativa paginada para a listagem principal de eleitores do Líder (carregando de 50 em 50)
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    // Apenas escutamos se o tab for equipe ou analise_eleitoral
+    if (activeTab !== 'equipe' && activeTab !== 'analise_eleitoral') return;
+
+    setLoadingPaginatedVoters(true);
+    const isFullLoadTab = activeTab === 'analise_eleitoral';
+
+    let q = query(
+      collection(db, 'voters'),
+      where('leaderId', '==', user.uid)
+    );
+
+    if (!isFullLoadTab) {
+      // Usamos um limite dinâmico de 50 * voterPage para permitir rolagem e paginação reativa segura
+      const limitSize = 50 * voterPage;
+      q = query(q, limit(limitSize));
+    }
+
+    const unsub = onSnapshot(q, (snap) => {
+      const docs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const sorted = docs.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
+      
+      // Manter retrocompatibilidade com o estado 'voters'
+      setVoters(sorted);
+      setPaginatedVotersList(sorted);
+      
+      if (!isFullLoadTab) {
+        const limitSize = 50 * voterPage;
+        setHasMoreVoters(snap.docs.length === limitSize);
+      } else {
+        setHasMoreVoters(false);
+      }
+      setLoadingPaginatedVoters(false);
+      
+      safeLocalStorage.setItem(`aguia_voters_cache_${user.uid}`, JSON.stringify(sorted));
+    }, (err) => {
+      console.warn("Error listening to paginated leader voters:", err.message);
+      setLoadingPaginatedVoters(false);
+    });
+
+    return () => unsub();
+  }, [user?.uid, activeTab, voterPage]);
+
+  // 3. Sincroniza campanha para autocomplete de forma sob demanda (apenas quando o modal de edição/criação de eleitor estiver aberto)
+  useEffect(() => {
+    if (!resolvedCoordinatorId || !isVoterModalOpen) {
+      return;
+    }
+
+    console.log("🧠 [Optimization] Lazy loading campaign voters for dropdown options since modal is open");
+    const unsub = onSnapshot(
+      query(collection(db, 'voters'), where('coordinatorId', '==', resolvedCoordinatorId)),
+      (snap) => {
+        const rawData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
         const uniqueMap = new Map();
         rawData.forEach((v: any) => {
           const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
@@ -430,38 +519,15 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
             uniqueMap.set(key, v);
           }
         });
-        const uniqueVoters = Array.from(uniqueMap.values());
-        setVoters(uniqueVoters);
-        if (user?.uid) {
-          safeLocalStorage.setItem(`aguia_voters_cache_${user.uid}`, JSON.stringify(uniqueVoters));
-        }
-      }, (err) => {
-        console.error("Erro ao escutar eleitores:", err);
-      });
+        setCampaignVoters(Array.from(uniqueMap.values()));
+      },
+      (err) => {
+        console.warn("Error syncing campaign voters for dropdown:", err.message);
+      }
+    );
 
-      const agendasQuery = query(collection(db, 'agenda'), where('sugeridoPorId', '==', user.uid));
-      const unsubAgendas = onSnapshot(agendasQuery, (snapshot) => {
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setMyAgendas(data);
-      }, (err) => {
-        console.error("Erro ao escutar agendas do líder:", err);
-      });
-
-      return () => {
-        unsubProfile();
-        unsubVoters();
-        unsubAgendas();
-        if (unsubNotes) unsubNotes();
-        if (unsubTx) unsubTx();
-        if (unsubDailyOrder) unsubDailyOrder();
-        if (unsubMaterials) unsubMaterials();
-        if (unsubPartners) unsubPartners();
-        if (unsubMaterialRequests) unsubMaterialRequests();
-        if (unsubCampaignVoters) unsubCampaignVoters();
-        if (unsubUrgencies) unsubUrgencies();
-      };
-    }
-  }, [user, coordinatorId]);
+    return () => unsub();
+  }, [resolvedCoordinatorId, isVoterModalOpen]);
 
   // Monitor de Conectividade
   useEffect(() => {
@@ -538,6 +604,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
     if (window.confirm("Tem certeza que deseja excluir este eleitor? Esta ação é irreversível.")) {
       try {
         await firestoreService.deleteDocument('voters', voterId);
+        await fetchServerCounts();
         setIsVoterDetailOpen(false);
         setSelectedVoter(null);
         alert("Eleitor excluído com sucesso.");
@@ -748,6 +815,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
           coordinatorId: activeCoordId,
           updatedAt: Date.now()
         });
+        await fetchServerCounts();
         alert("✅ CADASTRO ATUALIZADO COM SUCESSO!");
       } else {
         const payload = {
@@ -762,6 +830,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
           location: null
         };
         await firestoreService.setDocument('voters', `voter_${Date.now()}`, payload);
+        await fetchServerCounts();
         alert("✅ CADASTRO REALIZADO COM SUCESSO!");
       }
       
@@ -990,6 +1059,8 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
           errorCount++;
         }
       }
+
+      await fetchServerCounts();
 
       alert(
         `🎉 PROCESSO CONCLUÍDO!\n\n` +
@@ -1697,6 +1768,23 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                       </div>
                     )}
                   </div>
+
+                  {loadingPaginatedVoters && (
+                    <div className="flex justify-center items-center gap-2 text-yellow-500 font-black text-[10px] uppercase tracking-widest mt-6">
+                      <span className="animate-spin text-sm">🔄</span> Sincronizando dados com o servidor...
+                    </div>
+                  )}
+
+                  {hasMoreVoters && (
+                    <div className="flex justify-center mt-6">
+                      <button
+                        onClick={() => setVoterPage(prev => prev + 1)}
+                        className="bg-yellow-500 text-zinc-950 hover:bg-yellow-400 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-sm flex items-center gap-2 transition-all shadow-md active:scale-95"
+                      >
+                        Carregar mais 50 eleitores
+                      </button>
+                    </div>
+                  )}
 
                   {/* PAGINAÇÃO CABO */}
                   <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm text-xs font-bold text-[var(--text-secondary)]">

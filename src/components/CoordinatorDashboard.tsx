@@ -77,7 +77,7 @@ import {
   PieChart,
   Pie
 } from 'recharts';
-import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, getDoc, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, getDoc, addDoc, serverTimestamp, updateDoc, getCountFromServer, startAfter } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from '../lib/agendaLogic';
 import * as XLSX from 'xlsx';
@@ -394,8 +394,15 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
   const [managingTeamVoters, setManagingTeamVoters] = useState<any[]>([]);
   const [selectedVoter, setSelectedVoter] = useState<any>(null);
   const [allVoters, setAllVoters] = useState<any[]>([]);
+  const [paginatedVotersList, setPaginatedVotersList] = useState<any[]>([]);
+  const [loadingPaginatedVoters, setLoadingPaginatedVoters] = useState(false);
+  const [hasMoreVoters, setHasMoreVoters] = useState(true);
+  const [totalVotersCount, setTotalVotersCount] = useState<number>(0);
+  const [votedVotersCount, setVotedVotersCount] = useState<number>(0);
+  const [articulators, setArticulators] = useState<any[]>([]);
+  const [teamVotersCountMap, setTeamVotersCountMap] = useState<Record<string, number>>({});
   const [voterPage, setVoterPage] = useState(1);
-  const [voterPageSize, setVoterPageSize] = useState(25);
+  const [voterPageSize, setVoterPageSize] = useState(50);
   const [voterFilterTags, setVoterFilterTags] = useState<string[]>([]);
   const [voterSearch, setVoterSearch] = useState('');
   const [voterFilterReferredBy, setVoterFilterReferredBy] = useState('');
@@ -1018,35 +1025,6 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       setMaterialRequests(data);
     });
 
-    const unsubVoters = onSnapshot(
-      query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId)), 
-      (snap) => {
-        const rawData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
-        // Deduplicar para a visão geral: prioriza o registro mais completo ou mais recente
-        const uniqueMap = new Map();
-        rawData.forEach((v: any) => {
-          const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, v);
-          } else {
-            // Se já existe, mantém o que tem mais campos preenchidos (ex: articulatorId)
-            const existing = uniqueMap.get(key);
-            if (!existing.articulatorId && v.articulatorId) {
-              uniqueMap.set(key, v);
-            }
-          }
-        });
-        const uniqueVoters = Array.from(uniqueMap.values());
-        setAllVoters(uniqueVoters);
-        if (coordinatorId) {
-          safeLocalStorage.setItem(`aguia_voters_cache_${coordinatorId}`, JSON.stringify(uniqueVoters));
-        }
-      }, 
-      (err) => {
-        console.warn("Voters sync error:", err.message);
-      }
-    );
-
     const unsubReports = onSnapshot(
       query(
         collection(db, 'reports'), 
@@ -1071,10 +1049,151 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       unsubDailyOrder();
       unsubMaterials();
       unsubMaterialRequests();
-      unsubVoters();
       unsubReports();
     };
   }, [user, isAdmin, coordinatorId]);
+
+  // 1. Recarrega as estatísticas de contagem do servidor sem puxar todos os documentos
+  const fetchServerCounts = async () => {
+    if (!coordinatorId) return;
+    try {
+      const qTotal = query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId));
+      const snapTotal = await getCountFromServer(qTotal);
+      setTotalVotersCount(snapTotal.data().count);
+
+      const qVoted = query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId), where('voted', '==', true));
+      const snapVoted = await getCountFromServer(qVoted);
+      setVotedVotersCount(snapVoted.data().count);
+    } catch (err) {
+      console.warn("Erro ao buscar contagens agregadas do servidor:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchServerCounts();
+    if (activeTab === 'overview' || activeTab === 'voters') {
+      fetchServerCounts();
+    }
+  }, [coordinatorId, activeTab]);
+
+  // 2. Busca as contagens de eleitores por equipe em paralelo (sem puxar todos os registros)
+  useEffect(() => {
+    if (!coordinatorId || teams.length === 0) return;
+
+    const fetchTeamVoterCounts = async () => {
+      try {
+        const counts: Record<string, number> = {};
+        await Promise.all(
+          teams.map(async (team) => {
+            const teamName = team.name;
+            const q = query(
+              collection(db, 'voters'),
+              where('coordinatorId', '==', coordinatorId),
+              where('team', '==', teamName)
+            );
+            const snap = await getCountFromServer(q);
+            counts[teamName] = snap.data().count;
+          })
+        );
+        setTeamVotersCountMap(counts);
+      } catch (err) {
+        console.warn("Erro ao buscar contagem de eleitores das equipes:", err);
+      }
+    };
+
+    fetchTeamVoterCounts();
+  }, [coordinatorId, teams]);
+
+  // 3. Sincroniza eleitores de forma preguiçosa (apenas quando em telas de mapas, relatórios ou análise eleitoral)
+  useEffect(() => {
+    if (!coordinatorId) return;
+
+    const tabsThatNeedAllVoters = ['mapa', 'analise_eleitoral', 'reports'];
+    if (!tabsThatNeedAllVoters.includes(activeTab)) {
+      return;
+    }
+
+    console.log("🧠 [Optimization] Lazy loading all campaign voters for tab:", activeTab);
+    const unsubVoters = onSnapshot(
+      query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId)), 
+      (snap) => {
+        const rawData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+        const uniqueMap = new Map();
+        rawData.forEach((v: any) => {
+          const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, v);
+          } else {
+            const existing = uniqueMap.get(key);
+            if (!existing.articulatorId && v.articulatorId) {
+              uniqueMap.set(key, v);
+            }
+          }
+        });
+        const uniqueVoters = Array.from(uniqueMap.values());
+        setAllVoters(uniqueVoters);
+        safeLocalStorage.setItem(`aguia_voters_cache_${coordinatorId}`, JSON.stringify(uniqueVoters));
+      }, 
+      (err) => {
+        console.warn("Voters sync error:", err.message);
+      }
+    );
+
+    return () => unsubVoters();
+  }, [coordinatorId, activeTab]);
+
+  // 4. Sincronização reativa paginada para a listagem principal de eleitores (carregando de 50 em 50)
+  useEffect(() => {
+    if (!coordinatorId || activeTab !== 'voters') return;
+
+    setLoadingPaginatedVoters(true);
+    let q = query(
+      collection(db, 'voters'),
+      where('coordinatorId', '==', coordinatorId)
+    );
+
+    if (articulatorFilter) {
+      q = query(q, where('articulatorId', '==', articulatorFilter));
+    }
+
+    // Usamos um limite dinâmico de 50 * voterPage para permitir rolagem e paginação reativa segura
+    const limitSize = 50 * voterPage;
+    q = query(q, limit(limitSize));
+
+    const unsub = onSnapshot(q, (snap) => {
+      const docs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const sorted = docs.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
+      setPaginatedVotersList(sorted);
+      setHasMoreVoters(snap.docs.length === limitSize);
+      setLoadingPaginatedVoters(false);
+    }, (err) => {
+      console.warn("Error listening to paginated voters:", err.message);
+      setLoadingPaginatedVoters(false);
+    });
+
+    return () => unsub();
+  }, [coordinatorId, activeTab, voterPage, articulatorFilter]);
+
+  // 5. Carregar articuladores específicos para filtros na aba de eleitores de forma leve
+  useEffect(() => {
+    if (!coordinatorId || activeTab !== 'voters') return;
+
+    const fetchArticulators = async () => {
+      try {
+        const qArt = query(
+          collection(db, 'voters'),
+          where('coordinatorId', '==', coordinatorId),
+          where('isArticulator', '==', true)
+        );
+        const snap = await getDocs(qArt);
+        setArticulators(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (err) {
+        console.warn("Error fetching articulators:", err);
+      }
+    };
+
+    fetchArticulators();
+  }, [coordinatorId, activeTab]);
 
   useEffect(() => {
     if (!coordinatorId || teams.length === 0) return;
@@ -1172,7 +1291,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     },
     { 
       label: 'Contatos Base', 
-      value: allVoters.length, 
+      value: totalVotersCount || allVoters.length, 
       sub: 'Monitoramento Real', 
       color: 'text-emerald-600 dark:text-emerald-500',
       iconColor: 'bg-emerald-50 dark:bg-emerald-500/10',
@@ -1188,8 +1307,8 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     },
     { 
       label: 'Dia D (Votaram)', 
-      value: allVoters.filter(v => v.voted).length, 
-      sub: `${((allVoters.filter(v => v.voted).length / (allVoters.length || 1)) * 100).toFixed(1)}% de Metas`, 
+      value: votedVotersCount, 
+      sub: `${((votedVotersCount / ((totalVotersCount || allVoters.length) || 1)) * 100).toFixed(1)}% de Metas`, 
       color: 'text-emerald-700 dark:text-emerald-400',
       iconColor: 'bg-emerald-100 dark:bg-emerald-500/20',
       action: () => setActiveTab('voters')
@@ -1288,7 +1407,9 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
 
 
-  const filteredVoters = allVoters.filter(voter => {
+  const sourceVoters = allVoters.length > 0 ? allVoters : paginatedVotersList;
+
+  const filteredVoters = sourceVoters.filter(voter => {
     const matchesSearch = !voterSearch || 
       voter.name?.toLowerCase().includes(voterSearch.toLowerCase()) || 
       voter.phone?.includes(voterSearch);
@@ -1308,13 +1429,18 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
   });
 
   const availableTags = Array.from(new Set(
-    allVoters.flatMap(v => (v.tags || []) as string[])
+    sourceVoters.flatMap(v => (v.tags || []) as string[])
       .map(t => t.trim().toUpperCase())
       .filter(t => t !== "")
   )) as string[];
 
-  const totalPages = Math.ceil(filteredVoters.length / voterPageSize) || 1;
-  const paginatedVoters = filteredVoters.slice((voterPage - 1) * voterPageSize, voterPage * voterPageSize);
+  const totalPages = allVoters.length > 0 
+    ? (Math.ceil(filteredVoters.length / voterPageSize) || 1)
+    : (Math.ceil(totalVotersCount / voterPageSize) || 1);
+
+  const paginatedVoters = allVoters.length > 0
+    ? filteredVoters.slice((voterPage - 1) * voterPageSize, voterPage * voterPageSize)
+    : filteredVoters.slice((voterPage - 1) * voterPageSize, voterPage * voterPageSize);
 
   const handleProcessCaos = async () => {
     setIsProcessing(true);
@@ -1496,6 +1622,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       await firestoreService.updateDocument('voters', selectedVoter.id, voterEditForm);
       setIsVoterEditModalOpen(false);
       setSelectedVoter(null);
+      await fetchServerCounts();
       alert("Eleitor atualizado com sucesso!");
     } catch (err: any) {
       alert("Erro ao atualizar eleitor: " + err.message);
@@ -1517,6 +1644,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     if (window.confirm("Deseja realmente excluir este eleitor? Esta ação não pode ser desfeita.")) {
       try {
         await firestoreService.deleteDocument('voters', voterId);
+        await fetchServerCounts();
         alert("Eleitor excluído com sucesso!");
       } catch (err: any) {
         alert("Erro ao excluir eleitor: " + err.message);
@@ -2021,13 +2149,13 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         <div>
                           <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Eleitores</p>
                           <p className="text-base md:text-2xl font-black text-[var(--text-primary)] tracking-tighter">
-                            {allVoters.filter(v => v.team === team.name || v.teamName === team.name).length}
+                            {teamVotersCountMap[team.name] !== undefined ? teamVotersCountMap[team.name] : allVoters.filter(v => v.team === team.name || v.teamName === team.name).length}
                           </p>
                         </div>
                         <div>
                           <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Engajamento</p>
                           <p className="text-base md:text-2xl font-black text-emerald-600 dark:text-emerald-500 tracking-tighter leading-none">
-                            {Math.min(100, Math.round(((allVoters.filter(v => v.team === team.name || v.teamName === team.name).length) / 100) * 100))}%
+                            {Math.min(100, Math.round(((teamVotersCountMap[team.name] !== undefined ? teamVotersCountMap[team.name] : allVoters.filter(v => v.team === team.name || v.teamName === team.name).length) / 100) * 100))}%
                           </p>
                         </div>
                         <div>
@@ -2146,7 +2274,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                           className="w-full bg-zinc-50 border border-zinc-100 rounded-sm py-3 pl-10 pr-4 text-xs font-bold text-zinc-900 outline-none focus:border-yellow-500 transition-all appearance-none"
                         >
                           <option value="">TODOS OS ARTICULADORES</option>
-                          {allVoters.filter(v => v.isArticulator).map(art => (
+                          {(allVoters.length > 0 ? allVoters.filter(v => v.isArticulator) : articulators).map(art => (
                             <option key={art.id} value={art.id}>{art.name}</option>
                           ))}
                         </select>
@@ -2227,7 +2355,14 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[var(--border-color)]">
-                      {paginatedVoters.length > 0 ? paginatedVoters.map((voter) => (
+                      {loadingPaginatedVoters ? (
+                        <tr>
+                          <td colSpan={5} className="p-20 text-center">
+                            <RefreshCcw className="w-8 h-8 text-yellow-500 animate-spin mx-auto mb-3" />
+                            <p className="font-black text-[var(--text-secondary)] uppercase tracking-widest text-[9px]">Buscando registros otimizados no servidor...</p>
+                          </td>
+                        </tr>
+                      ) : paginatedVoters.length > 0 ? paginatedVoters.map((voter) => (
                         <tr key={voter.id} className="hover:bg-[var(--bg-tertiary)]/50 transition-colors">
                           <td className="p-3.5">
                             <div className="flex flex-col">
@@ -2260,7 +2395,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                           <td className="p-4">
                             <div className="flex flex-col">
                               <span className="text-xs font-black text-zinc-900 uppercase leading-none">
-                                {voter.articulatorId ? allVoters.find(v => v.id === voter.articulatorId)?.name : (voter.referredBy || '---')}
+                                {voter.articulatorId ? (allVoters.find(v => v.id === voter.articulatorId)?.name || articulators.find(v => v.id === voter.articulatorId)?.name || 'Articulador') : (voter.referredBy || '---')}
                               </span>
                               {voter.familyCommunity && (
                                 <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Grupamento: {voter.familyCommunity}</span>
@@ -2383,7 +2518,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       ))}
                     </select>
                     <span className="text-[10px] uppercase font-black text-zinc-500 dark:text-zinc-400">
-                      Exibindo {filteredVoters.length === 0 ? 0 : (voterPage - 1) * voterPageSize + 1} - {Math.min(voterPage * voterPageSize, filteredVoters.length)} de {filteredVoters.length} eleitores
+                      Exibindo {filteredVoters.length === 0 ? 0 : (voterPage - 1) * voterPageSize + 1} - {Math.min(voterPage * voterPageSize, filteredVoters.length)} de {allVoters.length > 0 ? filteredVoters.length : (totalVotersCount || filteredVoters.length)} eleitores
                     </span>
                   </div>
 
@@ -3933,6 +4068,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                                       if(window.confirm(`Remover o eleitor ${vx.name}?`)) {
                                          try {
                                             await firestoreService.deleteDocument('voters', vx.id);
+                                             await fetchServerCounts();
                                             alert("Membro removido com sucesso!");
                                          } catch (err: any) {
                                             alert("Erro ao excluir: " + err.message);
@@ -4144,7 +4280,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm appearance-none outline-none"
                     >
                       <option value="">NENHUM ARTICULADOR</option>
-                      {allVoters.filter(v => v.isArticulator && v.id !== selectedVoter?.id).map(art => (
+                      {(allVoters.length > 0 ? allVoters.filter(v => v.isArticulator && v.id !== selectedVoter?.id) : articulators.filter(v => v.id !== selectedVoter?.id)).map(art => (
                         <option key={art.id} value={art.id}>{art.name}</option>
                       ))}
                     </select>
@@ -4164,7 +4300,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                     className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm outline-none appearance-none"
                   >
                     <option value="">NENHUM INDICIADOR SELECIONADO</option>
-                    {[...allVoters]
+                    {[...sourceVoters]
                       .filter(v => v.id !== selectedVoter?.id)
                       .sort((a, b) => a.name.localeCompare(b.name))
                       .map(v => (
