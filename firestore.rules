@@ -154,6 +154,11 @@ service cloud.firestore {
       );
     }
 
+    // Eleitoral TRE Data
+    match /eleitoral_data/{id} {
+      allow read, write: if isSignedIn();
+    }
+
     // Default deny
     match /{document=**} {
       allow read, write: if isSignedIn() && (

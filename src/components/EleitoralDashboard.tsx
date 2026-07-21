@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { 
   BarChart, 
   Bar, 
@@ -164,7 +166,7 @@ export default function EleitoralDashboard({
     "Uiramutã"
   ], []);
 
-  // Load data from localStorage (or fallback to empty ELEITORAL_DATA which is now [])
+  // Load data from localStorage (for instant initial render)
   const [votingLocations, setVotingLocations] = useState<VotingLocation[]>(() => {
     const saved = localStorage.getItem('sistema_aguia_eleitoral_data');
     if (saved) {
@@ -177,11 +179,87 @@ export default function EleitoralDashboard({
     return ELEITORAL_DATA; // Empty []
   });
 
-  // Save parsed data
-  const saveVotingLocations = (newData: VotingLocation[]) => {
+  // Save parsed data locally and to Firestore database for cross-browser synchronization
+  const saveVotingLocations = async (newData: VotingLocation[]) => {
     setVotingLocations(newData);
-    localStorage.setItem('sistema_aguia_eleitoral_data', JSON.stringify(newData));
+    try {
+      localStorage.setItem('sistema_aguia_eleitoral_data', JSON.stringify(newData));
+    } catch (e) {
+      console.warn("Erro ao salvar cache no localStorage:", e);
+    }
+
+    try {
+      const jsonStr = JSON.stringify(newData);
+      if (jsonStr.length < 800000) {
+        await setDoc(doc(db, 'eleitoral_data', 'global'), {
+          locations: newData,
+          updatedAt: Date.now(),
+          chunksCount: 1,
+          isChunked: false
+        });
+      } else {
+        const chunkSize = 2000;
+        const chunksCount = Math.ceil(newData.length / chunkSize);
+        for (let i = 0; i < chunksCount; i++) {
+          const chunk = newData.slice(i * chunkSize, (i + 1) * chunkSize);
+          await setDoc(doc(db, 'eleitoral_data', `global_${i}`), {
+            locations: chunk,
+            updatedAt: Date.now(),
+            chunksCount,
+            chunkIndex: i
+          });
+        }
+        await setDoc(doc(db, 'eleitoral_data', 'global'), {
+          chunksCount,
+          updatedAt: Date.now(),
+          isChunked: true
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao gravar dados eleitorais no Firestore:", err);
+    }
   };
+
+  // Real-time synchronization with Firestore across all browsers/devices
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'eleitoral_data', 'global'), async (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.isChunked && data.chunksCount > 1) {
+          let allLocs: VotingLocation[] = [];
+          for (let i = 0; i < data.chunksCount; i++) {
+            const chunkSnap = await getDoc(doc(db, 'eleitoral_data', `global_${i}`));
+            if (chunkSnap.exists()) {
+              allLocs = allLocs.concat(chunkSnap.data().locations || []);
+            }
+          }
+          setVotingLocations(allLocs);
+          localStorage.setItem('sistema_aguia_eleitoral_data', JSON.stringify(allLocs));
+        } else if (data.locations) {
+          setVotingLocations(data.locations);
+          localStorage.setItem('sistema_aguia_eleitoral_data', JSON.stringify(data.locations));
+        }
+      } else {
+        // Auto-migrate if local data exists from a previous upload before Firestore sync was enabled
+        const saved = localStorage.getItem('sistema_aguia_eleitoral_data');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              console.log("Migrando dados eleitorais do localStorage para o Firestore...");
+              saveVotingLocations(parsed);
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      }
+    }, (err) => {
+      console.warn("Erro ao sincronizar banco de dados eleitoral do TRE:", err);
+    });
+
+    return () => unsub();
+  }, []);
 
   // Drag-and-drop state
   const [dragActive, setDragActive] = useState<boolean>(false);
