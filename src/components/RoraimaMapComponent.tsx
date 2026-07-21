@@ -296,6 +296,10 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
   const [sentimentFilter, setSentimentFilter] = useState<string>("all");
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
   const [expandAllInfluence, setExpandAllInfluence] = useState<boolean>(false);
+  const [sidebarMode, setSidebarMode] = useState<'lista' | 'mapa'>('lista');
+  const [sidebarSearch, setSidebarSearch] = useState("");
+  const [munSubTab, setMunSubTab] = useState<'frentes' | 'eleitores'>('frentes');
+  const [voterViewMode, setVoterViewMode] = useState<'lista' | 'rede'>('lista');
 
   // Dynamic voter mapping function with memoized lookup cache
   const mappedVoters = useMemo(() => {
@@ -621,27 +625,41 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
     );
   };
 
+  const filteredZonesGroups = useMemo(() => {
+    if (!sidebarSearch) return ZONES_GROUPS;
+    return ZONES_GROUPS.map(group => {
+      const filteredMuns = group.municipalities.filter(mun => 
+        mun.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+        (ZONE_INFO[mun]?.zone || "").toLowerCase().includes(sidebarSearch.toLowerCase())
+      );
+      return {
+        ...group,
+        municipalities: filteredMuns
+      };
+    }).filter(group => group.municipalities.length > 0);
+  }, [sidebarSearch]);
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header Panel */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-6">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-yellow-500 rounded-sm flex items-center justify-center shadow-lg shadow-yellow-500/10">
-            <MapIcon className="w-6 h-6 text-zinc-950" />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-yellow-500 rounded-sm flex items-center justify-center shadow-lg shadow-yellow-500/10">
+            <MapIcon className="w-5 h-5 text-zinc-950" />
           </div>
           <div>
-            <h2 className="text-2xl font-black uppercase text-zinc-950 dark:text-white tracking-tighter leading-none">Mapa Regional Eleitoral</h2>
-            <p className="text-zinc-500 dark:text-zinc-400 text-[10px] font-bold uppercase tracking-widest mt-2">Visão Estratégica, Divisão Político-Territorial de Roraima e Mapeamento de Influência</p>
+            <h2 className="text-xl font-black uppercase text-zinc-950 dark:text-white tracking-tighter leading-none">Mapa Regional Eleitoral</h2>
+            <p className="text-zinc-500 dark:text-zinc-400 text-[10px] font-bold uppercase tracking-widest mt-1.5">Visão Territorial, Divisão por Zonas do TRE-RR e Gestão de Lideranças Locais</p>
           </div>
         </div>
 
         {/* Rapid Dropdown Selector for ease of access */}
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <span className="text-xs font-black uppercase text-zinc-400 tracking-wider">Ir para:</span>
+          <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Ir para:</span>
           <select 
             value={selectedMun} 
             onChange={(e) => setSelectedMun(e.target.value)}
-            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white px-4 py-2.5 rounded-sm font-black text-[10px] uppercase outline-none focus:border-yellow-500 shadow-sm"
+            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white px-3 py-2 rounded-sm font-black text-[10px] uppercase outline-none focus:border-yellow-500 shadow-sm"
           >
             {MUNICIPALITIES.map(mun => (
               <option key={mun} value={mun}>{mun} ({ZONE_INFO[mun]?.zone || "ZE"})</option>
@@ -650,670 +668,775 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
         </div>
       </div>
 
-      {/* Main Grid View: Map Visualizer & Data Panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* Main Grid View: Sidebar on Left (4 cols), Command Center on Right (8 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* Left Side: Dynamic Zones & Quick Contact Directory (Cols 1-6) */}
-        <div className="lg:col-span-6 space-y-6">
-          <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-6 shadow-sm">
-            <div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-zinc-100 dark:border-zinc-900">
+        {/* Left Side: Municipalities & Zones Sidebar (Cols 1-4) */}
+        <div className="lg:col-span-4 space-y-4">
+          <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-4 shadow-sm">
+            
+            {/* Sidebar Title & Toggles */}
+            <div className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-900 pb-3 mb-3">
               <div>
-                <h3 className="text-sm font-black uppercase tracking-widest text-zinc-950 dark:text-white">Divisão por Zona e Município</h3>
-                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">Selecione ou clique nos municípios para mapear as frentes operacionais locais.</p>
+                <h3 className="text-[11px] font-black uppercase tracking-wider text-zinc-900 dark:text-white">Divisão de Roraima</h3>
+                <p className="text-[8px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wide leading-none mt-1">Selecione o Município</p>
+              </div>
+              
+              {/* List vs Map Toggle */}
+              <div className="flex gap-0.5 bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-xs">
+                <button
+                  type="button"
+                  onClick={() => setSidebarMode('lista')}
+                  className={`px-2 py-1 text-[8px] font-black uppercase rounded-xs transition-all ${
+                    sidebarMode === 'lista'
+                      ? 'bg-white dark:bg-zinc-850 text-zinc-950 dark:text-white shadow-xs'
+                      : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+                  }`}
+                >
+                  Lista
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSidebarMode('mapa')}
+                  className={`px-2 py-1 text-[8px] font-black uppercase rounded-xs transition-all ${
+                    sidebarMode === 'mapa'
+                      ? 'bg-white dark:bg-zinc-850 text-zinc-950 dark:text-white shadow-xs'
+                      : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+                  }`}
+                >
+                  Mapa
+                </button>
               </div>
             </div>
 
-            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-1">
-                {ZONES_GROUPS.map((group) => (
-                  <div 
-                    key={group.name} 
-                    className={`border ${group.borderColor} ${group.bgColor} rounded-sm p-4 space-y-3`}
-                  >
-                    <div className="flex justify-between items-center border-b border-zinc-200/40 dark:border-zinc-800/40 pb-2">
-                      <div>
-                        <h4 className="text-xs font-black uppercase text-zinc-900 dark:text-white leading-none tracking-wider">
+            {/* Content area based on mode */}
+            {sidebarMode === 'lista' ? (
+              <div className="space-y-3">
+                {/* Search Bar inside sidebar */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={sidebarSearch}
+                    onChange={(e) => setSidebarSearch(e.target.value)}
+                    placeholder="Filtrar município ou zona..."
+                    className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm py-2 pl-8 pr-3 font-bold text-[9px] text-zinc-900 dark:text-white outline-none focus:border-yellow-500 placeholder:text-zinc-400"
+                  />
+                  <Search className="absolute left-2.5 top-2.5 w-3 h-3 text-zinc-400" />
+                </div>
+
+                {/* Grouped Zones List */}
+                <div className="space-y-3 max-h-[550px] overflow-y-auto pr-1">
+                  {filteredZonesGroups.map((group) => (
+                    <div 
+                      key={group.name} 
+                      className={`border ${group.borderColor} ${group.bgColor} rounded-sm p-3 space-y-2`}
+                    >
+                      <div className="flex justify-between items-center border-b border-zinc-200/40 dark:border-zinc-800/40 pb-1.5">
+                        <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-white leading-none tracking-wider">
                           {group.name}
                         </h4>
-                        <p className="text-[9px] text-zinc-400 dark:text-zinc-500 font-bold uppercase mt-1 leading-none tracking-widest">
+                        <span className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm ${group.badgeColor}`}>
                           {group.region}
-                        </p>
+                        </span>
                       </div>
-                      <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-sm ${group.badgeColor}`}>
-                        Regional
-                      </span>
-                    </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {group.municipalities.map((mun) => {
-                        const isSelected = selectedMun === mun;
-                        const stats = munStats[mun] || { voters: 0, teams: 0, supporters: 0 };
-                        return (
-                          <button
-                            type="button"
-                            key={mun}
-                            onClick={() => setSelectedMun(mun)}
-                            className={`text-left p-3 border rounded-sm transition-all relative overflow-hidden flex flex-col justify-between min-h-[90px] outline-none ${
-                              isSelected
-                                ? 'border-yellow-500 bg-yellow-500/10 shadow-md ring-1 ring-yellow-500'
-                                : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-350 dark:hover:border-zinc-700 shadow-xs'
-                            }`}
-                          >
-                            {/* Active Indicator Strip */}
-                            <div 
-                              className="absolute top-0 left-0 bottom-0 w-1.5" 
-                              style={{ backgroundColor: ZONE_INFO[mun]?.color || "#eab308" }}
-                            />
-
-                            <div className="pl-2 flex justify-between items-start gap-1 w-full">
-                              <div>
-                                <h5 className="text-xs font-black uppercase text-zinc-900 dark:text-white leading-tight">
+                      <div className="space-y-1.5">
+                        {group.municipalities.map((mun) => {
+                          const isSelected = selectedMun === mun;
+                          const stats = munStats[mun] || { voters: 0, teams: 0 };
+                          return (
+                            <button
+                              type="button"
+                              key={mun}
+                              onClick={() => setSelectedMun(mun)}
+                              className={`w-full text-left p-2 border rounded-sm transition-all relative overflow-hidden flex items-center justify-between outline-none ${
+                                isSelected
+                                  ? 'border-yellow-500 bg-yellow-500/10 shadow-xs ring-1 ring-yellow-500'
+                                  : 'border-zinc-150 dark:border-zinc-850 bg-white dark:bg-zinc-900 hover:border-zinc-350 dark:hover:border-zinc-750 shadow-xs'
+                              }`}
+                            >
+                              <div 
+                                className="absolute top-0 left-0 bottom-0 w-1" 
+                                style={{ backgroundColor: ZONE_INFO[mun]?.color || "#eab308" }}
+                              />
+                              <div className="pl-1.5">
+                                <h5 className="text-[11px] font-black uppercase text-zinc-900 dark:text-white leading-none">
                                   {mun}
                                 </h5>
-                                <p className="text-[8px] text-zinc-400 font-bold uppercase mt-1 leading-none tracking-wider">
+                                <p className="text-[8px] text-zinc-450 dark:text-zinc-500 font-bold uppercase mt-1 leading-none tracking-wider">
                                   {ZONE_INFO[mun]?.zone}
                                 </p>
                               </div>
-                              {isSelected && (
-                                <span className="bg-yellow-500 text-zinc-950 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm shrink-0">
-                                  Ativo
+                              <div className="flex items-center gap-1.5 text-[8px] font-mono font-bold text-zinc-500 dark:text-zinc-400 shrink-0">
+                                <span className="flex items-center gap-0.5">
+                                  👥 {stats.voters}
                                 </span>
-                              )}
-                            </div>
-
-                            <div className="pl-2 mt-3 flex items-center gap-4 text-[9px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                              <div className="flex items-center gap-1">
-                                <Users className="w-3.5 h-3.5 text-yellow-500" />
-                                <span>
-                                  {stats.teams} {stats.teams === 1 ? 'Equipe' : 'Equipes'}
+                                <span className="text-zinc-300 dark:text-zinc-800">|</span>
+                                <span className="flex items-center gap-0.5">
+                                  🚩 {stats.teams}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-1 border-l border-zinc-200 dark:border-zinc-800 pl-3">
-                                <UserCheck className="w-3.5 h-3.5 text-green-500" />
-                                <span>
-                                  {stats.voters} {stats.voters === 1 ? 'Voto' : 'Mapeados'}
-                                </span>
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="hidden">
-              <svg 
-                viewBox="0 0 650 740" 
-                className="w-full h-full drop-shadow-md select-none transition-all duration-300"
-              >
-                {/* Defs for gradients, patterns */}
-                <defs>
-                  <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
-                    <feDropShadow dx="3" dy="3" stdDeviation="4" floodOpacity="0.15"/>
-                  </filter>
-                </defs>
-
-                {/* Draw all Municipal Borders based on calculated points in image */}
-                <g filter="url(#shadow)">
-                  {/* 1. Amajari */}
-                  <path 
-                    d="M 120,200 C 140,165 200,160 210,160 C 240,185 270,180 320,150 C 370,160 380,180 415,160 C 400,200 405,240 425,270 C 385,270 330,225 245,240 C 210,248 180,245 120,200 Z"
-                    fill={selectedMun === "Amajari" ? ZONE_INFO["Amajari"].hoverColor : ZONE_INFO["Amajari"].color}
-                    stroke={selectedMun === "Amajari" ? "#eab308" : "#ffffff"}
-                    strokeWidth={selectedMun === "Amajari" ? "3.5" : "1.5"}
-                    className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
-                    onClick={() => setSelectedMun("Amajari")}
-                    onMouseEnter={() => setHoveredMun("Amajari")}
-                    onMouseLeave={() => setHoveredMun(null)}
-                  />
-
-                  {/* 2. Pacaraima */}
-                  <path 
-                    d="M 320,150 C 340,110 380,110 405,95 C 415,120 425,115 440,115 C 440,150 435,170 415,160 C 380,180 370,160 320,150 Z"
-                    fill={selectedMun === "Pacaraima" ? ZONE_INFO["Pacaraima"].hoverColor : ZONE_INFO["Pacaraima"].color}
-                    stroke={selectedMun === "Pacaraima" ? "#eab308" : "#ffffff"}
-                    strokeWidth={selectedMun === "Pacaraima" ? "3.5" : "1.5"}
-                    className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
-                    onClick={() => setSelectedMun("Pacaraima")}
-                    onMouseEnter={() => setHoveredMun("Pacaraima")}
-                    onMouseLeave={() => setHoveredMun(null)}
-                  />
-
-                  {/* 3. Uiramutã */}
-                  <path 
-                    d="M 440,115 C 455,110 465,115 470,115 C 475,80 495,40 525,20 C 515,70 535,110 565,120 C 560,135 535,140 520,145 C 515,165 500,175 485,205 C 470,225 455,250 455,250 C 450,165 455,135 470,115 Z"
-                    fill={selectedMun === "Uiramutã" ? ZONE_INFO["Uiramutã"].hoverColor : ZONE_INFO["Uiramutã"].color}
-                    stroke={selectedMun === "Uiramutã" ? "#eab308" : "#ffffff"}
-                    strokeWidth={selectedMun === "Uiramutã" ? "3.5" : "1.5"}
-                    className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
-                    onClick={() => setSelectedMun("Uiramutã")}
-                    onMouseEnter={() => setHoveredMun("Uiramutã")}
-                    onMouseLeave={() => setHoveredMun(null)}
-                  />
-
-                  {/* 4. Normandia */}
-                  <path 
-                    d="M 455,250 C 470,225 485,205 485,205 C 500,175 515,165 520,145 C 535,140 560,135 565,120 C 575,125 570,150 585,190 C 575,210 580,245 555,270 C 530,280 513,280 505,275 C 490,265 475,255 455,250 Z"
-                    fill={selectedMun === "Normandia" ? ZONE_INFO["Normandia"].hoverColor : ZONE_INFO["Normandia"].color}
-                    stroke={selectedMun === "Normandia" ? "#eab308" : "#ffffff"}
-                    strokeWidth={selectedMun === "Normandia" ? "3.5" : "1.5"}
-                    className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
-                    onClick={() => setSelectedMun("Normandia")}
-                    onMouseEnter={() => setHoveredMun("Normandia")}
-                    onMouseLeave={() => setHoveredMun(null)}
-                  />
-
-                  {/* 5. Alto Alegre */}
-                  <path 
-                    d="M 15,110 C 50,130 90,150 160,155 C 160,185 160,200 170,160 C 180,240 210,255 260,295 C 300,290 350,270 350,270 C 335,275 315,290 290,290 C 250,295 240,300 200,295 C 190,315 160,320 115,335 C 105,310 100,275 85,270 C 85,220 75,210 15,110 Z"
-                    fill={selectedMun === "Alto Alegre" ? ZONE_INFO["Alto Alegre"].hoverColor : ZONE_INFO["Alto Alegre"].color}
-                    stroke={selectedMun === "Alto Alegre" ? "#eab308" : "#ffffff"}
-                    strokeWidth={selectedMun === "Alto Alegre" ? "3.5" : "1.5"}
-                    className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
-                    onClick={() => setSelectedMun("Alto Alegre")}
-                    onMouseEnter={() => setHoveredMun("Alto Alegre")}
-                    onMouseLeave={() => setHoveredMun(null)}
-                  />
-
-                  {/* 6. Boa Vista */}
-                  <path 
-                    d="M 350,270 C 365,255 385,250 405,245 C 410,220 435,200 455,190 C 455,250 475,255 505,275 C 500,310 510,350 505,370 C 490,372 475,365 465,350 C 465,330 445,310 420,290 C 413,285 405,280 403,280 C 400,275 350,270 350,270 Z"
-                    fill={selectedMun === "Boa Vista" ? ZONE_INFO["Boa Vista"].hoverColor : ZONE_INFO["Boa Vista"].color}
-                    stroke={selectedMun === "Boa Vista" ? "#eab308" : "#ffffff"}
-                    strokeWidth={selectedMun === "Boa Vista" ? "3.5" : "1.5"}
-                    className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
-                    onClick={() => setSelectedMun("Boa Vista")}
-                    onMouseEnter={() => setHoveredMun("Boa Vista")}
-                    onMouseLeave={() => setHoveredMun(null)}
-                  />
-
-                  {/* 7. Bonfim */}
-                  <path 
-                    d="M 505,275 C 513,280 530,280 555,270 C 557,285 540,300 537,325 C 535,335 555,360 545,385 C 525,380 515,375 505,370 C 510,350 500,310 505,275 Z"
-                    fill={selectedMun === "Bonfim" ? ZONE_INFO["Bonfim"].hoverColor : ZONE_INFO["Bonfim"].color}
-                    stroke={selectedMun === "Bonfim" ? "#eab308" : "#ffffff"}
-                    strokeWidth={selectedMun === "Bonfim" ? "3.5" : "1.5"}
-                    className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
-                    onClick={() => setSelectedMun("Bonfim")}
-                    onMouseEnter={() => setHoveredMun("Bonfim")}
-                    onMouseLeave={() => setHoveredMun(null)}
-                  />
-
-                  {/* 8. Cantá */}
-                  <path 
-                    d="M 420,290 C 445,310 465,330 465,350 C 475,365 490,372 505,370 C 500,395 515,420 485,430 C 460,410 433,390 425,365 C 405,350 410,310 420,290 Z"
-                    fill={selectedMun === "Cantá" ? ZONE_INFO["Cantá"].hoverColor : ZONE_INFO["Cantá"].color}
-                    stroke={selectedMun === "Cantá" ? "#eab308" : "#ffffff"}
-                    strokeWidth={selectedMun === "Cantá" ? "3.5" : "1.5"}
-                    className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
-                    onClick={() => setSelectedMun("Cantá")}
-                    onMouseEnter={() => setHoveredMun("Cantá")}
-                    onMouseLeave={() => setHoveredMun(null)}
-                  />
-
-                  {/* 9. Mucajaí */}
-                  <path 
-                    d="M 200,295 C 240,300 250,295 290,290 C 315,290 335,275 350,270 C 350,270 400,275 403,280 C 405,280 413,285 420,290 C 410,310 405,350 425,365 C 405,360 365,350 285,355 C 215,360 195,360 155,390 C 145,345 165,335 200,295 Z"
-                    fill={selectedMun === "Mucajaí" ? ZONE_INFO["Mucajaí"].hoverColor : ZONE_INFO["Mucajaí"].color}
-                    stroke={selectedMun === "Mucajaí" ? "#eab308" : "#ffffff"}
-                    strokeWidth={selectedMun === "Mucajaí" ? "3.5" : "1.5"}
-                    className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
-                    onClick={() => setSelectedMun("Mucajaí")}
-                    onMouseEnter={() => setHoveredMun("Mucajaí")}
-                    onMouseLeave={() => setHoveredMun(null)}
-                  />
-
-                  {/* 10. Iracema */}
-                  <path 
-                    d="M 155,390 C 195,360 215,360 285,355 C 365,350 405,360 425,365 C 433,390 460,410 485,430 C 470,440 435,442 395,435 C 335,450 265,485 225,435 C 205,445 175,430 155,390 Z"
-                    fill={selectedMun === "Iracema" ? ZONE_INFO["Iracema"].hoverColor : ZONE_INFO["Iracema"].color}
-                    stroke={selectedMun === "Iracema" ? "#eab308" : "#ffffff"}
-                    strokeWidth={selectedMun === "Iracema" ? "3.5" : "1.5"}
-                    className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
-                    onClick={() => setSelectedMun("Iracema")}
-                    onMouseEnter={() => setHoveredMun("Iracema")}
-                    onMouseLeave={() => setHoveredMun(null)}
-                  />
-
-                  {/* 11. Caracaraí */}
-                  <path 
-                    d="M 225,435 C 265,485 335,450 395,435 C 435,442 470,440 485,430 C 495,450 525,440 525,420 C 535,430 543,425 550,420 C 555,440 565,460 545,490 C 535,500 530,510 535,520 C 515,540 495,560 465,590 C 445,610 395,640 360,690 C 335,720 326,750 323,785 C 320,760 310,740 295,720 C 275,690 265,650 270,595 C 275,540 255,510 225,435 Z"
-                    fill={selectedMun === "Caracaraí" ? ZONE_INFO["Caracaraí"].hoverColor : ZONE_INFO["Caracaraí"].color}
-                    stroke={selectedMun === "Caracaraí" ? "#eab308" : "#ffffff"}
-                    strokeWidth={selectedMun === "Caracaraí" ? "3.5" : "1.5"}
-                    className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
-                    onClick={() => setSelectedMun("Caracaraí")}
-                    onMouseEnter={() => setHoveredMun("Caracaraí")}
-                    onMouseLeave={() => setHoveredMun(null)}
-                  />
-
-                  {/* 12. Rorainópolis */}
-                  <path 
-                    d="M 465,590 C 495,560 515,540 535,520 C 543,540 565,560 575,580 C 565,610 525,650 525,690 C 515,730 475,780 460,815 C 435,780 395,720 360,690 C 395,640 445,610 465,590 Z"
-                    fill={selectedMun === "Rorainópolis" ? ZONE_INFO["Rorainópolis"].hoverColor : ZONE_INFO["Rorainópolis"].color}
-                    stroke={selectedMun === "Rorainópolis" ? "#eab308" : "#ffffff"}
-                    strokeWidth={selectedMun === "Rorainópolis" ? "3.5" : "1.5"}
-                    className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
-                    onClick={() => setSelectedMun("Rorainópolis")}
-                    onMouseEnter={() => setHoveredMun("Rorainópolis")}
-                    onMouseLeave={() => setHoveredMun(null)}
-                  />
-
-                  {/* 13. São Luiz */}
-                  <path 
-                    d="M 525,420 C 535,430 543,425 550,420 C 558,425 565,430 570,435 C 570,450 565,465 555,475 C 545,470 535,470 530,465 C 525,460 525,440 525,420 Z"
-                    fill={selectedMun === "São Luiz" ? ZONE_INFO["São Luiz"].hoverColor : ZONE_INFO["São Luiz"].color}
-                    stroke={selectedMun === "São Luiz" ? "#eab308" : "#ffffff"}
-                    strokeWidth={selectedMun === "São Luiz" ? "3.5" : "1.5"}
-                    className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
-                    onClick={() => setSelectedMun("São Luiz")}
-                    onMouseEnter={() => setHoveredMun("São Luiz")}
-                    onMouseLeave={() => setHoveredMun(null)}
-                  />
-
-                  {/* 14. São João da Baliza */}
-                  <path 
-                    d="M 535,520 C 545,510 550,500 545,490 C 555,490 565,495 570,500 C 565,515 555,525 545,530 C 540,530 535,525 535,520 Z"
-                    fill={selectedMun === "São João da Baliza" ? ZONE_INFO["São João da Baliza"].hoverColor : ZONE_INFO["São João da Baliza"].color}
-                    stroke={selectedMun === "São João da Baliza" ? "#eab308" : "#ffffff"}
-                    strokeWidth={selectedMun === "São João da Baliza" ? "3.5" : "1.5"}
-                    className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
-                    onClick={() => setSelectedMun("São João da Baliza")}
-                    onMouseEnter={() => setHoveredMun("São João da Baliza")}
-                    onMouseLeave={() => setHoveredMun(null)}
-                  />
-
-                  {/* 15. Caroebe */}
-                  <path 
-                    d="M 570,435 C 585,425 590,440 595,460 C 595,490 585,515 570,525 C 565,495 555,490 545,490 C 545,490 555,475 555,475 C 565,465 570,450 570,435 Z"
-                    fill={selectedMun === "Caroebe" ? ZONE_INFO["Caroebe"].hoverColor : ZONE_INFO["Caroebe"].color}
-                    stroke={selectedMun === "Caroebe" ? "#eab308" : "#ffffff"}
-                    strokeWidth={selectedMun === "Caroebe" ? "3.5" : "1.5"}
-                    className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
-                    onClick={() => setSelectedMun("Caroebe")}
-                    onMouseEnter={() => setHoveredMun("Caroebe")}
-                    onMouseLeave={() => setHoveredMun(null)}
-                  />
-                </g>
-
-                {/* TEXT LABELS OVER MUNICIPALITIES & ZONES - STACKED FOR MAXIMUM LEGIBILITY & FIDELITY */}
-                {/* 7ª ZE (Amajari, Pacaraima, Uiramutã) */}
-                <text x="280" y="210" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
-                  <tspan x="280" dy="-6">7ª</tspan>
-                  <tspan x="280" dy="12">Amajari</tspan>
-                </text>
-                <text x="390" y="135" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
-                  <tspan x="390" dy="-6">7ª</tspan>
-                  <tspan x="390" dy="12">Pacaraima</tspan>
-                </text>
-                <text x="495" y="125" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
-                  <tspan x="495" dy="-6">7ª</tspan>
-                  <tspan x="495" dy="12">Uiramutã</tspan>
-                </text>
-                
-                {/* 3ª ZE */}
-                <text x="210" y="245" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
-                  <tspan x="210" dy="-6">3ª</tspan>
-                  <tspan x="210" dy="12">Alto Alegre</tspan>
-                </text>
-                
-                {/* 1ª / 5ª ZE */}
-                <text x="430" y="260" textAnchor="middle" className="text-[9px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
-                  <tspan x="430" dy="-12">1ª</tspan>
-                  <tspan x="430" dy="10">5ª</tspan>
-                  <tspan x="430" dy="12">Boa Vista</tspan>
-                </text>
-                <text x="455" y="335" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
-                  <tspan x="455" dy="-6">5ª</tspan>
-                  <tspan x="455" dy="12">Cantá</tspan>
-                </text>
-                
-                {/* 9ª ZE */}
-                <text x="535" y="205" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
-                  <tspan x="535" dy="-6">9ª</tspan>
-                  <tspan x="535" dy="12">Normandia</tspan>
-                </text>
-                <text x="525" y="315" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
-                  <tspan x="525" dy="-6">9ª</tspan>
-                  <tspan x="525" dy="12">Bonfim</tspan>
-                </text>
-                
-                {/* 6ª ZE */}
-                <text x="290" y="325" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
-                  <tspan x="290" dy="-6">6ª</tspan>
-                  <tspan x="290" dy="12">Mucajaí</tspan>
-                </text>
-                <text x="280" y="410" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
-                  <tspan x="280" dy="-6">6ª</tspan>
-                  <tspan x="280" dy="12">Iracema</tspan>
-                </text>
-                
-                {/* 2ª ZE */}
-                <text x="360" y="525" textAnchor="middle" className="text-[11px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2.5">
-                  <tspan x="360" dy="-6">2ª</tspan>
-                  <tspan x="360" dy="14">Caracaraí</tspan>
-                </text>
-                
-                {/* 8ª ZE */}
-                <text x="450" y="665" textAnchor="middle" className="text-[11px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2.5">
-                  <tspan x="450" dy="-6">8ª</tspan>
-                  <tspan x="450" dy="14">Rorainópolis</tspan>
-                </text>
-                
-                {/* 4ª ZE */}
-                <text x="515" y="480" textAnchor="middle" className="text-[9px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
-                  <tspan x="515" dy="-12">4ª</tspan>
-                  <tspan x="515" dy="10">São Luiz</tspan>
-                  <tspan x="515" dy="10">do Anauá</tspan>
-                </text>
-                <text x="530" y="535" textAnchor="middle" className="text-[8px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="1.8">
-                  <tspan x="530" dy="-12">4ª</tspan>
-                  <tspan x="530" dy="10">São João</tspan>
-                  <tspan x="530" dy="10">da Baliza</tspan>
-                </text>
-                <text x="585" y="500" textAnchor="middle" className="text-[9px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
-                  <tspan x="585" dy="-6">4ª</tspan>
-                  <tspan x="585" dy="11">Caroebe</tspan>
-                </text>
-              </svg>
-            </div>
-
-          {/* Map Footer & Zone Legend matching the image */}
-          <div className="border-t border-zinc-100 dark:border-zinc-900 pt-6 mt-4">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-3">Legenda das Zonas Eleitorais (TRE-RR)</h4>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 text-[10px] font-bold text-zinc-600 dark:text-zinc-400">
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 border border-zinc-200 dark:border-zinc-800 rounded-xs shrink-0" style={{backgroundColor: '#ffffff'}} />
-                <span>1ª ZE - Boa Vista</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-xs shrink-0" style={{backgroundColor: '#cdbfa5'}} />
-                <span>2ª ZE - Caracaraí</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-xs shrink-0" style={{backgroundColor: '#fffaae'}} />
-                <span>3ª ZE - Alto Alegre</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-xs shrink-0" style={{backgroundColor: '#a0c4df'}} />
-                <span>4ª ZE - Eixo do Sul</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-xs shrink-0" style={{backgroundColor: '#ffd07b'}} />
-                <span>5ª ZE - Boa Vista/Cantá</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-xs shrink-0" style={{backgroundColor: '#a998c7'}} />
-                <span>6ª ZE - Mucajaí/Iracema</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-xs shrink-0" style={{backgroundColor: '#cbe296'}} />
-                <span>7ª ZE - Norte/Fronteira</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-xs shrink-0" style={{backgroundColor: '#f26b80'}} />
-                <span>8ª ZE - Rorainópolis</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-xs shrink-0" style={{backgroundColor: '#45b4c1'}} />
-                <span>9ª ZE - Leste/Bonfim</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* TAB 3: CONTACT DIRECTORY FOR SELECTED CITY */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm p-5 lg:p-6 shadow-sm">
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-4">
-              <div>
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-900 dark:text-white flex items-center gap-2">
-                  <UserCheck className="w-4 h-4 text-yellow-500" /> Lista Geral de Contatos ({filteredMunicipalVoters.length})
-                </h3>
-                <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-1 opacity-65">Diretório telefônico e colégio de votação</p>
-              </div>
-
-              {/* Sentiment Filter */}
-              <div className="flex gap-1">
-                {['all', 'support', 'neutral', 'opposed'].map((filter) => (
-                  <button
-                    key={filter}
-                    onClick={() => setSentimentFilter(filter)}
-                    className={`px-2.5 py-1 text-[8px] font-black uppercase rounded-xs transition-all ${
-                      sentimentFilter === filter 
-                        ? 'bg-zinc-950 text-white dark:bg-zinc-800' 
-                        : 'bg-zinc-100 dark:bg-zinc-850 hover:bg-zinc-200 text-zinc-600 dark:text-zinc-400'
-                    }`}
-                  >
-                    {filter === 'all' ? 'Tudo' : filter === 'support' ? 'Apoio' : filter === 'neutral' ? 'Neutro' : 'Oposição'}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Filter Search within municipality */}
-            <div className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar nome, fone, colégio em municipal..."
-                className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-3 pl-10 font-bold text-[10px] text-zinc-900 dark:text-white outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-400"
-              />
-              <Search className="absolute left-3.5 top-3 w-4 h-4 text-zinc-400" />
-            </div>
-
-            {/* Voter Cards Container */}
-            <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1.5 custom-scrollbar">
-              {filteredMunicipalVoters.length > 0 ? (
-                filteredMunicipalVoters.map((voter) => (
-                  <div 
-                    key={voter.id}
-                    className="bg-zinc-50 dark:bg-zinc-950 p-4 border border-zinc-100 dark:border-zinc-900 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                  >
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-black uppercase text-zinc-900 dark:text-white leading-none">{voter.name}</span>
-                        {voter.sentiment === 'support' && <span className="bg-green-500 text-zinc-950 text-[7px] font-black uppercase px-1.5 rounded-sm">Apoiador</span>}
-                        {voter.sentiment === 'neutral' && <span className="bg-yellow-500 text-zinc-950 text-[7px] font-black uppercase px-1.5 rounded-sm">Neutro</span>}
-                        {voter.sentiment === 'opposed' && <span className="bg-red-500 text-zinc-950 text-[7px] font-black uppercase px-1.5 rounded-sm">Oposição</span>}
-                      </div>
-                      
-                      <div className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 flex flex-wrap gap-x-4 gap-y-1">
-                        {voter.localVotacao && (
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-yellow-500" /> Local: {voter.localVotacao}
-                          </span>
-                        )}
-                        {voter.referredBy && (
-                          <span className="text-zinc-400">
-                            Indicado por: <span className="text-yellow-600 font-extrabold">{voter.referredBy}</span>
-                          </span>
-                        )}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
-
-                    {/* WhatsApp CTA */}
-                    {voter.phone && (
-                      <div className="shrink-0">
-                        <a 
-                          href={`https://wa.me/55${voter.phone.replace(/\D/g, '')}`} 
-                          target="_blank" 
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 bg-green-500 text-zinc-950 px-3.5 py-2 rounded-sm font-black text-[9px] uppercase hover:bg-green-600 hover:text-white transition-all shadow-md shadow-green-500/10 active:scale-95"
-                        >
-                          <Phone className="w-3.5 h-3.5" /> Enviar Mensagem
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <div className="p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-sm text-center">
-                  <Search className="w-8 h-8 text-zinc-300 dark:text-zinc-800 mx-auto mb-2" />
-                  <p className="font-bold text-zinc-450 dark:text-zinc-650 uppercase text-[9px]">Nenhum contato encontrado na busca.</p>
+                  ))}
+                  {filteredZonesGroups.length === 0 && (
+                    <div className="text-center p-6 text-zinc-400 text-[10px] uppercase font-bold">
+                      Nenhum município localizado.
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              /* Interactive SVG Map container inside Sidebar */
+              <div className="space-y-3">
+                <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-150 dark:border-zinc-800 rounded-sm p-1.5 flex items-center justify-center overflow-hidden">
+                  <svg 
+                    viewBox="0 0 650 740" 
+                    className="w-full h-auto drop-shadow-md select-none transition-all duration-300"
+                  >
+                    {/* Defs for gradients, patterns */}
+                    <defs>
+                      <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+                        <feDropShadow dx="3" dy="3" stdDeviation="4" floodOpacity="0.15"/>
+                      </filter>
+                    </defs>
+
+                    {/* Draw all Municipal Borders based on calculated points in image */}
+                    <g filter="url(#shadow)">
+                      {/* Amajari */}
+                      <path 
+                        d="M 120,200 C 140,165 200,160 210,160 C 240,185 270,180 320,150 C 370,160 380,180 415,160 C 400,200 405,240 425,270 C 385,270 330,225 245,240 C 210,248 180,245 120,200 Z"
+                        fill={selectedMun === "Amajari" ? ZONE_INFO["Amajari"].hoverColor : ZONE_INFO["Amajari"].color}
+                        stroke={selectedMun === "Amajari" ? "#eab308" : "#ffffff"}
+                        strokeWidth={selectedMun === "Amajari" ? "3.5" : "1.5"}
+                        className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
+                        onClick={() => setSelectedMun("Amajari")}
+                        onMouseEnter={() => setHoveredMun("Amajari")}
+                        onMouseLeave={() => setHoveredMun(null)}
+                      />
+
+                      {/* Pacaraima */}
+                      <path 
+                        d="M 320,150 C 340,110 380,110 405,95 C 415,120 425,115 440,115 C 440,150 435,170 415,160 C 380,180 370,160 320,150 Z"
+                        fill={selectedMun === "Pacaraima" ? ZONE_INFO["Pacaraima"].hoverColor : ZONE_INFO["Pacaraima"].color}
+                        stroke={selectedMun === "Pacaraima" ? "#eab308" : "#ffffff"}
+                        strokeWidth={selectedMun === "Pacaraima" ? "3.5" : "1.5"}
+                        className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
+                        onClick={() => setSelectedMun("Pacaraima")}
+                        onMouseEnter={() => setHoveredMun("Pacaraima")}
+                        onMouseLeave={() => setHoveredMun(null)}
+                      />
+
+                      {/* Uiramutã */}
+                      <path 
+                        d="M 440,115 C 455,110 465,115 470,115 C 475,80 495,40 525,20 C 515,70 535,110 565,120 C 560,135 535,140 520,145 C 515,165 500,175 485,205 C 470,225 455,250 455,250 C 450,165 455,135 470,115 Z"
+                        fill={selectedMun === "Uiramutã" ? ZONE_INFO["Uiramutã"].hoverColor : ZONE_INFO["Uiramutã"].color}
+                        stroke={selectedMun === "Uiramutã" ? "#eab308" : "#ffffff"}
+                        strokeWidth={selectedMun === "Uiramutã" ? "3.5" : "1.5"}
+                        className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
+                        onClick={() => setSelectedMun("Uiramutã")}
+                        onMouseEnter={() => setHoveredMun("Uiramutã")}
+                        onMouseLeave={() => setHoveredMun(null)}
+                      />
+
+                      {/* Normandia */}
+                      <path 
+                        d="M 455,250 C 470,225 485,205 485,205 C 500,175 515,165 520,145 C 535,140 560,135 565,120 C 575,125 570,150 585,190 C 575,210 580,245 555,270 C 530,280 513,280 505,275 C 490,265 475,255 455,250 Z"
+                        fill={selectedMun === "Normandia" ? ZONE_INFO["Normandia"].hoverColor : ZONE_INFO["Normandia"].color}
+                        stroke={selectedMun === "Normandia" ? "#eab308" : "#ffffff"}
+                        strokeWidth={selectedMun === "Normandia" ? "3.5" : "1.5"}
+                        className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
+                        onClick={() => setSelectedMun("Normandia")}
+                        onMouseEnter={() => setHoveredMun("Normandia")}
+                        onMouseLeave={() => setHoveredMun(null)}
+                      />
+
+                      {/* Alto Alegre */}
+                      <path 
+                        d="M 15,110 C 50,130 90,150 160,155 C 160,185 160,200 170,160 C 180,240 210,255 260,295 C 300,290 350,270 350,270 C 335,275 315,290 290,290 C 250,295 240,300 200,295 C 190,315 160,320 115,335 C 105,310 100,275 85,270 C 85,220 75,210 15,110 Z"
+                        fill={selectedMun === "Alto Alegre" ? ZONE_INFO["Alto Alegre"].hoverColor : ZONE_INFO["Alto Alegre"].color}
+                        stroke={selectedMun === "Alto Alegre" ? "#eab308" : "#ffffff"}
+                        strokeWidth={selectedMun === "Alto Alegre" ? "3.5" : "1.5"}
+                        className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
+                        onClick={() => setSelectedMun("Alto Alegre")}
+                        onMouseEnter={() => setHoveredMun("Alto Alegre")}
+                        onMouseLeave={() => setHoveredMun(null)}
+                      />
+
+                      {/* Boa Vista */}
+                      <path 
+                        d="M 350,270 C 365,255 385,250 405,245 C 410,220 435,200 455,190 C 455,250 475,255 505,275 C 500,310 510,350 505,370 C 490,372 475,365 465,350 C 465,330 445,310 420,290 C 413,285 405,280 403,280 C 400,275 350,270 350,270 Z"
+                        fill={selectedMun === "Boa Vista" ? ZONE_INFO["Boa Vista"].hoverColor : ZONE_INFO["Boa Vista"].color}
+                        stroke={selectedMun === "Boa Vista" ? "#eab308" : "#ffffff"}
+                        strokeWidth={selectedMun === "Boa Vista" ? "3.5" : "1.5"}
+                        className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
+                        onClick={() => setSelectedMun("Boa Vista")}
+                        onMouseEnter={() => setHoveredMun("Boa Vista")}
+                        onMouseLeave={() => setHoveredMun(null)}
+                      />
+
+                      {/* Bonfim */}
+                      <path 
+                        d="M 505,275 C 513,280 530,280 555,270 C 557,285 540,300 537,325 C 535,335 555,360 545,385 C 525,380 515,375 505,370 C 510,350 500,310 505,275 Z"
+                        fill={selectedMun === "Bonfim" ? ZONE_INFO["Bonfim"].hoverColor : ZONE_INFO["Bonfim"].color}
+                        stroke={selectedMun === "Bonfim" ? "#eab308" : "#ffffff"}
+                        strokeWidth={selectedMun === "Bonfim" ? "3.5" : "1.5"}
+                        className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
+                        onClick={() => setSelectedMun("Bonfim")}
+                        onMouseEnter={() => setHoveredMun("Bonfim")}
+                        onMouseLeave={() => setHoveredMun(null)}
+                      />
+
+                      {/* Cantá */}
+                      <path 
+                        d="M 420,290 C 445,310 465,330 465,350 C 475,365 490,372 505,370 C 500,395 515,420 485,430 C 460,410 433,390 425,365 C 405,350 410,310 420,290 Z"
+                        fill={selectedMun === "Cantá" ? ZONE_INFO["Cantá"].hoverColor : ZONE_INFO["Cantá"].color}
+                        stroke={selectedMun === "Cantá" ? "#eab308" : "#ffffff"}
+                        strokeWidth={selectedMun === "Cantá" ? "3.5" : "1.5"}
+                        className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
+                        onClick={() => setSelectedMun("Cantá")}
+                        onMouseEnter={() => setHoveredMun("Cantá")}
+                        onMouseLeave={() => setHoveredMun(null)}
+                      />
+
+                      {/* Mucajaí */}
+                      <path 
+                        d="M 200,295 C 240,300 250,295 290,290 C 315,290 335,275 350,270 C 350,270 400,275 403,280 C 405,280 413,285 420,290 C 410,310 405,350 425,365 C 405,360 365,350 285,355 C 215,360 195,360 155,390 C 145,345 165,335 200,295 Z"
+                        fill={selectedMun === "Mucajaí" ? ZONE_INFO["Mucajaí"].hoverColor : ZONE_INFO["Mucajaí"].color}
+                        stroke={selectedMun === "Mucajaí" ? "#eab308" : "#ffffff"}
+                        strokeWidth={selectedMun === "Mucajaí" ? "3.5" : "1.5"}
+                        className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
+                        onClick={() => setSelectedMun("Mucajaí")}
+                        onMouseEnter={() => setHoveredMun("Mucajaí")}
+                        onMouseLeave={() => setHoveredMun(null)}
+                      />
+
+                      {/* Iracema */}
+                      <path 
+                        d="M 155,390 C 195,360 215,360 285,355 C 365,350 405,360 425,365 C 433,390 460,410 485,430 C 470,440 435,442 395,435 C 335,450 265,485 225,435 C 205,445 175,430 155,390 Z"
+                        fill={selectedMun === "Iracema" ? ZONE_INFO["Iracema"].hoverColor : ZONE_INFO["Iracema"].color}
+                        stroke={selectedMun === "Iracema" ? "#eab308" : "#ffffff"}
+                        strokeWidth={selectedMun === "Iracema" ? "3.5" : "1.5"}
+                        className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
+                        onClick={() => setSelectedMun("Iracema")}
+                        onMouseEnter={() => setHoveredMun("Iracema")}
+                        onMouseLeave={() => setHoveredMun(null)}
+                      />
+
+                      {/* Caracaraí */}
+                      <path 
+                        d="M 225,435 C 265,485 335,450 395,435 C 435,442 470,440 485,430 C 495,450 525,440 525,420 C 535,430 543,425 550,420 C 555,440 565,460 545,490 C 535,500 530,510 535,520 C 515,540 495,560 465,590 C 445,610 395,640 360,690 C 335,720 326,750 323,785 C 320,760 310,740 295,720 C 275,690 265,650 270,595 C 275,540 255,510 225,435 Z"
+                        fill={selectedMun === "Caracaraí" ? ZONE_INFO["Caracaraí"].hoverColor : ZONE_INFO["Caracaraí"].color}
+                        stroke={selectedMun === "Caracaraí" ? "#eab308" : "#ffffff"}
+                        strokeWidth={selectedMun === "Caracaraí" ? "3.5" : "1.5"}
+                        className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
+                        onClick={() => setSelectedMun("Caracaraí")}
+                        onMouseEnter={() => setHoveredMun("Caracaraí")}
+                        onMouseLeave={() => setHoveredMun(null)}
+                      />
+
+                      {/* Rorainópolis */}
+                      <path 
+                        d="M 465,590 C 495,560 515,540 535,520 C 543,540 565,560 575,580 C 565,610 525,650 525,690 C 515,730 475,780 460,815 C 435,780 395,720 360,690 C 395,640 445,610 465,590 Z"
+                        fill={selectedMun === "Rorainópolis" ? ZONE_INFO["Rorainópolis"].hoverColor : ZONE_INFO["Rorainópolis"].color}
+                        stroke={selectedMun === "Rorainópolis" ? "#eab308" : "#ffffff"}
+                        strokeWidth={selectedMun === "Rorainópolis" ? "3.5" : "1.5"}
+                        className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
+                        onClick={() => setSelectedMun("Rorainópolis")}
+                        onMouseEnter={() => setHoveredMun("Rorainópolis")}
+                        onMouseLeave={() => setHoveredMun(null)}
+                      />
+
+                      {/* São Luiz */}
+                      <path 
+                        d="M 525,420 C 535,430 543,425 550,420 C 558,425 565,430 570,435 C 570,450 565,465 555,475 C 545,470 535,470 530,465 C 525,460 525,440 525,420 Z"
+                        fill={selectedMun === "São Luiz" ? ZONE_INFO["São Luiz"].hoverColor : ZONE_INFO["São Luiz"].color}
+                        stroke={selectedMun === "São Luiz" ? "#eab308" : "#ffffff"}
+                        strokeWidth={selectedMun === "São Luiz" ? "3.5" : "1.5"}
+                        className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
+                        onClick={() => setSelectedMun("São Luiz")}
+                        onMouseEnter={() => setHoveredMun("São Luiz")}
+                        onMouseLeave={() => setHoveredMun(null)}
+                      />
+
+                      {/* São João da Baliza */}
+                      <path 
+                        d="M 535,520 C 545,510 550,500 545,490 C 555,490 565,495 570,500 C 565,515 555,525 545,530 C 540,530 535,525 535,520 Z"
+                        fill={selectedMun === "São João da Baliza" ? ZONE_INFO["São João da Baliza"].hoverColor : ZONE_INFO["São João da Baliza"].color}
+                        stroke={selectedMun === "São João da Baliza" ? "#eab308" : "#ffffff"}
+                        strokeWidth={selectedMun === "São João da Baliza" ? "3.5" : "1.5"}
+                        className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
+                        onClick={() => setSelectedMun("São João da Baliza")}
+                        onMouseEnter={() => setHoveredMun("São João da Baliza")}
+                        onMouseLeave={() => setHoveredMun(null)}
+                      />
+
+                      {/* Caroebe */}
+                      <path 
+                        d="M 570,435 C 585,425 590,440 595,460 C 595,490 585,515 570,525 C 565,495 555,490 545,490 C 545,490 555,475 555,475 C 565,465 570,450 570,435 Z"
+                        fill={selectedMun === "Caroebe" ? ZONE_INFO["Caroebe"].hoverColor : ZONE_INFO["Caroebe"].color}
+                        stroke={selectedMun === "Caroebe" ? "#eab308" : "#ffffff"}
+                        strokeWidth={selectedMun === "Caroebe" ? "3.5" : "1.5"}
+                        className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
+                        onClick={() => setSelectedMun("Caroebe")}
+                        onMouseEnter={() => setHoveredMun("Caroebe")}
+                        onMouseLeave={() => setHoveredMun(null)}
+                      />
+                    </g>
+
+                    {/* Labels */}
+                    <text x="280" y="210" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                      <tspan x="280" dy="-6">7ª</tspan>
+                      <tspan x="280" dy="12">Amajari</tspan>
+                    </text>
+                    <text x="390" y="135" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                      <tspan x="390" dy="-6">7ª</tspan>
+                      <tspan x="390" dy="12">Pacaraima</tspan>
+                    </text>
+                    <text x="495" y="125" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                      <tspan x="495" dy="-6">7ª</tspan>
+                      <tspan x="495" dy="12">Uiramutã</tspan>
+                    </text>
+                    
+                    <text x="210" y="245" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                      <tspan x="210" dy="-6">3ª</tspan>
+                      <tspan x="210" dy="12">Alto Alegre</tspan>
+                    </text>
+                    
+                    <text x="430" y="260" textAnchor="middle" className="text-[9px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                      <tspan x="430" dy="-12">1ª</tspan>
+                      <tspan x="430" dy="10">5ª</tspan>
+                      <tspan x="430" dy="12">Boa Vista</tspan>
+                    </text>
+                    <text x="455" y="335" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                      <tspan x="455" dy="-6">5ª</tspan>
+                      <tspan x="455" dy="12">Cantá</tspan>
+                    </text>
+                    
+                    <text x="535" y="205" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                      <tspan x="535" dy="-6">9ª</tspan>
+                      <tspan x="535" dy="12">Normandia</tspan>
+                    </text>
+                    <text x="525" y="315" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                      <tspan x="525" dy="-6">9ª</tspan>
+                      <tspan x="525" dy="12">Bonfim</tspan>
+                    </text>
+                    
+                    <text x="290" y="325" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                      <tspan x="290" dy="-6">6ª</tspan>
+                      <tspan x="290" dy="12">Mucajaí</tspan>
+                    </text>
+                    <text x="280" y="410" textAnchor="middle" className="text-[10px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                      <tspan x="280" dy="-6">6ª</tspan>
+                      <tspan x="280" dy="12">Iracema</tspan>
+                    </text>
+                    
+                    <text x="360" y="525" textAnchor="middle" className="text-[11px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2.5">
+                      <tspan x="360" dy="-6">2ª</tspan>
+                      <tspan x="360" dy="14">Caracaraí</tspan>
+                    </text>
+                    
+                    <text x="450" y="665" textAnchor="middle" className="text-[11px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2.5">
+                      <tspan x="450" dy="-6">8ª</tspan>
+                      <tspan x="450" dy="14">Rorainópolis</tspan>
+                    </text>
+                    
+                    <text x="515" y="480" textAnchor="middle" className="text-[9px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                      <tspan x="515" dy="-12">4ª</tspan>
+                      <tspan x="515" dy="10">São Luiz</tspan>
+                      <tspan x="515" dy="10">do Anauá</tspan>
+                    </text>
+                    <text x="530" y="535" textAnchor="middle" className="text-[8px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="1.8">
+                      <tspan x="530" dy="-12">4ª</tspan>
+                      <tspan x="530" dy="10">São João</tspan>
+                      <tspan x="530" dy="10">da Baliza</tspan>
+                    </text>
+                    <text x="585" y="500" textAnchor="middle" className="text-[9px] font-black pointer-events-none fill-zinc-900" paintOrder="stroke" stroke="#ffffff" strokeWidth="2">
+                      <tspan x="585" dy="-6">4ª</tspan>
+                      <tspan x="585" dy="11">Caroebe</tspan>
+                    </text>
+                  </svg>
+                </div>
+
+                {/* Compact Legend */}
+                <div className="pt-2">
+                  <h4 className="text-[8px] font-black uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-2">Zonas Eleitorais</h4>
+                  <div className="grid grid-cols-2 gap-1.5 text-[8px] font-bold text-zinc-600 dark:text-zinc-400">
+                    <div className="flex items-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-xs border border-zinc-200 dark:border-zinc-800 shrink-0" style={{backgroundColor: '#ffffff'}} />
+                      <span>1ª ZE - Boa Vista</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-xs shrink-0" style={{backgroundColor: '#cdbfa5'}} />
+                      <span>2ª ZE - Caracaraí</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-xs shrink-0" style={{backgroundColor: '#fffaae'}} />
+                      <span>3ª ZE - Alto Alegre</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-xs shrink-0" style={{backgroundColor: '#a0c4df'}} />
+                      <span>4ª ZE - Eixo do Sul</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-xs shrink-0" style={{backgroundColor: '#ffd07b'}} />
+                      <span>5ª ZE - BV/Cantá</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-xs shrink-0" style={{backgroundColor: '#a998c7'}} />
+                      <span>6ª ZE - Mucajaí/Ira</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-xs shrink-0" style={{backgroundColor: '#cbe296'}} />
+                      <span>7ª ZE - Norte</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-xs shrink-0" style={{backgroundColor: '#f26b80'}} />
+                      <span>8ª ZE - Rorainópolis</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-xs shrink-0" style={{backgroundColor: '#45b4c1'}} />
+                      <span>9ª ZE - Leste/Bonfim</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-      </div> {/* Left Column lg:col-span-6 space-y-6 */}
-
-        {/* Right Side: Tabulated Operational Analytics for Active Municipality (Cols 7-12) */}
-        <div className="lg:col-span-6 space-y-6">
+        {/* Right Side: Command Center & Detailed Operational Analytics for Selected Municipality (Cols 5-12) */}
+        <div className="lg:col-span-8 space-y-5">
           
-          {/* Selected City Overview Card */}
-          <div className="bg-zinc-950 text-white rounded-sm p-6 relative overflow-hidden shadow-2xl">
-            <div className="absolute top-0 right-0 p-6 opacity-5">
-              <MapIcon className="w-32 h-32" />
+          {/* Selected City Overview Command Card */}
+          <div className="bg-zinc-950 text-white rounded-sm p-5 md:p-6 relative overflow-hidden shadow-xl border border-zinc-800">
+            {/* Ambient subtle light overlay */}
+            <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+              <MapIcon className="w-24 h-24" />
             </div>
 
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-[9px] font-black uppercase tracking-[0.25em] text-yellow-500">Município Selecionado</span>
-                <h3 className="text-3xl font-black uppercase tracking-tighter mt-1">{selectedMun}</h3>
-                <p className="text-[10px] uppercase font-bold text-zinc-400 mt-2 tracking-wider flex items-center gap-1">
-                  <span className="inline-block w-2 h-2 rounded-full bg-yellow-500 animate-pulse" /> {ZONE_INFO[selectedMun]?.zone} • TRE-RR
-                </p>
-                <p className="text-[11px] text-zinc-300 font-medium italic mt-2.5 max-w-md">{ZONE_INFO[selectedMun]?.description}</p>
+            <div className="relative z-10">
+              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-yellow-500">QG Municipal • Comando Eleitoral</span>
+              <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight mt-1">{selectedMun}</h3>
+              
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] uppercase font-bold text-zinc-400 mt-2">
+                <span className="flex items-center gap-1 text-yellow-500">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" />
+                  {ZONE_INFO[selectedMun]?.zone}
+                </span>
+                <span className="text-zinc-700">•</span>
+                <span>TRE-RR</span>
+                <span className="text-zinc-700">•</span>
+                <span className="text-zinc-300 font-medium italic">{ZONE_INFO[selectedMun]?.description}</span>
               </div>
             </div>
 
-            {/* General Stats row */}
-            <div className="grid grid-cols-3 gap-4 border-t border-zinc-800 pt-6 mt-6">
+            {/* General Metrics Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-zinc-900 pt-5 mt-5">
               <div className="space-y-1">
-                <span className="text-[8px] font-black uppercase text-zinc-500 tracking-widest">Eleitores Mapeados</span>
+                <span className="text-[8px] font-black uppercase text-zinc-500 tracking-wider">Eleitores Mapeados</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-black text-white">{munStats[selectedMun]?.voters || 0}</span>
-                  <span className="text-[9px] font-bold text-zinc-500">votos</span>
+                  <span className="text-xl md:text-2xl font-black text-white">{munStats[selectedMun]?.voters || 0}</span>
+                  <span className="text-[8px] font-bold text-zinc-500 uppercase">Fichas</span>
                 </div>
               </div>
+              
               <div className="space-y-1">
-                <span className="text-[8px] font-black uppercase text-zinc-500 tracking-widest">Apoiadores Certos</span>
+                <span className="text-[8px] font-black uppercase text-zinc-500 tracking-wider">Apoiadores Certos</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-black text-green-400">{munStats[selectedMun]?.supporters || 0}</span>
-                  <span className="text-[9px] font-bold text-zinc-500">({munStats[selectedMun]?.voters ? Math.round((munStats[selectedMun]?.supporters / munStats[selectedMun]?.voters) * 100) : 0}%)</span>
+                  <span className="text-xl md:text-2xl font-black text-green-400">{munStats[selectedMun]?.supporters || 0}</span>
+                  <span className="text-[8px] font-bold text-zinc-500 uppercase">
+                    ({munStats[selectedMun]?.voters ? Math.round((munStats[selectedMun]?.supporters / munStats[selectedMun]?.voters) * 100) : 0}%)
+                  </span>
                 </div>
               </div>
+
               <div className="space-y-1">
-                <span className="text-[8px] font-black uppercase text-zinc-500 tracking-widest font-black">Frentes / Equipes</span>
+                <span className="text-[8px] font-black uppercase text-zinc-500 tracking-wider">Frentes / Equipes</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-black text-yellow-500">{munStats[selectedMun]?.teams || 0}</span>
-                  <span className="text-[9px] font-bold text-zinc-500">equipe</span>
+                  <span className="text-xl md:text-2xl font-black text-yellow-500">{munStats[selectedMun]?.teams || 0}</span>
+                  <span className="text-[8px] font-bold text-zinc-500 uppercase">Ativas</span>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-[8px] font-black uppercase text-zinc-500 tracking-wider">Indicações Organicas</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-xl md:text-2xl font-black text-teal-400">
+                    {municipalVoters.filter(v => v.referredBy && v.referredBy.trim() !== "").length}
+                  </span>
+                  <span className="text-[8px] font-bold text-zinc-500 uppercase">Rede</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* COLLAPSIBLE TABS FOR DETAILED DRILLDOWN */}
-          <div className="space-y-4">
-            
-            {/* TAB 1: ACTIVE TEAMS / EQUIPES LOCAL */}
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm p-5 lg:p-6 shadow-sm">
-              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-900 dark:text-white mb-4 flex items-center gap-2">
-                <Users className="w-4 h-4 text-yellow-500" /> Frentes e Equipes Ativas ({municipalTeams.length})
-              </h3>
+          {/* Core Navigation Sub-Tabs of Selected City */}
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm shadow-sm overflow-hidden">
+            <div className="flex border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/40">
+              <button
+                type="button"
+                onClick={() => setMunSubTab('frentes')}
+                className={`flex-1 py-3 text-center text-[10px] font-black uppercase tracking-wider transition-all border-b-2 outline-none flex items-center justify-center gap-2 ${
+                  munSubTab === 'frentes'
+                    ? 'border-yellow-500 text-zinc-950 dark:text-white bg-white dark:bg-zinc-900'
+                    : 'border-transparent text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5 text-yellow-500" />
+                Frentes e Equipes ({municipalTeams.length})
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setMunSubTab('eleitores')}
+                className={`flex-1 py-3 text-center text-[10px] font-black uppercase tracking-wider transition-all border-b-2 outline-none flex items-center justify-center gap-2 ${
+                  munSubTab === 'eleitores'
+                    ? 'border-yellow-500 text-zinc-950 dark:text-white bg-white dark:bg-zinc-900'
+                    : 'border-transparent text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'
+                }`}
+              >
+                <UserCheck className="w-3.5 h-3.5 text-yellow-500" />
+                Cadastro & Rede ({municipalVoters.length})
+              </button>
+            </div>
 
-              {municipalTeams.length > 0 ? (
+            <div className="p-4 md:p-5">
+              {/* Tab Content: ACTIVE TEAMS / FRENTES */}
+              {munSubTab === 'frentes' && (
                 <div className="space-y-4">
-                  {municipalTeams.map((team) => (
-                    <div key={team.id} className="border border-zinc-100 dark:border-zinc-800 rounded-sm p-4 bg-zinc-50 dark:bg-zinc-950 relative">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="text-sm font-black uppercase text-zinc-950 dark:text-white mb-2 leading-none">{team.name}</h4>
-                          <span className="bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-[8px] font-black uppercase px-2 py-0.5 rounded-xs">
-                             Status: {team.status || 'Operando'}
-                          </span>
-                        </div>
-                      </div>
+                  <div className="flex items-center justify-between border-b border-zinc-50 dark:border-zinc-850 pb-2 mb-2">
+                    <span className="text-[9px] font-black uppercase text-zinc-400 tracking-wider">Diretório de Equipes no Terreno</span>
+                    <span className="bg-yellow-500 text-zinc-950 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">
+                      {municipalTeams.length} {municipalTeams.length === 1 ? 'Liderança' : 'Lideranças'}
+                    </span>
+                  </div>
 
-                      {/* Leader Contact inside the team card */}
-                      <div className="mt-4 pt-3.5 border-t border-zinc-100 dark:border-zinc-900 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <span className="text-[8px] font-black uppercase text-zinc-400 dark:text-zinc-500">Líder Responsável</span>
-                          <div className="flex items-center gap-2 mt-1">
-                            <div className="w-6 h-6 bg-yellow-500 text-zinc-950 rounded-full flex items-center justify-center text-[10px] font-bold">
-                              {team.leader?.charAt(0).toUpperCase()}
-                            </div>
-                            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{team.leader || 'Líder Não Definido'}</span>
-                          </div>
-                        </div>
-
-                        {team.leaderPhone && (
+                  {municipalTeams.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {municipalTeams.map((team) => (
+                        <div 
+                          key={team.id} 
+                          className="border border-zinc-150 dark:border-zinc-800 rounded-sm p-4 bg-zinc-50 dark:bg-zinc-950/30 flex flex-col justify-between"
+                        >
                           <div>
-                            <span className="text-[8px] font-black uppercase text-zinc-400 dark:text-zinc-500">Contato Direto</span>
-                            <div className="flex items-center gap-2 mt-1.5">
+                            <div className="flex justify-between items-start mb-2">
+                              <h4 className="text-xs font-black uppercase text-zinc-900 dark:text-white leading-tight">
+                                {team.name}
+                              </h4>
+                              <span className="bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-xs leading-none shrink-0">
+                                {team.status || 'Operando'}
+                              </span>
+                            </div>
+
+                            {/* Leader Contact Details */}
+                            <div className="mt-3 space-y-1.5">
+                              <div className="flex items-center gap-2">
+                                <div className="w-5 h-5 bg-yellow-500 text-zinc-950 rounded-full flex items-center justify-center text-[9px] font-bold">
+                                  {team.leader?.charAt(0).toUpperCase()}
+                                </div>
+                                <span className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200">
+                                  {team.leader || 'Líder Não Definido'}
+                                </span>
+                              </div>
+                            </div>
+
+                            {team.observations && (
+                              <p className="text-[9px] text-zinc-400 dark:text-zinc-500 mt-2.5 bg-zinc-100 dark:bg-zinc-900 p-1.5 rounded-xs border border-zinc-200/50 dark:border-zinc-800/50">
+                                <strong>Obs:</strong> {team.observations}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Action CTA */}
+                          {team.leaderPhone && (
+                            <div className="mt-4 pt-3 border-t border-zinc-150 dark:border-zinc-800 flex justify-end">
                               <a 
                                 href={`https://wa.me/55${team.leaderPhone.replace(/\D/g, '')}`} 
                                 target="_blank" 
                                 rel="noreferrer"
-                                className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-green-600 hover:text-green-700 transition-colors"
+                                className="inline-flex items-center gap-1 text-[9px] font-black uppercase text-green-600 hover:text-green-700 transition-colors leading-none"
                               >
-                                <Phone className="w-3.5 h-3.5" /> WhatsApp ({team.leaderPhone})
+                                <Phone className="w-3 h-3" /> Falar com Líder ({team.leaderPhone})
                               </a>
                             </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-sm text-center">
+                      <Users className="w-6 h-6 text-zinc-300 dark:text-zinc-850 mx-auto mb-2" />
+                      <p className="font-bold text-zinc-400 dark:text-zinc-600 uppercase text-[9px]">Nenhuma equipe baseada neste município ainda.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab Content: CADASTRO & REDE */}
+              {munSubTab === 'eleitores' && (
+                <div className="space-y-4">
+                  {/* View Mode Toggle inside Eleitores */}
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                    <span className="text-[9px] font-black uppercase text-zinc-400 tracking-wider">Diretório de Contatos e Indicações</span>
+                    
+                    <div className="flex gap-1 bg-zinc-100 dark:bg-zinc-950 p-0.5 rounded-xs w-full sm:w-auto">
+                      <button
+                        type="button"
+                        onClick={() => setVoterViewMode('lista')}
+                        className={`flex-1 sm:flex-none px-3 py-1.5 text-[8px] font-black uppercase rounded-xs transition-all ${
+                          voterViewMode === 'lista'
+                            ? 'bg-zinc-900 text-white dark:bg-zinc-800'
+                            : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+                        }`}
+                      >
+                        Lista Geral
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setVoterViewMode('rede')}
+                        className={`flex-1 sm:flex-none px-3 py-1.5 text-[8px] font-black uppercase rounded-xs transition-all ${
+                          voterViewMode === 'rede'
+                            ? 'bg-zinc-900 text-white dark:bg-zinc-800'
+                            : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+                        }`}
+                      >
+                        Rede de Influência (Piramidal)
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* List View */}
+                  {voterViewMode === 'lista' && (
+                    <div className="space-y-3">
+                      {/* Search & Sentiment Filters Container */}
+                      <div className="flex flex-col md:flex-row gap-2">
+                        {/* Search Input */}
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Buscar nome, telefone ou colégio eleitoral..."
+                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm py-2 pl-8 pr-3 font-bold text-[9px] text-zinc-900 dark:text-white outline-none focus:border-yellow-500 placeholder:text-zinc-400"
+                          />
+                          <Search className="absolute left-2.5 top-2.5 w-3 h-3 text-zinc-400" />
+                        </div>
+
+                        {/* Sentiment filter */}
+                        <div className="flex gap-1 overflow-x-auto shrink-0 pb-1 md:pb-0">
+                          {['all', 'support', 'neutral', 'opposed'].map((filter) => (
+                            <button
+                              key={filter}
+                              onClick={() => setSentimentFilter(filter)}
+                              className={`px-2.5 py-1.5 text-[8px] font-black uppercase rounded-xs transition-all whitespace-nowrap ${
+                                sentimentFilter === filter 
+                                  ? 'bg-zinc-950 text-white dark:bg-zinc-800' 
+                                  : 'bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 text-zinc-600 dark:text-zinc-400'
+                              }`}
+                            >
+                              {filter === 'all' ? 'Tudo' : filter === 'support' ? 'Apoiador' : filter === 'neutral' ? 'Neutro' : 'Oposição'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Voter List Cards */}
+                      <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                        {filteredMunicipalVoters.length > 0 ? (
+                          filteredMunicipalVoters.map((voter) => (
+                            <div 
+                              key={voter.id}
+                              className="bg-zinc-50 dark:bg-zinc-950/20 p-3 border border-zinc-150 dark:border-zinc-850 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                            >
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="text-xs font-black uppercase text-zinc-900 dark:text-white">{voter.name}</span>
+                                  {voter.sentiment === 'support' && <span className="bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/20 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">Apoio</span>}
+                                  {voter.sentiment === 'neutral' && <span className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border border-yellow-500/20 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">Neutro</span>}
+                                  {voter.sentiment === 'opposed' && <span className="bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">Oposição</span>}
+                                </div>
+                                
+                                <div className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 flex flex-wrap gap-x-3 gap-y-0.5">
+                                  {voter.localVotacao && (
+                                    <span className="flex items-center gap-0.5">
+                                      <MapPin className="w-2.5 h-2.5 text-yellow-500" /> Local: {voter.localVotacao}
+                                    </span>
+                                  )}
+                                  {voter.referredBy && (
+                                    <span className="text-zinc-450">
+                                      Indicação: <span className="text-yellow-600 font-extrabold">{voter.referredBy}</span>
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* WhatsApp Contact Button */}
+                              {voter.phone && (
+                                <div className="shrink-0 flex items-center">
+                                  <a 
+                                    href={`https://wa.me/55${voter.phone.replace(/\D/g, '')}`} 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    className="inline-flex items-center justify-center gap-1 bg-green-500 text-zinc-950 px-3 py-1.5 rounded-sm font-black text-[8px] uppercase hover:bg-green-600 hover:text-white transition-all shadow-xs"
+                                  >
+                                    <Phone className="w-2.5 h-2.5" /> WhatsApp ({voter.phone})
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-sm text-center">
+                            <Search className="w-6 h-6 text-zinc-300 dark:text-zinc-800 mx-auto mb-2" />
+                            <p className="font-bold text-zinc-400 dark:text-zinc-600 uppercase text-[9px]">Nenhum eleitor mapeado atende ao filtro.</p>
                           </div>
                         )}
                       </div>
+                    </div>
+                  )}
 
-                      {team.observations && (
-                        <p className="text-[9px] text-zinc-500 dark:text-zinc-400 mt-3 bg-zinc-100 dark:bg-zinc-900 p-2 rounded-xs border border-zinc-200/50 dark:border-zinc-800">
-                          <strong>Obs:</strong> {team.observations}
-                        </p>
+                  {/* Pyramidal Network View */}
+                  {voterViewMode === 'rede' && (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center bg-zinc-50 dark:bg-zinc-950 p-2.5 rounded-sm border border-zinc-100 dark:border-zinc-900">
+                        <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">Mapeamento de Indicações Orgânicas</span>
+                        {influenceTree.length > 0 && (
+                          <button
+                            onClick={() => setExpandAllInfluence(!expandAllInfluence)}
+                            className="px-2 py-1 text-[8px] font-black uppercase rounded-xs transition-all bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300"
+                          >
+                            {expandAllInfluence ? "Recolher Tudo" : "Expandir Tudo"}
+                          </button>
+                        )}
+                      </div>
+
+                      {influenceTree.length > 0 ? (
+                        <div className="max-h-[400px] overflow-y-auto pr-1 space-y-3">
+                          {influenceTree.map(rootNode => (
+                            <div key={rootNode.id || rootNode.name} className="border border-zinc-150 dark:border-zinc-800 rounded-sm p-3 bg-zinc-50 dark:bg-zinc-950/20">
+                              <div className="flex items-center gap-1.5 mb-2 pb-1.5 border-b border-zinc-200/50 dark:border-zinc-800">
+                                <Award className="w-3.5 h-3.5 text-yellow-500 shrink-0" />
+                                <span className="text-[8px] font-black uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">Influenciador Raiz (Semente de Votos)</span>
+                              </div>
+                              {renderInfluenceNode(rootNode)}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-sm text-center">
+                          <Network className="w-6 h-6 text-zinc-300 dark:text-zinc-800 mx-auto mb-2" />
+                          <p className="font-bold text-zinc-400 dark:text-zinc-600 uppercase text-[9px]">Nenhuma árvore de conexões ativa neste município ainda.</p>
+                        </div>
                       )}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-sm text-center">
-                  <Users className="w-8 h-8 text-zinc-200 dark:text-zinc-800 mx-auto mb-2" />
-                  <p className="font-bold text-zinc-400 dark:text-zinc-600 uppercase text-[9px]">Nenhuma equipe baseada neste município.</p>
+                  )}
                 </div>
               )}
             </div>
-
-            {/* TAB 2: INFLUENCE NETWORK / QUEM INDICOU QUEM (ORGANIC VIRAL RECRUITMENT) */}
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm p-5 lg:p-6 shadow-sm">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <div>
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-900 dark:text-white flex items-center gap-2">
-                    <Network className="w-4 h-4 text-yellow-500" /> Rede de Influência local (Quem Indicou Quem)
-                  </h3>
-                  <p className="text-[9px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider mt-1 opacity-60">Visualização de indicações e conexões piramidais</p>
-                </div>
-                {influenceTree.length > 0 && (
-                  <button
-                    onClick={() => setExpandAllInfluence(!expandAllInfluence)}
-                    className="px-2.5 py-1.5 text-[8px] font-black uppercase rounded-xs transition-all bg-zinc-100 dark:bg-zinc-850 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-750 dark:text-zinc-300"
-                  >
-                    {expandAllInfluence ? "Recolher Tudo" : "Expandir Tudo"}
-                  </button>
-                )}
-              </div>
-
-              {influenceTree.length > 0 ? (
-                <div className="overflow-x-auto max-h-[320px] pr-2 custom-scrollbar space-y-4">
-                  {influenceTree.map(rootNode => (
-                    <div key={rootNode.id || rootNode.name} className="border border-zinc-150 dark:border-zinc-800 rounded-sm p-4 bg-zinc-50 dark:bg-zinc-950/20">
-                      <div className="flex items-center gap-2 mb-2 p-1 border-b border-zinc-200/50 dark:border-zinc-800">
-                        <Award className="w-4 h-4 text-yellow-500" />
-                        <span className="text-[9px] font-black uppercase text-zinc-400 dark:text-zinc-500">Influenciador Raiz (Semente de Votos)</span>
-                      </div>
-                      {renderInfluenceNode(rootNode)}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-sm text-center">
-                  <Network className="w-8 h-8 text-zinc-300 dark:text-zinc-800 mx-auto mb-2" />
-                  <p className="font-bold text-zinc-400 dark:text-zinc-600 uppercase text-[9px]">Nenhum eleitor mapeador na rede local ainda.</p>
-                </div>
-              )}
-            </div>
-
           </div>
 
         </div>
