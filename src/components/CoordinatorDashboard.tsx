@@ -108,6 +108,35 @@ const AVAILABLE_COLUMNS_BY_TYPE: Record<string, { header: string; dataKey: strin
     { header: 'Observações', dataKey: 'observations' },
     { header: 'Tags', dataKey: 'tagsStr' }
   ],
+  productivity: [
+    { header: 'Posição', dataKey: 'rank' },
+    { header: 'Liderança', dataKey: 'leader' },
+    { header: 'Equipe/Zona', dataKey: 'team' },
+    { header: 'Total Eleitores', dataKey: 'totalVoters' },
+    { header: 'Apoios Confirmados', dataKey: 'supportVoters' },
+    { header: '% Conversão', dataKey: 'conversionRate' },
+    { header: 'Score Médio', dataKey: 'avgLoyalty' },
+    { header: 'Status Desempenho', dataKey: 'leaderStatus' }
+  ],
+  zone_performance: [
+    { header: 'Município', dataKey: 'municipality' },
+    { header: 'Zona Eleitoral', dataKey: 'zona' },
+    { header: 'Seção', dataKey: 'secao' },
+    { header: 'Eleitores Mapeados', dataKey: 'mappedVoters' },
+    { header: 'Votos Confirmados', dataKey: 'confirmedVotes' },
+    { header: 'Neutros', dataKey: 'neutralVoters' },
+    { header: 'Oposição', dataKey: 'opposedVoters' },
+    { header: 'Diagnóstico', dataKey: 'densityStatus' }
+  ],
+  agenda_coverage: [
+    { header: 'Município/Região', dataKey: 'municipality' },
+    { header: 'Eleitores na Base', dataKey: 'voterCount' },
+    { header: 'Equipes Ativas', dataKey: 'teamCount' },
+    { header: 'Eventos/Visitas', dataKey: 'eventCount' },
+    { header: 'Status Cobertura', dataKey: 'coverageStatus' },
+    { header: 'Última Visita', dataKey: 'lastEventDate' },
+    { header: 'Ação Recomendada', dataKey: 'urgencyLevel' }
+  ],
   materials: [
     { header: 'Material', dataKey: 'name' },
     { header: 'Total', dataKey: 'total' },
@@ -829,6 +858,166 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               tagsStr: v.tags?.join(', ') || ''
             }));
             subtitle = `${data.length} eleitores filtrados na base estratégica.`;
+            break;
+
+          case 'productivity':
+            title = 'Relatório de Produtividade e Ranking de Lideranças';
+            {
+              const leaderMap: Record<string, { leader: string; team: string; totalVoters: number; supportVoters: number; loyaltySum: number }> = {};
+              
+              teams.forEach(t => {
+                const key = t.leader || t.name;
+                if (key && !leaderMap[key]) {
+                  leaderMap[key] = { leader: t.leader || key, team: t.name, totalVoters: 0, supportVoters: 0, loyaltySum: 0 };
+                }
+              });
+
+              allVoters.forEach(v => {
+                const key = v.leaderName || v.team || v.teamName || 'Outros';
+                if (!leaderMap[key]) {
+                  leaderMap[key] = { leader: key, team: v.team || v.teamName || 'Geral', totalVoters: 0, supportVoters: 0, loyaltySum: 0 };
+                }
+                leaderMap[key].totalVoters += 1;
+                if (v.sentiment === 'support' || v.voted) {
+                  leaderMap[key].supportVoters += 1;
+                }
+                leaderMap[key].loyaltySum += Number(v.loyaltyScore || 5);
+              });
+
+              data = Object.values(leaderMap)
+                .sort((a, b) => b.totalVoters - a.totalVoters)
+                .map((item, index) => {
+                  const conv = item.totalVoters > 0 ? Math.round((item.supportVoters / item.totalVoters) * 100) : 0;
+                  const avgLoy = item.totalVoters > 0 ? (item.loyaltySum / item.totalVoters).toFixed(1) : '5.0';
+                  let leaderStatus = '⚠️ BAIXO RENDIMENTO';
+                  if (item.totalVoters >= 20 && conv >= 60) leaderStatus = '🔥 ALTA PRODUTIVIDADE';
+                  else if (item.totalVoters >= 10) leaderStatus = '✅ METAS EM DIA';
+                  else if (item.totalVoters > 0) leaderStatus = '🟡 EM PROGRESSO';
+
+                  return {
+                    rank: `#${index + 1}`,
+                    leader: item.leader,
+                    team: item.team,
+                    totalVoters: item.totalVoters,
+                    supportVoters: item.supportVoters,
+                    conversionRate: `${conv}%`,
+                    avgLoyalty: `${avgLoy}/10`,
+                    leaderStatus
+                  };
+                });
+
+              subtitle = `Auditoria de produtividade e conversão de votos de ${data.length} lideranças.`;
+            }
+            break;
+
+          case 'zone_performance':
+            title = 'Relatório de Desempenho por Zona e Seção Eleitoral';
+            {
+              const zoneMap: Record<string, { municipality: string; zona: string; secao: string; mappedVoters: number; confirmedVotes: number; neutralVoters: number; opposedVoters: number }> = {};
+
+              allVoters.forEach(v => {
+                const mun = v.municipality || v.location || 'Boa Vista';
+                const z = v.zona ? `${v.zona}ª Zona` : 'Zona Geral';
+                const s = v.secao ? `Seção ${v.secao}` : 'Seção Geral';
+                const key = `${mun}_${z}_${s}`;
+
+                if (!zoneMap[key]) {
+                  zoneMap[key] = { municipality: mun, zona: z, secao: s, mappedVoters: 0, confirmedVotes: 0, neutralVoters: 0, opposedVoters: 0 };
+                }
+
+                zoneMap[key].mappedVoters += 1;
+                if (v.sentiment === 'support' || v.voted) zoneMap[key].confirmedVotes += 1;
+                else if (v.sentiment === 'opposed') zoneMap[key].opposedVoters += 1;
+                else zoneMap[key].neutralVoters += 1;
+              });
+
+              teams.forEach(t => {
+                const mun = t.location || 'Boa Vista';
+                const key = `${mun}_Zona Geral_Seção Geral`;
+                if (!zoneMap[key]) {
+                  zoneMap[key] = { municipality: mun, zona: 'Zona Geral', secao: 'Seção Geral', mappedVoters: 0, confirmedVotes: 0, neutralVoters: 0, opposedVoters: 0 };
+                }
+              });
+
+              data = Object.values(zoneMap)
+                .sort((a, b) => b.mappedVoters - a.mappedVoters)
+                .map(item => {
+                  let densityStatus = '🚨 POUCA PRESENÇA';
+                  if (item.confirmedVotes >= 10) densityStatus = '🎯 ALTA DENSIDADE';
+                  else if (item.mappedVoters >= 5) densityStatus = '📊 DENSIDADE MÉDIA';
+                  else if (item.mappedVoters > 0) densityStatus = '🟡 EM CONSTRUÇÃO';
+
+                  return {
+                    ...item,
+                    densityStatus
+                  };
+                });
+
+              subtitle = `Inteligência estratégica mapeando ${data.length} zonas e seções eleitorais.`;
+            }
+            break;
+
+          case 'agenda_coverage':
+            title = 'Relatório de Cobertura de Agenda e Vazios Eleitorais';
+            {
+              const roraimaMunicipalities = [
+                'Boa Vista', 'Alto Alegre', 'Amajari', 'Bonfim', 'Cantá', 
+                'Caracaraí', 'Caroebe', 'Iracema', 'Mucajaí', 'Normandia', 
+                'Pacaraima', 'Rorainópolis', 'São João da Baliza', 'São Luiz', 'Uiramutã'
+              ];
+
+              data = roraimaMunicipalities.map(mun => {
+                const munVoters = allVoters.filter(v => 
+                  (v.municipality || v.location || '').toLowerCase().includes(mun.toLowerCase())
+                ).length;
+
+                const munTeams = teams.filter(t => 
+                  (t.location || '').toLowerCase().includes(mun.toLowerCase())
+                ).length;
+
+                const munEvents = agenda.filter(a => 
+                  (a.municipality || a.location || '').toLowerCase().includes(mun.toLowerCase())
+                );
+
+                const eventCount = munEvents.length;
+
+                let lastEventDate = 'Nenhuma visita';
+                if (eventCount > 0) {
+                  const sortedEvents = [...munEvents].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                  lastEventDate = new Date(sortedEvents[0].date).toLocaleDateString('pt-BR');
+                }
+
+                let coverageStatus = '🟢 COBERTO';
+                let urgencyLevel = 'Manter presença contínua';
+
+                if (eventCount === 0 && munVoters > 5) {
+                  coverageStatus = '🚨 VAZIO CRÍTICO';
+                  urgencyLevel = 'Agendar visita urgente (Base de eleitores sem presença do candidato)';
+                } else if (eventCount === 0) {
+                  coverageStatus = '⚠️ VAZIO ELEITORAL';
+                  urgencyLevel = 'Mobilizar equipe e agendar visita';
+                } else if (eventCount < 2 && munVoters > 10) {
+                  coverageStatus = '🟡 COBERTURA BAIXA';
+                  urgencyLevel = 'Reforçar agenda de rua local';
+                }
+
+                return {
+                  municipality: mun,
+                  voterCount: munVoters,
+                  teamCount: munTeams,
+                  eventCount,
+                  coverageStatus,
+                  lastEventDate,
+                  urgencyLevel
+                };
+              }).sort((a, b) => {
+                if (a.coverageStatus.includes('🚨') && !b.coverageStatus.includes('🚨')) return -1;
+                if (!a.coverageStatus.includes('🚨') && b.coverageStatus.includes('🚨')) return 1;
+                return b.voterCount - a.voterCount;
+              });
+
+              subtitle = `Análise de lacunas territoriais e zonas sem atendimento de agenda.`;
+            }
             break;
 
           case 'materials':
@@ -3161,6 +3350,9 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                   {[
                     { id: 'teams', title: 'Equipes e Lideranças', desc: 'Dados de contato e performance regional.', icon: <Users className="w-6 h-6" /> },
                     { id: 'voters', title: 'Base de Eleitores', desc: 'Mapeamento de votos e sentimento.', icon: <Target className="w-6 h-6" /> },
+                    { id: 'productivity', title: 'Produtividade & Ranking Lideranças', desc: 'Auditoria de conversão de votos e métricas de desempenho das lideranças.', icon: <TrendingUp className="w-6 h-6" /> },
+                    { id: 'zone_performance', title: 'Desempenho por Zona e Seção', desc: 'Mapeamento de inteligência e densidade eleitoral por zona e seção.', icon: <Activity className="w-6 h-6" /> },
+                    { id: 'agenda_coverage', title: 'Cobertura de Agenda & Vazios', desc: 'Cruzamento de visitas com eleitores para detectar vazios eleitorais.', icon: <Calendar className="w-6 h-6" /> },
                     { id: 'finance', title: 'Financeiro e Custos', desc: 'Fluxo de caixa e alocação de recursos.', icon: <DollarSign className="w-6 h-6" /> },
                     { id: 'materials', title: 'Materiais e Estoque', desc: 'Controle de suprimentos e remessas.', icon: <Package className="w-6 h-6" /> },
                     { id: 'demands', title: 'Demandas e Mapa', desc: 'Urgências e necessidades mapeadas.', icon: <Activity className="w-6 h-6" /> }
