@@ -124,30 +124,9 @@ const AVAILABLE_COLUMNS_BY_TYPE: Record<string, { header: string; dataKey: strin
 
 export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme: (t: 'light' | 'dark') => void }) {
   const { user, login, logout, isAdmin, coordinatorId } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral' | 'tenants'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral'>('overview');
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
   const [selectedLinkTeam, setSelectedLinkTeam] = useState('');
-  const [activeCoordinatorId, setActiveCoordinatorId] = useState<string | null>(null);
-  const [tenantsList, setTenantsList] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (coordinatorId) {
-      setActiveCoordinatorId(coordinatorId);
-    } else {
-      setActiveCoordinatorId(null);
-    }
-  }, [coordinatorId]);
-
-  useEffect(() => {
-    if (!user || !isAdmin) return;
-    const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'));
-    const unsubCoords = onSnapshot(qCoords, (snap) => {
-      setTenantsList(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    }, (err) => {
-      console.warn("Erro ao buscar inquilinos:", err);
-    });
-    return () => unsubCoords();
-  }, [user, isAdmin]);
 
   const handleDownloadDoc = () => {
     const textHtml = `
@@ -422,8 +401,8 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
   // Carregar cache local de eleitores para carregamento imediato
   useEffect(() => {
-    if (activeCoordinatorId) {
-      const cached = safeLocalStorage.getItem(`aguia_voters_cache_${activeCoordinatorId}`);
+    if (coordinatorId) {
+      const cached = safeLocalStorage.getItem(`aguia_voters_cache_${coordinatorId}`);
       if (cached) {
         try {
           setAllVoters(JSON.parse(cached));
@@ -432,7 +411,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         }
       }
     }
-  }, [activeCoordinatorId]);
+  }, [coordinatorId]);
 
   // Resetar página ao mudar filtros de busca/tag
   useEffect(() => {
@@ -490,17 +469,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     localVotacao: ''
   });
 
-  const [newTenantForm, setNewTenantForm] = useState({
-    tenantName: '',
-    coordinatorName: '',
-    coordinatorEmail: '',
-    targetVoters: 1000,
-    initialBudget: 15000,
-    status: 'active'
-  });
-  const [createdTenantLink, setCreatedTenantLink] = useState('');
-  const [isEditTenantModalOpen, setIsEditTenantModalOpen] = useState(false);
-  const [editingTenant, setEditingTenant] = useState<any>(null);
+
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
@@ -585,7 +554,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
           name,
           total: qty,
           current: qty,
-          coordinatorId: activeCoordinatorId || coordinatorId || user?.uid || '',
+          coordinatorId: coordinatorId || user?.uid || '',
           createdAt: Date.now()
         });
         alert("Material registrado com sucesso!");
@@ -926,7 +895,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         createdAt: serverTimestamp(),
         detailLevel: filters.detailLevel || 'summary',
         itemCount: data.length,
-        coordinatorId: activeCoordinatorId || coordinatorId || ''
+        coordinatorId: coordinatorId || ''
       });
 
     } catch (err: any) {
@@ -964,18 +933,18 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
   });
 
   useEffect(() => {
-    if (!user || !activeCoordinatorId) return;
+    if (!user || !coordinatorId) return;
 
     // Subs para dados reais filtrados por coordenador
-    const unsubTeams = firestoreService.subscribeToCollectionFiltered('teams', activeCoordinatorId, (data) => {
+    const unsubTeams = firestoreService.subscribeToCollectionFiltered('teams', coordinatorId, (data) => {
       setTeams(data);
     });
     
-    const unsubUrgencies = firestoreService.subscribeToCollectionFiltered('urgencies', activeCoordinatorId, (data) => {
+    const unsubUrgencies = firestoreService.subscribeToCollectionFiltered('urgencies', coordinatorId, (data) => {
       setUrgencies(data);
     });
 
-    const unsubStats = onSnapshot(doc(db, 'stats', `stats_${activeCoordinatorId}`), (snapshot) => {
+    const unsubStats = onSnapshot(doc(db, 'stats', `stats_${coordinatorId}`), (snapshot) => {
       if (snapshot.exists()) {
         setStatsData(snapshot.data());
       }
@@ -983,7 +952,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       const errInfo = {
         error: err.message,
         operationType: 'get',
-        path: `stats/stats_${activeCoordinatorId}`,
+        path: `stats/stats_${coordinatorId}`,
         authInfo: {
           userId: auth.currentUser?.uid,
           email: auth.currentUser?.email,
@@ -993,13 +962,13 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       console.error("Stats sync error details:", JSON.stringify(errInfo));
     });
 
-    const unsubAgendas = firestoreService.subscribeToCollectionFiltered('agenda', activeCoordinatorId, (data) => {
+    const unsubAgendas = firestoreService.subscribeToCollectionFiltered('agenda', coordinatorId, (data) => {
       setAgendas(data);
     });
 
     const unsubNotes = query(
       collection(db, 'notes'), 
-      where('coordinatorId', '==', activeCoordinatorId),
+      where('coordinatorId', '==', coordinatorId),
       orderBy('createdAt', 'desc')
     );
     const unsubNotesSnap = onSnapshot(unsubNotes, (snapshot) => {
@@ -1024,7 +993,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     };
     checkAndSeed();
 
-    const unsubDailyOrder = onSnapshot(doc(db, 'config', `dailyOrder_${activeCoordinatorId}`), (snap) => {
+    const unsubDailyOrder = onSnapshot(doc(db, 'config', `dailyOrder_${coordinatorId}`), (snap) => {
       if (snap.exists()) {
         setDailyOrder(snap.data());
         setNewDailyOrder(snap.data().text || '');
@@ -1034,7 +1003,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     });
 
     const unsubMaterials = onSnapshot(
-      query(collection(db, 'materials'), where('coordinatorId', '==', activeCoordinatorId)), 
+      query(collection(db, 'materials'), where('coordinatorId', '==', coordinatorId)), 
       (snap) => {
         setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       }, 
@@ -1043,12 +1012,12 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       }
     );
 
-    const unsubMaterialRequests = firestoreService.subscribeToCollectionFiltered('material_requests', activeCoordinatorId, (data) => {
+    const unsubMaterialRequests = firestoreService.subscribeToCollectionFiltered('material_requests', coordinatorId, (data) => {
       setMaterialRequests(data);
     });
 
     const unsubVoters = onSnapshot(
-      query(collection(db, 'voters'), where('coordinatorId', '==', activeCoordinatorId)), 
+      query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId)), 
       (snap) => {
         const rawData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
         // Deduplicar para a visão geral: prioriza o registro mais completo ou mais recente
@@ -1067,8 +1036,8 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         });
         const uniqueVoters = Array.from(uniqueMap.values());
         setAllVoters(uniqueVoters);
-        if (activeCoordinatorId) {
-          safeLocalStorage.setItem(`aguia_voters_cache_${activeCoordinatorId}`, JSON.stringify(uniqueVoters));
+        if (coordinatorId) {
+          safeLocalStorage.setItem(`aguia_voters_cache_${coordinatorId}`, JSON.stringify(uniqueVoters));
         }
       }, 
       (err) => {
@@ -1079,7 +1048,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     const unsubReports = onSnapshot(
       query(
         collection(db, 'reports'), 
-        where('coordinatorId', '==', activeCoordinatorId),
+        where('coordinatorId', '==', coordinatorId),
         orderBy('createdAt', 'desc')
       ), 
       (snap) => {
@@ -1103,10 +1072,10 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       unsubVoters();
       unsubReports();
     };
-  }, [user, isAdmin, activeCoordinatorId]);
+  }, [user, isAdmin, coordinatorId]);
 
   useEffect(() => {
-    if (!activeCoordinatorId || teams.length === 0) return;
+    if (!coordinatorId || teams.length === 0) return;
 
     const healCoordinatorVotersAndRequests = async () => {
       try {
@@ -1120,10 +1089,10 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
           const snapVoters = await getDocs(qVoters);
           snapVoters.docs.forEach((vDoc) => {
             const data = vDoc.data();
-            if (data.coordinatorId !== activeCoordinatorId) {
+            if (data.coordinatorId !== coordinatorId) {
               promises.push(
                 updateDoc(doc(db, 'voters', vDoc.id), {
-                  coordinatorId: activeCoordinatorId
+                  coordinatorId: coordinatorId
                 })
               );
             }
@@ -1134,10 +1103,10 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
           const snapReqs = await getDocs(qReqs);
           snapReqs.docs.forEach((rDoc) => {
             const data = rDoc.data();
-            if (data.coordinatorId !== activeCoordinatorId) {
+            if (data.coordinatorId !== coordinatorId) {
               promises.push(
                 updateDoc(doc(db, 'material_requests', rDoc.id), {
-                  coordinatorId: activeCoordinatorId
+                  coordinatorId: coordinatorId
                 })
               );
             }
@@ -1154,7 +1123,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     };
 
     healCoordinatorVotersAndRequests();
-  }, [teams, activeCoordinatorId]);
+  }, [teams, coordinatorId]);
 
   // --- GLOBAL SEARCH LOGIC ---
   useEffect(() => {
@@ -1235,7 +1204,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         status: editingAgenda ? editingAgenda.status : 'confirmado',
         sugeridoPorId: user?.uid,
         sugeridoPor: 'Coordenação',
-        coordinatorId: activeCoordinatorId || coordinatorId || user?.uid || '',
+        coordinatorId: coordinatorId || user?.uid || '',
         createdAt: editingAgenda ? editingAgenda.createdAt : Date.now(),
         updatedAt: Date.now()
       });
@@ -1273,7 +1242,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
   // Sincronizar eleitores da equipe gerenciada pelo coordenador
   useEffect(() => {
-    if (selectedManagingTeam && isAdmin && activeCoordinatorId) {
+    if (selectedManagingTeam && isAdmin && coordinatorId) {
       const leaderEmail = selectedManagingTeam.leaderEmail?.toLowerCase();
       if (!leaderEmail) return;
 
@@ -1283,7 +1252,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
           const qUser = query(
             usersRef, 
             where('email', '==', leaderEmail),
-            where('coordinatorId', '==', activeCoordinatorId)
+            where('coordinatorId', '==', coordinatorId)
           );
           const userSnap = await getDocs(qUser);
           
@@ -1293,7 +1262,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
             const qVoters = query(
               votersRef, 
               where('leaderId', '==', leaderId),
-              where('coordinatorId', '==', activeCoordinatorId)
+              where('coordinatorId', '==', coordinatorId)
             );
             
             const unsub = onSnapshot(qVoters, (snapshot) => {
@@ -1313,7 +1282,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       fetchLeaderAndVoters().then(u => unsub = u);
       return () => unsub && unsub();
     }
-  }, [selectedManagingTeam, isAdmin, activeCoordinatorId]);
+  }, [selectedManagingTeam, isAdmin, coordinatorId]);
 
 
 
@@ -1371,7 +1340,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         authorRole: 'coordinator',
         teamName: 'Liderança',
         type: type,
-        coordinatorId: activeCoordinatorId || coordinatorId || user?.uid || '',
+        coordinatorId: coordinatorId || user?.uid || '',
         createdAt: Date.now()
       });
       setChaosText('');
@@ -1402,7 +1371,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         demands: Number(newTeam.demands) || 0,
         fuel: Number(newTeam.fuel) || 0,
         tempPassword: isEditMode ? ((newTeam as any).tempPassword || defaultPassword) : defaultPassword, // Manter ou criar senha
-        coordinatorId: activeCoordinatorId || coordinatorId || user?.uid || '',
+        coordinatorId: coordinatorId || user?.uid || '',
         updatedAt: Date.now(),
         createdAt: isEditMode ? ((newTeam as any).createdAt || Date.now()) : Date.now()
       });
@@ -1419,7 +1388,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
           location: newTeam.location,
           tempPassword: defaultPassword,
           role: 'lider',
-          coordinatorId: activeCoordinatorId || coordinatorId || user?.uid || '',
+          coordinatorId: coordinatorId || user?.uid || '',
           createdAt: Date.now()
         });
         
@@ -1470,121 +1439,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     setIsTeamModalOpen(true);
   };
 
-  const handleCreateTenant = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isAdmin) return alert("Apenas administradores podem gerenciar inquilinos.");
-    
-    try {
-      const email = newTenantForm.coordinatorEmail.trim().toLowerCase();
-      const tenantName = newTenantForm.tenantName.trim();
-      const coordinatorName = newTenantForm.coordinatorName.trim();
-      const targetVoters = Number(newTenantForm.targetVoters) || 1000;
-      const initialBudget = Number(newTenantForm.initialBudget) || 15000;
 
-      if (!email || !tenantName || !coordinatorName) {
-        alert("Preencha todos os campos obrigatórios.");
-        return;
-      }
-
-      setIsProcessing(true);
-
-      const generatedId = `coord_${Math.floor(100000 + Math.random() * 900000)}`;
-      const defaultPassword = 'aguia' + Math.floor(1000 + Math.random() * 9000);
-
-      // 1. Criar pré-registro para o coordenador
-      await firestoreService.setDocument('pre_registrations', email, {
-        email: email,
-        name: coordinatorName,
-        role: 'coordenador',
-        coordinatorId: generatedId,
-        tenantName: tenantName,
-        tempPassword: defaultPassword,
-        createdAt: Date.now()
-      });
-
-      // 2. Criar perfil na coleção 'users' para o coordenador
-      await firestoreService.setDocument('users', generatedId, {
-        id: generatedId,
-        email: email,
-        name: coordinatorName,
-        role: 'coordenador',
-        coordinatorId: generatedId,
-        tenantName: tenantName,
-        tempPassword: defaultPassword,
-        status: 'active',
-        createdAt: Date.now()
-      });
-
-      // 3. Inicializar estatísticas da campanha do novo inquilino
-      await firestoreService.setDocument('stats', `stats_${generatedId}`, {
-        totalFunded: initialBudget,
-        combustivelHoje: 0,
-        combustivelSaldo: 0,
-        votersTotal: 0,
-        targetVoters: targetVoters,
-        coordinatorId: generatedId,
-        lastUpdated: Date.now()
-      });
-
-      const accessLink = `${window.location.origin}/?email=${encodeURIComponent(email)}&access_token=${btoa(defaultPassword)}`;
-      setCreatedTenantLink(accessLink);
-      
-      // Limpar form
-      setNewTenantForm({
-        tenantName: '',
-        coordinatorName: '',
-        coordinatorEmail: '',
-        targetVoters: 1000,
-        initialBudget: 15000,
-        status: 'active'
-      });
-
-      alert("🎉 Nova campanha provisionada com sucesso!");
-    } catch (err: any) {
-      alert("Erro ao provisionar inquilino: " + err.message);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleToggleTenantStatus = async (tenant: any) => {
-    if (!isAdmin) return;
-    const newStatus = tenant.status === 'suspended' ? 'active' : 'suspended';
-    const actionText = newStatus === 'suspended' ? 'SUSPENDER' : 'REATIVAR';
-    if (window.confirm(`Tem certeza de que deseja ${actionText} a campanha de "${tenant.tenantName || tenant.name}"?`)) {
-      try {
-        setIsProcessing(true);
-        await firestoreService.updateDocument('users', tenant.id, {
-          status: newStatus
-        });
-        alert(`Campanha atualizada para status: ${newStatus === 'active' ? 'Ativo' : 'Suspenso'}`);
-      } catch (err: any) {
-        alert("Erro ao alterar status: " + err.message);
-      } finally {
-        setIsProcessing(false);
-      }
-    }
-  };
-
-  const handleSaveEditTenant = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isAdmin || !editingTenant) return;
-    try {
-      setIsProcessing(true);
-      await firestoreService.updateDocument('users', editingTenant.id, {
-        tenantName: editingTenant.tenantName,
-        name: editingTenant.name,
-        email: editingTenant.email.toLowerCase()
-      });
-      setIsEditTenantModalOpen(false);
-      setEditingTenant(null);
-      alert("Campanha editada com sucesso!");
-    } catch (err: any) {
-      alert("Erro ao editar campanha: " + err.message);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   const handleResetSystem = async () => {
     if (!isAdmin) return;
@@ -1595,7 +1450,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         // 1. Limpar Coleções Principais
         const collections = ['transactions', 'attendance', 'notes', 'urgencies', 'agenda', 'voters'];
         for (const coll of collections) {
-          const docs = await firestoreService.getCollectionFiltered<any>(coll, activeCoordinatorId || coordinatorId || '');
+          const docs = await firestoreService.getCollectionFiltered<any>(coll, coordinatorId || '');
           for (const d of docs) {
             await firestoreService.deleteDocument(coll, d.id);
           }
@@ -1673,7 +1528,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     setBriefingLocation(location);
     try {
       // Buscar demandas desse município
-      const allUrgencies = await firestoreService.getCollectionFiltered<any>('urgencies', activeCoordinatorId || coordinatorId || '');
+      const allUrgencies = await firestoreService.getCollectionFiltered<any>('urgencies', coordinatorId || '');
       const localDemands = allUrgencies.filter(u => u.team === location && u.type === 'demanda');
       
       const res = await gerarBriefingCandidato(location, localDemands);
@@ -1693,7 +1548,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       const q = query(
         collection(db, 'transactions'),
         where('team', '==', team.name),
-        where('coordinatorId', '==', activeCoordinatorId || coordinatorId),
+        where('coordinatorId', '==', coordinatorId),
         orderBy('date', 'desc'),
         limit(20)
       );
@@ -1737,7 +1592,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
             { id: 'demands', label: 'Demandas', icon: <Activity className="w-4 h-4" /> },
             { id: 'notes', label: 'Anotações', icon: <MessageSquare className="w-4 h-4" /> },
             { id: 'reports', label: 'Relatórios & BI', icon: <FileDown className="w-4 h-4" /> },
-            ...(isAdmin ? [{ id: 'tenants', label: 'Inquilinos (Multi-Tenant)', icon: <Layers className="w-4 h-4" /> }] : [])
+
           ].map((item) => (
             <button
               key={item.id}
@@ -1903,26 +1758,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
           </div>
         </header>
 
-        {activeCoordinatorId !== coordinatorId && (
-          <div className="bg-yellow-500 text-zinc-950 px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-yellow-600 shadow-md">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-zinc-950 shrink-0 animate-bounce" />
-              <div>
-                <span className="font-extrabold uppercase tracking-wider text-xs">Sessão Multi-Inquilino Ativa</span>
-                <span className="mx-2 hidden sm:inline opacity-60">|</span>
-                <span className="text-xs font-semibold">
-                  Visualizando e auditando a campanha de <strong className="font-extrabold uppercase">{tenantsList.find(t => t.id === activeCoordinatorId)?.tenantName || tenantsList.find(t => t.id === activeCoordinatorId)?.name || 'Outro Inquilino'}</strong>
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={() => setActiveCoordinatorId(coordinatorId)}
-              className="px-3.5 py-1.5 bg-zinc-950 hover:bg-zinc-900 text-yellow-500 font-extrabold text-[10px] uppercase tracking-wider rounded-sm transition-all shadow-md"
-            >
-              Restaurar Minha Sessão
-            </button>
-          </div>
-        )}
+
 
         {/* CONTENT AREA */}
         <main className="flex-1 overflow-y-auto p-3.5 md:p-10 custom-scrollbar pb-32 lg:pb-20">
@@ -3194,382 +3030,13 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               </motion.div>
             )}
 
-            {activeTab === 'tenants' && isAdmin && (
-              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
-                {/* Header Card */}
-                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 md:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/5 rounded-full blur-3xl -z-10"></div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2.5">
-                      <span className="px-2.5 py-1 bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 rounded-sm text-[9px] font-black uppercase tracking-wider">
-                        Conselho Administrativo
-                      </span>
-                    </div>
-                    <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight text-[var(--text-primary)]">
-                      Portal de Multi-Inquilinos (Multi-Tenant Hub)
-                    </h2>
-                    <p className="text-xs text-[var(--text-secondary)] font-medium max-w-2xl">
-                      Crie campanhas independentes virtuais, defina metas centralizadas e gerencie recursos financeiros/operacionais de forma isolada e segura.
-                    </p>
-                  </div>
-                  <div className="p-3.5 bg-yellow-500/10 rounded-sm border border-yellow-500/20 text-yellow-600 dark:text-yellow-500 font-extrabold text-xs uppercase tracking-wide">
-                    {tenantsList.length} Campanhas Ativas
-                  </div>
-                </div>
 
-                {/* Form & Metrics Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                  {/* Provisioning Form */}
-                  <div className="lg:col-span-7 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 shadow-sm space-y-6">
-                    <div className="border-b border-[var(--border-color)] pb-4 flex items-center justify-between">
-                      <h3 className="text-sm font-black uppercase tracking-wider text-[var(--text-primary)]">
-                        Provisionar Nova Campanha (Novo Coordenador)
-                      </h3>
-                    </div>
-
-                    <form onSubmit={handleCreateTenant} className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">Nome da Campanha *</label>
-                          <input 
-                            type="text"
-                            required
-                            placeholder="Ex: Campanha Manaus Centro"
-                            value={newTenantForm.tenantName}
-                            onChange={(e) => setNewTenantForm({ ...newTenantForm, tenantName: e.target.value })}
-                            className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-2.5 px-3.5 text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-yellow-500/40 outline-none transition-all"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">Nome do Coordenador *</label>
-                          <input 
-                            type="text"
-                            required
-                            placeholder="Ex: João Souza"
-                            value={newTenantForm.coordinatorName}
-                            onChange={(e) => setNewTenantForm({ ...newTenantForm, coordinatorName: e.target.value })}
-                            className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-2.5 px-3.5 text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-yellow-500/40 outline-none transition-all"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">E-mail Corporativo do Coordenador *</label>
-                        <input 
-                          type="email"
-                          required
-                          placeholder="Ex: joao.coordenador@gmail.com"
-                          value={newTenantForm.coordinatorEmail}
-                          onChange={(e) => setNewTenantForm({ ...newTenantForm, coordinatorEmail: e.target.value })}
-                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-2.5 px-3.5 text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-yellow-500/40 outline-none transition-all text-transform-none"
-                          style={{ textTransform: 'none' }}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">Meta de Eleitores</label>
-                          <input 
-                            type="number"
-                            placeholder="Ex: 1000"
-                            value={newTenantForm.targetVoters}
-                            onChange={(e) => setNewTenantForm({ ...newTenantForm, targetVoters: parseInt(e.target.value, 10) || 0 })}
-                            className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-2.5 px-3.5 text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-yellow-500/40 outline-none transition-all"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">Cota Orçamentária Inicial (R$)</label>
-                          <input 
-                            type="number"
-                            placeholder="Ex: 15000"
-                            value={newTenantForm.initialBudget}
-                            onChange={(e) => setNewTenantForm({ ...newTenantForm, initialBudget: parseFloat(e.target.value) || 0 })}
-                            className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-2.5 px-3.5 text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-yellow-500/40 outline-none transition-all"
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={isProcessing}
-                        className="w-full py-3 bg-yellow-500 hover:bg-yellow-600 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-sm transition-all shadow-md flex items-center justify-center gap-2"
-                      >
-                        {isProcessing ? "Provisionando..." : "Provisionar e Configurar Acesso"}
-                      </button>
-                    </form>
-
-                    {createdTenantLink && (
-                      <div className="mt-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-sm space-y-2">
-                        <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-                          <CheckCircle2 className="w-5 h-5" />
-                          <span className="text-[11px] font-black uppercase tracking-wider">Acesso de Coordenador Pronto!</span>
-                        </div>
-                        <p className="text-[11px] text-[var(--text-secondary)]">
-                          Compartilhe o link criptografado abaixo com o novo coordenador para que ele possa se registrar ou logar instantaneamente.
-                        </p>
-                        <div className="flex gap-2">
-                          <input 
-                            type="text" 
-                            readOnly 
-                            value={createdTenantLink} 
-                            className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-[var(--border-color)] rounded-sm p-2 text-[10px] font-mono text-[var(--text-primary)]"
-                          />
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(createdTenantLink);
-                              alert("Link de acesso copiado com sucesso!");
-                            }}
-                            className="px-4 py-2 bg-zinc-950 hover:bg-zinc-900 text-yellow-500 font-extrabold text-[10px] uppercase tracking-wider rounded-sm transition-all"
-                          >
-                            Copiar Link
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Consolidates Metrics */}
-                  <div className="lg:col-span-5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 shadow-sm space-y-6">
-                    <h3 className="text-sm font-black uppercase tracking-wider text-[var(--text-primary)] border-b border-[var(--border-color)] pb-4">
-                      Visão Consolidada Multi-Inquilino
-                    </h3>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="p-4 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm space-y-1">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Total Inquilinos</span>
-                        <div className="text-2xl font-black text-[var(--text-primary)]">{tenantsList.length}</div>
-                      </div>
-
-                      <div className="p-4 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm space-y-1">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Votos Estimados</span>
-                        <div className="text-2xl font-black text-yellow-600 dark:text-yellow-500">
-                          {tenantsList.reduce((acc, t) => acc + (t.votersTotal || 0), 0)}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="p-4 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm flex items-center justify-between">
-                        <div>
-                          <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Fatiamento Financeiro</p>
-                          <p className="text-xs text-[var(--text-primary)] font-bold">Investimento Total Liberado</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-black text-emerald-500">
-                            R$ {tenantsList.reduce((acc, t) => acc + (t.totalFunded || 0), 0).toLocaleString('pt-BR')}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="p-4 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm flex items-center justify-between">
-                        <div>
-                          <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Consumo de Recursos</p>
-                          <p className="text-xs text-[var(--text-primary)] font-bold">Consolidado em Combustível</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-black text-amber-500">
-                            R$ {tenantsList.reduce((acc, t) => acc + (t.combustivelSaldo || 0), 0).toLocaleString('pt-BR')}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-4.5 border border-dashed border-[var(--border-color)] rounded-sm text-center text-[var(--text-secondary)] text-xs">
-                      <ShieldCheck className="w-8 h-8 mx-auto mb-2 text-yellow-500/70" />
-                      <span className="font-extrabold uppercase tracking-wide text-[10px]">Criptografia & Isolamento Ativo</span>
-                      <p className="text-[10px] mt-1">Os dados de cada campanha são segregados por chaves exclusivas de metadados no Firestore.</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tenant Directory */}
-                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 shadow-sm space-y-6">
-                  <h3 className="text-sm font-black uppercase tracking-wider text-[var(--text-primary)] border-b border-[var(--border-color)] pb-4">
-                    Diretório de Campanhas Habilitadas
-                  </h3>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-[var(--border-color)] bg-[var(--bg-tertiary)]">
-                          <th className="py-3.5 px-4 text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">Campanha</th>
-                          <th className="py-3.5 px-4 text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">Coordenador</th>
-                          <th className="py-3.5 px-4 text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">Meta de Eleitores</th>
-                          <th className="py-3.5 px-4 text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">Status</th>
-                          <th className="py-3.5 px-4 text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)] text-right">Ações de Gestão</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[var(--border-color)]">
-                        {tenantsList.map((tenant) => {
-                          const isCurrentlySelected = tenant.id === activeCoordinatorId;
-                          return (
-                            <tr key={tenant.id} className="hover:bg-[var(--bg-tertiary)] transition-colors">
-                              <td className="py-4 px-4">
-                                <div className="font-bold text-xs text-[var(--text-primary)]">{tenant.tenantName || tenant.name || 'Sem nome'}</div>
-                                <div className="text-[9px] font-mono text-[var(--text-secondary)]">{tenant.id}</div>
-                              </td>
-                              <td className="py-4 px-4">
-                                <div className="font-semibold text-xs text-[var(--text-primary)]">{tenant.name || 'N/A'}</div>
-                                <div className="text-[10px] text-[var(--text-secondary)] text-transform-none" style={{ textTransform: 'none' }}>{tenant.email}</div>
-                              </td>
-                              <td className="py-4 px-4">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-24 bg-zinc-200 dark:bg-zinc-700 h-2 rounded-sm overflow-hidden">
-                                    <div 
-                                      className="bg-yellow-500 h-full rounded-sm" 
-                                      style={{ width: `${Math.min(100, (((tenant.votersTotal || 0) / (tenant.targetVoters || 1000)) * 100))}%` }}
-                                    ></div>
-                                  </div>
-                                  <span className="text-[10px] font-black">
-                                    {tenant.votersTotal || 0} / {tenant.targetVoters || 1000}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="py-4 px-4">
-                                <span className={`px-2 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-wide ${
-                                  tenant.status === 'suspended' ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'
-                                }`}>
-                                  {tenant.status === 'suspended' ? 'Suspenso' : 'Ativo'}
-                                </span>
-                              </td>
-                              <td className="py-4 px-4 text-right space-x-2">
-                                <button
-                                  onClick={() => {
-                                    setActiveCoordinatorId(tenant.id);
-                                    setActiveTab('overview');
-                                  }}
-                                  className={`px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider transition-all ${
-                                    isCurrentlySelected 
-                                      ? 'bg-emerald-500 text-zinc-950 shadow-md' 
-                                      : 'bg-zinc-950 text-yellow-500 hover:bg-yellow-500 hover:text-zinc-950'
-                                  }`}
-                                >
-                                  {isCurrentlySelected ? 'Visualizando' : 'Auditar Painel'}
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setEditingTenant(tenant);
-                                    setIsEditTenantModalOpen(true);
-                                  }}
-                                  className="px-3 py-1.5 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-[10px] font-black uppercase tracking-wider rounded-sm transition-all text-[var(--text-primary)]"
-                                >
-                                  Editar
-                                </button>
-                                <button
-                                  onClick={() => handleToggleTenantStatus(tenant)}
-                                  className={`px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider transition-all ${
-                                    tenant.status === 'suspended' 
-                                      ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20' 
-                                      : 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
-                                  }`}
-                                >
-                                  {tenant.status === 'suspended' ? 'Reativar' : 'Suspender'}
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </motion.div>
-            )}
           </div>
         </main>
       </div>
 
       <AnimatePresence>
-        {isEditTenantModalOpen && editingTenant && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-zinc-950/80 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto"
-          >
-            <motion.div 
-              initial={{ scale: 0.95, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 20 }}
-              className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-md rounded-sm overflow-hidden shadow-2xl relative p-6 space-y-6"
-            >
-              <button 
-                onClick={() => {
-                  setIsEditTenantModalOpen(false);
-                  setEditingTenant(null);
-                }}
-                className="absolute top-4 right-4 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
-              >
-                <X className="w-5 h-5" />
-              </button>
 
-              <div className="space-y-1">
-                <h3 className="text-sm font-black uppercase tracking-wider text-[var(--text-primary)]">
-                  Editar Detalhes do Inquilino
-                </h3>
-                <p className="text-[10px] text-[var(--text-secondary)]">Atualize as informações administrativas do coordenador de campanha.</p>
-              </div>
-
-              <form onSubmit={handleSaveEditTenant} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">Nome da Campanha</label>
-                  <input 
-                    type="text"
-                    required
-                    value={editingTenant.tenantName || ''}
-                    onChange={(e) => setEditingTenant({ ...editingTenant, tenantName: e.target.value })}
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-2 px-3 text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-yellow-500/40 outline-none transition-all"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">Nome do Coordenador</label>
-                  <input 
-                    type="text"
-                    required
-                    value={editingTenant.name || ''}
-                    onChange={(e) => setEditingTenant({ ...editingTenant, name: e.target.value })}
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-2 px-3 text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-yellow-500/40 outline-none transition-all"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">E-mail</label>
-                  <input 
-                    type="email"
-                    required
-                    value={editingTenant.email || ''}
-                    onChange={(e) => setEditingTenant({ ...editingTenant, email: e.target.value })}
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-2 px-3 text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-yellow-500/40 outline-none transition-all text-transform-none"
-                    style={{ textTransform: 'none' }}
-                  />
-                </div>
-
-                <div className="pt-4 flex gap-3 justify-end">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsEditTenantModalOpen(false);
-                      setEditingTenant(null);
-                    }}
-                    className="px-4 py-2 bg-zinc-200 dark:bg-zinc-800 text-[var(--text-primary)] font-bold text-[10px] uppercase tracking-wider rounded-sm hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-all"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isProcessing}
-                    className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-zinc-950 font-black text-[10px] uppercase tracking-wider rounded-sm transition-all"
-                  >
-                    {isProcessing ? 'Salvando...' : 'Salvar Alterações'}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
 
         {isAiModalOpen && (
           <motion.div 

@@ -52,6 +52,8 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
     localVotacao: ''
   });
 
+  const [acceptedLgpd, setAcceptedLgpd] = useState(false);
+
   useEffect(() => {
     const fetchInfo = async () => {
       setLoading(true);
@@ -190,7 +192,9 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
         registeredBy: 'link_externo',
         createdBy: 'link_externo',
         coordinatorId: leaderInfo.coordinatorId,
-        location: null
+        location: null,
+        lgpdConsent: acceptedLgpd,
+        lgpdConsentDate: Date.now()
       };
 
       await firestoreService.setDocument('voters', `voter_${Date.now()}`, payload);
@@ -275,6 +279,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
               <button
                 onClick={() => {
                   setSuccess(false);
+                  setAcceptedLgpd(false);
                   setVoterForm({
                     name: '', phone: '', address: '', observations: '', referredBy: '', tags: [], cpf: '', rg: '', titulo: '', zona: '', secao: '', localVotacao: ''
                   });
@@ -438,6 +443,33 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                     className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-yellow-500 transition-all h-28 resize-none placeholder:text-zinc-300" 
                     placeholder="Insira demandas de asfalto, saneamento, ou observações importantes sobre seu cadastro..." 
                   />
+                </div>
+              </div>
+
+              {/* TERMO DE CONSENTIMENTO LGPD */}
+              <div className="space-y-4 bg-zinc-50 border border-zinc-200 rounded-sm p-5">
+                <div className="flex items-center gap-2.5 text-zinc-900">
+                  <ShieldCheck className="w-5 h-5 text-yellow-600 shrink-0" />
+                  <h4 className="font-black text-xs uppercase tracking-widest">Termo de Consentimento & LGPD</h4>
+                </div>
+                
+                <p className="text-[11px] text-zinc-500 font-semibold leading-relaxed">
+                  Em conformidade com a <strong>Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018)</strong>, informamos que os dados pessoais fornecidos neste formulário serão tratados de forma totalmente segura e confidencial. Eles serão utilizados única e exclusivamente para fins de relacionamento cívico, informativos de campanha e mobilização tática desta equipe política.
+                </p>
+
+                <div className="pt-2">
+                  <label className="flex items-start gap-3 cursor-pointer select-none">
+                    <input 
+                      type="checkbox"
+                      required
+                      checked={acceptedLgpd}
+                      onChange={e => setAcceptedLgpd(e.target.checked)}
+                      className="mt-1 w-4 h-4 text-zinc-950 bg-zinc-100 border-zinc-300 rounded-sm focus:ring-yellow-500 outline-none cursor-pointer accent-zinc-950 shrink-0"
+                    />
+                    <span className="text-[11px] text-zinc-800 font-bold leading-tight">
+                      Autorizo o tratamento dos meus dados para fins de relacionamento cívico e informativo desta campanha, nos termos expostos acima. *
+                    </span>
+                  </label>
                 </div>
               </div>
 
