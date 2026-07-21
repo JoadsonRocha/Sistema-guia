@@ -1619,7 +1619,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     e.preventDefault();
     if (!selectedVoter) return;
     try {
-      await firestoreService.updateDocument('voters', selectedVoter.id, voterEditForm);
+      await firestoreService.setDocument('voters', selectedVoter.id, voterEditForm, true);
       setIsVoterEditModalOpen(false);
       setSelectedVoter(null);
       await fetchServerCounts();

@@ -810,11 +810,11 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
       }
 
       if (isEditingVoter && editingVoterId) {
-        await firestoreService.updateDocument('voters', editingVoterId, {
+        await firestoreService.setDocument('voters', editingVoterId, {
           ...voterForm,
           coordinatorId: activeCoordId,
           updatedAt: Date.now()
-        });
+        }, true);
         await fetchServerCounts();
         alert("✅ CADASTRO ATUALIZADO COM SUCESSO!");
       } else {
