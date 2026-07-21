@@ -194,22 +194,37 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                 const preRegSnap = await getDoc(doc(db, 'pre_registrations', currentUser.email.toLowerCase()));
                 if (preRegSnap.exists()) {
                   const preRegData = preRegSnap.data();
-                  setRole('lider');
-                  setForcePasswordChange(true);
-                  setCoordinatorId(preRegData.coordinatorId || null);
-                  await setDoc(doc(db, 'users', currentUser.uid), {
-                    email: currentUser.email.toLowerCase(),
-                    role: 'lider',
-                    name: preRegData.name || currentUser.displayName || 'Líder',
-                    phone: preRegData.phone || '',
-                    address: preRegData.address || '',
-                    teamName: preRegData.teamName || '',
-                    teamId: preRegData.teamId || '',
-                    coordinatorId: preRegData.coordinatorId || '',
-                    forcePasswordChange: true,
-                    createdAt: Date.now()
-                  });
-                  console.log(`🧠 [Auth] Created missing profile from pre_registration for ${currentUser.email}`);
+                  if (preRegData.role === 'coordenador') {
+                    setRole('coordenador');
+                    setForcePasswordChange(true);
+                    setCoordinatorId(currentUser.uid);
+                    await setDoc(doc(db, 'users', currentUser.uid), {
+                      email: currentUser.email.toLowerCase(),
+                      role: 'coordenador',
+                      name: preRegData.name || currentUser.displayName || 'Coordenador',
+                      phone: preRegData.phone || '',
+                      forcePasswordChange: true,
+                      createdAt: Date.now()
+                    });
+                    console.log(`🧠 [Auth] Created coordinator profile from pre_registration for ${currentUser.email}`);
+                  } else {
+                    setRole('lider');
+                    setForcePasswordChange(true);
+                    setCoordinatorId(preRegData.coordinatorId || null);
+                    await setDoc(doc(db, 'users', currentUser.uid), {
+                      email: currentUser.email.toLowerCase(),
+                      role: 'lider',
+                      name: preRegData.name || currentUser.displayName || 'Líder',
+                      phone: preRegData.phone || '',
+                      address: preRegData.address || '',
+                      teamName: preRegData.teamName || '',
+                      teamId: preRegData.teamId || '',
+                      coordinatorId: preRegData.coordinatorId || '',
+                      forcePasswordChange: true,
+                      createdAt: Date.now()
+                    });
+                    console.log(`🧠 [Auth] Created missing profile from pre_registration for ${currentUser.email}`);
+                  }
                 } else {
                   const emailVariants = Array.from(new Set([
                     currentUser.email.toLowerCase(),
