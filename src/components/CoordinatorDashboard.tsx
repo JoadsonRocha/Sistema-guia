@@ -11,6 +11,7 @@ import {
   Wifi,
   ChevronRight,
   ChevronDown,
+  ChevronUp,
   Camera,
   UserPlus,
   StickyNote,
@@ -347,6 +348,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
   const [selectedReportColumns, setSelectedReportColumns] = useState<string[]>([]);
   const [materials, setMaterials] = useState<any[]>([]);
   const [materialRequests, setMaterialRequests] = useState<any[]>([]);
+  const [collapsedRequests, setCollapsedRequests] = useState<Record<string, boolean>>({});
   const [demandsSummary, setDemandsSummary] = useState<any[]>([]);
   const [dailyOrder, setDailyOrder] = useState<any>(null);
   const [isEditingDailyOrder, setIsEditingDailyOrder] = useState(false);
@@ -2731,125 +2733,190 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                 </div>
 
                 {/* SOLICITAÇÕES DE LÍDERES */}
-                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-10 shadow-[var(--shadow-sm)]">
-                  <div className="flex justify-between items-center mb-8 border-b border-[var(--border-color)] pb-6">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 md:p-10 shadow-[var(--shadow-sm)]">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 border-b border-[var(--border-color)] pb-6 gap-4">
                     <div>
                       <h3 className="text-xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Solicitações de Líderes</h3>
                       <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] mt-3 opacity-60">Pedidos de remessa e distribuição de campo</p>
                     </div>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                      <button
+                        onClick={() => {
+                          const collapsed: Record<string, boolean> = {};
+                          materialRequests.forEach(r => {
+                            collapsed[r.id] = false; // false = expanded
+                          });
+                          setCollapsedRequests(collapsed);
+                        }}
+                        className="flex-1 sm:flex-none px-3 py-1.5 border border-[var(--border-color)] rounded-sm text-[9px] font-black uppercase tracking-wider hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] transition-all active:scale-95"
+                      >
+                        Expandir Todos
+                      </button>
+                      <button
+                        onClick={() => {
+                          const collapsed: Record<string, boolean> = {};
+                          materialRequests.forEach(r => {
+                            collapsed[r.id] = true; // true = collapsed
+                          });
+                          setCollapsedRequests(collapsed);
+                        }}
+                        className="flex-1 sm:flex-none px-3 py-1.5 border border-[var(--border-color)] rounded-sm text-[9px] font-black uppercase tracking-wider hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] transition-all active:scale-95"
+                      >
+                        Recolher Todos
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {materialRequests.length > 0 ? materialRequests.sort((a, b) => b.createdAt - a.createdAt).map(req => (
-                      <div key={req.id} className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-6 flex flex-col gap-5 hover:border-yellow-500/30 transition-all shadow-inner relative overflow-hidden group">
-                        {req.status === 'pendente' && <div className="absolute top-0 right-0 w-2 h-full bg-yellow-500"></div>}
-                        {req.status === 'devolucao_pendente' && <div className="absolute top-0 right-0 w-2 h-full bg-blue-500 animate-pulse"></div>}
-                        
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center gap-4">
-                            <div className={`w-12 h-12 rounded-sm flex items-center justify-center shadow-inner border border-[var(--border-color)] ${
-                              req.status === 'aprovado' ? 'bg-emerald-500/10 text-emerald-500' : 
-                              req.status === 'devolucao_pendente' ? 'bg-blue-500/10 text-blue-500' :
-                              req.status === 'devolvido' ? 'bg-zinc-500/10 text-zinc-400' :
-                              req.status === 'negado' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500'
-                            }`}>
-                              <Package className="w-5 h-5" />
-                            </div>
-                            <div className="text-left">
-                              <h4 className="font-black text-[var(--text-primary)] text-sm uppercase tracking-tight">{req.materialName} ({req.qty} un)</h4>
-                              <p className="text-[9px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-widest mt-1.5">{req.team || '---'} • {req.leaderName}</p>
-                            </div>
-                          </div>
-                          <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-sm shadow-sm ${
-                            req.status === 'aprovado' ? 'bg-emerald-500 text-white' : 
-                            req.status === 'devolucao_pendente' ? 'bg-blue-600 text-white' :
-                            req.status === 'devolvido' ? 'bg-zinc-500 text-white' :
-                            req.status === 'negado' ? 'bg-red-500 text-white' : 'bg-yellow-500 text-zinc-950'
-                          }`}>
-                            {req.status === 'devolucao_pendente' ? 'devolução pendente' : req.status}
-                          </span>
-                        </div>
-
-                        {req.returnDate && (
-                          <div className="bg-yellow-500/5 px-4 py-2.5 rounded-sm border border-yellow-500/10 text-left">
-                            <span className="text-[8px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-wider block mb-0.5">Previsão de Devolução</span>
-                            <span className="text-xs font-black text-[var(--text-primary)]">{new Date(req.returnDate + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
-                          </div>
-                        )}
-
-                        {req.reason && (
-                          <div className="bg-white/5 p-4 rounded-sm border border-white/5">
-                            <p className="text-[10px] font-bold text-zinc-500 italic leading-relaxed">"{req.reason}"</p>
-                          </div>
-                        )}
-
-                        {req.receivedByLeader && (
-                          <div className="bg-emerald-500/5 px-4 py-2.5 rounded-sm border border-emerald-500/10 text-left">
-                            <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block mb-0.5">Status de Entrega</span>
-                            <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">✓ RECEBIDO EM {new Date(req.receivedAt).toLocaleString()}</span>
-                          </div>
-                        )}
-
-                        {req.returnedAt && (
-                          <div className="bg-blue-500/5 px-4 py-2.5 rounded-sm border border-blue-500/10 text-left">
-                            <span className="text-[8px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider block mb-0.5">Devolução Solicitada</span>
-                            <span className="text-xs font-black text-blue-600 dark:text-blue-400">✓ DEVOLVIDO PELO LÍDER EM {new Date(req.returnedAt).toLocaleString()}</span>
-                          </div>
-                        )}
-
-                        {req.returnApprovedAt && (
-                          <div className="bg-emerald-500/5 px-4 py-2.5 rounded-sm border border-emerald-500/10 text-left">
-                            <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block mb-0.5">Devolução Confirmada</span>
-                            <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">✓ CONFIRMADO EM {new Date(req.returnApprovedAt).toLocaleString()}</span>
-                          </div>
-                        )}
-
-                        {req.signedBy && (
-                          <div className="p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-sm flex items-center gap-3">
-                            <div className="p-2 bg-emerald-500/10 rounded-sm text-emerald-500">
-                              <ShieldCheck className="w-4 h-4 animate-pulse" />
-                            </div>
-                            <div className="text-left leading-none">
-                              <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">LOTE ASSINADO DIGITALMENTE</p>
-                              <p className="text-[8px] font-bold text-zinc-400 mt-1 uppercase">RESPONSÁVEL: {req.signedBy} • {new Date(req.signedAt).toLocaleString()}</p>
-                              <p className="text-[8px] font-mono text-zinc-500 mt-1 opacity-60">HASH: {req.signatureHash}</p>
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between pt-4 border-t border-[var(--border-color)]">
-                          <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">{new Date(req.createdAt).toLocaleString()}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {materialRequests.length > 0 ? materialRequests.sort((a, b) => b.createdAt - a.createdAt).map(req => {
+                      const isCollapsed = collapsedRequests[req.id] !== false;
+                      return (
+                        <div 
+                          key={req.id} 
+                          className={`bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm transition-all duration-200 relative overflow-hidden group shadow-sm hover:shadow-md hover:border-yellow-500/20 ${
+                            isCollapsed ? 'p-3.5 cursor-pointer' : 'p-5 flex flex-col gap-4'
+                          }`}
+                          onClick={() => {
+                            if (isCollapsed) {
+                              setCollapsedRequests(prev => ({ ...prev, [req.id]: false }));
+                            }
+                          }}
+                        >
+                          {req.status === 'pendente' && <div className="absolute top-0 right-0 w-1.5 h-full bg-yellow-500"></div>}
+                          {req.status === 'devolucao_pendente' && <div className="absolute top-0 right-0 w-1.5 h-full bg-blue-500 animate-pulse"></div>}
                           
-                          <div className="flex items-center gap-3">
-                            {req.status === 'pendente' && (
-                              <>
-                                <button 
-                                  onClick={() => handleDenyMaterialRequest(req.id)}
-                                  className="flex items-center gap-2 px-4 py-2 border border-red-500/30 text-red-500 rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-red-500/10"
-                                >
-                                  <XCircle className="w-3.5 h-3.5" /> Negar
-                                </button>
-                                <button 
-                                  onClick={() => handleApproveMaterialRequest(req)}
-                                  className="flex items-center gap-2 px-6 py-2 bg-emerald-500 text-white rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-emerald-400 transition-all active:scale-95 shadow-lg shadow-emerald-500/20"
-                                >
-                                  <CheckCircle2 className="w-3.5 h-3.5" /> Assinar & Liberar
-                                </button>
-                              </>
-                            )}
-
-                            {req.status === 'devolucao_pendente' && (
-                              <button 
-                                onClick={() => handleConfirmReturnMaterialRequest(req)}
-                                className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-blue-500 transition-all active:scale-95 shadow-lg shadow-blue-500/20"
-                              >
-                                <CheckCircle2 className="w-3.5 h-3.5" /> Confirmar Devolução
-                              </button>
-                            )}
+                          {/* Top row (Header of card) */}
+                          <div 
+                            className="flex justify-between items-center w-full gap-3 select-none"
+                            onClick={(e) => {
+                              if (!isCollapsed) {
+                                e.stopPropagation();
+                                setCollapsedRequests(prev => ({ ...prev, [req.id]: true }));
+                              }
+                            }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-9 h-9 rounded-sm flex items-center justify-center border border-[var(--border-color)] shrink-0 ${
+                                req.status === 'aprovado' ? 'bg-emerald-500/10 text-emerald-500' : 
+                                req.status === 'devolucao_pendente' ? 'bg-blue-500/10 text-blue-500' :
+                                req.status === 'devolvido' ? 'bg-zinc-500/10 text-zinc-400' :
+                                req.status === 'negado' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500'
+                              }`}>
+                                <Package className="w-4 h-4" />
+                              </div>
+                              <div className="text-left">
+                                <h4 className="font-black text-[var(--text-primary)] text-xs uppercase tracking-tight leading-tight flex items-center gap-1.5">
+                                  {req.materialName} <span className="text-yellow-600 dark:text-yellow-500 font-bold">({req.qty} un)</span>
+                                </h4>
+                                <p className="text-[9px] font-black text-yellow-600 dark:text-yellow-500/80 uppercase tracking-widest mt-0.5 opacity-80">
+                                  {req.team || '---'} • {req.leaderName}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2.5 shrink-0">
+                              <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-1 rounded-sm shadow-sm ${
+                                req.status === 'aprovado' ? 'bg-emerald-500 text-white' : 
+                                req.status === 'devolucao_pendente' ? 'bg-blue-600 text-white' :
+                                req.status === 'devolvido' ? 'bg-zinc-500 text-white' :
+                                req.status === 'negado' ? 'bg-red-500 text-white' : 'bg-yellow-500 text-zinc-950'
+                              }`}>
+                                {req.status === 'devolucao_pendente' ? 'devolução pendente' : req.status}
+                              </span>
+                              {isCollapsed ? (
+                                <ChevronDown className="w-4 h-4 text-zinc-400 group-hover:text-yellow-500 transition-colors" />
+                              ) : (
+                                <ChevronUp className="w-4 h-4 text-zinc-400 group-hover:text-yellow-500 transition-colors" />
+                              )}
+                            </div>
                           </div>
+
+                          {/* Expanded Content */}
+                          {!isCollapsed && (
+                            <div className="flex flex-col gap-3.5 pt-3.5 border-t border-[var(--border-color)] mt-1 animate-fadeIn">
+                              {req.returnDate && (
+                                <div className="bg-yellow-500/5 px-3 py-2 rounded-sm border border-yellow-500/10 text-left">
+                                  <span className="text-[8px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-wider block mb-0.5">Previsão de Devolução</span>
+                                  <span className="text-xs font-black text-[var(--text-primary)]">{new Date(req.returnDate + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
+                                </div>
+                              )}
+
+                              {req.reason && (
+                                <div className="bg-white/5 p-3 rounded-sm border border-white/5">
+                                  <p className="text-[10px] font-bold text-zinc-500 italic leading-relaxed">"{req.reason}"</p>
+                                </div>
+                              )}
+
+                              {req.receivedByLeader && (
+                                <div className="bg-emerald-500/5 px-3 py-2 rounded-sm border border-emerald-500/10 text-left">
+                                  <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block mb-0.5">Status de Entrega</span>
+                                  <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">✓ RECEBIDO EM {new Date(req.receivedAt).toLocaleString()}</span>
+                                </div>
+                              )}
+
+                              {req.returnedAt && (
+                                <div className="bg-blue-500/5 px-3 py-2 rounded-sm border border-blue-500/10 text-left">
+                                  <span className="text-[8px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider block mb-0.5">Devolução Solicitada</span>
+                                  <span className="text-xs font-black text-blue-600 dark:text-blue-400">✓ DEVOLVIDO PELO LÍDER EM {new Date(req.returnedAt).toLocaleString()}</span>
+                                </div>
+                              )}
+
+                              {req.returnApprovedAt && (
+                                <div className="bg-emerald-500/5 px-3 py-2 rounded-sm border border-emerald-500/10 text-left">
+                                  <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block mb-0.5">Devolução Confirmada</span>
+                                  <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">✓ CONFIRMADO EM {new Date(req.returnApprovedAt).toLocaleString()}</span>
+                                </div>
+                              )}
+
+                              {req.signedBy && (
+                                <div className="p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-sm flex items-center gap-3">
+                                  <div className="p-2 bg-emerald-500/10 rounded-sm text-emerald-500">
+                                    <ShieldCheck className="w-4 h-4 animate-pulse" />
+                                  </div>
+                                  <div className="text-left leading-none">
+                                    <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">LOTE ASSINADO DIGITALMENTE</p>
+                                    <p className="text-[8px] font-bold text-zinc-400 mt-1 uppercase">RESPONSÁVEL: {req.signedBy} • {new Date(req.signedAt).toLocaleString()}</p>
+                                    <p className="text-[8px] font-mono text-zinc-500 mt-1 opacity-60">HASH: {req.signatureHash}</p>
+                                  </div>
+                                </div>
+                              )}
+
+                              <div className="flex items-center justify-between pt-3.5 border-t border-[var(--border-color)]">
+                                <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">{new Date(req.createdAt).toLocaleString()}</p>
+                                
+                                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                  {req.status === 'pendente' && (
+                                    <>
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); handleDenyMaterialRequest(req.id); }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 border border-red-500/30 text-red-500 rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-md shadow-red-500/10"
+                                      >
+                                        <XCircle className="w-3.5 h-3.5" /> Negar
+                                      </button>
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); handleApproveMaterialRequest(req); }}
+                                        className="flex items-center gap-1.5 px-4 py-1.5 bg-emerald-500 text-white rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-emerald-400 transition-all active:scale-95 shadow-md shadow-emerald-500/20"
+                                      >
+                                        <CheckCircle2 className="w-3.5 h-3.5" /> Assinar & Liberar
+                                      </button>
+                                    </>
+                                  )}
+
+                                  {req.status === 'devolucao_pendente' && (
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); handleConfirmReturnMaterialRequest(req); }}
+                                      className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-blue-500 transition-all active:scale-95 shadow-md shadow-blue-500/20"
+                                    >
+                                      <CheckCircle2 className="w-3.5 h-3.5" /> Confirmar Devolução
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    )) : (
+                      );
+                    }) : (
                       <div className="col-span-full py-20 text-center border-2 border-dashed border-[var(--border-color)] rounded-sm grayscale opacity-30">
                         <Package className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
                         <p className="text-[var(--text-secondary)] font-black uppercase tracking-[0.2em] text-[10px]">Sem solicitações pendentes.</p>
