@@ -196,6 +196,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
       let unsubPartners: (() => void) | null = null;
       let unsubMaterialRequests: (() => void) | null = null;
       let unsubCampaignVoters: (() => void) | null = null;
+      let unsubUrgencies: (() => void) | null = null;
       
       let currentSubscribedCoordId: string | null = null;
       let subscribedMaterials = false;
@@ -407,6 +408,11 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                 console.warn("CampaignVoters Cabo sync error:", err.message);
               }
             );
+
+            if (unsubUrgencies) unsubUrgencies();
+            unsubUrgencies = firestoreService.subscribeToCollectionFiltered('urgencies', resolvedCoordId, (data) => {
+              setMyRequests(data.filter((r: any) => r.leaderId === user.uid));
+            });
           }
         }
       }, (error) => {
@@ -452,6 +458,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
         if (unsubPartners) unsubPartners();
         if (unsubMaterialRequests) unsubMaterialRequests();
         if (unsubCampaignVoters) unsubCampaignVoters();
+        if (unsubUrgencies) unsubUrgencies();
       };
     }
   }, [user, coordinatorId]);
@@ -466,14 +473,6 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
     
     const queue = JSON.parse(safeLocalStorage.getItem('aguia_offline_queue') || '[]');
     setQueueCount(queue.length);
-
-    if (user) {
-      const unsub = firestoreService.subscribeToCollection('urgencies', (data) => {
-        // Filter requests made by this leader
-        setMyRequests(data.filter((r: any) => r.leaderId === user.uid));
-      });
-      return () => unsub();
-    }
 
     return () => {
       window.removeEventListener('online', handleStatusChange);

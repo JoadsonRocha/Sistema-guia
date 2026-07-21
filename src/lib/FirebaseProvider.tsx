@@ -74,19 +74,8 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
             const data = snapshot.data();
             setRole(data.role);
             setForcePasswordChange(!!data.forcePasswordChange);
-            const isCoordOrAdmin = data.role === 'coordenador' || (data.role !== 'lider' && currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com");
+            const isCoordOrAdmin = data.role === 'coordenador';
             setIsAdmin(isCoordOrAdmin);
-            
-            if (currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com" && data.role !== 'coordenador') {
-              try {
-                await setDoc(doc(db, 'users', currentUser.uid), {
-                  role: 'coordenador'
-                }, { merge: true });
-                console.log("🧠 [Auth] Healed coordinator role in Firestore for Sérgio");
-              } catch (e) {
-                console.error("Error healing coordinator role:", e);
-              }
-            }
 
             if (isCoordOrAdmin) {
               setCoordinatorId(currentUser.uid);
@@ -140,20 +129,6 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                 resolvedCoordId = data.coordinatorId;
               }
 
-              // Priority 4: Fallback to first coordinator query
-              if (!resolvedCoordId) {
-                try {
-                  const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'), limit(1));
-                  const snapCoords = await getDocs(qCoords);
-                  if (!snapCoords.empty) {
-                    resolvedCoordId = snapCoords.docs[0].id;
-                    console.log(`🧠 [Auth] Assigned coordinatorId fallback from users collection: ${resolvedCoordId}`);
-                  }
-                } catch (e) {
-                  console.error("Error querying first coordinator for auth:", e);
-                }
-              }
-
               // Apply the resolved coordinatorId
               if (resolvedCoordId) {
                 setCoordinatorId(resolvedCoordId);
@@ -171,23 +146,8 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                 setCoordinatorId(null);
               }
             }
-          } else if (currentUser.email?.toLowerCase() === "sergiosilvabezerra@gmail.com") {
-            setIsAdmin(true);
-            setRole('coordenador');
-            setForcePasswordChange(false);
-            setCoordinatorId(currentUser.uid);
-            try {
-              await setDoc(doc(db, 'users', currentUser.uid), {
-                name: currentUser.displayName || 'Sérgio Silva Bezerra',
-                email: currentUser.email,
-                role: 'coordenador',
-                createdAt: Date.now()
-              }, { merge: true });
-            } catch (err) {
-              console.error("Erro ao salvar perfil do coordenador:", err);
-            }
           } else {
-            // The user document does not exist, and it's not the admin.
+            // The user document does not exist.
             // Let's check if there is a pre_registration for this email.
             if (currentUser.email) {
               try {
@@ -196,6 +156,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                   const preRegData = preRegSnap.data();
                   if (preRegData.role === 'coordenador') {
                     setRole('coordenador');
+                    setIsAdmin(true);
                     setForcePasswordChange(true);
                     setCoordinatorId(currentUser.uid);
                     await setDoc(doc(db, 'users', currentUser.uid), {
@@ -209,6 +170,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                     console.log(`🧠 [Auth] Created coordinator profile from pre_registration for ${currentUser.email}`);
                   } else {
                     setRole('lider');
+                    setIsAdmin(false);
                     setForcePasswordChange(true);
                     setCoordinatorId(preRegData.coordinatorId || null);
                     await setDoc(doc(db, 'users', currentUser.uid), {
@@ -236,6 +198,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                     const teamId = snapTeams.docs[0].id;
                     const teamData = snapTeams.docs[0].data();
                     setRole('lider');
+                    setIsAdmin(false);
                     setForcePasswordChange(false);
                     setCoordinatorId(teamData.coordinatorId || null);
                     await setDoc(doc(db, 'users', currentUser.uid), {
@@ -251,24 +214,19 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                     });
                     console.log(`🧠 [Auth] Created profile from matching team for ${currentUser.email}`);
                   } else {
-                    // Fallback: No pre_registration or team. Create a default leader profile linked to first coordinator
-                    let fallbackCoordId = '';
-                    const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'), limit(1));
-                    const snapCoords = await getDocs(qCoords);
-                    if (!snapCoords.empty) {
-                      fallbackCoordId = snapCoords.docs[0].id;
-                    }
-                    setRole('lider');
+                    // Default fallback: No pre_registration or team. Create a coordinator profile for them
+                    // so they have their own campaign!
+                    setRole('coordenador');
+                    setIsAdmin(true);
                     setForcePasswordChange(false);
-                    setCoordinatorId(fallbackCoordId || null);
+                    setCoordinatorId(currentUser.uid);
                     await setDoc(doc(db, 'users', currentUser.uid), {
                       email: currentUser.email.toLowerCase(),
-                      role: 'lider',
-                      name: currentUser.displayName || 'Líder Regional',
-                      coordinatorId: fallbackCoordId,
+                      role: 'coordenador',
+                      name: currentUser.displayName || 'Coordenador',
                       createdAt: Date.now()
                     });
-                    console.log(`🧠 [Auth] Created default leader profile for ${currentUser.email}`);
+                    console.log(`🧠 [Auth] Created isolated coordinator campaign for ${currentUser.email}`);
                   }
                 }
               } catch (e) {
