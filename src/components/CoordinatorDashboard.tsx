@@ -30,6 +30,7 @@ import {
   Clock,
   FileText,
   FileDown,
+  FileSpreadsheet,
   GanttChart,
   Trash2,
   Edit3,
@@ -763,7 +764,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
   };
 
   // --- REPORT GENERATION LOGIC ---
-  const generateReport = async (type: string, filters: any = {}) => {
+  const generateReport = async (type: string, filters: any = {}, format: 'pdf' | 'excel' = 'pdf') => {
     const userName = profileData?.name || user?.email || 'Coordenador';
     let title = '';
     let data: any[] = [];
@@ -1067,26 +1068,57 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         });
       });
 
-      autoTable(doc, {
-        startY: 55,
-        head: [visibleColumns.map((col: any) => col.header.toUpperCase())],
-        body: data.map(row => visibleColumns.map((col: any) => {
-          const val = row[col.dataKey];
-          return val !== undefined && val !== null ? String(val) : '---';
-        })),
-        styles: { fontSize: 7, font: 'helvetica', cellPadding: 2 },
-        headStyles: { fillColor: [218, 165, 32], textColor: [255, 255, 255], fontStyle: 'bold' },
-        alternateRowStyles: { fillColor: [245, 245, 245] },
-        margin: { top: 55 }
-      });
+      if (format === 'excel') {
+        await reportService.generateExcel({
+          title,
+          subtitle,
+          columns: visibleColumns,
+          data,
+          filters,
+          userName,
+          type
+        });
+      } else {
+        // Generate PDF
+        const doc = new jsPDF() as any;
+        const timestamp = new Date().toLocaleString('pt-BR');
+        
+        // Header
+        doc.setFontSize(22);
+        doc.setTextColor(218, 165, 32); // Dourado
+        doc.text('ÁGUIA - SISTEMA DE ESTRATÉGIA', 14, 20);
+        
+        doc.setFontSize(16);
+        doc.setTextColor(40, 40, 40);
+        doc.text(title.toUpperCase(), 14, 30);
 
-      doc.save(`${type}-relatorio-${Date.now()}.pdf`);
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text(subtitle, 14, 40);
+        doc.text(`Gerado em: ${timestamp} | Por: ${userName}`, 14, 48);
+
+        autoTable(doc, {
+          startY: 55,
+          head: [visibleColumns.map((col: any) => col.header.toUpperCase())],
+          body: data.map(row => visibleColumns.map((col: any) => {
+            const val = row[col.dataKey];
+            return val !== undefined && val !== null ? String(val) : '---';
+          })),
+          styles: { fontSize: 7, font: 'helvetica', cellPadding: 2 },
+          headStyles: { fillColor: [218, 165, 32], textColor: [255, 255, 255], fontStyle: 'bold' },
+          alternateRowStyles: { fillColor: [245, 245, 245] },
+          margin: { top: 55 }
+        });
+
+        doc.save(`${type}-relatorio-${Date.now()}.pdf`);
+      }
 
       // Add to Firestore History
       await addDoc(collection(db, 'reports'), {
         type,
-        title,
+        title: `${title} (${format.toUpperCase()})`,
         subtitle,
+        format,
         timestamp: Date.now(),
         createdBy: user?.email,
         createdByDisplayName: profileData?.name || user?.email,
@@ -3342,7 +3374,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
                   <div>
                     <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Relatórios & BI</h2>
-                    <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">Inteligência de Dados e Exportação PDF</p>
+                    <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">Inteligência de Dados e Exportação em PDF ou Excel (.XLSX)</p>
                   </div>
                 </div>
 
@@ -5016,19 +5048,35 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                   </div>
                 </div>
 
-                <button 
-                  onClick={() => {
-                    generateReport(selectedReportType, { 
-                      ...reportFilters, 
-                      selectedColumns: selectedReportColumns,
-                      detailLevel: reportDetailLevel
-                    });
-                    setIsReportModalOpen(false);
-                  }}
-                  className="w-full bg-zinc-950 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:bg-yellow-500 hover:text-zinc-950 transition-all active:scale-[0.98] mt-2 flex items-center justify-center gap-2"
-                >
-                  <FileDown className="w-4 h-4" /> PROCESSAR E EXPORTAR PDF
-                </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                  <button 
+                    onClick={() => {
+                      generateReport(selectedReportType, { 
+                        ...reportFilters, 
+                        selectedColumns: selectedReportColumns,
+                        detailLevel: reportDetailLevel
+                      }, 'pdf');
+                      setIsReportModalOpen(false);
+                    }}
+                    className="w-full bg-zinc-950 text-white py-4 px-3 rounded-sm font-black text-[10px] uppercase tracking-wider shadow-xl hover:bg-zinc-800 transition-all active:scale-[0.98] flex items-center justify-center gap-2 border border-zinc-800"
+                  >
+                    <FileDown className="w-4 h-4 text-yellow-500" /> EXPORTAR PDF
+                  </button>
+
+                  <button 
+                    onClick={() => {
+                      generateReport(selectedReportType, { 
+                        ...reportFilters, 
+                        selectedColumns: selectedReportColumns,
+                        detailLevel: reportDetailLevel
+                      }, 'excel');
+                      setIsReportModalOpen(false);
+                    }}
+                    className="w-full bg-emerald-700 text-white py-4 px-3 rounded-sm font-black text-[10px] uppercase tracking-wider shadow-xl hover:bg-emerald-600 transition-all active:scale-[0.98] flex items-center justify-center gap-2 border border-emerald-600"
+                  >
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-200" /> EXPORTAR EXCEL (.XLSX)
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
