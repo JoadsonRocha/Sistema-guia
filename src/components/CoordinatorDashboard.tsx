@@ -3385,7 +3385,6 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                     { id: 'productivity', title: 'Produtividade & Ranking Lideranças', desc: 'Auditoria de conversão de votos e métricas de desempenho das lideranças.', icon: <TrendingUp className="w-6 h-6" /> },
                     { id: 'zone_performance', title: 'Desempenho por Zona e Seção', desc: 'Mapeamento de inteligência e densidade eleitoral por zona e seção.', icon: <Activity className="w-6 h-6" /> },
                     { id: 'agenda_coverage', title: 'Cobertura de Agenda & Vazios', desc: 'Cruzamento de visitas com eleitores para detectar vazios eleitorais.', icon: <Calendar className="w-6 h-6" /> },
-                    { id: 'finance', title: 'Financeiro e Custos', desc: 'Fluxo de caixa e alocação de recursos.', icon: <DollarSign className="w-6 h-6" /> },
                     { id: 'materials', title: 'Materiais e Estoque', desc: 'Controle de suprimentos e remessas.', icon: <Package className="w-6 h-6" /> },
                     { id: 'demands', title: 'Demandas e Mapa', desc: 'Urgências e necessidades mapeadas.', icon: <Activity className="w-6 h-6" /> }
                   ].map(r => (
