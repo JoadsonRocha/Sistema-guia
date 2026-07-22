@@ -238,7 +238,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
         <div className="text-center mb-8">
           <div className="inline-flex mb-4 items-center justify-center bg-transparent">
             <img 
-              src="/logo.png" 
+              src="/logo.png" onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.jpg'; } }} 
               alt="Logo" 
               className="max-h-28 sm:max-h-36 w-auto object-contain" 
             />

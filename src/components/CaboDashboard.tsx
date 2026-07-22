@@ -1312,7 +1312,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
           <div className="flex items-center justify-center mb-6 relative z-10 w-full">
             <div className="flex items-center justify-center bg-transparent w-full">
               <img 
-                src="/logo.png" 
+                src="/logo.png" onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.jpg'; } }} 
                 alt="Logo" 
                 className="max-h-28 md:max-h-32 w-full max-w-[240px] object-contain transition-all" 
               />
@@ -1374,7 +1374,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
           <div className="flex items-center gap-3 lg:hidden">
             <div className="flex items-center justify-center bg-transparent shrink-0">
               <img 
-                src="/logo.png" 
+                src="/logo.png" onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.jpg'; } }} 
                 alt="Logo" 
                 className="max-h-12 w-auto object-contain" 
               />
