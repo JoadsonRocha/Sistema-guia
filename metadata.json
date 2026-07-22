@@ -1,6 +1,6 @@
 {
-  "name": "Sistema Águia",
-  "description": "Sistema de gestão de campanha eleitoral estadual (Roraima). Foco em resiliência offline, anti-fraude, logística de combustível e inteligência regionalizada.",
+  "name": "Urna 360",
+  "description": "Sistema de gestão de campanha eleitoral com foco em mapeamento, mobilização e inteligência estratégica.",
   "requestFramePermissions": ["camera", "geolocation"],
   "majorCapabilities": ["offline-first", "bi-analytics", "ai-integration", "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

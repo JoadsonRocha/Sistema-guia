@@ -257,7 +257,11 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   const login = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.code === 'auth/cancelled-popup-request') {
+        console.warn("Login Google cancelado ou requisição sobreposta:", error);
+        return;
+      }
       console.error("Login failed:", error);
       throw error;
     }
@@ -331,8 +335,8 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider value={{ user, role, loading, login, loginWithEmail, signupWithEmail, logout, isAdmin, forcePasswordChange, changePassword, resetPassword, coordinatorId }}>
       {(!loading || user) ? children : (
         <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-8">
-           <div className="w-16 h-16 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-           <p className="text-zinc-400 font-bold uppercase tracking-widest">Iniciando Segurança Águia...</p>
+           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+           <p className="text-zinc-400 font-bold uppercase tracking-widest">Iniciando Segurança Urna 360...</p>
         </div>
       )}
     </AuthContext.Provider>

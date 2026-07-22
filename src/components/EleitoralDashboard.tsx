@@ -43,16 +43,16 @@ import {
 import { ELEITORAL_DATA, VotingLocation } from '../data/eleitoralData';
 import * as XLSX from 'xlsx';
 
-// Constants for theme colors (Sistema Águia - Yellow/Gold & Slate/Navy Blue)
+// Constants for theme colors (Navy & Royal Blue)
 const COLORS = [
-  '#eab308', // Águia Gold/Yellow (Primary)
-  '#1e3a8a', // Navy Blue
-  '#f59e0b', // Amber/Warm Gold
-  '#0f172a', // Slate Black/Dark Navy
+  '#0578d3', // Brand Royal Blue (Primary)
+  '#0b122f', // Dark Navy Blue
+  '#0284c7', // Sky Royal Blue
+  '#0f172a', // Slate Dark Navy
   '#3b82f6', // Bright Blue
-  '#ca8a04', // Dark Gold
-  '#1d4ed8', // Royal Blue
-  '#d97706'  // Orange-gold
+  '#2563eb', // Indigo Blue
+  '#0284c7', // Dark Sky
+  '#1d4ed8'  // Royal Blue
 ];
 
 // Sample demonstrative Roraima TRE data if they want to load mock data for testing
@@ -168,7 +168,7 @@ export default function EleitoralDashboard({
 
   // Load data from localStorage (for instant initial render)
   const [votingLocations, setVotingLocations] = useState<VotingLocation[]>(() => {
-    const saved = localStorage.getItem('sistema_aguia_eleitoral_data');
+    const saved = localStorage.getItem('sistema_urna360_eleitoral_data') || localStorage.getItem('sistema_aguia_eleitoral_data');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -183,7 +183,7 @@ export default function EleitoralDashboard({
   const saveVotingLocations = async (newData: VotingLocation[]) => {
     setVotingLocations(newData);
     try {
-      localStorage.setItem('sistema_aguia_eleitoral_data', JSON.stringify(newData));
+      localStorage.setItem('sistema_urna360_eleitoral_data', JSON.stringify(newData));
     } catch (e) {
       console.warn("Erro ao salvar cache no localStorage:", e);
     }
@@ -234,14 +234,14 @@ export default function EleitoralDashboard({
             }
           }
           setVotingLocations(allLocs);
-          localStorage.setItem('sistema_aguia_eleitoral_data', JSON.stringify(allLocs));
+          localStorage.setItem('sistema_urna360_eleitoral_data', JSON.stringify(allLocs));
         } else if (data.locations) {
           setVotingLocations(data.locations);
-          localStorage.setItem('sistema_aguia_eleitoral_data', JSON.stringify(data.locations));
+          localStorage.setItem('sistema_urna360_eleitoral_data', JSON.stringify(data.locations));
         }
       } else {
         // Auto-migrate if local data exists from a previous upload before Firestore sync was enabled
-        const saved = localStorage.getItem('sistema_aguia_eleitoral_data');
+        const saved = localStorage.getItem('sistema_urna360_eleitoral_data') || localStorage.getItem('sistema_aguia_eleitoral_data');
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
@@ -736,8 +736,8 @@ export default function EleitoralDashboard({
     ], { origin: -1 });
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Modelo TRE Águia");
-    XLSX.writeFile(wb, "modelo_planilha_tre_aguia.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Modelo TRE Urna 360");
+    XLSX.writeFile(wb, "modelo_planilha_tre_urna360.xlsx");
     
     setSuccessMsg("Modelo de planilha (.xlsx) baixado com sucesso!");
     setTimeout(() => setSuccessMsg(null), 5000);
@@ -855,9 +855,9 @@ export default function EleitoralDashboard({
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
         <div>
-          <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-500 font-bold uppercase tracking-wider text-xs">
-            <LayoutDashboard className="w-4 h-4 text-yellow-500" />
-            <span>Sistema Águia BI & Analytics TRE</span>
+          <div className="flex items-center gap-2 text-blue-600 dark:text-blue-600 font-bold uppercase tracking-wider text-xs">
+            <LayoutDashboard className="w-4 h-4 text-blue-600" />
+            <span>Sistema Urna 360 BI & Analytics TRE</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase mt-1">
             Análise Eleitoral
@@ -872,7 +872,7 @@ export default function EleitoralDashboard({
           {votingLocations.length > 0 && (
             <button 
               onClick={resetFilters}
-              className="flex items-center justify-center gap-2 px-3 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm text-xs font-black uppercase tracking-tight text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-yellow-600 dark:hover:text-yellow-500 transition-colors shadow-sm"
+              className="flex items-center justify-center gap-2 px-3 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm text-xs font-black uppercase tracking-tight text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-blue-600 dark:hover:text-blue-600 transition-colors shadow-sm"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Limpar Filtros</span>
@@ -887,7 +887,7 @@ export default function EleitoralDashboard({
           onClick={() => setSubTab('tre_oficial')}
           className={`px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all shrink-0 flex items-center gap-2 ${
             subTab === 'tre_oficial'
-              ? 'border-yellow-500 text-yellow-600 dark:text-yellow-500 bg-yellow-500/5'
+              ? 'border-blue-600 text-blue-600 dark:text-blue-600 bg-blue-600/5'
               : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50'
           }`}
         >
@@ -898,13 +898,13 @@ export default function EleitoralDashboard({
           onClick={() => setSubTab('cruzamento')}
           className={`px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all shrink-0 flex items-center gap-2 ${
             subTab === 'cruzamento'
-              ? 'border-yellow-500 text-yellow-600 dark:text-yellow-500 bg-yellow-500/5'
+              ? 'border-blue-600 text-blue-600 dark:text-blue-600 bg-blue-600/5'
               : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50'
           }`}
         >
-          <Target className="w-4 h-4 text-yellow-500" />
+          <Target className="w-4 h-4 text-blue-600" />
           Cruzamento de Dados & Estratégia
-          <span className="bg-yellow-500 text-zinc-950 text-[8px] font-black uppercase px-1.5 py-0.5 rounded-sm">NOVO</span>
+          <span className="bg-blue-600 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded-sm">NOVO</span>
         </button>
       </div>
 
@@ -927,7 +927,7 @@ export default function EleitoralDashboard({
       {isCoordinator && (
         <div className="bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 text-white rounded-sm p-5 shadow-xl border border-zinc-800">
           <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3 mb-4 flex-wrap gap-2">
-            <div className="flex items-center gap-2 text-yellow-500 font-bold text-xs uppercase tracking-widest">
+            <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
               <Database className="w-4 h-4 animate-pulse" />
               <span>Importador Oficial TRE - Painel de Controle do Coordenador</span>
             </div>
@@ -935,7 +935,7 @@ export default function EleitoralDashboard({
             <div className="flex items-center gap-2">
               <button
                 onClick={downloadTemplate}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-500 hover:bg-yellow-400 text-zinc-950 rounded-sm text-[10px] font-black uppercase tracking-wider transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-sm text-[10px] font-black uppercase tracking-wider transition-all"
                 title="Baixar planilha modelo do Excel pre-configurada"
               >
                 <Download className="w-3.5 h-3.5" />
@@ -954,7 +954,7 @@ export default function EleitoralDashboard({
               {votingLocations.length === 0 && (
                 <button
                   onClick={loadDemoData}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-yellow-450 border border-yellow-450/30 rounded-sm text-[10px] font-black uppercase tracking-wider transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-blue-300 border border-blue-300/30 rounded-sm text-[10px] font-black uppercase tracking-wider transition-all"
                   title="Alimenta dados demonstrativos para simulação de testes"
                 >
                   <span>Massa de Teste</span>
@@ -988,8 +988,8 @@ export default function EleitoralDashboard({
                 onDrop={handleDrop}
                 className={`relative border-2 border-dashed rounded-sm p-5 text-center transition-all ${
                   dragActive 
-                    ? "border-yellow-400 bg-yellow-950/30" 
-                    : "border-zinc-850 hover:border-yellow-500 bg-white/5 hover:bg-white/10"
+                    ? "border-blue-500 bg-blue-950/30" 
+                    : "border-zinc-850 hover:border-blue-600 bg-white/5 hover:bg-white/10"
                 }`}
               >
                 <input 
@@ -1004,7 +1004,7 @@ export default function EleitoralDashboard({
                   htmlFor="excel-file-upload-input"
                   className="cursor-pointer flex flex-col items-center justify-center gap-2 h-full py-4"
                 >
-                  <UploadCloud className="w-10 h-10 text-yellow-500 animate-bounce" />
+                  <UploadCloud className="w-10 h-10 text-blue-600 animate-bounce" />
                   <span className="text-xs font-black text-white uppercase tracking-wider">
                     Arraste a planilha do TRE aqui ou clique para selecionar
                   </span>
@@ -1021,7 +1021,7 @@ export default function EleitoralDashboard({
       {/* MAIN SCREEN HANDLING - EMPTY STATE VS GRAPH COMPONENT */}
       {votingLocations.length === 0 ? (
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm p-12 text-center max-w-2xl mx-auto shadow-sm">
-          <FileSpreadsheet className="w-16 h-16 text-yellow-500 mx-auto mb-4 animate-pulse" />
+          <FileSpreadsheet className="w-16 h-16 text-blue-600 mx-auto mb-4 animate-pulse" />
           <h2 className="text-lg font-black text-zinc-900 dark:text-white uppercase tracking-wide">
             Nenhum Dado Eleitoral Carregado
           </h2>
@@ -1031,7 +1031,7 @@ export default function EleitoralDashboard({
 
           {isCoordinator ? (
             <div className="mt-8 space-y-4">
-              <p className="text-[11px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-widest">
+              <p className="text-[11px] font-black text-blue-600 dark:text-blue-600 uppercase tracking-widest">
                 Você possui privilégios de Coordenador Geral.
               </p>
               <div className="flex items-center justify-center gap-3">
@@ -1039,13 +1039,13 @@ export default function EleitoralDashboard({
                   onClick={downloadTemplate}
                   className="flex items-center gap-2 px-5 py-2.5 bg-zinc-900 text-white hover:bg-zinc-850 font-black text-xs uppercase tracking-wider rounded-sm transition-all shadow-sm border border-zinc-800"
                 >
-                  <Download className="w-4 h-4 text-yellow-500" />
+                  <Download className="w-4 h-4 text-blue-600" />
                   <span>Baixar Modelo Excel</span>
                 </button>
                 
                 <label
                   htmlFor="excel-file-upload-input"
-                  className="flex items-center gap-2 px-5 py-2.5 bg-yellow-500 text-zinc-950 hover:bg-yellow-400 font-black text-xs uppercase tracking-wider rounded-sm cursor-pointer transition-all shadow-sm"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white hover:bg-blue-500 font-black text-xs uppercase tracking-wider rounded-sm cursor-pointer transition-all shadow-sm"
                 >
                   <UploadCloud className="w-4 h-4 text-zinc-950" />
                   <span>Carregar Planilha Oficial</span>
@@ -1055,7 +1055,7 @@ export default function EleitoralDashboard({
               <div className="pt-4">
                 <button 
                   onClick={loadDemoData}
-                  className="text-[10px] text-zinc-400 hover:text-yellow-500 underline font-bold transition-colors uppercase tracking-wider"
+                  className="text-[10px] text-zinc-400 hover:text-blue-600 underline font-bold transition-colors uppercase tracking-wider"
                 >
                   Ou clique aqui para carregar a massa de teste demonstrativa de Roraima para visualização rápida.
                 </button>
@@ -1076,7 +1076,7 @@ export default function EleitoralDashboard({
               {/* FILTER CONTROLS */}
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm p-4 shadow-sm">
             <div className="flex items-center gap-2 text-zinc-900 dark:text-white font-black text-sm uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-4">
-              <Filter className="w-4 h-4 text-yellow-500" />
+              <Filter className="w-4 h-4 text-blue-600" />
               <span>Segmentação e Filtros Interativos</span>
             </div>
             
@@ -1089,7 +1089,7 @@ export default function EleitoralDashboard({
                 <select
                   value={selectedMunicipio}
                   onChange={(e) => handleMunicipioChange(e.target.value)}
-                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-2 focus:ring-1 focus:ring-yellow-500 focus:outline-none transition-all uppercase"
+                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-2 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-all uppercase"
                 >
                   {municipiosList.map(mun => (
                     <option key={mun} value={mun}>{mun === 'Todos' ? '✦ Todos os Municípios' : mun}</option>
@@ -1105,7 +1105,7 @@ export default function EleitoralDashboard({
                 <select
                   value={selectedZona}
                   onChange={(e) => handleZonaChange(e.target.value)}
-                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-2 focus:ring-1 focus:ring-yellow-500 focus:outline-none transition-all uppercase"
+                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-2 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-all uppercase"
                 >
                   {zonasList.map(z => (
                     <option key={z} value={z}>{z === 'Todos' ? '✦ Todas as Zonas' : z}</option>
@@ -1121,7 +1121,7 @@ export default function EleitoralDashboard({
                 <select
                   value={selectedBairro}
                   onChange={(e) => handleBairroChange(e.target.value)}
-                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-2 focus:ring-1 focus:ring-yellow-500 focus:outline-none transition-all uppercase"
+                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-2 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-all uppercase"
                 >
                   {bairrosList.map(b => (
                     <option key={b} value={b}>{b === 'Todos' ? '✦ Todos os Bairros' : b}</option>
@@ -1137,7 +1137,7 @@ export default function EleitoralDashboard({
                 <select
                   value={selectedLocal}
                   onChange={(e) => setSelectedLocal(e.target.value)}
-                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-2 focus:ring-1 focus:ring-yellow-500 focus:outline-none transition-all uppercase"
+                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-2 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-all uppercase"
                 >
                   {locaisList.map(l => (
                     <option key={l} value={l}>
@@ -1157,15 +1157,15 @@ export default function EleitoralDashboard({
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               
               {/* Total Eleitores */}
-              <div className="bg-gradient-to-br from-zinc-900 to-black text-white rounded-sm p-4 shadow-sm border border-zinc-800 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-yellow-500">
+              <div className="bg-gradient-to-br from-zinc-900 to-black text-white rounded-sm p-4 shadow-sm border border-zinc-800 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-blue-600">
                 <div className="absolute right-2 top-2 text-white/5 group-hover:scale-110 transition-transform">
-                  <TrendingUp className="w-16 h-16 text-yellow-500" />
+                  <TrendingUp className="w-16 h-16 text-blue-600" />
                 </div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                   Eleitores Aptos Geral
                 </p>
                 <div className="mt-3">
-                  <h3 className="text-2xl md:text-3xl font-black tracking-tight leading-none text-yellow-500">
+                  <h3 className="text-2xl md:text-3xl font-black tracking-tight leading-none text-blue-600">
                     {totalStateEleitores.toLocaleString()}
                   </h3>
                   <p className="text-[9px] text-zinc-500 mt-1 uppercase font-semibold">
@@ -1238,7 +1238,7 @@ export default function EleitoralDashboard({
             <div className="lg:col-span-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-4 shadow-sm flex flex-col justify-between">
               <div>
                 <div className="flex items-center gap-2 text-zinc-900 dark:text-white font-bold text-xs uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-3">
-                  <MapPin className="w-4 h-4 text-yellow-500" />
+                  <MapPin className="w-4 h-4 text-blue-600" />
                   <span>Escopo Atual Filtrado</span>
                 </div>
                 
@@ -1273,7 +1273,7 @@ export default function EleitoralDashboard({
               <div className="border-t border-zinc-100 dark:border-zinc-800 pt-4 mt-4 grid grid-cols-2 gap-2 text-center">
                 <div className="bg-zinc-50 dark:bg-zinc-950 p-2 rounded border border-zinc-100 dark:border-zinc-850">
                   <p className="text-[9px] font-black uppercase text-zinc-400 tracking-wider">Eleitores Escopo</p>
-                  <h4 className="text-lg font-black text-yellow-600 dark:text-yellow-500 mt-1">
+                  <h4 className="text-lg font-black text-blue-600 dark:text-blue-600 mt-1">
                     {totalScopeEleitores.toLocaleString()}
                   </h4>
                   <p className="text-[8px] text-zinc-400">
@@ -1295,7 +1295,7 @@ export default function EleitoralDashboard({
             {/* INDICADORES (KPIS) */}
             <div className="lg:col-span-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-4 shadow-sm">
               <div className="flex items-center gap-2 text-zinc-900 dark:text-white font-bold text-xs uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-4">
-                <Award className="w-4 h-4 text-yellow-500" />
+                <Award className="w-4 h-4 text-blue-600" />
                 <span>Indicadores de Desempenho e Extremos (KPIs)</span>
               </div>
 
@@ -1312,10 +1312,10 @@ export default function EleitoralDashboard({
                     </h4>
                   </div>
                   <div className="flex justify-between items-baseline mt-2">
-                    <span className="text-lg font-black text-yellow-600 dark:text-yellow-500">
+                    <span className="text-lg font-black text-blue-600 dark:text-blue-600">
                       {kpiMetrics.maiorLocal.eleitores.toLocaleString()} eleitores
                     </span>
-                    <span className="text-[10px] font-bold text-yellow-600 bg-yellow-500/10 px-1.5 py-0.5 rounded-sm">
+                    <span className="text-[10px] font-bold text-blue-600 bg-blue-600/10 px-1.5 py-0.5 rounded-sm">
                       {kpiMetrics.maiorLocal.percentMun.toFixed(2)}%
                     </span>
                   </div>
@@ -1372,7 +1372,7 @@ export default function EleitoralDashboard({
                     </h4>
                   </div>
                   <div className="flex justify-between items-baseline mt-2">
-                    <span className="text-lg font-black text-yellow-600 dark:text-yellow-500">
+                    <span className="text-lg font-black text-blue-600 dark:text-blue-600">
                       {kpiMetrics.top5AccumulatedPercent.toFixed(1)}%
                     </span>
                     <span className="text-[9px] text-zinc-400 uppercase font-semibold">
@@ -1389,14 +1389,14 @@ export default function EleitoralDashboard({
           {/* MUNICIPIO LEVEL DRILL DOWN (PAINEL POR MUNICIPIO) */}
           {municipioPanelData && (
             <div className="bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 text-white rounded-sm p-5 shadow-sm border border-zinc-800">
-              <div className="flex items-center gap-2 text-yellow-500 font-bold text-xs uppercase tracking-widest mb-2">
-                <Building2 className="w-4 h-4 text-yellow-500" />
+              <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest mb-2">
+                <Building2 className="w-4 h-4 text-blue-600" />
                 <span>Painel Detalhado por Município</span>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
                 <div className="md:col-span-2">
-                  <h3 className="text-2xl font-black uppercase text-white tracking-tight text-yellow-500">
+                  <h3 className="text-2xl font-black uppercase text-white tracking-tight text-blue-600">
                     {municipioPanelData.nome}
                   </h3>
                   <p className="text-xs text-zinc-400 mt-1">
@@ -1419,7 +1419,7 @@ export default function EleitoralDashboard({
                   </div>
                   <div className="bg-white/10 p-3 rounded-sm text-center border border-white/5">
                     <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest">% do Estado</p>
-                    <h4 className="text-lg font-black text-yellow-500 mt-1">
+                    <h4 className="text-lg font-black text-blue-600 mt-1">
                       {municipioPanelData.representatividade.toFixed(2)}%
                     </h4>
                   </div>
@@ -1438,7 +1438,7 @@ export default function EleitoralDashboard({
                   <div className="text-zinc-900 dark:text-white font-bold text-xs uppercase tracking-wider">
                     Gráfico 1: Concentração por Local de Votação (Top 10)
                   </div>
-                  <span className="text-[8px] font-black text-yellow-600 bg-yellow-500/10 px-1.5 py-0.5 rounded-sm uppercase">
+                  <span className="text-[8px] font-black text-blue-600 bg-blue-600/10 px-1.5 py-0.5 rounded-sm uppercase">
                     Eleitores Aptos
                   </span>
                 </div>
@@ -1488,7 +1488,7 @@ export default function EleitoralDashboard({
                   <div className="text-zinc-900 dark:text-white font-bold text-xs uppercase tracking-wider">
                     Gráfico 2: Participação de cada Local de Votação
                   </div>
-                  <span className="text-[8px] font-black text-yellow-600 bg-yellow-500/10 px-1.5 py-0.5 rounded-sm uppercase">
+                  <span className="text-[8px] font-black text-blue-600 bg-blue-600/10 px-1.5 py-0.5 rounded-sm uppercase">
                     Participação %
                   </span>
                 </div>
@@ -1539,7 +1539,7 @@ export default function EleitoralDashboard({
                 <div className="text-zinc-900 dark:text-white font-bold text-xs uppercase tracking-wider">
                   Gráfico 3: Ranking Estadual Geral dos Municípios
                 </div>
-                <span className="text-[8px] font-black text-yellow-600 bg-yellow-500/10 px-1.5 py-0.5 rounded-sm uppercase">
+                <span className="text-[8px] font-black text-blue-600 bg-blue-600/10 px-1.5 py-0.5 rounded-sm uppercase">
                   Eleitorado do maior para o menor
                 </span>
               </div>
@@ -1567,7 +1567,7 @@ export default function EleitoralDashboard({
                         contentStyle={{ backgroundColor: '#18181b', color: '#fff', fontSize: 10, borderRadius: 4 }}
                         formatter={(value: any) => [`${value.toLocaleString()} Eleitores Aptos`, 'Eleitores']}
                       />
-                      <Bar dataKey="eleitores" fill="#eab308" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="eleitores" fill="#0578d3" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -1676,7 +1676,7 @@ export default function EleitoralDashboard({
 
                         {/* % do Estado */}
                         <td className="py-3 px-4 text-right">
-                          <div className="text-yellow-600 dark:text-yellow-500 font-black">
+                          <div className="text-blue-600 dark:text-blue-600 font-black">
                             {row.percentTotal.toFixed(2)}%
                           </div>
                           <div className="text-[7px] text-zinc-400 uppercase tracking-widest leading-none">Representatividade</div>
@@ -1698,7 +1698,7 @@ export default function EleitoralDashboard({
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                   <div>
                     <h2 className="text-sm font-black text-zinc-950 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                      <Compass className="w-5 h-5 text-yellow-500 animate-pulse" />
+                      <Compass className="w-5 h-5 text-blue-600 animate-pulse" />
                       Diretrizes Estratégicas de Cobertura Eleitoral
                     </h2>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
@@ -1712,7 +1712,7 @@ export default function EleitoralDashboard({
                         onClick={() => setStrategicSort('coverage')}
                         className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-sm transition-all ${
                           strategicSort === 'coverage'
-                            ? 'bg-yellow-500 text-zinc-950 shadow-sm'
+                            ? 'bg-blue-600 text-white shadow-sm'
                             : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
                         }`}
                       >
@@ -1722,7 +1722,7 @@ export default function EleitoralDashboard({
                         onClick={() => setStrategicSort('missing')}
                         className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-sm transition-all ${
                           strategicSort === 'missing'
-                            ? 'bg-yellow-500 text-zinc-950 shadow-sm'
+                            ? 'bg-blue-600 text-white shadow-sm'
                             : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
                         }`}
                       >
@@ -1733,7 +1733,7 @@ export default function EleitoralDashboard({
                     <select
                       value={strategicStatusFilter}
                       onChange={(e: any) => setStrategicStatusFilter(e.target.value)}
-                      className="text-[10px] font-black uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-sm p-1.5 focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                      className="text-[10px] font-black uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-sm p-1.5 focus:outline-none focus:ring-1 focus:ring-blue-600"
                     >
                       <option value="Todos">✦ Filtro: Todos os Status</option>
                       <option value="critical">🔴 Crítico (&lt; 0.5%)</option>
@@ -1765,12 +1765,12 @@ export default function EleitoralDashboard({
                 <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-sm shadow-sm flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Cadastros na Campanha</p>
-                    <p className="text-2xl font-black text-yellow-600 dark:text-yellow-500 mt-1">
+                    <p className="text-2xl font-black text-blue-600 dark:text-blue-600 mt-1">
                       {campaignVoters.length.toLocaleString()}
                     </p>
                     <p className="text-[8px] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mt-0.5">Eleitores Mapeados Ativos</p>
                   </div>
-                  <div className="p-3 bg-yellow-500/10 rounded-full text-yellow-500">
+                  <div className="p-3 bg-blue-600/10 rounded-full text-blue-600">
                     <Users className="w-5 h-5" />
                   </div>
                 </div>
@@ -1811,10 +1811,10 @@ export default function EleitoralDashboard({
                 <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-sm shadow-sm lg:col-span-7">
                   <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-4">
                     <div className="text-zinc-950 dark:text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5">
-                      <TrendingUp className="w-4 h-4 text-yellow-500" />
+                      <TrendingUp className="w-4 h-4 text-blue-600" />
                       Gráfico Estratégico: Índice de Cobertura por Município (%)
                     </div>
-                    <span className="text-[8px] font-black text-yellow-600 bg-yellow-500/10 px-1.5 py-0.5 rounded-sm uppercase">
+                    <span className="text-[8px] font-black text-blue-600 bg-blue-600/10 px-1.5 py-0.5 rounded-sm uppercase">
                       Menor Cobertura = Maior Prioridade
                     </span>
                   </div>
@@ -1847,7 +1847,7 @@ export default function EleitoralDashboard({
                               // Style bars color based on status
                               let color = '#ef4444'; // Red for critical
                               if (entry.coverageRate >= 4.0) color = '#10b981'; // Green
-                              else if (entry.coverageRate >= 1.5) color = '#eab308'; // Yellow
+                              else if (entry.coverageRate >= 1.5) color = '#0578d3'; // Yellow
                               else if (entry.coverageRate >= 0.5) color = '#f97316'; // Orange
                               
                               return <Cell key={`cell-${index}`} fill={color} opacity={0.85} />;
@@ -1860,7 +1860,7 @@ export default function EleitoralDashboard({
                   <div className="mt-3 flex items-center justify-center gap-4 flex-wrap text-[9px] font-black uppercase tracking-wider border-t border-zinc-100 dark:border-zinc-800 pt-3">
                     <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-red-500 rounded-sm inline-block"></span> Crítico (&lt; 0.5%)</div>
                     <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-orange-500 rounded-sm inline-block"></span> Baixo (0.5% - 1.5%)</div>
-                    <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-yellow-500 rounded-sm inline-block"></span> Médio (1.5% - 4.0%)</div>
+                    <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-blue-600 rounded-sm inline-block"></span> Médio (1.5% - 4.0%)</div>
                     <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-emerald-500 rounded-sm inline-block"></span> Bom (&gt;= 4.0%)</div>
                   </div>
                 </div>
@@ -1875,7 +1875,7 @@ export default function EleitoralDashboard({
                         <div className="space-y-5 h-full flex flex-col justify-between">
                           <div>
                             <div className="flex items-center justify-between">
-                              <span className="text-[9px] font-black tracking-widest text-yellow-500 uppercase">Diagnóstico Regional</span>
+                              <span className="text-[9px] font-black tracking-widest text-blue-600 uppercase">Diagnóstico Regional</span>
                               <button 
                                 onClick={() => setSelectedStrategyMun(null)}
                                 className="text-[10px] text-zinc-400 hover:text-white transition-colors uppercase"
@@ -1896,7 +1896,7 @@ export default function EleitoralDashboard({
                               </div>
                               <div className="bg-zinc-900 border border-zinc-850 p-2.5 rounded-sm">
                                 <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Cadastrados</p>
-                                <p className="text-lg font-black text-yellow-500 mt-1">{data.campaignVoters.toLocaleString()}</p>
+                                <p className="text-lg font-black text-blue-600 mt-1">{data.campaignVoters.toLocaleString()}</p>
                                 <p className="text-[7px] text-zinc-500 uppercase mt-0.5">Eleitores Cooptados</p>
                               </div>
                             </div>
@@ -1908,7 +1908,7 @@ export default function EleitoralDashboard({
                                 <span className={
                                   data.status === 'critical' ? 'text-red-500' :
                                   data.status === 'low' ? 'text-orange-500' :
-                                  data.status === 'medium' ? 'text-yellow-500' : 'text-emerald-500'
+                                  data.status === 'medium' ? 'text-blue-600' : 'text-emerald-500'
                                 }>
                                   {data.coverageRate.toFixed(3)}%
                                 </span>
@@ -1918,7 +1918,7 @@ export default function EleitoralDashboard({
                                   className={`h-full ${
                                     data.status === 'critical' ? 'bg-red-500' :
                                     data.status === 'low' ? 'bg-orange-500' :
-                                    data.status === 'medium' ? 'bg-yellow-500' : 'bg-emerald-500'
+                                    data.status === 'medium' ? 'bg-blue-600' : 'bg-emerald-500'
                                   }`}
                                   style={{ width: `${Math.min(100, data.coverageRate * 15)}%` }} // Scaling multiplier for visibility
                                 ></div>
@@ -1930,25 +1930,25 @@ export default function EleitoralDashboard({
 
                             {/* Actions list */}
                             <div className="mt-5 space-y-3">
-                              <div className="text-[10px] font-black text-yellow-500 uppercase tracking-wider flex items-center gap-1">
+                              <div className="text-[10px] font-black text-blue-600 uppercase tracking-wider flex items-center gap-1">
                                 <Briefcase className="w-3.5 h-3.5" />
                                 Plano de Ação Tático Sugerido
                               </div>
-                              <div className="p-3 bg-yellow-500/5 border border-yellow-500/20 text-yellow-200 text-[11px] leading-relaxed rounded-sm">
+                              <div className="p-3 bg-blue-600/5 border border-blue-600/20 text-blue-200 text-[11px] leading-relaxed rounded-sm">
                                 {data.recommendation}
                               </div>
 
                               <ul className="text-[10px] space-y-1.5 text-zinc-300 uppercase font-black tracking-wide pl-1 mt-2">
                                 <li className="flex items-start gap-2">
-                                  <span className="text-yellow-500">•</span>
+                                  <span className="text-blue-600">•</span>
                                   <span>Alocar articulador local na Zona {data.treElectors > 10000 ? "de alto quociente" : "eleitoral da região"}</span>
                                 </li>
                                 <li className="flex items-start gap-2">
-                                  <span className="text-yellow-500">•</span>
+                                  <span className="text-blue-600">•</span>
                                   <span>Mapear bairros com menor número de fichas entregues</span>
                                 </li>
                                 <li className="flex items-start gap-2">
-                                  <span className="text-yellow-500">•</span>
+                                  <span className="text-blue-600">•</span>
                                   <span>Visita oficial do candidato / Coordenadores na região</span>
                                 </li>
                               </ul>
@@ -1961,7 +1961,7 @@ export default function EleitoralDashboard({
                                 setSelectedMunicipio(data.municipio);
                                 setSubTab('tre_oficial');
                               }}
-                              className="w-full py-2 bg-yellow-500 text-zinc-950 font-black text-[10px] uppercase tracking-wider rounded-sm hover:bg-yellow-400 transition-all text-center flex items-center justify-center gap-1"
+                              className="w-full py-2 bg-blue-600 text-white font-black text-[10px] uppercase tracking-wider rounded-sm hover:bg-blue-500 transition-all text-center flex items-center justify-center gap-1"
                             >
                               <Search className="w-3.5 h-3.5" />
                               Ver Locais de Votação no TRE
@@ -1972,7 +1972,7 @@ export default function EleitoralDashboard({
                     })()
                   ) : (
                     <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-4">
-                      <Target className="w-12 h-12 text-yellow-500/40 animate-pulse" />
+                      <Target className="w-12 h-12 text-blue-600/40 animate-pulse" />
                       <div>
                         <h4 className="text-xs font-black uppercase text-white tracking-widest">Selecione um Município</h4>
                         <p className="text-[10px] text-zinc-400 max-w-xs mt-1.5 leading-relaxed uppercase">
@@ -1989,7 +1989,7 @@ export default function EleitoralDashboard({
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm p-4 shadow-sm overflow-hidden">
                 <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3 mb-4 flex-wrap gap-2">
                   <div className="flex items-center gap-1.5 text-zinc-950 dark:text-white font-black text-xs uppercase tracking-wider">
-                    <Award className="w-4 h-4 text-yellow-500" />
+                    <Award className="w-4 h-4 text-blue-600" />
                     Lista de Priorização por Cobertura Eleitoral ({strategicStatusFilter === 'Todos' ? 'Todos os Municípios' : `Status: ${strategicStatusFilter.toUpperCase()}`})
                   </div>
                   <div className="text-[9px] text-zinc-400 font-bold uppercase">
@@ -2021,7 +2021,7 @@ export default function EleitoralDashboard({
                           return (
                             <tr 
                               key={row.municipio}
-                              className={`hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors cursor-pointer ${selectedStrategyMun === row.municipio ? 'bg-yellow-500/5 dark:bg-yellow-500/5 border-l-2 border-l-yellow-500' : ''}`}
+                              className={`hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors cursor-pointer ${selectedStrategyMun === row.municipio ? 'bg-blue-600/5 dark:bg-blue-600/5 border-l-2 border-l-blue-600' : ''}`}
                               onClick={() => setSelectedStrategyMun(row.municipio)}
                             >
                               {/* Municipio */}
@@ -2035,7 +2035,7 @@ export default function EleitoralDashboard({
                               </td>
 
                               {/* Campaign Voters */}
-                              <td className="py-3 px-4 text-right font-black text-yellow-600 dark:text-yellow-500 text-[12px]">
+                              <td className="py-3 px-4 text-right font-black text-blue-600 dark:text-blue-600 text-[12px]">
                                 {row.campaignVoters.toLocaleString()}
                               </td>
 
@@ -2050,7 +2050,7 @@ export default function EleitoralDashboard({
                                       className={`h-full ${
                                         row.status === 'critical' ? 'bg-red-500' :
                                         row.status === 'low' ? 'bg-orange-500' :
-                                        row.status === 'medium' ? 'bg-yellow-500' : 'bg-emerald-500'
+                                        row.status === 'medium' ? 'bg-blue-600' : 'bg-emerald-500'
                                       }`}
                                       style={{ width: `${Math.min(100, row.coverageRate * 15)}%` }}
                                     ></div>
@@ -2072,7 +2072,7 @@ export default function EleitoralDashboard({
                                   <span className="px-2 py-0.5 text-[8px] font-black uppercase rounded-sm bg-orange-500/10 border border-orange-500/30 text-orange-600 dark:text-orange-400">🟠 Baixo</span>
                                 )}
                                 {row.status === 'medium' && (
-                                  <span className="px-2 py-0.5 text-[8px] font-black uppercase rounded-sm bg-yellow-500/10 border border-yellow-500/30 text-yellow-600 dark:text-yellow-500">🟡 Médio</span>
+                                  <span className="px-2 py-0.5 text-[8px] font-black uppercase rounded-sm bg-blue-600/10 border border-blue-600/30 text-blue-600 dark:text-blue-600">🟡 Médio</span>
                                 )}
                                 {row.status === 'good' && (
                                   <span className="px-2 py-0.5 text-[8px] font-black uppercase rounded-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400">🟢 Consolidado</span>
@@ -2086,7 +2086,7 @@ export default function EleitoralDashboard({
                                     e.stopPropagation();
                                     setSelectedStrategyMun(row.municipio);
                                   }}
-                                  className="px-2.5 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-yellow-500 hover:text-zinc-950 font-black text-[9px] uppercase tracking-wider rounded-sm transition-all"
+                                  className="px-2.5 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-blue-600 hover:text-white font-black text-[9px] uppercase tracking-wider rounded-sm transition-all"
                                 >
                                   Diagnóstico
                                 </button>

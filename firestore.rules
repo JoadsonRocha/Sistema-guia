@@ -5,153 +5,77 @@ service cloud.firestore {
     // Helpers
     function isSignedIn() { return request.auth != null; }
     
-    function hasUserData() {
-      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
-    }
-    
-    function getUserRole() {
-      return hasUserData() ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'none') : 'none';
-    }
-    
-    function getUserCoordinatorId() {
-      return hasUserData() ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('coordinatorId', '') : '';
-    }
-    
-    function getCoordinatorId() {
-      return getUserRole() == 'coordenador' ? request.auth.uid : getUserCoordinatorId();
-    }
-    
     // Users
     match /users/{userId} {
-      allow read: if isSignedIn() && (
-                    request.auth.uid == userId ||
-                    // Coordinator reading their own campaign leaders
-                    (getUserRole() == 'coordenador' && resource.data.get('coordinatorId', '') == request.auth.uid) ||
-                    // Leader reading their coordinator
-                    (getUserRole() == 'lider' && userId == getUserCoordinatorId())
-                  );
-      allow write: if isSignedIn() && (
-                     request.auth.uid == userId ||
-                     // Coordinator creating/updating a leader belonging to their campaign
-                     (getUserRole() == 'coordenador' && (
-                       request.resource.data.get('coordinatorId', '') == request.auth.uid ||
-                       (resource != null && resource.data.get('coordinatorId', '') == request.auth.uid)
-                     ))
-                   );
+      allow read, write: if isSignedIn();
     }
 
     // Pre-registrations (for leader setup)
     match /pre_registrations/{email} {
       allow get: if true;
-      allow list: if isSignedIn() && getUserRole() == 'coordenador';
-      allow write: if isSignedIn() && getUserRole() == 'coordenador' && request.resource.data.coordinatorId == request.auth.uid;
+      allow list, write: if isSignedIn();
     }
 
     // Teams
     match /teams/{teamId} {
-      allow read, write: if isSignedIn() && (
-        (resource == null || resource.data.coordinatorId == getCoordinatorId()) &&
-        (request.resource == null || request.resource.data.coordinatorId == getCoordinatorId())
-      );
+      allow read, write: if isSignedIn();
     }
 
     // Voters
     match /voters/{voterId} {
-      allow read: if isSignedIn() && (
-        resource.data.coordinatorId == getCoordinatorId()
-      );
-      allow create: if (isSignedIn() && (
-        request.resource.data.coordinatorId == getCoordinatorId()
-      )) || (
-        request.resource.data.registeredBy == 'link_externo'
-      );
-      allow update, delete: if isSignedIn() && (
-        resource.data.coordinatorId == getCoordinatorId()
-      );
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isSignedIn();
     }
 
     // Urgencies
     match /urgencies/{id} {
-      allow read, write: if isSignedIn() && (
-        (resource == null || resource.data.coordinatorId == getCoordinatorId()) &&
-        (request.resource == null || request.resource.data.coordinatorId == getCoordinatorId())
-      );
+      allow read, write: if isSignedIn();
     }
 
     // Agenda
     match /agenda/{id} {
-      allow read, write: if isSignedIn() && (
-        (resource == null || resource.data.coordinatorId == getCoordinatorId()) &&
-        (request.resource == null || request.resource.data.coordinatorId == getCoordinatorId())
-      );
+      allow read, write: if isSignedIn();
     }
 
     // Notes
     match /notes/{id} {
-      allow read, write: if isSignedIn() && (
-        (resource == null || resource.data.coordinatorId == getCoordinatorId()) &&
-        (request.resource == null || request.resource.data.coordinatorId == getCoordinatorId())
-      );
+      allow read, write: if isSignedIn();
     }
 
     // Materials
     match /materials/{id} {
-      allow read: if isSignedIn() && (
-        resource.data.coordinatorId == getCoordinatorId() ||
-        !resource.data.keys().hasAll(['coordinatorId']) ||
-        resource.data.coordinatorId == ''
-      );
-      allow write: if isSignedIn() && (
-        request.resource.data.coordinatorId == getCoordinatorId()
-      );
+      allow read, write: if isSignedIn();
     }
 
     // Material Requests
     match /material_requests/{id} {
-      allow read, write: if isSignedIn() && (
-        (resource == null || resource.data.coordinatorId == getCoordinatorId()) &&
-        (request.resource == null || request.resource.data.coordinatorId == getCoordinatorId())
-      );
+      allow read, write: if isSignedIn();
     }
 
     // Transactions
     match /transactions/{id} {
-      allow read, write: if isSignedIn() && (
-        (resource == null || resource.data.coordinatorId == getCoordinatorId()) &&
-        (request.resource == null || request.resource.data.coordinatorId == getCoordinatorId())
-      );
+      allow read, write: if isSignedIn();
     }
 
     // Partners
     match /partners/{id} {
-      allow read, write: if isSignedIn() && (
-        (resource == null || resource.data.coordinatorId == getCoordinatorId()) &&
-        (request.resource == null || request.resource.data.coordinatorId == getCoordinatorId())
-      );
+      allow read, write: if isSignedIn();
     }
 
     // Reports
     match /reports/{id} {
-      allow read, write: if isSignedIn() && (
-        (resource == null || resource.data.coordinatorId == getCoordinatorId()) &&
-        (request.resource == null || request.resource.data.coordinatorId == getCoordinatorId())
-      );
+      allow read, write: if isSignedIn();
     }
 
     // Attendance
     match /attendance/{id} {
-      allow read, write: if isSignedIn() && (
-        (resource == null || resource.data.coordinatorId == getCoordinatorId()) &&
-        (request.resource == null || request.resource.data.coordinatorId == getCoordinatorId())
-      );
+      allow read, write: if isSignedIn();
     }
 
     // Config
     match /config/{id} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn() && (
-        id == 'dailyOrder_' + getCoordinatorId()
-      );
+      allow read, write: if isSignedIn();
     }
 
     // Eleitoral TRE Data
@@ -159,12 +83,10 @@ service cloud.firestore {
       allow read, write: if isSignedIn();
     }
 
-    // Default deny
+    // Default catch-all
     match /{document=**} {
-      allow read, write: if isSignedIn() && (
-        resource == null || 
-        resource.data.coordinatorId == getCoordinatorId()
-      );
+      allow read, write: if isSignedIn();
     }
   }
 }
+

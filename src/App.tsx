@@ -24,7 +24,7 @@ export default function App() {
 
   const [view, setView] = useState<'coord' | 'cabo'>('cabo');
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    return (safeLocalStorage.getItem('aguia-theme') as 'light' | 'dark') || 'light';
+    return (safeLocalStorage.getItem('urna360-theme') as 'light' | 'dark') || 'light';
   });
 
   const [isExternalRegister] = useState(() => {
@@ -44,7 +44,7 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
-    safeLocalStorage.setItem('aguia-theme', theme);
+    safeLocalStorage.setItem('urna360-theme', theme);
   }, [theme]);
   
   useEffect(() => {
@@ -103,19 +103,24 @@ export default function App() {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-8 transition-colors duration-500">
          <div className="relative">
-           <ShieldCheck className="w-20 h-20 text-yellow-500 animate-pulse mb-6 relative z-10" />
-           <div className="absolute inset-0 bg-yellow-500 blur-2xl opacity-20 animate-pulse"></div>
+           <div className="flex items-center justify-center bg-transparent">
+             <img 
+               src="/logo.png" 
+               alt="Logo" 
+               className="max-h-40 md:max-h-48 w-auto object-contain relative z-10 animate-pulse" 
+             />
+           </div>
+           <div className="absolute inset-0 bg-blue-600 blur-2xl opacity-20 animate-pulse"></div>
          </div>
-         <div className="space-y-3 text-center">
-           <p className="text-[var(--text-primary)] font-black uppercase tracking-[0.3em] text-xs animate-pulse">SISTEMA ÁGUIA</p>
-           <p className="text-[var(--text-secondary)] font-black uppercase tracking-widest text-[9px] opacity-50">Estratégia 2026 • Carregando Inteligência</p>
+         <div className="space-y-3 text-center mt-6">
+           <p className="text-[var(--text-secondary)] font-black uppercase tracking-widest text-[10px] opacity-60">Carregando Sistema...</p>
          </div>
          <div className="mt-10 w-48 h-1 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
            <motion.div 
              initial={{ x: '-100%' }}
              animate={{ x: '100%' }}
              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-             className="w-full h-full bg-yellow-500"
+             className="w-full h-full bg-blue-600"
            />
          </div>
       </div>
@@ -198,7 +203,12 @@ export default function App() {
       const errorMsg = err.message || '';
       const errorCode = err.code || '';
       
-      if (errorCode === 'auth/unauthorized-domain' || errorMsg.includes('unauthorized-domain')) {
+      if (errorCode === 'auth/cancelled-popup-request' || errorMsg.includes('cancelled-popup-request')) {
+        // Ignorar ou mostrar aviso amigável de requisição dupla
+        setAuthError('Requisição de login cancelada ou já em andamento. Clique novamente se necessário.');
+      } else if (errorCode === 'auth/popup-closed-by-user' || errorMsg.includes('popup-closed-by-user')) {
+        setAuthError('Janela de autenticação fechada antes de concluir o login.');
+      } else if (errorCode === 'auth/unauthorized-domain' || errorMsg.includes('unauthorized-domain')) {
         setAuthError('Domínio de visualização não autorizado no Firebase.');
         setShowDomainGuide(true);
       } else if (errorCode === 'auth/popup-blocked' || errorMsg.includes('popup-blocked')) {
@@ -213,14 +223,14 @@ export default function App() {
 
   if (user && forcePasswordChange) {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 text-center selection:bg-yellow-500 selection:text-zinc-950 transition-colors duration-500">
+      <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 text-center selection:bg-blue-600 selection:text-white transition-colors duration-500">
         <motion.div 
           initial={{ opacity: 0, y: 20 }} 
           animate={{ opacity: 1, y: 0 }}
           className="max-w-md w-full bg-[var(--bg-secondary)] p-10 rounded-sm shadow-2xl border border-[var(--border-color)] relative"
         >
-          <div className="w-20 h-20 bg-yellow-500/10 rounded-sm flex items-center justify-center mx-auto mb-8 border border-yellow-500/20">
-            <Lock className="w-10 h-10 text-yellow-500" />
+          <div className="w-20 h-20 bg-blue-600/10 rounded-sm flex items-center justify-center mx-auto mb-8 border border-blue-600/20">
+            <Lock className="w-10 h-10 text-blue-600" />
           </div>
           <h1 className="text-2xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none mb-3">Definir Identidade</h1>
           <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] mb-10 opacity-70">Por segurança, altere sua senha de acesso inicial</p>
@@ -234,14 +244,14 @@ export default function App() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-4.5 rounded-sm focus:outline-none focus:border-yellow-500 transition-all font-bold text-sm shadow-inner"
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-4.5 rounded-sm focus:outline-none focus:border-blue-600 transition-all font-bold text-sm shadow-inner"
                 placeholder="Mínimo 6 caracteres"
               />
             </div>
             {authError && <p className="text-red-500 text-[10px] font-black text-center bg-red-500/5 py-3 rounded-sm border border-red-500/10 uppercase tracking-widest">{authError}</p>}
             <button 
               type="submit"
-              className="w-full bg-zinc-950 text-white dark:bg-yellow-500 dark:text-zinc-950 py-5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-yellow-400"
+              className="w-full bg-zinc-950 text-white dark:bg-blue-600 dark:text-white py-5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-blue-500"
             >
               AUTENTICAR NOVA SENHA
             </button>
@@ -260,10 +270,10 @@ export default function App() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 md:p-12 text-center selection:bg-yellow-500 selection:text-zinc-950 transition-colors duration-500 relative overflow-hidden">
+      <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 md:p-12 text-center selection:bg-blue-600 selection:text-white transition-colors duration-500 relative overflow-hidden">
         {/* Abstract Background Accents */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-yellow-500"></div>
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-yellow-500/10 rounded-full blur-[120px]"></div>
+        <div className="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px]"></div>
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px]"></div>
 
         <motion.div 
@@ -271,18 +281,20 @@ export default function App() {
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-md w-full bg-[var(--bg-secondary)] p-10 md:p-14 rounded-sm shadow-2xl border border-[var(--border-color)] relative z-20 backdrop-blur-sm"
         >
-          <div className="flex justify-center mb-8 text-[var(--text-primary)]">
-            <div className="p-4 bg-zinc-950 rounded-sm shadow-2xl shadow-yellow-500/10 border border-white/5">
-              <ShieldCheck className="w-12 h-12 text-yellow-500" />
+          <div className="flex justify-center mb-6 text-[var(--text-primary)]">
+            <div className="flex items-center justify-center bg-transparent w-full">
+              <img 
+                src="/logo.png" 
+                alt="Logo Nexus Política" 
+                className="max-h-56 md:max-h-72 w-full max-w-[300px] md:max-w-[360px] object-contain transition-all" 
+              />
             </div>
           </div>
-          <h1 className="text-3xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none mb-3">SISTEMA ÁGUIA</h1>
-          <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.3em] mb-12 opacity-60">Diretiva de Coordenação Operacional</p>
           
           <form onSubmit={handleEmailAuth} className="space-y-6 text-left relative z-10">
             {isRegistering && (
               <div className="bg-[var(--bg-tertiary)] p-1 rounded-sm flex mb-6 border border-[var(--border-color)] shadow-inner">
-                <div className="flex-1 py-3 rounded-sm font-black text-[10px] tracking-widest bg-yellow-500 text-zinc-950 shadow-lg text-center uppercase">
+                <div className="flex-1 py-3 rounded-sm font-black text-[10px] tracking-widest bg-blue-600 text-white shadow-lg text-center uppercase">
                   Somente Coordenador
                 </div>
               </div>
@@ -294,8 +306,8 @@ export default function App() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-4.5 rounded-sm focus:outline-none focus:border-yellow-500 transition-all font-bold text-sm shadow-inner placeholder:[var(--text-secondary)] placeholder:opacity-30"
-                placeholder="operador@aguia.com"
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-4.5 rounded-sm focus:outline-none focus:border-blue-600 transition-all font-bold text-sm shadow-inner placeholder:[var(--text-secondary)] placeholder:opacity-30"
+                placeholder="operador@sistema.com"
               />
             </div>
             <div className="space-y-2">
@@ -318,7 +330,7 @@ export default function App() {
                         }
                       }
                     }}
-                    className="text-[9px] font-black text-yellow-600 hover:text-yellow-500 uppercase tracking-widest transition-colors focus:outline-none"
+                    className="text-[9px] font-black text-blue-600 hover:text-blue-500 uppercase tracking-widest transition-colors focus:outline-none"
                   >
                     Esqueceu a senha?
                   </button>
@@ -329,7 +341,7 @@ export default function App() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-4.5 rounded-sm focus:outline-none focus:border-yellow-500 transition-all font-bold text-sm shadow-inner placeholder:[var(--text-secondary)] placeholder:opacity-30"
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-4.5 rounded-sm focus:outline-none focus:border-blue-600 transition-all font-bold text-sm shadow-inner placeholder:[var(--text-secondary)] placeholder:opacity-30"
                 placeholder="••••••••"
               />
             </div>
@@ -341,16 +353,16 @@ export default function App() {
                 </p>
                 
                 {showDomainGuide && (
-                  <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-sm p-4 text-left space-y-3 animate-fadeIn">
-                    <h4 className="text-[10px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-wider flex items-center gap-1.5">
-                      ⚠️ Passo a Passo de Configuração do Firebase:
+                  <div className="bg-blue-600/5 border border-blue-600/20 rounded-sm p-4 text-left space-y-3 animate-fadeIn">
+                    <h4 className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+                      ⚠️ Passo a Passo de Configuração do Firebase (Nova Interface):
                     </h4>
                     <p className="text-[10px] font-bold text-[var(--text-secondary)] leading-relaxed uppercase opacity-80">
-                      O login com Google exige que o domínio do site seja registrado nas configurações do seu Firebase Console.
+                      O login com Google exige autorização do domínio nas configurações do seu projeto no Firebase Console.
                     </p>
                     
                     <div className="space-y-2 mt-2">
-                      <span className="text-[8px] font-black uppercase tracking-wider text-[var(--text-secondary)]">1. Domínios para copiar:</span>
+                      <span className="text-[8px] font-black uppercase tracking-wider text-[var(--text-secondary)]">1. Copie o domínio do seu aplicativo:</span>
                       
                       {[
                         window.location.hostname,
@@ -366,7 +378,7 @@ export default function App() {
                               setCopiedDomain(dom);
                               setTimeout(() => setCopiedDomain(null), 2000);
                             }}
-                            className="px-2 py-1 text-[8px] font-black uppercase tracking-wider bg-yellow-500 text-zinc-950 rounded-sm hover:bg-yellow-400 active:scale-95 transition-all shrink-0"
+                            className="px-2 py-1 text-[8px] font-black uppercase tracking-wider bg-blue-600 text-white rounded-sm hover:bg-blue-500 active:scale-95 transition-all shrink-0"
                           >
                             {copiedDomain === dom ? 'Copiado!' : 'Copiar'}
                           </button>
@@ -374,12 +386,12 @@ export default function App() {
                       ))}
                     </div>
 
-                    <div className="text-[9px] text-[var(--text-secondary)] leading-relaxed space-y-1.5 pt-2 border-t border-[var(--border-color)]">
-                      <p className="font-bold uppercase"><span className="text-yellow-600 dark:text-yellow-500 font-black">2.</span> Acesse o <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="underline text-yellow-600 dark:text-yellow-500 font-black">Firebase Console</a> e abra seu projeto.</p>
-                      <p className="font-bold uppercase"><span className="text-yellow-600 dark:text-yellow-500 font-black">3.</span> Na barra lateral, clique em <strong className="text-[var(--text-primary)]">Authentication</strong>.</p>
-                      <p className="font-bold uppercase"><span className="text-yellow-600 dark:text-yellow-500 font-black">4.</span> Clique na aba <strong className="text-[var(--text-primary)]">Settings</strong> (Configurações) no topo.</p>
-                      <p className="font-bold uppercase"><span className="text-yellow-600 dark:text-yellow-500 font-black">5.</span> No menu esquerdo, vá em <strong className="text-[var(--text-primary)]">Authorized domains</strong> (Domínios autorizados).</p>
-                      <p className="font-bold uppercase"><span className="text-yellow-600 dark:text-yellow-500 font-black">6.</span> Clique em <strong className="text-[var(--text-primary)]">Add domain</strong>, cole cada domínio copiado acima e clique em <strong className="text-[var(--text-primary)]">Add</strong>.</p>
+                    <div className="text-[9px] text-[var(--text-secondary)] leading-relaxed space-y-2 pt-2 border-t border-[var(--border-color)]">
+                      <p className="font-bold uppercase"><span className="text-blue-600 dark:text-blue-400 font-black">2.</span> Acesse o <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="underline text-blue-600 dark:text-blue-400 font-black">Firebase Console</a> e abra o seu projeto.</p>
+                      <p className="font-bold uppercase"><span className="text-blue-600 dark:text-blue-400 font-black">3.</span> No menu esquerdo (<strong className="text-[var(--text-primary)]">Atalhos do projeto</strong>), clique em <strong className="text-[var(--text-primary)]">Authentication</strong>.</p>
+                      <p className="font-bold uppercase"><span className="text-blue-600 dark:text-blue-400 font-black">4.</span> No menu superior do Authentication, clique em <strong className="text-[var(--text-primary)]">Configurações</strong> (Settings).</p>
+                      <p className="font-bold uppercase"><span className="text-blue-600 dark:text-blue-400 font-black">5.</span> Na aba de configurações, acesse <strong className="text-[var(--text-primary)]">Domínios autorizados</strong> (Authorized domains).</p>
+                      <p className="font-bold uppercase"><span className="text-blue-600 dark:text-blue-400 font-black">6.</span> Clique em <strong className="text-[var(--text-primary)]">Adicionar domínio</strong>, cole cada endereço copiado e confirme.</p>
                     </div>
                   </div>
                 )}
@@ -388,7 +400,7 @@ export default function App() {
 
             <button 
               type="submit"
-              className="w-full bg-zinc-950 text-white dark:bg-yellow-500 dark:text-zinc-950 py-5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl hover:bg-zinc-800 dark:hover:bg-yellow-400 transition-all active:scale-95"
+              className="w-full bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 py-5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl transition-all active:scale-95"
             >
               {isRegistering ? 'Solicitar Cadastro' : 'Autenticar Unidade'}
             </button>
@@ -403,7 +415,7 @@ export default function App() {
             onClick={handleGoogleAuth}
             className="w-full bg-[var(--bg-tertiary)] text-[var(--text-primary)] py-4.5 rounded-sm font-black text-[10px] uppercase flex items-center justify-center gap-4 border border-[var(--border-color)] hover:bg-[var(--bg-secondary)] transition-all shadow-sm relative z-10"
           >
-            <svg className="w-4 h-4 text-yellow-500" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24">
                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
@@ -414,7 +426,7 @@ export default function App() {
 
           <button 
             onClick={() => setIsRegistering(!isRegistering)}
-            className="mt-10 text-[10px] font-black text-[var(--text-secondary)] hover:text-yellow-600 uppercase tracking-widest transition-colors opacity-50 block w-full relative z-10"
+            className="mt-10 text-[10px] font-black text-[var(--text-secondary)] hover:text-blue-600 uppercase tracking-widest transition-colors opacity-50 block w-full relative z-10"
           >
             {isRegistering ? 'Já possui acesso? Efetuar Login' : 'Ainda não é operador? Registrar'}
           </button>

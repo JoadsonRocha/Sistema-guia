@@ -164,13 +164,13 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head>
         <meta charset="utf-8">
-        <title>Manual Inteligente do Coordenador - Sistema Águia</title>
+        <title>Manual Inteligente do Coordenador - Urna 360</title>
         <style>
           body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1a1a1a; margin: 40px; }
-          .header { text-align: center; border-bottom: 3px solid #eab308; padding-bottom: 20px; margin-bottom: 30px; }
+          .header { text-align: center; border-bottom: 3px solid #0578d3; padding-bottom: 20px; margin-bottom: 30px; }
           .title { color: #000000; font-size: 26px; font-weight: bold; text-transform: uppercase; margin: 0; }
           .subtitle { color: #4b5563; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
-          blockquote { border-left: 4px solid #eab308; padding-left: 20px; font-style: italic; color: #374151; background: #fafafa; padding: 15px; margin: 25px 0; }
+          blockquote { border-left: 4px solid #0578d3; padding-left: 20px; font-style: italic; color: #374151; background: #fafafa; padding: 15px; margin: 25px 0; }
           h2 { color: #000000; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; margin-top: 35px; font-size: 18px; text-transform: uppercase; }
           .meta-bold { font-weight: bold; color: #111827; }
           p { font-size: 13px; color: #374151; margin-bottom: 15px; text-align: justify; }
@@ -181,7 +181,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       </head>
       <body>
         <div class="header">
-          <div class="title">Sistema Águia 2026</div>
+          <div class="title">Urna 360</div>
           <div class="subtitle">Manual Inteligente do Coordenador de Campanha</div>
         </div>
 
@@ -191,41 +191,41 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
         <h2>1. Direcionar e Cuidar da Campanha</h2>
         <p><span class="meta-bold">Função Clássica:</span> Cuidar, ajustar e guiar estrategicamente o progresso e o foco das frentes eleitorais urbana e rural.</p>
-        <p><span class="meta-bold">No Sistema Águia:</span> Por meio do Dashboard Central Unificado (aba Visão Geral), o coordenador monitora em tempo real a estatística consolidada de eleitores cadastrados, metas gerais por equipes, andamento das visitas e nível de atividade de todos os cabos eleitorais integrados.</p>
+        <p><span class="meta-bold">No Urna 360:</span> Por meio do Dashboard Central Unificado (aba Visão Geral), o coordenador monitora em tempo real a estatística consolidada de eleitores cadastrados, metas gerais por equipes, andamento das visitas e nível de atividade de todos os cabos eleitorais integrados.</p>
         <div class="highlight-box">
           <p>⚡ Impacto Prático vs. Método Tradicional: Substitui a dependência de telefonemas incertos e relatórios informais por métricas exatas centralizadas. O coordenador ganha poder de intervenção estratégica imediata para recalibrar frentes estagnadas.</p>
         </div>
 
         <h2>2. Gerenciamento de Compromissos e Acertos</h2>
         <p><span class="meta-bold">Função Clássica:</span> Gerenciar a pauta de rua, reuniões territoriais mundanas e compromissos diários do candidato, otimizando o tempo dele.</p>
-        <p><span class="meta-bold">No Sistema Águia:</span> Integrado na aba Mapa e Agenda, permitindo vincular compromissos locais às necessidades comunitárias. Permite cadastrar visitas regionais cruzando dados diretamente com o mapa de demandas prioritárias.</p>
+        <p><span class="meta-bold">No Urna 360:</span> Integrado na aba Mapa e Agenda, permitindo vincular compromissos locais às necessidades comunitárias. Permite cadastrar visitas regionais cruzando dados diretamente com o mapa de demandas prioritárias.</p>
         <div class="highlight-box">
           <p>⚡ Impacto Prático vs. Método Tradicional: Evita colisões e redundâncias geográficas. O candidato sobe no palanque dominando minuciosamente quais as reais queixas e demandas geológicas do bairro visitado.</p>
         </div>
 
         <h2>3. Articulação com Parceiros Políticos</h2>
         <p><span class="meta-bold">Função Clássica:</span> Manter contato contínuo e equilibrar parcerias estratégicas regionais, de vereadores a lideranças municipais externas.</p>
-        <p><span class="meta-bold">No Sistema Águia:</span> Integrado na central de Articulação (CRM de Parceiros), permitindo registrar todas as lideranças agregadas, gerenciar o status de relacionamento ("Quente", "Morno", "Frio"), histórico de encontros e monitoramento das metas de angariação particulares a cada um.</p>
+        <p><span class="meta-bold">No Urna 360:</span> Integrado na central de Articulação (CRM de Parceiros), permitindo registrar todas as lideranças agregadas, gerenciar o status de relacionamento ("Quente", "Morno", "Frio"), histórico de encontros e monitoramento das metas de angariação particulares a cada um.</p>
         <div class="highlight-box">
           <p>⚡ Impacto Prático vs. Método Tradicional: Evita o desengajamento ou o "esfriamento" de redutos eleitorais por falta de comunicação continuada. Cada parceria tem um histórico de atendimento digitalizado indelével.</p>
         </div>
 
         <h2>4. Administração das Finanças e Custos de Campanha</h2>
         <p><span class="meta-bold">Função Clássica:</span> Distribuir fatias financeiras para cabos eleitorais rurais, alimentação de bases, gastos de combustível integrado e confecção de santinhos físicos.</p>
-        <p><span class="meta-bold">No Sistema Águia:</span> Operado através da aba Financeiro e Gestão de Materiais, permitindo destinar limites financeiros exatos a frentes de atuação específicas, autorizar injeções de recursos urgentes no Vault Digital e auditar fotos de recibos e folhas de presença de rua imediatamente.</p>
+        <p><span class="meta-bold">No Urna 360:</span> Operado através da aba Financeiro e Gestão de Materiais, permitindo destinar limites financeiros exatos a frentes de atuação específicas, autorizar injeções de recursos urgentes no Vault Digital e auditar fotos de recibos e folhas de presença de rua imediatamente.</p>
         <div class="highlight-box">
           <p>⚡ Impacto Prático vs. Método Tradicional: Elimina a famosa "caixa-preta" de rua. Toda transação exige comprovação fotográfica, mitigando desvios e cobrando o máximo de rendimento por cada centavo empregado.</p>
         </div>
 
         <h2>5. Representação de Confiança e Tomada de Decisão</h2>
         <p><span class="meta-bold">Função Clássica:</span> Atuar como a voz oficial com autoridade final para chancelar estratégias, pautas civis e responder resoluções internas.</p>
-        <p><span class="meta-bold">No Sistema Águia:</span> Concentrado no painel de Anotações Táticas (dividido em Fórum Comum da Equipe e Observações Privadas do Coordenador), além da central de aprovação de Demandas (Ouvidoria de Campo). Nenhuma questão ganha andamento legal ou visibilidade coletiva sem o endosso prévio do perfil do Coordenador.</p>
+        <p><span class="meta-bold">No Urna 360:</span> Concentrado no painel de Anotações Táticas (dividido em Fórum Comum da Equipe e Observações Privadas do Coordenador), além da central de aprovação de Demandas (Ouvidoria de Campo). Nenhuma questão ganha andamento legal ou visibilidade coletiva sem o endosso prévio do perfil do Coordenador.</p>
         <div class="highlight-box">
           <p>⚡ Impacto Prático vs. Método Tradicional: Blinda o comitê contra espionagem por canais públicos (WhatsApp). Centraliza e hierarquiza cronogramas estratégicos de forma unívoca.</p>
         </div>
 
         <div class="footer">
-          <p>Documento Oficial Gerado Eletronicamente pelo Ecossistema Águia 2026.</p>
+          <p>Documento Oficial Gerado Eletronicamente pelo Ecossistema Urna 360.</p>
           <p>Confidencialidade de Nível Governamental e Alta Operação Militar de Campo.</p>
         </div>
       </body>
@@ -235,7 +235,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'MANUAL_INTELIGENTE_DO_COORDENADOR_AGUIA_2026.doc';
+    link.download = 'MANUAL_INTELIGENTE_DO_COORDENADOR_URNA360.doc';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -252,7 +252,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
     doc.setTextColor(17, 24, 39); // Zinc-900 / Dark
-    doc.text("SISTEMA ÁGUIA 2026", 14, 25);
+    doc.text("URNA 360", 14, 25);
     
     doc.setFontSize(14);
     doc.setTextColor(100, 100, 100);
@@ -321,31 +321,31 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     
     drawSection(
       "1. Direcionar e Cuidar da Campanha",
-      "Função Clássica: Cuidar, ajustar e guiar estrategicamente o progresso e o foco das frentes eleitorais urbana e rural. No Sistema Águia: Por meio do Dashboard Central Unificado (aba Visão Geral), o coordenador monitora em tempo real a estatística consolidada de eleitores cadastrados, metas gerais por equipes, andamento das visitas e nível de atividade de todos os cabos eleitorais integrados.",
+      "Função Clássica: Cuidar, ajustar e guiar estrategicamente o progresso e o foco das frentes eleitorais urbana e rural. No Urna 360: Por meio do Dashboard Central Unificado (aba Visão Geral), o coordenador monitora em tempo real a estatística consolidada de eleitores cadastrados, metas gerais por equipes, andamento das visitas e nível de atividade de todos os cabos eleitorais integrados.",
       "⚡ Impacto Prático vs. Método Tradicional: Substitui a dependência de relatórios informais por métricas exatas centralizadas. O coordenador ganha poder de intervenção estratégica imediata para recalibrar frentes estagnadas."
     );
     
     drawSection(
       "2. Gerenciamento de Compromissos e Acertos",
-      "Função Clássica: Gerenciar a pauta de rua, reuniões territoriais e compromissos diários do candidato, otimizando o tempo dele. No Sistema Águia: Integrado na aba Mapa e Agenda, permitindo vincular compromissos locais às necessidades comunitárias. Permite cadastrar visitas regionais cruzando dados diretamente com o mapa de demandas prioritárias.",
+      "Função Clássica: Gerenciar a pauta de rua, reuniões territoriais e compromissos diários do candidato, otimizando o tempo dele. No Urna 360: Integrado na aba Mapa e Agenda, permitindo vincular compromissos locais às necessidades comunitárias. Permite cadastrar visitas regionais cruzando dados diretamente com o mapa de demandas prioritárias.",
       "⚡ Impacto Prático vs. Método Tradicional: Evita colisões e redundâncias geográficas. O candidato sobe no palanque dominando minuciosamente quais as reais queixas e demandas do bairro visitado."
     );
     
     drawSection(
       "3. Articulação com Parceiros Políticos",
-      "Função Clássica: Manter contato contínuo e equilibrar parcerias estratégicas regionais, de vereadores a lideranças municipais. No Sistema Águia: Integrado na central de Articulação (CRM de Parceiros), permitindo registrar todas as lideranças agregadas, gerenciar o status de relacionamento (Quente, Morno, Frio), histórico de encontros e monitoramento das metas particulares.",
+      "Função Clássica: Manter contato contínuo e equilibrar parcerias estratégicas regionais, de vereadores a lideranças municipais. No Urna 360: Integrado na central de Articulação (CRM de Parceiros), permitindo registrar todas as lideranças agregadas, gerenciar o status de relacionamento (Quente, Morno, Frio), histórico de encontros e monitoramento das metas particulares.",
       "⚡ Impacto Prático vs. Método Tradicional: Evita o desengajamento de redutos eleitorais por falta de comunicação. Cada parceria tem um histórico de atendimento digitalizado indelével."
     );
     
     drawSection(
       "4. Administração das Finanças e Custos de Campanha",
-      "Função Clássica: Distribuir fatias financeiras para cabos eleitorais rurais, alimentação de bases, gastos de combustível e confecção de santinhos físicos. No Sistema Águia: Operado através da aba Financeiro e Gestão de Materiais, permitindo destinar limites financeiros exatos a frentes de atuação específicas, autorizar injeções de recursos urgentes e auditar fotos de recibos imediatamente.",
+      "Função Clássica: Distribuir fatias financeiras para cabos eleitorais rurais, alimentação de bases, gastos de combustível e confecção de santinhos físicos. No Urna 360: Operado através da aba Financeiro e Gestão de Materiais, permitindo destinar limites financeiros exatos a frentes de atuação específicas, autorizar injeções de recursos urgentes e auditar fotos de recibos imediatamente.",
       "⚡ Impacto Prático vs. Método Tradicional: Elimina a famosa fossa financeira de rua. Toda transação exige comprovação fotográfica, mitigando desvios e cobrando o máximo de rendimento por cada centavo empregado."
     );
     
     drawSection(
       "5. Representação de Confiança e Tomada de Decisão",
-      "Função Clássica: Atuar como a voz oficial com autoridade final para chancelar estratégias, pautas civis e responder resoluções internas. No Sistema Águia: Concentrado no painel de Anotações Táticas (Fórum Comum da Equipe e Observações Privadas do Coordenador), além da central de aprovação de Demandas (Ouvidoria de Campo). Nenhuma questão ganha andamento sem o endosso prévio do Coordenador.",
+      "Função Clássica: Atuar como a voz oficial com autoridade final para chancelar estratégias, pautas civis e responder resoluções internas. No Urna 360: Concentrado no painel de Anotações Táticas (Fórum Comum da Equipe e Observações Privadas do Coordenador), além da central de aprovação de Demandas (Ouvidoria de Campo). Nenhuma questão ganha andamento sem o endosso prévio do Coordenador.",
       "⚡ Impacto Prático vs. Método Tradicional: Blinda o comitê contra vazamento de dados em canais públicos inseguros. Centraliza e hierarquiza cronogramas estratégicos de forma segura."
     );
     
@@ -362,10 +362,10 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(156, 163, 175);
-    doc.text("Documento Oficial Gerado Eletronicamente pelo Ecossistema Águia 2026.", 14, y);
+    doc.text("Documento Oficial Gerado Eletronicamente pelo Ecossistema Urna 360.", 14, y);
     doc.text("Confidencialidade de Nível Governamental e Alta Operação Militar de Campo.", 14, y + 4);
     
-    doc.save("MANUAL_INTELIGENTE_DO_COORDENADOR_AGUIA_2026.pdf");
+    doc.save("MANUAL_INTELIGENTE_DO_COORDENADOR_URNA360.pdf");
   };
 
   
@@ -441,7 +441,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
   // Carregar cache local de eleitores para carregamento imediato
   useEffect(() => {
     if (coordinatorId) {
-      const cached = safeLocalStorage.getItem(`aguia_voters_cache_${coordinatorId}`);
+      const cached = safeLocalStorage.getItem(`urna360_voters_cache_${coordinatorId}`);
       if (cached) {
         try {
           setAllVoters(JSON.parse(cached));
@@ -713,7 +713,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         current: mat.current - req.qty
       });
 
-      const signatureHash = 'AGUIA-SIG-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now().toString().slice(-4);
+      const signatureHash = 'URNA360-SIG-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now().toString().slice(-4);
 
       // Update request status with signature details
       await firestoreService.updateDocument('material_requests', req.id, {
@@ -976,16 +976,19 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                   (t.location || '').toLowerCase().includes(mun.toLowerCase())
                 ).length;
 
-                const munEvents = agenda.filter(a => 
-                  (a.municipality || a.location || '').toLowerCase().includes(mun.toLowerCase())
+                const munEvents = (agendas || []).filter(a => 
+                  (a.municipio || a.municipality || a.location || '').toLowerCase().includes(mun.toLowerCase())
                 );
 
                 const eventCount = munEvents.length;
 
                 let lastEventDate = 'Nenhuma visita';
                 if (eventCount > 0) {
-                  const sortedEvents = [...munEvents].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-                  lastEventDate = new Date(sortedEvents[0].date).toLocaleDateString('pt-BR');
+                  const sortedEvents = [...munEvents].sort((a, b) => new Date(b.data || b.date || 0).getTime() - new Date(a.data || a.date || 0).getTime());
+                  const latestDate = sortedEvents[0]?.data || sortedEvents[0]?.date;
+                  if (latestDate && !isNaN(new Date(latestDate).getTime())) {
+                    lastEventDate = new Date(latestDate).toLocaleDateString('pt-BR');
+                  }
                 }
 
                 let coverageStatus = '🟢 COBERTO';
@@ -1049,7 +1052,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       // Header
       doc.setFontSize(22);
       doc.setTextColor(218, 165, 32); // Dourado
-      doc.text('ÁGUIA - SISTEMA DE ESTRATÉGIA', 14, 20);
+      doc.text('RELATÓRIO ESTRATÉGICO DE CAMPANHA', 14, 20);
       
       doc.setFontSize(16);
       doc.setTextColor(40, 40, 40);
@@ -1086,7 +1089,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         // Header
         doc.setFontSize(22);
         doc.setTextColor(218, 165, 32); // Dourado
-        doc.text('ÁGUIA - SISTEMA DE ESTRATÉGIA', 14, 20);
+        doc.text('RELATÓRIO ESTRATÉGICO DE CAMPANHA', 14, 20);
         
         doc.setFontSize(16);
         doc.setTextColor(40, 40, 40);
@@ -1353,7 +1356,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         });
         const uniqueVoters = Array.from(uniqueMap.values());
         setAllVoters(uniqueVoters);
-        safeLocalStorage.setItem(`aguia_voters_cache_${coordinatorId}`, JSON.stringify(uniqueVoters));
+        safeLocalStorage.setItem(`urna360_voters_cache_${coordinatorId}`, JSON.stringify(uniqueVoters));
       }, 
       (err) => {
         console.warn("Voters sync error:", err.message);
@@ -1709,7 +1712,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     
     try {
       const teamId = editingTeamId || newTeam.name.replace(/\s/g, '_').toLowerCase();
-      const defaultPassword = 'aguia' + Math.floor(1000 + Math.random() * 9000);
+      const defaultPassword = 'urna' + Math.floor(1000 + Math.random() * 9000);
       
       // 1. Criar/Atualizar a equipe no Firestore
       await firestoreService.setDocument('teams', teamId, {
@@ -1759,7 +1762,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
   const handleCopyAccessLink = (team: any) => {
     const email = team.leaderEmail;
-    const pass = team.tempPassword || 'aguia1234'; 
+    const pass = team.tempPassword || 'urna1234'; 
     const link = `${window.location.origin}/?email=${encodeURIComponent(email)}&access_token=${btoa(pass)}`;
     navigator.clipboard.writeText(link);
     alert(`Link de acesso copiado para ${team.leader}!\nEnvie via WhatsApp.`);
@@ -1915,19 +1918,13 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     <div className="flex h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans overflow-hidden transition-colors duration-300">
       {/* SIDEBAR - DESKTOP */}
       <aside className="hidden lg:flex w-72 flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-color)] py-8 px-6 overflow-y-auto shrink-0 relative z-40 shadow-[2px_0_10px_rgba(0,0,0,0.02)] dark:shadow-none">
-        <div className="mb-10 px-2">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2.5 bg-zinc-950 rounded-sm shadow-xl border border-white/5">
-              <ShieldCheck className="w-5 h-5 text-yellow-500" />
-            </div>
-            <div>
-              <h1 className="text-base font-black tracking-tighter text-[var(--text-primary)] uppercase leading-none">
-                ÁGUIA
-              </h1>
-              <p className="text-[8px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-[0.2em] mt-1.5">
-                Estratégia 2026
-              </p>
-            </div>
+        <div className="mb-6 px-1 flex justify-center">
+          <div className="flex items-center justify-center bg-transparent w-full">
+            <img 
+              src="/logo.png" 
+              alt="Logo" 
+              className="max-h-28 md:max-h-32 w-full max-w-[240px] object-contain transition-all" 
+            />
           </div>
         </div>
 
@@ -1950,11 +1947,11 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               onClick={() => setActiveTab(item.id as any)}
               className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-sm text-xs font-black uppercase tracking-tight transition-all group ${
                 activeTab === item.id 
-                ? 'bg-yellow-500 text-zinc-950 shadow-lg shadow-yellow-500/20' 
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]'
               }`}
             >
-              <div className={`transition-colors ${activeTab === item.id ? 'text-zinc-950' : 'text-[var(--text-secondary)] group-hover:text-yellow-600'}`}>
+              <div className={`transition-colors ${activeTab === item.id ? 'text-white' : 'text-[var(--text-secondary)] group-hover:text-blue-600'}`}>
                 {item.icon}
               </div>
               {item.label}
@@ -1994,7 +1991,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Pesquisar zonas, líderes ou demandas..."
-                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-2.5 pl-11 pr-4 text-[11px] font-black uppercase tracking-tight text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] placeholder:opacity-50 focus:ring-1 focus:ring-yellow-500/40 outline-none transition-all shadow-inner"
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-2.5 pl-11 pr-4 text-[11px] font-black uppercase tracking-tight text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] placeholder:opacity-50 focus:ring-1 focus:ring-blue-600/40 outline-none transition-all shadow-inner"
               />
 
               {/* SEARCH RESULTS PANEL */}
@@ -2064,17 +2061,20 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               </AnimatePresence>
             </div>
             <div className="lg:hidden flex items-center gap-2">
-              <div className="p-1.5 bg-zinc-950 rounded-sm">
-                <ShieldCheck className="w-4 h-4 text-yellow-500" />
+              <div className="flex items-center justify-center bg-transparent shrink-0">
+                <img 
+                  src="/logo.png" 
+                  alt="Logo" 
+                  className="max-h-12 w-auto object-contain" 
+                />
               </div>
-              <h1 className="text-base font-black text-zinc-950 uppercase leading-none">ÁGUIA</h1>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-sm text-zinc-500 dark:text-zinc-400 hover:bg-yellow-500 hover:text-zinc-950 active:scale-90 transition-all border border-zinc-200 dark:border-zinc-700"
+              className="p-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-sm text-zinc-500 dark:text-zinc-400 hover:bg-blue-600 hover:text-white active:scale-90 transition-all border border-zinc-200 dark:border-zinc-700"
               title={theme === 'dark' ? "Ativar Modo Claro" : "Ativar Modo Escuro"}
             >
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -2094,7 +2094,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               onClick={() => setIsProfileModalOpen(true)}
               className="flex items-center gap-2.5 hover:bg-zinc-50 p-1 rounded-sm transition-all"
             >
-              <div className="w-8 h-8 rounded-sm bg-yellow-500 flex items-center justify-center font-black text-xs text-zinc-950 overflow-hidden shadow-sm border border-zinc-200">
+              <div className="w-8 h-8 rounded-sm bg-blue-600 flex items-center justify-center font-black text-xs text-white overflow-hidden shadow-sm border border-zinc-200">
                 {profileData?.photoURL ? (
                   <img src={profileData.photoURL} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
@@ -2125,20 +2125,20 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               <motion.section 
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-zinc-950 rounded-sm p-4 md:p-6 shadow-2xl border border-yellow-500/30 overflow-hidden relative group dark:bg-zinc-950"
+                className="bg-zinc-950 rounded-sm p-4 md:p-6 shadow-2xl border border-blue-600/30 overflow-hidden relative group dark:bg-zinc-950"
               >
                 <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none group-hover:scale-110 transition-transform duration-700">
-                  <ShieldCheck className="w-40 h-40 text-yellow-500" />
+                  <ShieldCheck className="w-40 h-40 text-blue-600" />
                 </div>
                 
                 <div className="flex items-center justify-between mb-4 relative z-10 transition-transform">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-yellow-500 rounded-sm shadow-lg shadow-yellow-500/20">
+                    <div className="p-2.5 bg-blue-600 rounded-sm shadow-lg shadow-blue-600/20">
                       <Zap className="w-5 h-5 text-zinc-950" />
                     </div>
                     <div>
                       <h3 className="text-sm font-black text-white uppercase tracking-tighter">Ordem do Dia</h3>
-                      <p className="text-[8px] font-black text-yellow-500 uppercase tracking-[0.2em] opacity-80">Diretiva Central de Comando</p>
+                      <p className="text-[8px] font-black text-blue-600 uppercase tracking-[0.2em] opacity-80">Diretiva Central de Comando</p>
                     </div>
                   </div>
                   {isAdmin && (
@@ -2157,11 +2157,11 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       value={newDailyOrder}
                       onChange={(e) => setNewDailyOrder(e.target.value)}
                       placeholder="Digite a diretiva central para todas as equipes..."
-                      className="w-full bg-white/5 border border-white/10 rounded-sm p-4 text-xs font-bold text-white outline-none focus:border-yellow-500 min-h-[120px] transition-colors"
+                      className="w-full bg-white/5 border border-white/10 rounded-sm p-4 text-xs font-bold text-white outline-none focus:border-blue-600 min-h-[120px] transition-colors"
                     />
                     <button 
                       onClick={handleUpdateDailyOrder}
-                      className="bg-yellow-500 text-zinc-950 px-6 py-2.5 rounded-sm font-black text-[10px] uppercase shadow-lg shadow-yellow-500/20 active:scale-95 transition-all hover:bg-yellow-400"
+                      className="bg-blue-600 text-white px-6 py-2.5 rounded-sm font-black text-[10px] uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-all hover:bg-blue-500"
                     >
                       Transmitir para Unidades
                     </button>
@@ -2176,9 +2176,9 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       <p className="text-zinc-500 text-xs font-bold italic">Nenhuma diretiva emitida para hoje.</p>
                     )}
                     <div className="mt-6 flex items-center gap-4 text-[8px] font-black text-zinc-500 uppercase tracking-widest bg-white/5 w-fit px-4 py-2 rounded-full border border-white/10 shadow-inner">
-                      <span className="flex items-center gap-2"><Clock className="w-3 h-3 text-yellow-500" /> {dailyOrder?.updatedAt ? new Date(dailyOrder.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '---'}</span>
-                      <span className="w-1.5 h-1.5 bg-yellow-500/30 rounded-full"></span>
-                      <span className="flex items-center gap-2"><User className="w-3 h-3 text-yellow-500" /> {dailyOrder?.updatedBy || 'Comando'}</span>
+                      <span className="flex items-center gap-2"><Clock className="w-3 h-3 text-blue-600" /> {dailyOrder?.updatedAt ? new Date(dailyOrder.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '---'}</span>
+                      <span className="w-1.5 h-1.5 bg-blue-600/30 rounded-full"></span>
+                      <span className="flex items-center gap-2"><User className="w-3 h-3 text-blue-600" /> {dailyOrder?.updatedBy || 'Comando'}</span>
                     </div>
                   </div>
                 )}
@@ -2193,14 +2193,14 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     onClick={stat.action}
-                    className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-3.5 md:p-5 rounded-sm shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:border-yellow-500/50 transition-all cursor-pointer group"
+                    className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-3.5 md:p-5 rounded-sm shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:border-blue-600/50 transition-all cursor-pointer group"
                   >
                     <div className="flex justify-between items-start mb-2.5">
-                      <div className={`p-2 rounded-sm group-hover:bg-yellow-500 transition-colors ${(stat as any).iconColor || 'bg-[var(--bg-tertiary)]'}`}>
-                        {i === 0 && <Target className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
-                        {i === 1 && <Users className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
-                        {i === 2 && <Calendar className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
-                        {i === 3 && <DollarSign className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-zinc-950" />}
+                      <div className={`p-2 rounded-sm group-hover:bg-blue-600 transition-colors ${(stat as any).iconColor || 'bg-[var(--bg-tertiary)]'}`}>
+                        {i === 0 && <Target className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
+                        {i === 1 && <Users className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
+                        {i === 2 && <Calendar className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
+                        {i === 3 && <DollarSign className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
                       </div>
                       <div className="flex flex-col items-end">
                         <span className="text-[6px] md:text-[7px] font-black py-0.5 px-1.5 bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 rounded-sm uppercase tracking-widest border border-green-200/50 dark:border-green-500/20 leading-none">ATIVO</span>
@@ -2210,7 +2210,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                     <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-[0.1em]">{stat.label}</p>
                     <div className="mt-3.5 md:mt-5 pt-2 md:pt-3 border-t border-[var(--border-color)] flex items-center justify-between">
                       <span className="text-[7.5px] md:text-[8px] font-bold text-[var(--text-secondary)] uppercase tracking-widest leading-none">{stat.sub}</span>
-                      <ChevronRight className="w-3 h-3 text-[var(--text-secondary)] group-hover:text-yellow-500 group-hover:translate-x-0.5 transition-all" />
+                      <ChevronRight className="w-3 h-3 text-[var(--text-secondary)] group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
                     </div>
                   </motion.div>
                 ))}
@@ -2224,13 +2224,13 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-5 shadow-[var(--shadow-sm)]">
                       <h3 className="text-sm font-black uppercase tracking-tighter text-[var(--text-primary)] mb-4 flex items-center gap-2">
-                        < Zap className="w-3.5 h-3.5 text-yellow-500" /> Atividade Recente
+                        < Zap className="w-3.5 h-3.5 text-blue-600" /> Atividade Recente
                       </h3>
                       <div className="space-y-4">
                         {teams.slice(0, 4).map((team, i) => (
                           <div key={i} className="flex gap-3 group/item cursor-default">
-                            <div className="w-8 h-8 rounded-sm bg-[var(--bg-tertiary)] flex items-center justify-center shrink-0 border border-[var(--border-color)] group-hover/item:border-yellow-500/30 transition-colors">
-                              <Users className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover/item:text-yellow-500 transition-colors" />
+                            <div className="w-8 h-8 rounded-sm bg-[var(--bg-tertiary)] flex items-center justify-center shrink-0 border border-[var(--border-color)] group-hover/item:border-blue-600/30 transition-colors">
+                              <Users className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover/item:text-blue-600 transition-colors" />
                             </div>
                             <div>
                               <p className="text-[9px] font-black text-[var(--text-primary)] uppercase leading-none">{team.name}</p>
@@ -2273,16 +2273,16 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         spent: 0
                       });
                     }}
-                    className="bg-yellow-500 text-zinc-950 px-5 md:px-6 py-3 md:py-3.5 rounded-sm font-black text-[9px] md:text-[10px] uppercase flex items-center justify-center gap-2 md:gap-2.5 shadow-lg shadow-yellow-500/10 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto mt-2 md:mt-0"
+                    className="bg-blue-600 text-white px-5 md:px-6 py-3 md:py-3.5 rounded-sm font-black text-[9px] md:text-[10px] uppercase flex items-center justify-center gap-2 md:gap-2.5 shadow-lg shadow-blue-600/10 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto mt-2 md:mt-0"
                   >
-                    <Plus className="w-4 h-4 text-zinc-950" /> Cadastrar Nova Unidade
+                    <Plus className="w-4 h-4 text-white" /> Cadastrar Nova Unidade
                   </button>
                 </div>
 
                 {/* Gerador de Link de Autocadastro de Eleitor para Equipes */}
                 <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 space-y-4 shadow-xl">
                   <div className="flex items-center gap-2 border-b border-[var(--border-color)] pb-3">
-                    <UserPlus className="w-4 h-4 text-yellow-500" />
+                    <UserPlus className="w-4 h-4 text-blue-600" />
                     <h3 className="text-xs font-black uppercase text-[var(--text-primary)] tracking-wider">Gerador de Link de Autocadastro</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -2291,7 +2291,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       <select
                         value={selectedLinkTeam}
                         onChange={(e) => setSelectedLinkTeam(e.target.value)}
-                        className="w-full bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-yellow-500 transition-all"
+                        className="w-full bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600 transition-all"
                       >
                         <option value="">-- Escolha uma equipe --</option>
                         {teams.map((t) => (
@@ -2320,7 +2320,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                           }}
                           className={`px-5 py-3 rounded-sm font-black text-[10px] uppercase tracking-wider transition-all active:scale-95 flex items-center gap-1.5 ${
                             selectedLinkTeam
-                              ? 'bg-yellow-500 hover:bg-yellow-600 text-zinc-950'
+                              ? 'bg-blue-600 hover:bg-blue-600 text-white'
                               : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border border-[var(--border-color)] cursor-not-allowed'
                           }`}
                         >
@@ -2336,9 +2336,9 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                     <motion.div 
                       key={team.id || team.name} 
                       layout
-                      className={`bg-[var(--bg-secondary)] border ${team.fraudAlert ? 'border-red-600 shadow-[var(--shadow-md)] animate-pulse' : 'border-[var(--border-color)]'} rounded-sm p-4 md:p-6 lg:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6 hover:shadow-[var(--shadow-md)] hover:border-yellow-500/30 transition-all group relative overflow-hidden`}
+                      className={`bg-[var(--bg-secondary)] border ${team.fraudAlert ? 'border-red-600 shadow-[var(--shadow-md)] animate-pulse' : 'border-[var(--border-color)]'} rounded-sm p-4 md:p-6 lg:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6 hover:shadow-[var(--shadow-md)] hover:border-blue-600/30 transition-all group relative overflow-hidden`}
                     >
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 blur-3xl -mr-16 -mt-16 group-hover:bg-yellow-500/10 transition-colors pointer-events-none opacity-0 dark:opacity-100" />
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl -mr-16 -mt-16 group-hover:bg-blue-600/10 transition-colors pointer-events-none opacity-0 dark:opacity-100" />
                       
                       {team.fraudAlert && (
                         <div className="absolute top-0 right-8 bg-red-600 text-white text-[8px] font-black px-6 py-1.5 rounded-sm uppercase flex items-center gap-1.5 shadow-lg z-10">
@@ -2349,7 +2349,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       <div className="flex items-center gap-4 md:gap-5 min-w-[200px] md:min-w-[240px] relative z-10">
                         <div className={`w-11 h-11 md:w-14 md:h-14 rounded-sm flex items-center justify-center transition-transform group-hover:rotate-3 shadow-inner ${
                           team.status === 'OK' ? 'bg-emerald-500/10 text-emerald-500' : 
-                          team.status === 'ALERTA' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-red-500/10 text-red-500'
+                          team.status === 'ALERTA' ? 'bg-blue-600/10 text-blue-600' : 'bg-red-500/10 text-red-500'
                         }`}>
                           <Users className="w-5 h-5 md:w-7 md:h-7" />
                         </div>
@@ -2357,10 +2357,10 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                           <h3 className="font-black text-[var(--text-primary)] text-base md:text-xl uppercase tracking-tighter leading-none">{team.name}</h3>
                           <div className="flex flex-col gap-1 pt-1 opacity-70">
                             <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-1.5 tracking-widest leading-none">
-                              <User className="w-2 md:w-2.5 h-2 md:h-2.5 text-yellow-500" /> Líder: {team.leader}
+                              <User className="w-2 md:w-2.5 h-2 md:h-2.5 text-blue-600" /> Líder: {team.leader}
                             </p>
                             <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-1.5 tracking-widest leading-none">
-                              <MapPin className="w-2 md:w-2.5 h-2 md:h-2.5 text-yellow-500" /> Base: {team.location}
+                              <MapPin className="w-2 md:w-2.5 h-2 md:h-2.5 text-blue-600" /> Base: {team.location}
                             </p>
                           </div>
                         </div>
@@ -2389,9 +2389,9 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                            <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1.5 md:mb-2 leading-none opacity-60">Status de Rede</p>
                            <span className={`inline-flex items-center gap-1 text-[7px] md:text-[8px] font-black px-2 md:px-3 py-1 md:py-1.5 rounded-sm uppercase tracking-widest border transition-colors leading-none ${
                             team.status === 'OK' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border-emerald-500/20' : 
-                            team.status === 'ALERTA' ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-500 border-yellow-500/20' : 'bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20'
+                            team.status === 'ALERTA' ? 'bg-blue-600/10 text-blue-700 dark:text-blue-600 border-blue-600/20' : 'bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20'
                           }`}>
-                            <div className={`w-1 md:w-1.5 h-1 md:h-1.5 rounded-full animate-pulse ${team.status === 'OK' ? 'bg-emerald-500' : team.status === 'ALERTA' ? 'bg-yellow-500' : 'bg-red-500'}`} />
+                            <div className={`w-1 md:w-1.5 h-1 md:h-1.5 rounded-full animate-pulse ${team.status === 'OK' ? 'bg-emerald-500' : team.status === 'ALERTA' ? 'bg-blue-600' : 'bg-red-500'}`} />
                             {team.status}
                           </span>
                         </div>
@@ -2460,7 +2460,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4 md:pb-6">
                   <div className="flex items-center gap-3 md:gap-4">
                     <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-950 rounded-sm flex items-center justify-center shadow-lg">
-                      <Target className="w-5 h-5 md:w-6 md:h-6 text-yellow-500" />
+                      <Target className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
                     </div>
                     <div>
                       <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Base de Eleitores</h2>
@@ -2480,7 +2480,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                           type="text" 
                           value={voterSearch}
                           onChange={e => setVoterSearch(e.target.value)}
-                          className="w-full bg-zinc-50 border border-zinc-100 rounded-sm py-3 pl-10 pr-4 text-xs font-bold text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+                          className="w-full bg-zinc-50 border border-zinc-100 rounded-sm py-3 pl-10 pr-4 text-xs font-bold text-zinc-900 outline-none focus:border-blue-600 transition-all"
                           placeholder="Ex: João Silva ou 119..."
                         />
                       </div>
@@ -2492,7 +2492,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         <select 
                           value={articulatorFilter}
                           onChange={e => setArticulatorFilter(e.target.value)}
-                          className="w-full bg-zinc-50 border border-zinc-100 rounded-sm py-3 pl-10 pr-4 text-xs font-bold text-zinc-900 outline-none focus:border-yellow-500 transition-all appearance-none"
+                          className="w-full bg-zinc-50 border border-zinc-100 rounded-sm py-3 pl-10 pr-4 text-xs font-bold text-zinc-900 outline-none focus:border-blue-600 transition-all appearance-none"
                         >
                           <option value="">TODOS OS ARTICULADORES</option>
                           {(allVoters.length > 0 ? allVoters.filter(v => v.isArticulator) : articulators).map(art => (
@@ -2511,7 +2511,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                           const area = voterSearch || 'Filtro Atual';
                           alert(`📢 CONVOCAÇÃO ENVIADA!\nTodos os eleitores filtrados (${filteredVoters.length}) na segmentação "${area}" receberam o aviso via WhatsApp via robô de envio.`);
                         }}
-                        className="flex-1 bg-zinc-950 text-yellow-500 py-3 md:py-4 rounded-sm font-black text-[9px] md:text-[10px] uppercase tracking-[0.2em] shadow-lg flex items-center justify-center gap-2 hover:bg-zinc-900 active:scale-95 transition-all outline-none"
+                        className="flex-1 bg-zinc-950 text-blue-600 py-3 md:py-4 rounded-sm font-black text-[9px] md:text-[10px] uppercase tracking-[0.2em] shadow-lg flex items-center justify-center gap-2 hover:bg-zinc-900 active:scale-95 transition-all outline-none"
                       >
                         <Send className="w-3.5 h-3.5" /> Disparar Convite de Reunião para {filteredVoters.length} Eleitores
                       </button>
@@ -2542,7 +2542,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                            }}
                            className={`px-2.5 py-1.5 rounded-sm text-[8px] md:text-[9px] font-black uppercase transition-all border ${
                              voterFilterTags.includes(tag)
-                             ? 'bg-yellow-500 border-yellow-600 text-zinc-950 shadow-md'
+                             ? 'bg-blue-600 border-blue-600 text-white shadow-md'
                              : 'bg-[var(--bg-tertiary)] border-[var(--border-color)] text-[var(--text-secondary)] hover:bg-zinc-200 dark:hover:bg-zinc-800'
                            }`}
                          >
@@ -2579,7 +2579,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       {loadingPaginatedVoters ? (
                         <tr>
                           <td colSpan={5} className="p-20 text-center">
-                            <RefreshCcw className="w-8 h-8 text-yellow-500 animate-spin mx-auto mb-3" />
+                            <RefreshCcw className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-3" />
                             <p className="font-black text-[var(--text-secondary)] uppercase tracking-widest text-[9px]">Buscando registros otimizados no servidor...</p>
                           </td>
                         </tr>
@@ -2590,7 +2590,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                               <div className="flex items-center gap-2">
                                 <span className="text-sm font-black text-zinc-950 uppercase leading-none">{voter.name}</span>
                                 {voter.isArticulator && (
-                                  <span className="bg-zinc-950 text-yellow-500 text-[7px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">Articulador</span>
+                                  <span className="bg-zinc-950 text-blue-600 text-[7px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">Articulador</span>
                                 )}
                                 {voter.isIndigenous && (
                                   <span className="bg-orange-100 text-orange-700 text-[7px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">Com. Tradicional</span>
@@ -2601,7 +2601,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                                   {[1,2,3,4,5].map(star => (
                                     <div 
                                       key={star} 
-                                      className={`w-2 h-2 rounded-full ${star <= (voter.loyaltyScore || 3) ? 'bg-yellow-500 shadow-[0_0_5px_rgba(234,179,8,0.4)]' : 'bg-zinc-200'}`}
+                                      className={`w-2 h-2 rounded-full ${star <= (voter.loyaltyScore || 3) ? 'bg-blue-600 shadow-[0_0_5px_rgba(5,120,211,0.4)]' : 'bg-zinc-200'}`}
                                     ></div>
                                   ))}
                                 </div>
@@ -2649,7 +2649,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                             </div>
                             <div className="flex flex-wrap gap-1 mt-2">
                               {voter.tags?.map((tag: string) => (
-                                <span key={tag} className="bg-yellow-500/10 text-yellow-700 px-2 py-0.5 rounded-sm text-[8px] font-black uppercase">
+                                <span key={tag} className="bg-blue-600/10 text-blue-700 px-2 py-0.5 rounded-sm text-[8px] font-black uppercase">
                                   {tag}
                                 </span>
                               )) || <span className="text-zinc-300">---</span>}
@@ -2693,7 +2693,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                                    });
                                    setIsVoterEditModalOpen(true);
                                  }}
-                                 className="p-2 text-zinc-400 hover:text-yellow-600 transition-all hover:bg-yellow-500/10 rounded-sm"
+                                 className="p-2 text-zinc-400 hover:text-blue-600 transition-all hover:bg-blue-600/10 rounded-sm"
                                  title="Editar dados"
                                >
                                  <Edit3 className="w-4 h-4" />
@@ -2730,7 +2730,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         setVoterPageSize(Number(e.target.value));
                         setVoterPage(1);
                       }}
-                      className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] rounded-sm p-1.5 px-3 font-black uppercase outline-none focus:border-yellow-500 transition-colors cursor-pointer text-[10px]"
+                      className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] rounded-sm p-1.5 px-3 font-black uppercase outline-none focus:border-blue-600 transition-colors cursor-pointer text-[10px]"
                     >
                       {[10, 25, 50, 100, 250].map((size) => (
                         <option key={size} value={size}>
@@ -2767,7 +2767,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                           onClick={() => setVoterPage(pageNum)}
                           className={`w-8 h-8 rounded-sm font-black border transition-all text-[10px] ${
                             voterPage === pageNum
-                              ? 'bg-yellow-500 border-yellow-600 text-zinc-950 shadow-md'
+                              ? 'bg-blue-600 border-blue-600 text-white shadow-md'
                               : 'border-[var(--border-color)] bg-[var(--bg-tertiary)] text-[var(--text-primary)] hover:bg-zinc-100 dark:hover:bg-zinc-800'
                           }`}
                         >
@@ -2792,7 +2792,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-yellow-500 rounded-sm flex items-center justify-center shadow-lg shadow-yellow-500/10">
+                    <div className="w-12 h-12 bg-blue-600 rounded-sm flex items-center justify-center shadow-lg shadow-blue-600/10">
                       <Calendar className="w-6 h-6 text-zinc-950" />
                     </div>
                     <div>
@@ -2808,7 +2808,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                     }}
                     className="bg-zinc-950 text-white px-6 py-3.5 rounded-sm font-black text-[10px] uppercase flex items-center gap-2.5 shadow-xl shadow-zinc-200 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto"
                   >
-                    <Plus className="w-4 h-4 text-yellow-500" /> Agendar Evento
+                    <Plus className="w-4 h-4 text-blue-600" /> Agendar Evento
                   </button>
                 </div>
 
@@ -2828,10 +2828,10 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                                 <span className="text-2xl font-black text-zinc-950 leading-none">{new Date(item.data).getDate()}</span>
                               </div>
                               <div className="space-y-1.5">
-                                <h3 className="text-lg font-black uppercase tracking-tight text-zinc-950 group-hover:text-yellow-600 transition-colors">{item.municipio}</h3>
+                                <h3 className="text-lg font-black uppercase tracking-tight text-zinc-950 group-hover:text-blue-600 transition-colors">{item.municipio}</h3>
                                 <div className="flex flex-wrap items-center gap-3 text-[9px] font-black text-zinc-400 tracking-widest uppercase">
-                                  <span className="flex items-center gap-1.5"><Clock className="w-2.5 h-2.5 text-yellow-500" /> {item.hora_inicio} - {item.hora_fim}</span>
-                                  <span className="flex items-center gap-1.5"><User className="w-2.5 h-2.5 text-yellow-500" /> <span className="text-zinc-900">{item.team || '---'}</span> • {item.sugeridoPor}</span>
+                                  <span className="flex items-center gap-1.5"><Clock className="w-2.5 h-2.5 text-blue-600" /> {item.hora_inicio} - {item.hora_fim}</span>
+                                  <span className="flex items-center gap-1.5"><User className="w-2.5 h-2.5 text-blue-600" /> <span className="text-zinc-900">{item.team || '---'}</span> • {item.sugeridoPor}</span>
                                 </div>
                                 {item.motivo && <p className="text-[10px] text-zinc-500 font-bold bg-zinc-100 px-2.5 py-0.5 rounded-sm inline-block">{item.motivo}</p>}
                               </div>
@@ -2882,19 +2882,19 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                               setSelectedAgenda(item);
                               setIsAgendaDetailModalOpen(true);
                             }}
-                            className="bg-zinc-900 border border-zinc-800 p-4 rounded-sm flex items-center gap-5 group cursor-pointer hover:border-yellow-500/50 transition-all"
+                            className="bg-zinc-900 border border-zinc-800 p-4 rounded-sm flex items-center gap-5 group cursor-pointer hover:border-blue-600/50 transition-all"
                           >
-                            <div className="flex flex-col items-center justify-center bg-zinc-800 w-12 h-12 rounded-sm shrink-0 group-hover:bg-yellow-500 transition-colors">
-                              <span className="text-[8px] font-black uppercase text-zinc-500 group-hover:text-zinc-950 leading-none mb-0.5">{new Date(item.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
-                              <span className="text-xl font-black text-white group-hover:text-zinc-950 leading-none">{new Date(item.data).getDate()}</span>
+                            <div className="flex flex-col items-center justify-center bg-zinc-800 w-12 h-12 rounded-sm shrink-0 group-hover:bg-blue-600 transition-colors">
+                              <span className="text-[8px] font-black uppercase text-zinc-500 group-hover:text-white leading-none mb-0.5">{new Date(item.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
+                              <span className="text-xl font-black text-white group-hover:text-white leading-none">{new Date(item.data).getDate()}</span>
                             </div>
                             <div className="flex-1 overflow-hidden">
-                              <h4 className="text-base font-black uppercase text-white truncate group-hover:text-yellow-500 transition-colors leading-none">{item.municipio}</h4>
+                              <h4 className="text-base font-black uppercase text-white truncate group-hover:text-blue-600 transition-colors leading-none">{item.municipio}</h4>
                               <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mt-1.5 flex items-center gap-2">
                                 <Clock className="w-2.5 h-2.5" /> {item.hora_inicio}
                               </p>
                             </div>
-                            <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-yellow-500 transition-all" />
+                            <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-blue-600 transition-all" />
                           </motion.div>
                         ))}
                       </div>
@@ -2926,13 +2926,13 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       <div className="flex gap-2.5 mt-3 md:mt-5">
                         <button 
                           onClick={() => setNoteSubTab('tactical')}
-                          className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-3.5 md:px-6 py-2 md:py-2.5 rounded-sm transition-all border ${noteSubTab === 'tactical' ? 'bg-zinc-950 text-white border-zinc-950 shadow-xl dark:bg-yellow-500 dark:text-zinc-950 dark:border-yellow-500' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-yellow-500'}`}
+                          className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-3.5 md:px-6 py-2 md:py-2.5 rounded-sm transition-all border ${noteSubTab === 'tactical' ? 'bg-zinc-950 text-white border-zinc-950 shadow-xl dark:bg-blue-600 dark:text-white dark:border-blue-600' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-blue-600'}`}
                         >
                           Equipe (Fórum)
                         </button>
                         <button 
                           onClick={() => setNoteSubTab('private')}
-                          className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-3.5 md:px-6 py-2 md:py-2.5 rounded-sm transition-all border ${noteSubTab === 'private' ? 'bg-zinc-950 text-white border-zinc-950 shadow-xl dark:bg-yellow-500 dark:text-zinc-950 dark:border-yellow-500' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-yellow-500'}`}
+                          className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-3.5 md:px-6 py-2 md:py-2.5 rounded-sm transition-all border ${noteSubTab === 'private' ? 'bg-zinc-950 text-white border-zinc-950 shadow-xl dark:bg-blue-600 dark:text-white dark:border-blue-600' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-blue-600'}`}
                         >
                           Minhas Observações
                         </button>
@@ -2943,7 +2943,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                   {noteSubTab === 'private' && (
                     <button 
                       onClick={() => setIsAiModalOpen(true)}
-                      className="bg-yellow-500 text-zinc-950 px-8 py-3.5 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-yellow-400 active:scale-95 transition-all flex items-center gap-3"
+                      className="bg-blue-600 text-white px-8 py-3.5 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-blue-500 active:scale-95 transition-all flex items-center gap-3"
                     >
                       <Plus className="w-4 h-4" /> Nova Observação
                     </button>
@@ -2981,8 +2981,8 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       <Package className="w-32 h-32" />
                     </div>
                     <h3 className="text-xs font-black uppercase text-[var(--text-primary)] mb-5 md:mb-8 flex items-center gap-3 relative z-10">
-                      <div className="p-2 bg-yellow-500 rounded-sm shadow-lg shadow-yellow-500/20">
-                        {isEditingMaterial ? <Edit3 className="w-4 h-4 text-zinc-950" /> : <Plus className="w-4 h-4 text-zinc-950" />}
+                      <div className="p-2 bg-blue-600 rounded-sm shadow-lg shadow-blue-600/20">
+                        {isEditingMaterial ? <Edit3 className="w-4 h-4 text-zinc-950" /> : <Plus className="w-4 h-4 text-white" />}
                       </div> {isEditingMaterial ? 'Editar Material' : 'Registrador de Lote'}
                     </h3>
                     
@@ -2995,7 +2995,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                           placeholder="Ex: Santinho 55000" 
                           value={materialForm.name}
                           onChange={(e) => setMaterialForm({...materialForm, name: e.target.value})}
-                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors" 
+                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-blue-600 transition-colors" 
                         />
                       </div>
                       <div className="space-y-2 text-left">
@@ -3012,7 +3012,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                             const formatted = val ? parseInt(val).toLocaleString('pt-BR') : '';
                             setMaterialForm({...materialForm, qty: formatted});
                           }}
-                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors" 
+                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-blue-600 transition-colors" 
                         />
                       </div>
                       <div className="flex gap-3">
@@ -3025,7 +3025,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                             Cancelar
                           </button>
                         )}
-                        <button className="flex-[2] bg-zinc-950 text-white dark:bg-yellow-500 dark:text-zinc-950 py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-yellow-400">
+                        <button className="flex-[2] bg-zinc-950 text-white dark:bg-blue-600 dark:text-white py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-blue-500">
                           {isEditingMaterial ? 'Salvar Alterações' : 'Autenticar Entrada'}
                         </button>
                       </div>
@@ -3035,10 +3035,10 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                   {/* MATERIAL LIST */}
                   <div className="lg:col-span-2 space-y-3 md:space-y-4">
                     {materials.length > 0 ? materials.sort((a, b) => b.createdAt - a.createdAt).map(m => (
-                      <div key={m.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)]">
+                      <div key={m.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:border-blue-600/30 transition-all shadow-[var(--shadow-sm)]">
                         <div className="flex items-center gap-3 md:gap-5">
-                          <div className="w-11 h-11 md:w-14 md:h-14 bg-[var(--bg-tertiary)] rounded-sm flex items-center justify-center border border-[var(--border-color)] shadow-inner group-hover/mat:border-yellow-500/30">
-                            <Package className={`w-5 h-5 md:w-6 md:h-6 ${(m.current / m.total) < 0.2 ? 'text-red-500 animate-pulse' : 'text-[var(--text-secondary)]'} group-hover:text-yellow-600 transition-colors`} />
+                          <div className="w-11 h-11 md:w-14 md:h-14 bg-[var(--bg-tertiary)] rounded-sm flex items-center justify-center border border-[var(--border-color)] shadow-inner group-hover/mat:border-blue-600/30">
+                            <Package className={`w-5 h-5 md:w-6 md:h-6 ${(m.current / m.total) < 0.2 ? 'text-red-500 animate-pulse' : 'text-[var(--text-secondary)]'} group-hover:text-blue-600 transition-colors`} />
                           </div>
                           <div>
                             <h4 className="font-black text-[var(--text-primary)] text-xs md:text-sm uppercase tracking-tight font-sans leading-none">{m.name}</h4>
@@ -3047,7 +3047,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                                 <motion.div 
                                   initial={{ width: 0 }}
                                   animate={{ width: `${Math.min(100, (m.current / m.total) * 100)}%` }}
-                                  className={`h-full ${(m.current / m.total) < 0.2 ? 'bg-red-500' : 'bg-yellow-500'}`} 
+                                  className={`h-full ${(m.current / m.total) < 0.2 ? 'bg-red-500' : 'bg-blue-600'}`} 
                                 />
                               </div>
                               <span className="text-[8px] md:text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest leading-none">
@@ -3129,7 +3129,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       return (
                         <div 
                           key={req.id} 
-                          className={`bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm transition-all duration-200 relative overflow-hidden group shadow-sm hover:shadow-md hover:border-yellow-500/20 ${
+                          className={`bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm transition-all duration-200 relative overflow-hidden group shadow-sm hover:shadow-md hover:border-blue-600/20 ${
                             isCollapsed ? 'p-3.5 cursor-pointer' : 'p-5 flex flex-col gap-4'
                           }`}
                           onClick={() => {
@@ -3138,7 +3138,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                             }
                           }}
                         >
-                          {req.status === 'pendente' && <div className="absolute top-0 right-0 w-1.5 h-full bg-yellow-500"></div>}
+                          {req.status === 'pendente' && <div className="absolute top-0 right-0 w-1.5 h-full bg-blue-600"></div>}
                           {req.status === 'devolucao_pendente' && <div className="absolute top-0 right-0 w-1.5 h-full bg-blue-500 animate-pulse"></div>}
                           
                           {/* Top row (Header of card) */}
@@ -3156,15 +3156,15 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                                 req.status === 'aprovado' ? 'bg-emerald-500/10 text-emerald-500' : 
                                 req.status === 'devolucao_pendente' ? 'bg-blue-500/10 text-blue-500' :
                                 req.status === 'devolvido' ? 'bg-zinc-500/10 text-zinc-400' :
-                                req.status === 'negado' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500'
+                                req.status === 'negado' ? 'bg-red-500/10 text-red-500' : 'bg-blue-600/10 text-blue-600'
                               }`}>
                                 <Package className="w-4 h-4" />
                               </div>
                               <div className="text-left">
                                 <h4 className="font-black text-[var(--text-primary)] text-xs uppercase tracking-tight leading-tight flex items-center gap-1.5">
-                                  {req.materialName} <span className="text-yellow-600 dark:text-yellow-500 font-bold">({req.qty} un)</span>
+                                  {req.materialName} <span className="text-blue-600 dark:text-blue-600 font-bold">({req.qty} un)</span>
                                 </h4>
-                                <p className="text-[9px] font-black text-yellow-600 dark:text-yellow-500/80 uppercase tracking-widest mt-0.5 opacity-80">
+                                <p className="text-[9px] font-black text-blue-600 dark:text-blue-600/80 uppercase tracking-widest mt-0.5 opacity-80">
                                   {req.team || '---'} • {req.leaderName}
                                 </p>
                               </div>
@@ -3175,14 +3175,14 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                                 req.status === 'aprovado' ? 'bg-emerald-500 text-white' : 
                                 req.status === 'devolucao_pendente' ? 'bg-blue-600 text-white' :
                                 req.status === 'devolvido' ? 'bg-zinc-500 text-white' :
-                                req.status === 'negado' ? 'bg-red-500 text-white' : 'bg-yellow-500 text-zinc-950'
+                                req.status === 'negado' ? 'bg-red-500 text-white' : 'bg-blue-600 text-white'
                               }`}>
                                 {req.status === 'devolucao_pendente' ? 'devolução pendente' : req.status}
                               </span>
                               {isCollapsed ? (
-                                <ChevronDown className="w-4 h-4 text-zinc-400 group-hover:text-yellow-500 transition-colors" />
+                                <ChevronDown className="w-4 h-4 text-zinc-400 group-hover:text-blue-600 transition-colors" />
                               ) : (
-                                <ChevronUp className="w-4 h-4 text-zinc-400 group-hover:text-yellow-500 transition-colors" />
+                                <ChevronUp className="w-4 h-4 text-zinc-400 group-hover:text-blue-600 transition-colors" />
                               )}
                             </div>
                           </div>
@@ -3191,8 +3191,8 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                           {!isCollapsed && (
                             <div className="flex flex-col gap-3.5 pt-3.5 border-t border-[var(--border-color)] mt-1 animate-fadeIn">
                               {req.returnDate && (
-                                <div className="bg-yellow-500/5 px-3 py-2 rounded-sm border border-yellow-500/10 text-left">
-                                  <span className="text-[8px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-wider block mb-0.5">Previsão de Devolução</span>
+                                <div className="bg-blue-600/5 px-3 py-2 rounded-sm border border-blue-600/10 text-left">
+                                  <span className="text-[8px] font-black text-blue-600 dark:text-blue-600 uppercase tracking-wider block mb-0.5">Previsão de Devolução</span>
                                   <span className="text-xs font-black text-[var(--text-primary)]">{new Date(req.returnDate + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
                                 </div>
                               )}
@@ -3314,7 +3314,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                                 if (active && payload && payload.length) {
                                   return (
                                     <div className="bg-zinc-950 p-4 rounded-sm shadow-2xl border border-white/10 dark:bg-zinc-900">
-                                      <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest mb-1">{payload[0].payload.name}</p>
+                                      <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">{payload[0].payload.name}</p>
                                       <p className="text-xl font-black text-white">{payload[0].value} <span className="text-[10px] opacity-50">Demandas</span></p>
                                     </div>
                                   );
@@ -3334,8 +3334,8 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
                    <div className="lg:col-span-1 space-y-6">
                       <div className="bg-zinc-950 rounded-sm p-8 text-white text-center relative overflow-hidden dark:bg-zinc-900 border border-white/5">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-yellow-500"></div>
-                        <Activity className="w-10 h-10 text-yellow-500 mx-auto mb-5 animate-pulse" />
+                        <div className="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
+                        <Activity className="w-10 h-10 text-blue-600 mx-auto mb-5 animate-pulse" />
                         <h4 className="text-lg font-black uppercase tracking-tighter">Foco Estratégico</h4>
                         <p className="text-zinc-500 text-[9px] font-black uppercase tracking-[0.2em] mt-3 leading-relaxed opacity-70">
                           A Zona com maior volume operacional requer revisão de logística imediata.
@@ -3348,14 +3348,14 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                           {demandsSummary.length > 0 ? demandsSummary.map(d => (
                             <div key={d.name} className="group/stat">
                               <div className="flex justify-between items-center mb-2.5">
-                                <span className="text-[10px] font-black uppercase text-[var(--text-primary)] leading-none font-sans group-hover/stat:text-yellow-600 transition-colors">{d.name}</span>
+                                <span className="text-[10px] font-black uppercase text-[var(--text-primary)] leading-none font-sans group-hover/stat:text-blue-600 transition-colors">{d.name}</span>
                                 <span className="text-[9px] font-black text-[var(--text-secondary)] opacity-50 uppercase">{d.value} REQS</span>
                               </div>
                               <div className="h-1.5 bg-[var(--bg-tertiary)] rounded-full overflow-hidden border border-[var(--border-color)] shadow-inner">
                                 <motion.div 
                                   initial={{ width: 0 }}
                                   animate={{ width: `${(d.value / Math.max(...demandsSummary.map(i => i.value))) * 100}%` }}
-                                  className="h-full bg-[var(--text-primary)] group-hover/stat:bg-yellow-500 transition-colors" 
+                                  className="h-full bg-[var(--text-primary)] group-hover/stat:bg-blue-600 transition-colors" 
                                 />
                               </div>
                             </div>
@@ -3388,9 +3388,9 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                     { id: 'materials', title: 'Materiais e Estoque', desc: 'Controle de suprimentos e remessas.', icon: <Package className="w-6 h-6" /> },
                     { id: 'demands', title: 'Demandas e Mapa', desc: 'Urgências e necessidades mapeadas.', icon: <Activity className="w-6 h-6" /> }
                   ].map(r => (
-                    <div key={r.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 hover:border-yellow-500/50 transition-all group shadow-sm">
+                    <div key={r.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 hover:border-blue-600/50 transition-all group shadow-sm">
                       <div className="flex items-center gap-4 mb-4">
-                        <div className="p-3 bg-zinc-950 text-yellow-500 rounded-sm shadow-xl group-hover:scale-110 transition-transform dark:bg-zinc-900 border border-white/5">
+                        <div className="p-3 bg-zinc-950 text-blue-600 rounded-sm shadow-xl group-hover:scale-110 transition-transform dark:bg-zinc-900 border border-white/5">
                           {r.icon}
                         </div>
                         <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">{r.title}</h3>
@@ -3402,7 +3402,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                           setSelectedReportColumns(AVAILABLE_COLUMNS_BY_TYPE[r.id]?.map(c => c.dataKey) || []);
                           setIsReportModalOpen(true);
                         }}
-                        className="w-full bg-zinc-950 text-white dark:bg-zinc-900 border border-white/10 py-3.5 rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all flex items-center justify-center gap-2"
+                        className="w-full bg-zinc-950 text-white dark:bg-zinc-900 border border-white/10 py-3.5 rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2"
                       >
                         <Plus className="w-4 h-4" /> Configurar Filtros
                       </button>
@@ -3412,13 +3412,13 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
                 <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-10 shadow-sm mt-12">
                   <h3 className="text-lg font-black uppercase text-[var(--text-primary)] tracking-tighter mb-8 flex items-center gap-3">
-                    <History className="w-5 h-5 text-yellow-500" /> Histórico de Relatórios Gerados
+                    <History className="w-5 h-5 text-blue-600" /> Histórico de Relatórios Gerados
                   </h3>
                   <div className="space-y-4">
                     {reportsHistory.length > 0 ? reportsHistory.map((rep: any) => (
-                      <div key={rep.id} className="flex flex-col md:flex-row md:items-center justify-between p-5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm hover:border-yellow-500/30 transition-all shadow-inner group">
+                      <div key={rep.id} className="flex flex-col md:flex-row md:items-center justify-between p-5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm hover:border-blue-600/30 transition-all shadow-inner group">
                         <div className="flex items-center gap-5">
-                          <div className="p-3 bg-zinc-950 text-white rounded-sm border border-white/5 group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-all">
+                          <div className="p-3 bg-zinc-950 text-white rounded-sm border border-white/5 group-hover:bg-blue-600 group-hover:text-white transition-all">
                             <FileDown className="w-5 h-5" />
                           </div>
                           <div>
@@ -3431,7 +3431,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                              <a 
                                href={rep.pdfUrl} 
                                download={`${rep.title}.pdf`}
-                               className="px-6 py-2.5 bg-zinc-950 text-white dark:bg-zinc-900 border border-white/10 rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all flex items-center gap-2 shadow-xl"
+                               className="px-6 py-2.5 bg-zinc-950 text-white dark:bg-zinc-900 border border-white/10 rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 shadow-xl"
                              >
                                Baixar PDF
                              </a>
@@ -3487,7 +3487,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="bg-yellow-500 p-6">
+              <div className="bg-blue-600 p-6">
                 <Brain className="w-10 h-10 text-zinc-950 mb-4" />
                 <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none">Análise de IA</h2>
                 <p className="text-zinc-900 text-[10px] font-black mt-2 uppercase tracking-widest leading-tight">Mapeamento Estratégico de Demandas</p>
@@ -3501,15 +3501,15 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       value={chaosText}
                       onChange={(e) => setChaosText(e.target.value)}
                       placeholder="Descreva a situação em tempo real..."
-                      className="w-full h-40 bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-xs text-zinc-800 focus:border-yellow-500 outline-none transition-all placeholder:text-zinc-300 resize-none"
+                      className="w-full h-40 bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-xs text-zinc-800 focus:border-blue-600 outline-none transition-all placeholder:text-zinc-300 resize-none"
                     />
                     <div className="flex flex-col gap-3 font-sans">
                       <button 
                         onClick={handleProcessCaos}
                         disabled={isProcessing || !chaosText}
-                        className="w-full bg-zinc-950 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500 hover:text-zinc-950 transition-all active:scale-95 flex items-center justify-center gap-2"
+                        className="w-full bg-zinc-950 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2"
                       >
-                        {isProcessing ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4 cursor-pointer text-yellow-500" />}
+                        {isProcessing ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4 cursor-pointer text-blue-600" />}
                         {isProcessing ? 'Processando Inteligência...' : 'Analisar com IA'}
                       </button>
                       
@@ -3517,7 +3517,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         <button 
                           onClick={() => handleSaveNote('tactical')}
                           disabled={isProcessing || !chaosText}
-                          className="flex-1 bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2"
+                          className="flex-1 bg-blue-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2"
                         >
                           <MessageSquare className="w-4 h-4" /> Postar no Fórum
                         </button>
@@ -3600,7 +3600,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                           setChaosText(`${aiResult.title}: ${summary}`);
                           handleSaveNote('tactical');
                         }}
-                        className="flex-1 bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all flex items-center justify-center gap-2"
+                        className="flex-1 bg-blue-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all flex items-center justify-center gap-2"
                       >
                         <MessageSquare className="w-4 h-4" /> Postar no Fórum
                       </button>
@@ -3647,7 +3647,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                   <X className="w-4 h-4" />
                 </button>
 
-                <div className={`p-6 ${selectedUrgency.type === 'combustivel' ? 'bg-blue-600' : selectedUrgency.type === 'demanda' ? 'bg-yellow-500' : 'bg-red-600'}`}>
+                <div className={`p-6 ${selectedUrgency.type === 'combustivel' ? 'bg-blue-600' : selectedUrgency.type === 'demanda' ? 'bg-blue-600' : 'bg-red-600'}`}>
                   <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">{selectedUrgency.title}</h2>
                   <p className="text-white/70 text-[9px] font-black mt-2 uppercase tracking-widest leading-none">{selectedUrgency.leaderName} • {selectedUrgency.team}</p>
                 </div>
@@ -3724,14 +3724,14 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="p-6 bg-gradient-to-r from-yellow-600/20 to-emerald-600/20 border-b border-zinc-800">
+              <div className="p-6 bg-gradient-to-r from-blue-600/20 to-emerald-600/20 border-b border-zinc-800">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-yellow-500 rounded-sm text-zinc-950 shadow-lg shadow-yellow-500/10">
+                  <div className="p-2.5 bg-blue-600 rounded-sm text-white shadow-lg shadow-blue-600/10">
                     <ShieldCheck className="w-6 h-6 animate-pulse" />
                   </div>
                   <div>
                     <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none font-sans">Autenticação de Assinatura Digital</h2>
-                    <p className="text-zinc-400 text-[9px] font-black mt-2 uppercase tracking-widest leading-none">SISTEMA ÁGUIA • CONTROLE DE ARSENAL</p>
+                    <p className="text-zinc-400 text-[9px] font-black mt-2 uppercase tracking-widest leading-none">CONTROLE DE ARSENAL DE MATERIAIS</p>
                   </div>
                 </div>
               </div>
@@ -3745,7 +3745,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                     </div>
                     <div className="flex justify-between border-b border-zinc-800/50 pb-2">
                       <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Quantidade:</span>
-                      <span className="text-xs font-black text-yellow-500">{signingRequest.qty.toLocaleString('pt-BR')} unidades</span>
+                      <span className="text-xs font-black text-blue-600">{signingRequest.qty.toLocaleString('pt-BR')} unidades</span>
                     </div>
                     <div className="flex justify-between border-b border-zinc-800/50 pb-2">
                       <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Líder Regional:</span>
@@ -3756,9 +3756,9 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       <span className="text-xs font-black text-white uppercase">{signingRequest.team || '---'}</span>
                     </div>
                     {signingRequest.returnDate && (
-                      <div className="flex justify-between border-b border-zinc-800/50 pb-2 bg-yellow-500/5 px-2 py-1 rounded-sm border border-yellow-500/10">
-                        <span className="text-[9px] font-black text-yellow-500 uppercase tracking-wider">Previsão de Devolução:</span>
-                        <span className="text-xs font-black text-yellow-500">{new Date(signingRequest.returnDate + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
+                      <div className="flex justify-between border-b border-zinc-800/50 pb-2 bg-blue-600/5 px-2 py-1 rounded-sm border border-blue-600/10">
+                        <span className="text-[9px] font-black text-blue-600 uppercase tracking-wider">Previsão de Devolução:</span>
+                        <span className="text-xs font-black text-blue-600">{new Date(signingRequest.returnDate + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
                       </div>
                     )}
                     {signingRequest.reason && (
@@ -3779,10 +3779,10 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       value={signerName}
                       onChange={(e) => setSignerName(e.target.value)}
                       placeholder="Digite seu nome completo como assinatura..."
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-sm py-4 px-4 font-bold text-sm text-white outline-none focus:border-yellow-500 transition-colors shadow-inner"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-sm py-4 px-4 font-bold text-sm text-white outline-none focus:border-blue-600 transition-colors shadow-inner"
                     />
                     <p className="text-[8px] text-zinc-500 leading-normal ml-1">
-                      Ao assinar digitando seu nome, você certifica eletronicamente a liberação deste lote, registrando o carimbo de data/hora e hash de integridade exclusivo do Sistema Águia.
+                      Ao assinar digitando seu nome, você certifica eletronicamente a liberação deste lote, registrando o carimbo de data/hora e hash de integridade exclusivo do sistema.
                     </p>
                   </div>
                 </div>
@@ -3853,7 +3853,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       onChange={(e) => setNewTeam({...newTeam, name: e.target.value})}
                       placeholder="Ex: Tropa de Elite"
                       disabled={isEditMode}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all disabled:opacity-50 placeholder:text-zinc-300"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all disabled:opacity-50 placeholder:text-zinc-300"
                     />
                   </div>
                   
@@ -3865,7 +3865,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       value={newTeam.leader}
                       onChange={(e) => setNewTeam({...newTeam, leader: e.target.value})}
                       placeholder="Nome Completo"
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300"
                     />
                   </div>
 
@@ -3879,7 +3879,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         onChange={(e) => setNewTeam({...newTeam, leaderEmail: e.target.value})}
                         placeholder="lider@sistema.org"
                         disabled={isEditMode}
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all disabled:opacity-50 placeholder:text-zinc-300"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all disabled:opacity-50 placeholder:text-zinc-300"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -3890,7 +3890,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         value={newTeam.leaderPhone}
                         onChange={(e) => setNewTeam({...newTeam, leaderPhone: e.target.value})}
                         placeholder="(00) 00000-0000"
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300"
                       />
                     </div>
                   </div>
@@ -3904,7 +3904,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         value={newTeam.location}
                         onChange={(e) => setNewTeam({...newTeam, location: e.target.value})}
                         placeholder="Ex: Boa Vista - Polo Sul"
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -3915,7 +3915,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         value={newTeam.leaderAddress}
                         onChange={(e) => setNewTeam({...newTeam, leaderAddress: e.target.value})}
                         placeholder="Logradouro completo"
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300"
                       />
                     </div>
                   </div>
@@ -3927,13 +3927,13 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       onChange={(e) => setNewTeam({...newTeam, observations: e.target.value})}
                       placeholder="Diretrizes e observações cruciais..."
                       maxLength={1000}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 placeholder:text-zinc-300 resize-none"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-blue-600 transition-all h-24 placeholder:text-zinc-300 resize-none"
                     />
                   </div>
                   
                   <button 
                     type="submit"
-                    className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-zinc-950/10 hover:bg-zinc-900 transition-all active:scale-[0.98] mt-2"
+                    className="w-full bg-zinc-950 text-blue-600 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-zinc-950/10 hover:bg-zinc-900 transition-all active:scale-[0.98] mt-2"
                   >
                     {isEditMode ? 'SALVAR ALTERAÇÕES' : 'EFETIVAR CADASTRO'}
                   </button>
@@ -4012,7 +4012,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="bg-yellow-500 p-6">
+              <div className="bg-blue-600 p-6">
                 <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none">
                   {editingAgenda ? 'Editar Evento' : 'Novo Evento Estratégico'}
                 </h2>
@@ -4028,7 +4028,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                     value={agendaForm.municipio}
                     onChange={(e) => setAgendaForm({...agendaForm, municipio: e.target.value})}
                     placeholder="Ex: Boa Vista / Centro"
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300"
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300"
                   />
                 </div>
                 
@@ -4039,7 +4039,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                     type="date" 
                     value={agendaForm.data}
                     onChange={(e) => setAgendaForm({...agendaForm, data: e.target.value})}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
                   />
                 </div>
 
@@ -4051,7 +4051,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       type="time" 
                       value={agendaForm.hora_inicio}
                       onChange={(e) => setAgendaForm({...agendaForm, hora_inicio: e.target.value})}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -4061,7 +4061,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       type="time" 
                       value={agendaForm.hora_fim}
                       onChange={(e) => setAgendaForm({...agendaForm, hora_fim: e.target.value})}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
                     />
                   </div>
                 </div>
@@ -4072,13 +4072,13 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                      value={agendaForm.motivo}
                      onChange={(e) => setAgendaForm({...agendaForm, motivo: e.target.value})}
                      placeholder="Breve descrição do objetivo..."
-                     className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 resize-none placeholder:text-zinc-300"
+                     className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-blue-600 transition-all h-24 resize-none placeholder:text-zinc-300"
                    />
                 </div>
                 
                 <button 
                   type="submit"
-                  className="w-full bg-zinc-950 text-yellow-500 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl border-zinc-950 hover:bg-zinc-900 transition-all mt-2"
+                  className="w-full bg-zinc-950 text-blue-600 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl border-zinc-950 hover:bg-zinc-900 transition-all mt-2"
                 >
                   {editingAgenda ? 'ATUALIZAR CRONOGRAMA' : 'PUBLICAR EVENTO'}
                 </button>
@@ -4152,10 +4152,10 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                 <X className="w-6 h-6" />
               </button>
 
-              <div className="bg-zinc-950 p-10 border-b-8 border-yellow-500 text-left">
+              <div className="bg-zinc-950 p-10 border-b-8 border-blue-600 text-left">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                   <div className="flex items-center gap-6">
-                    <div className="bg-yellow-500 text-zinc-950 w-20 h-20 rounded-sm flex items-center justify-center font-black text-3xl shadow-lg shadow-yellow-500/20">
+                    <div className="bg-blue-600 text-white w-20 h-20 rounded-sm flex items-center justify-center font-black text-3xl shadow-lg shadow-blue-600/20">
                       {selectedManagingTeam.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -4216,7 +4216,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                            <p className="text-[8px] font-black text-green-600 uppercase tracking-widest mt-2">Membros</p>
                         </div>
                         <div className="bg-zinc-900 p-6 rounded-sm text-center">
-                           <p className="text-2xl font-black text-yellow-500 leading-none">ATIVO</p>
+                           <p className="text-2xl font-black text-blue-600 leading-none">ATIVO</p>
                            <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mt-2">Status</p>
                         </div>
                      </div>
@@ -4232,9 +4232,9 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                      <div className="space-y-3">
                         {managingTeamVoters.length > 0 ? (
                           managingTeamVoters.sort((a,b) => a.name.localeCompare(b.name)).map((vx) => (
-                           <div key={vx.id} className="group bg-white p-5 rounded-sm border-2 border-zinc-100 hover:border-yellow-500 transition-all flex items-center justify-between shadow-sm">
+                           <div key={vx.id} className="group bg-white p-5 rounded-sm border-2 border-zinc-100 hover:border-blue-600 transition-all flex items-center justify-between shadow-sm">
                               <div className="flex items-center gap-4">
-                                 <div className="bg-zinc-100 group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors w-12 h-12 rounded-sm flex items-center justify-center font-black text-lg">
+                                 <div className="bg-zinc-100 group-hover:bg-blue-600 group-hover:text-white transition-colors w-12 h-12 rounded-sm flex items-center justify-center font-black text-lg">
                                     {vx.name.charAt(0).toUpperCase()}
                                  </div>
                                  <div>
@@ -4338,7 +4338,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               >
                 <X className="w-5 h-5" />
               </button>
-              <div className="bg-zinc-950 p-6 border-b-4 border-yellow-500 text-left">
+              <div className="bg-zinc-950 p-6 border-b-4 border-blue-600 text-left">
                 <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
                   Editar Eleitor
                 </h2>
@@ -4402,9 +4402,9 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                           key={star}
                           type="button"
                           onClick={() => setVoterEditForm({...voterEditForm, loyaltyScore: star})}
-                          className={`p-1 transition-all ${star <= voterEditForm.loyaltyScore ? 'text-yellow-500' : 'text-zinc-200'}`}
+                          className={`p-1 transition-all ${star <= voterEditForm.loyaltyScore ? 'text-blue-600' : 'text-zinc-200'}`}
                         >
-                          <Zap className={`w-5 h-5 ${star <= voterEditForm.loyaltyScore ? 'fill-yellow-500' : ''}`} />
+                          <Zap className={`w-5 h-5 ${star <= voterEditForm.loyaltyScore ? 'fill-blue-600' : ''}`} />
                         </button>
                       ))}
                     </div>
@@ -4469,7 +4469,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                      <button
                         type="button"
                         onClick={() => setVoterEditForm({...voterEditForm, isIndigenous: !voterEditForm.isIndigenous})}
-                        className={`text-[8px] font-black px-2 py-1 rounded-sm uppercase tracking-tighter ${voterEditForm.isIndigenous ? 'bg-zinc-950 text-yellow-500' : 'bg-zinc-200 text-zinc-400'}`}
+                        className={`text-[8px] font-black px-2 py-1 rounded-sm uppercase tracking-tighter ${voterEditForm.isIndigenous ? 'bg-zinc-950 text-blue-600' : 'bg-zinc-200 text-zinc-400'}`}
                       >
                        {voterEditForm.isIndigenous ? 'ATIVADO' : 'DESATIVADO'}
                      </button>
@@ -4537,7 +4537,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Tags de Segmentação</label>
                   <div className="flex flex-wrap gap-2 mb-2">
                     {voterEditForm.tags?.map(tag => (
-                      <span key={tag} className="bg-yellow-500/10 text-yellow-600 px-3 py-1 rounded-sm text-[9px] font-black uppercase flex items-center gap-2">
+                      <span key={tag} className="bg-blue-600/10 text-blue-600 px-3 py-1 rounded-sm text-[9px] font-black uppercase flex items-center gap-2">
                         {tag}
                         <button type="button" onClick={() => setVoterEditForm({...voterEditForm, tags: voterEditForm.tags.filter(t => t !== tag)})}>
                           <X className="w-2 h-2" />
@@ -4602,8 +4602,8 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                               }}
                               className={`px-2 py-1 text-[9px] font-black uppercase rounded-sm border transition-all ${
                                 isSelected
-                                  ? 'bg-yellow-500/20 text-yellow-600 border-yellow-500/40 hover:bg-yellow-500/10'
-                                  : 'bg-white text-zinc-600 border-zinc-200 hover:border-yellow-500/50 hover:text-zinc-850'
+                                  ? 'bg-blue-600/20 text-blue-600 border-blue-600/40 hover:bg-blue-600/10'
+                                  : 'bg-white text-zinc-600 border-zinc-200 hover:border-blue-600/50 hover:text-zinc-850'
                               }`}
                             >
                               {isSelected ? `✓ ${tag}` : `+ ${tag}`}
@@ -4642,7 +4642,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               >
                 <X className="w-5 h-5" />
               </button>
-              <div className="bg-zinc-950 p-6 border-b-4 border-yellow-500 text-left">
+              <div className="bg-zinc-950 p-6 border-b-4 border-blue-600 text-left">
                 <div className="flex items-center gap-4">
                    <div className="relative group">
                       <div className="w-16 h-16 bg-zinc-800 rounded-sm flex items-center justify-center border-2 border-zinc-700 overflow-hidden">
@@ -4652,7 +4652,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                            <User className="w-8 h-8 text-zinc-600" />
                          )}
                       </div>
-                      <label className="absolute -bottom-1 -right-1 bg-yellow-500 p-1.5 rounded-sm text-zinc-950 shadow-lg hover:scale-110 transition-all cursor-pointer">
+                      <label className="absolute -bottom-1 -right-1 bg-blue-600 p-1.5 rounded-sm text-white shadow-lg hover:scale-110 transition-all cursor-pointer">
                          <Camera className="w-3.5 h-3.5" />
                          <input 
                            type="file" 
@@ -4687,7 +4687,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
                         Meu Perfil
                       </h2>
-                      <p className="text-yellow-500 text-[8px] font-black mt-2 uppercase tracking-widest">Acesso de Coordenação Geral</p>
+                      <p className="text-blue-600 text-[8px] font-black mt-2 uppercase tracking-widest">Acesso de Coordenação Geral</p>
                    </div>
                 </div>
               </div>
@@ -4778,7 +4778,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
               <div className="bg-zinc-950 p-12 text-left">
                 <div className="flex items-center gap-6">
-                   <div className="w-20 h-20 bg-yellow-500 rounded-sm flex flex-col items-center justify-center text-zinc-950 text-center">
+                   <div className="w-20 h-20 bg-blue-600 rounded-sm flex flex-col items-center justify-center text-white text-center">
                       <span className="text-[10px] font-black uppercase leading-none">{new Date(selectedAgenda.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
                       <span className="text-3xl font-black">{new Date(selectedAgenda.data).getDate()}</span>
                    </div>
@@ -4786,7 +4786,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       <h2 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">
                         Compromisso Oficial
                       </h2>
-                      <p className="text-yellow-500 text-xs font-black mt-2 uppercase tracking-widest">{selectedAgenda.municipio}</p>
+                      <p className="text-blue-600 text-xs font-black mt-2 uppercase tracking-widest">{selectedAgenda.municipio}</p>
                    </div>
                 </div>
               </div>
@@ -4849,11 +4849,11 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                 <X className="w-6 h-6" />
               </button>
 
-              <div className="bg-zinc-950 p-10 border-b-4 border-yellow-500 text-left">
+              <div className="bg-zinc-950 p-10 border-b-4 border-blue-600 text-left">
                 <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">
                   Histórico Estratégico
                 </h2>
-                <p className="text-yellow-500 text-xs font-black mt-2 uppercase tracking-widest">Equipe: {selectedHistoryTeam.name}</p>
+                <p className="text-blue-600 text-xs font-black mt-2 uppercase tracking-widest">Equipe: {selectedHistoryTeam.name}</p>
               </div>
 
               <div className="p-10 space-y-6 text-left max-h-[60vh] overflow-y-auto">
@@ -4892,7 +4892,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               
               <div className="bg-zinc-950 p-6">
                 <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">Customizar Relatório</h2>
-                <p className="text-yellow-500 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Filtragem e Recorte de Dados Estratégicos</p>
+                <p className="text-blue-600 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Filtragem e Recorte de Dados Estratégicos</p>
               </div>
 
               <div className="p-6 space-y-4 text-left border-b border-zinc-100">
@@ -4922,7 +4922,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       }}
                       className={`flex-1 py-3 px-4 rounded-sm font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 border ${
                         reportDetailLevel === 'detailed' 
-                          ? 'bg-yellow-500 text-zinc-950 border-yellow-500 shadow-xl shadow-yellow-500/20 active:scale-95' 
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-600/20 active:scale-95' 
                           : 'bg-zinc-50 text-zinc-400 border-zinc-100 hover:bg-zinc-100'
                       }`}
                     >
@@ -4947,7 +4947,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       <select 
                         value={reportFilters.status || ''} 
                         onChange={e => setReportFilters({...reportFilters, status: e.target.value})}
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all cursor-pointer"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all cursor-pointer"
                       >
                         <option value="">TODOS OS STATUS</option>
                         <option value="OK">OPERANDO (OK)</option>
@@ -4965,7 +4965,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                        <select 
                          value={reportFilters.team || ''} 
                          onChange={e => setReportFilters({...reportFilters, team: e.target.value})}
-                         className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+                         className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
                        >
                          <option value="">TODAS AS EQUIPES</option>
                          {teams.map(t => (
@@ -4978,7 +4978,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                        <select 
                          value={reportFilters.sentiment || ''} 
                          onChange={e => setReportFilters({...reportFilters, sentiment: e.target.value})}
-                         className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+                         className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
                        >
                          <option value="">TODOS OS SENTIMENTOS</option>
                          <option value="support">APOIO (FIDELIZADO)</option>
@@ -4997,7 +4997,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         type="date" 
                         value={reportFilters.startDate || ''} 
                         onChange={e => setReportFilters({...reportFilters, startDate: e.target.value})}
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -5006,7 +5006,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         type="date" 
                         value={reportFilters.endDate || ''} 
                         onChange={e => setReportFilters({...reportFilters, endDate: e.target.value})}
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
                       />
                     </div>
                   </div>
@@ -5030,13 +5030,13 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         }}
                         className={`flex items-center gap-2 p-2 rounded-sm border transition-all text-left ${
                           selectedReportColumns.includes(col.dataKey)
-                            ? 'bg-yellow-50 border-yellow-500 text-yellow-700'
+                            ? 'bg-blue-50 border-blue-600 text-blue-700'
                             : 'bg-zinc-50 border-zinc-100 text-zinc-400'
                         }`}
                       >
                         <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${
                           selectedReportColumns.includes(col.dataKey)
-                            ? 'bg-yellow-500 border-yellow-500'
+                            ? 'bg-blue-600 border-blue-600'
                             : 'bg-white border-zinc-300'
                         }`}>
                           {selectedReportColumns.includes(col.dataKey) && <div className="w-1 h-1 bg-white rounded-full" />}
@@ -5059,7 +5059,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                     }}
                     className="w-full bg-zinc-950 text-white py-4 px-3 rounded-sm font-black text-[10px] uppercase tracking-wider shadow-xl hover:bg-zinc-800 transition-all active:scale-[0.98] flex items-center justify-center gap-2 border border-zinc-800"
                   >
-                    <FileDown className="w-4 h-4 text-yellow-500" /> EXPORTAR PDF
+                    <FileDown className="w-4 h-4 text-blue-600" /> EXPORTAR PDF
                   </button>
 
                   <button 
@@ -5100,11 +5100,11 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
             onClick={() => setActiveTab(tab.id as any)}
             className={`flex flex-col items-center gap-1 transition-all shrink-0 min-w-[64px] ${
               activeTab === tab.id 
-              ? 'text-yellow-600 dark:text-yellow-500 scale-105 font-black' 
+              ? 'text-blue-600 dark:text-blue-600 scale-105 font-black' 
               : 'text-zinc-400 dark:text-zinc-500'
             }`}
           >
-            <div className={`p-2 rounded-sm transition-all ${activeTab === tab.id ? 'bg-yellow-500/10' : ''}`}>
+            <div className={`p-2 rounded-sm transition-all ${activeTab === tab.id ? 'bg-blue-600/10' : ''}`}>
               {tab.icon}
             </div>
             <span className="text-[8px] font-black uppercase tracking-[0.1em]">

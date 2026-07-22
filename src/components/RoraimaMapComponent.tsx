@@ -555,7 +555,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
 
     const sentimentColors = {
       support: 'bg-green-50 border-green-200 text-green-800 dark:bg-green-950/20 dark:border-green-900 dark:text-green-400',
-      neutral: 'bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-950/20 dark:border-yellow-900 dark:text-yellow-400',
+      neutral: 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950/20 dark:border-blue-900 dark:text-blue-500',
       opposed: 'bg-red-50 border-red-200 text-red-800 dark:bg-red-950/20 dark:border-red-900 dark:text-red-400'
     };
 
@@ -572,7 +572,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
               </span>
               
               {node.isArticulator && (
-                <span className="bg-yellow-500 text-zinc-950 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">
+                <span className="bg-blue-600 text-white text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">
                   Articulador
                 </span>
               )}
@@ -595,12 +595,12 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[9px] font-bold text-zinc-500 dark:text-zinc-400">
             {node.localVotacao && (
               <span className="flex items-center gap-0.5">
-                <MapPin className="w-2.5 h-2.5 text-yellow-500" /> Colégio: {node.localVotacao}
+                <MapPin className="w-2.5 h-2.5 text-blue-600" /> Colégio: {node.localVotacao}
               </span>
             )}
             {node.referredBy && (
               <span className="text-zinc-400 dark:text-zinc-500">
-                Influência: <span className="text-yellow-600 dark:text-yellow-500 font-extrabold">{node.referredBy}</span>
+                Influência: <span className="text-blue-600 dark:text-blue-600 font-extrabold">{node.referredBy}</span>
               </span>
             )}
           </div>
@@ -644,7 +644,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
       {/* Header Panel */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-yellow-500 rounded-sm flex items-center justify-center shadow-lg shadow-yellow-500/10">
+          <div className="w-10 h-10 bg-blue-600 rounded-sm flex items-center justify-center shadow-lg shadow-blue-600/10">
             <MapIcon className="w-5 h-5 text-zinc-950" />
           </div>
           <div>
@@ -659,7 +659,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
           <select 
             value={selectedMun} 
             onChange={(e) => setSelectedMun(e.target.value)}
-            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white px-3 py-2 rounded-sm font-black text-[10px] uppercase outline-none focus:border-yellow-500 shadow-sm"
+            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white px-3 py-2 rounded-sm font-black text-[10px] uppercase outline-none focus:border-blue-600 shadow-sm"
           >
             {MUNICIPALITIES.map(mun => (
               <option key={mun} value={mun}>{mun} ({ZONE_INFO[mun]?.zone || "ZE"})</option>
@@ -719,7 +719,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                     value={sidebarSearch}
                     onChange={(e) => setSidebarSearch(e.target.value)}
                     placeholder="Filtrar município ou zona..."
-                    className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm py-2 pl-8 pr-3 font-bold text-[9px] text-zinc-900 dark:text-white outline-none focus:border-yellow-500 placeholder:text-zinc-400"
+                    className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm py-2 pl-8 pr-3 font-bold text-[9px] text-zinc-900 dark:text-white outline-none focus:border-blue-600 placeholder:text-zinc-400"
                   />
                   <Search className="absolute left-2.5 top-2.5 w-3 h-3 text-zinc-400" />
                 </div>
@@ -751,13 +751,13 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                               onClick={() => setSelectedMun(mun)}
                               className={`w-full text-left p-2 border rounded-sm transition-all relative overflow-hidden flex items-center justify-between outline-none ${
                                 isSelected
-                                  ? 'border-yellow-500 bg-yellow-500/10 shadow-xs ring-1 ring-yellow-500'
+                                  ? 'border-blue-600 bg-blue-600/10 shadow-xs ring-1 ring-blue-600'
                                   : 'border-zinc-150 dark:border-zinc-850 bg-white dark:bg-zinc-900 hover:border-zinc-350 dark:hover:border-zinc-750 shadow-xs'
                               }`}
                             >
                               <div 
                                 className="absolute top-0 left-0 bottom-0 w-1" 
-                                style={{ backgroundColor: ZONE_INFO[mun]?.color || "#eab308" }}
+                                style={{ backgroundColor: ZONE_INFO[mun]?.color || "#0578d3" }}
                               />
                               <div className="pl-1.5">
                                 <h5 className="text-[11px] font-black uppercase text-zinc-900 dark:text-white leading-none">
@@ -810,7 +810,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                       <path 
                         d="M 120,200 C 140,165 200,160 210,160 C 240,185 270,180 320,150 C 370,160 380,180 415,160 C 400,200 405,240 425,270 C 385,270 330,225 245,240 C 210,248 180,245 120,200 Z"
                         fill={selectedMun === "Amajari" ? ZONE_INFO["Amajari"].hoverColor : ZONE_INFO["Amajari"].color}
-                        stroke={selectedMun === "Amajari" ? "#eab308" : "#ffffff"}
+                        stroke={selectedMun === "Amajari" ? "#0578d3" : "#ffffff"}
                         strokeWidth={selectedMun === "Amajari" ? "3.5" : "1.5"}
                         className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
                         onClick={() => setSelectedMun("Amajari")}
@@ -822,7 +822,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                       <path 
                         d="M 320,150 C 340,110 380,110 405,95 C 415,120 425,115 440,115 C 440,150 435,170 415,160 C 380,180 370,160 320,150 Z"
                         fill={selectedMun === "Pacaraima" ? ZONE_INFO["Pacaraima"].hoverColor : ZONE_INFO["Pacaraima"].color}
-                        stroke={selectedMun === "Pacaraima" ? "#eab308" : "#ffffff"}
+                        stroke={selectedMun === "Pacaraima" ? "#0578d3" : "#ffffff"}
                         strokeWidth={selectedMun === "Pacaraima" ? "3.5" : "1.5"}
                         className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
                         onClick={() => setSelectedMun("Pacaraima")}
@@ -834,7 +834,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                       <path 
                         d="M 440,115 C 455,110 465,115 470,115 C 475,80 495,40 525,20 C 515,70 535,110 565,120 C 560,135 535,140 520,145 C 515,165 500,175 485,205 C 470,225 455,250 455,250 C 450,165 455,135 470,115 Z"
                         fill={selectedMun === "Uiramutã" ? ZONE_INFO["Uiramutã"].hoverColor : ZONE_INFO["Uiramutã"].color}
-                        stroke={selectedMun === "Uiramutã" ? "#eab308" : "#ffffff"}
+                        stroke={selectedMun === "Uiramutã" ? "#0578d3" : "#ffffff"}
                         strokeWidth={selectedMun === "Uiramutã" ? "3.5" : "1.5"}
                         className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
                         onClick={() => setSelectedMun("Uiramutã")}
@@ -846,7 +846,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                       <path 
                         d="M 455,250 C 470,225 485,205 485,205 C 500,175 515,165 520,145 C 535,140 560,135 565,120 C 575,125 570,150 585,190 C 575,210 580,245 555,270 C 530,280 513,280 505,275 C 490,265 475,255 455,250 Z"
                         fill={selectedMun === "Normandia" ? ZONE_INFO["Normandia"].hoverColor : ZONE_INFO["Normandia"].color}
-                        stroke={selectedMun === "Normandia" ? "#eab308" : "#ffffff"}
+                        stroke={selectedMun === "Normandia" ? "#0578d3" : "#ffffff"}
                         strokeWidth={selectedMun === "Normandia" ? "3.5" : "1.5"}
                         className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
                         onClick={() => setSelectedMun("Normandia")}
@@ -858,7 +858,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                       <path 
                         d="M 15,110 C 50,130 90,150 160,155 C 160,185 160,200 170,160 C 180,240 210,255 260,295 C 300,290 350,270 350,270 C 335,275 315,290 290,290 C 250,295 240,300 200,295 C 190,315 160,320 115,335 C 105,310 100,275 85,270 C 85,220 75,210 15,110 Z"
                         fill={selectedMun === "Alto Alegre" ? ZONE_INFO["Alto Alegre"].hoverColor : ZONE_INFO["Alto Alegre"].color}
-                        stroke={selectedMun === "Alto Alegre" ? "#eab308" : "#ffffff"}
+                        stroke={selectedMun === "Alto Alegre" ? "#0578d3" : "#ffffff"}
                         strokeWidth={selectedMun === "Alto Alegre" ? "3.5" : "1.5"}
                         className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
                         onClick={() => setSelectedMun("Alto Alegre")}
@@ -870,7 +870,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                       <path 
                         d="M 350,270 C 365,255 385,250 405,245 C 410,220 435,200 455,190 C 455,250 475,255 505,275 C 500,310 510,350 505,370 C 490,372 475,365 465,350 C 465,330 445,310 420,290 C 413,285 405,280 403,280 C 400,275 350,270 350,270 Z"
                         fill={selectedMun === "Boa Vista" ? ZONE_INFO["Boa Vista"].hoverColor : ZONE_INFO["Boa Vista"].color}
-                        stroke={selectedMun === "Boa Vista" ? "#eab308" : "#ffffff"}
+                        stroke={selectedMun === "Boa Vista" ? "#0578d3" : "#ffffff"}
                         strokeWidth={selectedMun === "Boa Vista" ? "3.5" : "1.5"}
                         className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
                         onClick={() => setSelectedMun("Boa Vista")}
@@ -882,7 +882,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                       <path 
                         d="M 505,275 C 513,280 530,280 555,270 C 557,285 540,300 537,325 C 535,335 555,360 545,385 C 525,380 515,375 505,370 C 510,350 500,310 505,275 Z"
                         fill={selectedMun === "Bonfim" ? ZONE_INFO["Bonfim"].hoverColor : ZONE_INFO["Bonfim"].color}
-                        stroke={selectedMun === "Bonfim" ? "#eab308" : "#ffffff"}
+                        stroke={selectedMun === "Bonfim" ? "#0578d3" : "#ffffff"}
                         strokeWidth={selectedMun === "Bonfim" ? "3.5" : "1.5"}
                         className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
                         onClick={() => setSelectedMun("Bonfim")}
@@ -894,7 +894,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                       <path 
                         d="M 420,290 C 445,310 465,330 465,350 C 475,365 490,372 505,370 C 500,395 515,420 485,430 C 460,410 433,390 425,365 C 405,350 410,310 420,290 Z"
                         fill={selectedMun === "Cantá" ? ZONE_INFO["Cantá"].hoverColor : ZONE_INFO["Cantá"].color}
-                        stroke={selectedMun === "Cantá" ? "#eab308" : "#ffffff"}
+                        stroke={selectedMun === "Cantá" ? "#0578d3" : "#ffffff"}
                         strokeWidth={selectedMun === "Cantá" ? "3.5" : "1.5"}
                         className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
                         onClick={() => setSelectedMun("Cantá")}
@@ -906,7 +906,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                       <path 
                         d="M 200,295 C 240,300 250,295 290,290 C 315,290 335,275 350,270 C 350,270 400,275 403,280 C 405,280 413,285 420,290 C 410,310 405,350 425,365 C 405,360 365,350 285,355 C 215,360 195,360 155,390 C 145,345 165,335 200,295 Z"
                         fill={selectedMun === "Mucajaí" ? ZONE_INFO["Mucajaí"].hoverColor : ZONE_INFO["Mucajaí"].color}
-                        stroke={selectedMun === "Mucajaí" ? "#eab308" : "#ffffff"}
+                        stroke={selectedMun === "Mucajaí" ? "#0578d3" : "#ffffff"}
                         strokeWidth={selectedMun === "Mucajaí" ? "3.5" : "1.5"}
                         className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
                         onClick={() => setSelectedMun("Mucajaí")}
@@ -918,7 +918,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                       <path 
                         d="M 155,390 C 195,360 215,360 285,355 C 365,350 405,360 425,365 C 433,390 460,410 485,430 C 470,440 435,442 395,435 C 335,450 265,485 225,435 C 205,445 175,430 155,390 Z"
                         fill={selectedMun === "Iracema" ? ZONE_INFO["Iracema"].hoverColor : ZONE_INFO["Iracema"].color}
-                        stroke={selectedMun === "Iracema" ? "#eab308" : "#ffffff"}
+                        stroke={selectedMun === "Iracema" ? "#0578d3" : "#ffffff"}
                         strokeWidth={selectedMun === "Iracema" ? "3.5" : "1.5"}
                         className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
                         onClick={() => setSelectedMun("Iracema")}
@@ -930,7 +930,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                       <path 
                         d="M 225,435 C 265,485 335,450 395,435 C 435,442 470,440 485,430 C 495,450 525,440 525,420 C 535,430 543,425 550,420 C 555,440 565,460 545,490 C 535,500 530,510 535,520 C 515,540 495,560 465,590 C 445,610 395,640 360,690 C 335,720 326,750 323,785 C 320,760 310,740 295,720 C 275,690 265,650 270,595 C 275,540 255,510 225,435 Z"
                         fill={selectedMun === "Caracaraí" ? ZONE_INFO["Caracaraí"].hoverColor : ZONE_INFO["Caracaraí"].color}
-                        stroke={selectedMun === "Caracaraí" ? "#eab308" : "#ffffff"}
+                        stroke={selectedMun === "Caracaraí" ? "#0578d3" : "#ffffff"}
                         strokeWidth={selectedMun === "Caracaraí" ? "3.5" : "1.5"}
                         className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
                         onClick={() => setSelectedMun("Caracaraí")}
@@ -942,7 +942,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                       <path 
                         d="M 465,590 C 495,560 515,540 535,520 C 543,540 565,560 575,580 C 565,610 525,650 525,690 C 515,730 475,780 460,815 C 435,780 395,720 360,690 C 395,640 445,610 465,590 Z"
                         fill={selectedMun === "Rorainópolis" ? ZONE_INFO["Rorainópolis"].hoverColor : ZONE_INFO["Rorainópolis"].color}
-                        stroke={selectedMun === "Rorainópolis" ? "#eab308" : "#ffffff"}
+                        stroke={selectedMun === "Rorainópolis" ? "#0578d3" : "#ffffff"}
                         strokeWidth={selectedMun === "Rorainópolis" ? "3.5" : "1.5"}
                         className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
                         onClick={() => setSelectedMun("Rorainópolis")}
@@ -954,7 +954,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                       <path 
                         d="M 525,420 C 535,430 543,425 550,420 C 558,425 565,430 570,435 C 570,450 565,465 555,475 C 545,470 535,470 530,465 C 525,460 525,440 525,420 Z"
                         fill={selectedMun === "São Luiz" ? ZONE_INFO["São Luiz"].hoverColor : ZONE_INFO["São Luiz"].color}
-                        stroke={selectedMun === "São Luiz" ? "#eab308" : "#ffffff"}
+                        stroke={selectedMun === "São Luiz" ? "#0578d3" : "#ffffff"}
                         strokeWidth={selectedMun === "São Luiz" ? "3.5" : "1.5"}
                         className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
                         onClick={() => setSelectedMun("São Luiz")}
@@ -966,7 +966,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                       <path 
                         d="M 535,520 C 545,510 550,500 545,490 C 555,490 565,495 570,500 C 565,515 555,525 545,530 C 540,530 535,525 535,520 Z"
                         fill={selectedMun === "São João da Baliza" ? ZONE_INFO["São João da Baliza"].hoverColor : ZONE_INFO["São João da Baliza"].color}
-                        stroke={selectedMun === "São João da Baliza" ? "#eab308" : "#ffffff"}
+                        stroke={selectedMun === "São João da Baliza" ? "#0578d3" : "#ffffff"}
                         strokeWidth={selectedMun === "São João da Baliza" ? "3.5" : "1.5"}
                         className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
                         onClick={() => setSelectedMun("São João da Baliza")}
@@ -978,7 +978,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                       <path 
                         d="M 570,435 C 585,425 590,440 595,460 C 595,490 585,515 570,525 C 565,495 555,490 545,490 C 545,490 555,475 555,475 C 565,465 570,450 570,435 Z"
                         fill={selectedMun === "Caroebe" ? ZONE_INFO["Caroebe"].hoverColor : ZONE_INFO["Caroebe"].color}
-                        stroke={selectedMun === "Caroebe" ? "#eab308" : "#ffffff"}
+                        stroke={selectedMun === "Caroebe" ? "#0578d3" : "#ffffff"}
                         strokeWidth={selectedMun === "Caroebe" ? "3.5" : "1.5"}
                         className="cursor-pointer transition-all duration-200 outline-none hover:opacity-95"
                         onClick={() => setSelectedMun("Caroebe")}
@@ -1119,12 +1119,12 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
             </div>
 
             <div className="relative z-10">
-              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-yellow-500">QG Municipal • Comando Eleitoral</span>
+              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-blue-600">QG Municipal • Comando Eleitoral</span>
               <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight mt-1">{selectedMun}</h3>
               
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] uppercase font-bold text-zinc-400 mt-2">
-                <span className="flex items-center gap-1 text-yellow-500">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" />
+                <span className="flex items-center gap-1 text-blue-600">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
                   {ZONE_INFO[selectedMun]?.zone}
                 </span>
                 <span className="text-zinc-700">•</span>
@@ -1157,7 +1157,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
               <div className="space-y-1">
                 <span className="text-[8px] font-black uppercase text-zinc-500 tracking-wider">Frentes / Equipes</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-xl md:text-2xl font-black text-yellow-500">{munStats[selectedMun]?.teams || 0}</span>
+                  <span className="text-xl md:text-2xl font-black text-blue-600">{munStats[selectedMun]?.teams || 0}</span>
                   <span className="text-[8px] font-bold text-zinc-500 uppercase">Ativas</span>
                 </div>
               </div>
@@ -1182,11 +1182,11 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                 onClick={() => setMunSubTab('frentes')}
                 className={`flex-1 py-3 text-center text-[10px] font-black uppercase tracking-wider transition-all border-b-2 outline-none flex items-center justify-center gap-2 ${
                   munSubTab === 'frentes'
-                    ? 'border-yellow-500 text-zinc-950 dark:text-white bg-white dark:bg-zinc-900'
+                    ? 'border-blue-600 text-zinc-950 dark:text-white bg-white dark:bg-zinc-900'
                     : 'border-transparent text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'
                 }`}
               >
-                <Users className="w-3.5 h-3.5 text-yellow-500" />
+                <Users className="w-3.5 h-3.5 text-blue-600" />
                 Frentes e Equipes ({municipalTeams.length})
               </button>
               
@@ -1195,11 +1195,11 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                 onClick={() => setMunSubTab('eleitores')}
                 className={`flex-1 py-3 text-center text-[10px] font-black uppercase tracking-wider transition-all border-b-2 outline-none flex items-center justify-center gap-2 ${
                   munSubTab === 'eleitores'
-                    ? 'border-yellow-500 text-zinc-950 dark:text-white bg-white dark:bg-zinc-900'
+                    ? 'border-blue-600 text-zinc-950 dark:text-white bg-white dark:bg-zinc-900'
                     : 'border-transparent text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'
                 }`}
               >
-                <UserCheck className="w-3.5 h-3.5 text-yellow-500" />
+                <UserCheck className="w-3.5 h-3.5 text-blue-600" />
                 Cadastro & Rede ({municipalVoters.length})
               </button>
             </div>
@@ -1210,7 +1210,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                 <div className="space-y-4">
                   <div className="flex items-center justify-between border-b border-zinc-50 dark:border-zinc-850 pb-2 mb-2">
                     <span className="text-[9px] font-black uppercase text-zinc-400 tracking-wider">Diretório de Equipes no Terreno</span>
-                    <span className="bg-yellow-500 text-zinc-950 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">
+                    <span className="bg-blue-600 text-white text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">
                       {municipalTeams.length} {municipalTeams.length === 1 ? 'Liderança' : 'Lideranças'}
                     </span>
                   </div>
@@ -1235,7 +1235,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                             {/* Leader Contact Details */}
                             <div className="mt-3 space-y-1.5">
                               <div className="flex items-center gap-2">
-                                <div className="w-5 h-5 bg-yellow-500 text-zinc-950 rounded-full flex items-center justify-center text-[9px] font-bold">
+                                <div className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-[9px] font-bold">
                                   {team.leader?.charAt(0).toUpperCase()}
                                 </div>
                                 <span className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200">
@@ -1321,7 +1321,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Buscar nome, telefone ou colégio eleitoral..."
-                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm py-2 pl-8 pr-3 font-bold text-[9px] text-zinc-900 dark:text-white outline-none focus:border-yellow-500 placeholder:text-zinc-400"
+                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm py-2 pl-8 pr-3 font-bold text-[9px] text-zinc-900 dark:text-white outline-none focus:border-blue-600 placeholder:text-zinc-400"
                           />
                           <Search className="absolute left-2.5 top-2.5 w-3 h-3 text-zinc-400" />
                         </div>
@@ -1356,19 +1356,19 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   <span className="text-xs font-black uppercase text-zinc-900 dark:text-white">{voter.name}</span>
                                   {voter.sentiment === 'support' && <span className="bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/20 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">Apoio</span>}
-                                  {voter.sentiment === 'neutral' && <span className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border border-yellow-500/20 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">Neutro</span>}
+                                  {voter.sentiment === 'neutral' && <span className="bg-blue-600/10 text-blue-700 dark:text-blue-500 border border-blue-600/20 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">Neutro</span>}
                                   {voter.sentiment === 'opposed' && <span className="bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">Oposição</span>}
                                 </div>
                                 
                                 <div className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 flex flex-wrap gap-x-3 gap-y-0.5">
                                   {voter.localVotacao && (
                                     <span className="flex items-center gap-0.5">
-                                      <MapPin className="w-2.5 h-2.5 text-yellow-500" /> Local: {voter.localVotacao}
+                                      <MapPin className="w-2.5 h-2.5 text-blue-600" /> Local: {voter.localVotacao}
                                     </span>
                                   )}
                                   {voter.referredBy && (
                                     <span className="text-zinc-450">
-                                      Indicação: <span className="text-yellow-600 font-extrabold">{voter.referredBy}</span>
+                                      Indicação: <span className="text-blue-600 font-extrabold">{voter.referredBy}</span>
                                     </span>
                                   )}
                                 </div>
@@ -1419,7 +1419,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                           {influenceTree.map(rootNode => (
                             <div key={rootNode.id || rootNode.name} className="border border-zinc-150 dark:border-zinc-800 rounded-sm p-3 bg-zinc-50 dark:bg-zinc-950/20">
                               <div className="flex items-center gap-1.5 mb-2 pb-1.5 border-b border-zinc-200/50 dark:border-zinc-800">
-                                <Award className="w-3.5 h-3.5 text-yellow-500 shrink-0" />
+                                <Award className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                                 <span className="text-[8px] font-black uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">Influenciador Raiz (Semente de Votos)</span>
                               </div>
                               {renderInfluenceNode(rootNode)}

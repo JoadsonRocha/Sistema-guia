@@ -209,7 +209,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-8">
-        <Loader2 className="w-12 h-12 text-yellow-500 animate-spin mb-4" />
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
         <p className="text-zinc-600 font-black text-xs uppercase tracking-widest animate-pulse">Carregando Formulário...</p>
       </div>
     );
@@ -224,34 +224,37 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
           </div>
           <h1 className="text-xl font-black text-zinc-900 uppercase tracking-tighter mb-3">Falha de Conexão</h1>
           <p className="text-zinc-500 text-sm font-bold mb-8">{error}</p>
-          <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">SISTEMA ÁGUIA • 2026</p>
+          <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">SISTEMA ELEITORAL</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 py-12 px-4 sm:px-6 lg:px-8 selection:bg-yellow-500 selection:text-zinc-950">
+    <div className="min-h-screen bg-zinc-50 py-12 px-4 sm:px-6 lg:px-8 selection:bg-blue-600 selection:text-white">
       <div className="max-w-2xl mx-auto">
         
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex p-3 bg-zinc-950 rounded-sm shadow-xl border border-white/5 mb-4">
-            <ShieldCheck className="w-10 h-10 text-yellow-500" />
+          <div className="inline-flex mb-4 items-center justify-center bg-transparent">
+            <img 
+              src="/logo.png" 
+              alt="Logo" 
+              className="max-h-28 sm:max-h-36 w-auto object-contain" 
+            />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 tracking-tighter uppercase leading-none mb-1">SISTEMA ÁGUIA</h1>
           <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-6">Plataforma de Alistamento Cívico</p>
           
           {leaderInfo && (
             <div className="bg-zinc-950 text-white rounded-sm p-4 inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-6 border border-white/10 shadow-lg">
               <div className="flex items-center gap-2">
-                <Award className="w-4 h-4 text-yellow-500" />
+                <Award className="w-4 h-4 text-blue-600" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Líder:</span>
                 <span className="text-[11px] font-black uppercase tracking-wider text-white">{leaderInfo.name}</span>
               </div>
               <div className="hidden sm:block h-3 w-px bg-white/20" />
               <div className="flex items-center gap-2">
-                <Bookmark className="w-4 h-4 text-yellow-500" />
+                <Bookmark className="w-4 h-4 text-blue-600" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Equipe:</span>
                 <span className="text-[11px] font-black uppercase tracking-wider text-white">{leaderInfo.teamName}</span>
               </div>
@@ -301,7 +304,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
               {/* DADOS PESSOAIS */}
               <div className="space-y-5">
                 <div className="border-b border-zinc-100 pb-3 flex items-center gap-2.5">
-                  <User className="w-5 h-5 text-yellow-600" />
+                  <User className="w-5 h-5 text-blue-600" />
                   <h3 className="font-black text-xs uppercase tracking-widest text-zinc-950">Dados Pessoais</h3>
                 </div>
 
@@ -312,7 +315,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                     type="text" 
                     value={voterForm.name} 
                     onChange={e => setVoterForm({...voterForm, name: e.target.value})} 
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" 
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" 
                     placeholder="Digite seu nome completo..." 
                   />
                 </div>
@@ -325,7 +328,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                       type="text" 
                       value={voterForm.phone} 
                       onChange={e => setVoterForm({...voterForm, phone: e.target.value})} 
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" 
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" 
                       placeholder="(00) 90000-0000" 
                     />
                   </div>
@@ -335,7 +338,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                       type="text" 
                       value={voterForm.referredBy} 
                       onChange={e => setVoterForm({...voterForm, referredBy: e.target.value})} 
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" 
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" 
                       placeholder="Nome de quem te indicou..." 
                     />
                   </div>
@@ -348,7 +351,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                       type="text" 
                       value={voterForm.cpf} 
                       onChange={e => setVoterForm({...voterForm, cpf: e.target.value})} 
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" 
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" 
                       placeholder="000.000.000-00" 
                     />
                   </div>
@@ -358,7 +361,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                       type="text" 
                       value={voterForm.rg} 
                       onChange={e => setVoterForm({...voterForm, rg: e.target.value})} 
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" 
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" 
                       placeholder="Seu documento RG..." 
                     />
                   </div>
@@ -370,7 +373,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                     type="text" 
                     value={voterForm.address} 
                     onChange={e => setVoterForm({...voterForm, address: e.target.value})} 
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" 
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" 
                     placeholder="Rua, Número, Bairro, Cidade..." 
                   />
                 </div>
@@ -379,7 +382,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
               {/* DADOS ELEITORAIS */}
               <div className="space-y-5">
                 <div className="border-b border-zinc-100 pb-3 flex items-center gap-2.5">
-                  <FileText className="w-5 h-5 text-yellow-600" />
+                  <FileText className="w-5 h-5 text-blue-600" />
                   <h3 className="font-black text-xs uppercase tracking-widest text-zinc-950">Dados Eleitorais (Opcional)</h3>
                 </div>
 
@@ -390,7 +393,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                       type="text" 
                       value={voterForm.titulo} 
                       onChange={e => setVoterForm({...voterForm, titulo: e.target.value})} 
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" 
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" 
                       placeholder="Nº do título..." 
                     />
                   </div>
@@ -400,7 +403,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                       type="text" 
                       value={voterForm.zona} 
                       onChange={e => setVoterForm({...voterForm, zona: e.target.value})} 
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" 
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" 
                       placeholder="Zona..." 
                     />
                   </div>
@@ -410,7 +413,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                       type="text" 
                       value={voterForm.secao} 
                       onChange={e => setVoterForm({...voterForm, secao: e.target.value})} 
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" 
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" 
                       placeholder="Seção..." 
                     />
                   </div>
@@ -422,7 +425,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                     type="text" 
                     value={voterForm.localVotacao} 
                     onChange={e => setVoterForm({...voterForm, localVotacao: e.target.value})} 
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" 
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" 
                     placeholder="Nome da Escola ou Seção de Voto..." 
                   />
                 </div>
@@ -431,7 +434,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
               {/* OBSERVACÕES */}
               <div className="space-y-5">
                 <div className="border-b border-zinc-100 pb-3 flex items-center gap-2.5">
-                  <MapPin className="w-5 h-5 text-yellow-600" />
+                  <MapPin className="w-5 h-5 text-blue-600" />
                   <h3 className="font-black text-xs uppercase tracking-widest text-zinc-950">Observações ou Demandas</h3>
                 </div>
 
@@ -440,7 +443,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                   <textarea 
                     value={voterForm.observations} 
                     onChange={e => setVoterForm({...voterForm, observations: e.target.value})} 
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-yellow-500 transition-all h-28 resize-none placeholder:text-zinc-300" 
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all h-28 resize-none placeholder:text-zinc-300" 
                     placeholder="Insira demandas de asfalto, saneamento, ou observações importantes sobre seu cadastro..." 
                   />
                 </div>
@@ -449,7 +452,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
               {/* TERMO DE CONSENTIMENTO LGPD */}
               <div className="space-y-4 bg-zinc-50 border border-zinc-200 rounded-sm p-5">
                 <div className="flex items-center gap-2.5 text-zinc-900">
-                  <ShieldCheck className="w-5 h-5 text-yellow-600 shrink-0" />
+                  <ShieldCheck className="w-5 h-5 text-blue-600 shrink-0" />
                   <h4 className="font-black text-xs uppercase tracking-widest">Termo de Consentimento & LGPD</h4>
                 </div>
                 
@@ -464,7 +467,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                       required
                       checked={acceptedLgpd}
                       onChange={e => setAcceptedLgpd(e.target.checked)}
-                      className="mt-1 w-4 h-4 text-zinc-950 bg-zinc-100 border-zinc-300 rounded-sm focus:ring-yellow-500 outline-none cursor-pointer accent-zinc-950 shrink-0"
+                      className="mt-1 w-4 h-4 text-zinc-950 bg-zinc-100 border-zinc-300 rounded-sm focus:ring-blue-600 outline-none cursor-pointer accent-zinc-950 shrink-0"
                     />
                     <span className="text-[11px] text-zinc-800 font-bold leading-tight">
                       Autorizo o tratamento dos meus dados para fins de relacionamento cívico e informativo desta campanha, nos termos expostos acima. *
@@ -493,7 +496,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
           )}
         </AnimatePresence>
 
-        <p className="mt-8 text-center text-[9px] font-black text-zinc-400 uppercase tracking-[0.4em]">SISTEMA ÁGUIA • DIREÇÃO GERAL DE CAMPANHA 2026</p>
+        <p className="mt-8 text-center text-[9px] font-black text-zinc-400 uppercase tracking-[0.4em]">SISTEMA ELEITORAL • DIREÇÃO GERAL DE CAMPANHA</p>
       </div>
     </div>
   );

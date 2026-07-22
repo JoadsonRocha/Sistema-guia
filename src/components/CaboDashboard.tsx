@@ -172,7 +172,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
   // Carregar cache local de eleitores para carregamento imediato
   useEffect(() => {
     if (user?.uid) {
-      const cached = safeLocalStorage.getItem(`aguia_voters_cache_${user.uid}`);
+      const cached = safeLocalStorage.getItem(`urna360_voters_cache_${user.uid}`);
       if (cached) {
         try {
           setVoters(JSON.parse(cached));
@@ -492,7 +492,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
       }
       setLoadingPaginatedVoters(false);
       
-      safeLocalStorage.setItem(`aguia_voters_cache_${user.uid}`, JSON.stringify(sorted));
+      safeLocalStorage.setItem(`urna360_voters_cache_${user.uid}`, JSON.stringify(sorted));
     }, (err) => {
       console.warn("Error listening to paginated leader voters:", err.message);
       setLoadingPaginatedVoters(false);
@@ -537,7 +537,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
     window.addEventListener('online', handleStatusChange);
     window.addEventListener('offline', handleStatusChange);
     
-    const queue = JSON.parse(safeLocalStorage.getItem('aguia_offline_queue') || '[]');
+    const queue = JSON.parse(safeLocalStorage.getItem('urna360_offline_queue') || '[]');
     setQueueCount(queue.length);
 
     return () => {
@@ -547,11 +547,11 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
   }, []);
 
   const syncOfflineQueue = async () => {
-    const queue = JSON.parse(safeLocalStorage.getItem('aguia_offline_queue') || '[]');
+    const queue = JSON.parse(safeLocalStorage.getItem('urna360_offline_queue') || '[]');
     if (queue.length === 0) return;
     
     setTimeout(() => {
-      safeLocalStorage.setItem('aguia_offline_queue', '[]');
+      safeLocalStorage.setItem('urna360_offline_queue', '[]');
       setQueueCount(0);
       alert('✅ Sincronização Concluída!');
     }, 1500);
@@ -581,9 +581,9 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
             coordinatorId: resolvedCoordinatorId || coordinatorId || ''
           };
           
-          const queue = JSON.parse(safeLocalStorage.getItem('aguia_offline_queue') || '[]');
+          const queue = JSON.parse(safeLocalStorage.getItem('urna360_offline_queue') || '[]');
           const newQueue = [...queue, { ...checkinData, id: Date.now() }];
-          safeLocalStorage.setItem('aguia_offline_queue', JSON.stringify(newQueue));
+          safeLocalStorage.setItem('urna360_offline_queue', JSON.stringify(newQueue));
           setQueueCount(newQueue.length);
           
           // Se online, já tenta salvar
@@ -668,8 +668,8 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
               <h3 className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tighter">Fluxo de Indicações</h3>
               <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">Mapeamento hierárquico de influência regional</p>
             </div>
-            <div className="bg-yellow-500/10 border border-yellow-500/20 px-4 py-2.5 rounded-sm shadow-sm">
-              <span className="text-[10px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-widest">{voters.length} Eleitores Mapeados</span>
+            <div className="bg-blue-600/10 border border-blue-600/20 px-4 py-2.5 rounded-sm shadow-sm">
+              <span className="text-[10px] font-black text-blue-600 dark:text-blue-600 uppercase tracking-widest">{voters.length} Eleitores Mapeados</span>
             </div>
           </div>
 
@@ -681,12 +681,12 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                   className="w-full flex items-center justify-between text-left group transition-all"
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`p-2.5 rounded-sm border transition-all ${expandedReferrers.includes(referrer) ? 'bg-yellow-500 border-yellow-500 shadow-lg shadow-yellow-500/20' : 'bg-[var(--bg-tertiary)] border-[var(--border-color)] group-hover:border-yellow-500/30'}`}>
+                    <div className={`p-2.5 rounded-sm border transition-all ${expandedReferrers.includes(referrer) ? 'bg-blue-600 border-blue-600 shadow-lg shadow-blue-600/20' : 'bg-[var(--bg-tertiary)] border-[var(--border-color)] group-hover:border-blue-600/30'}`}>
                       <Handshake className={`w-4 h-4 transition-colors ${expandedReferrers.includes(referrer) ? 'text-zinc-950' : 'text-[var(--text-secondary)]'}`} />
                     </div>
                     <div>
                       <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] block opacity-60">Pilar de Referência</span>
-                      <h4 className={`text-sm font-black uppercase tracking-tight transition-colors ${expandedReferrers.includes(referrer) ? 'text-yellow-600 dark:text-yellow-500' : 'text-[var(--text-primary)] group-hover:text-yellow-600'}`}>{referrer}</h4>
+                      <h4 className={`text-sm font-black uppercase tracking-tight transition-colors ${expandedReferrers.includes(referrer) ? 'text-blue-600 dark:text-blue-600' : 'text-[var(--text-primary)] group-hover:text-blue-600'}`}>{referrer}</h4>
                     </div>
                   </div>
                   <div className="flex items-center gap-6">
@@ -695,7 +695,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                       animate={{ rotate: expandedReferrers.includes(referrer) ? 180 : 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <ChevronDown className={`w-4 h-4 transition-colors ${expandedReferrers.includes(referrer) ? 'text-yellow-500' : 'text-[var(--text-secondary)] group-hover:text-yellow-500'}`} />
+                      <ChevronDown className={`w-4 h-4 transition-colors ${expandedReferrers.includes(referrer) ? 'text-blue-600' : 'text-[var(--text-secondary)] group-hover:text-blue-600'}`} />
                     </motion.div>
                   </div>
                 </button>
@@ -716,14 +716,14 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             onClick={() => { setSelectedVoter(voter); setIsVoterDetailOpen(true); }}
-                            className="group flex items-center justify-between p-4 bg-[var(--bg-tertiary)]/50 rounded-sm border border-[var(--border-color)] hover:border-yellow-500/50 hover:bg-[var(--bg-tertiary)] transition-all cursor-pointer shadow-sm"
+                            className="group flex items-center justify-between p-4 bg-[var(--bg-tertiary)]/50 rounded-sm border border-[var(--border-color)] hover:border-blue-600/50 hover:bg-[var(--bg-tertiary)] transition-all cursor-pointer shadow-sm"
                           >
                             <div className="flex items-center gap-4">
-                              <div className="w-8 h-8 bg-[var(--bg-secondary)] font-black text-xs text-yellow-500 flex items-center justify-center rounded-sm border border-[var(--border-color)] group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors shadow-inner">
+                              <div className="w-8 h-8 bg-[var(--bg-secondary)] font-black text-xs text-blue-600 flex items-center justify-center rounded-sm border border-[var(--border-color)] group-hover:bg-blue-600 group-hover:text-white transition-colors shadow-inner">
                                 {voter.name.charAt(0)}
                               </div>
                               <div>
-                                <p className="text-xs font-black text-[var(--text-primary)] uppercase tracking-tight group-hover:text-yellow-600 dark:group-hover:text-yellow-500 transition-colors">{voter.name}</p>
+                                <p className="text-xs font-black text-[var(--text-primary)] uppercase tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-600 transition-colors">{voter.name}</p>
                                 <p className="text-[9px] text-[var(--text-secondary)] font-bold uppercase tracking-widest mt-1 opacity-60">{voter.phone}</p>
                               </div>
                             </div>
@@ -734,7 +734,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                                   {tag}
                                 </span>
                               ))}
-                              <ChevronRight className="w-4 h-4 text-[var(--text-secondary)] opacity-30 group-hover:text-yellow-500 group-hover:translate-x-1 group-hover:opacity-100 transition-all" />
+                              <ChevronRight className="w-4 h-4 text-[var(--text-secondary)] opacity-30 group-hover:text-blue-600 group-hover:translate-x-1 group-hover:opacity-100 transition-all" />
                             </div>
                           </motion.div>
                         ))}
@@ -1302,20 +1302,20 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans selection:bg-yellow-500 selection:text-zinc-950 flex overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans selection:bg-blue-600 selection:text-white flex overflow-hidden transition-colors duration-300">
       
       {/* SIDEBAR - DESKTOP ONLY */}
       <aside className="hidden lg:flex w-72 bg-[var(--bg-secondary)] border-r border-[var(--border-color)] flex-col flex-shrink-0 relative z-20">
         <div className="p-6 border-b border-[var(--border-color)] bg-[var(--bg-tertiary)] group/profile relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 blur-3xl -mr-16 -mt-16 group-hover/profile:bg-yellow-500/10 transition-colors pointer-events-none" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl -mr-16 -mt-16 group-hover/profile:bg-blue-600/10 transition-colors pointer-events-none" />
           
-          <div className="flex items-center gap-3 mb-6 relative z-10">
-            <div className="bg-yellow-500 p-2.5 rounded-sm shadow-xl shadow-yellow-500/10 border border-white/20">
-              <ShieldCheck className="w-6 h-6 text-zinc-950" />
-            </div>
-            <div>
-              <h2 className="text-lg font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase">Rede Águia</h2>
-              <p className="text-[9px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-widest mt-1.5 opacity-80">Líder Regional</p>
+          <div className="flex items-center justify-center mb-6 relative z-10 w-full">
+            <div className="flex items-center justify-center bg-transparent w-full">
+              <img 
+                src="/logo.png" 
+                alt="Logo" 
+                className="max-h-28 md:max-h-32 w-full max-w-[240px] object-contain transition-all" 
+              />
             </div>
           </div>
 
@@ -1327,7 +1327,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
             <h3 className="text-xs font-black text-[var(--text-primary)] uppercase truncate">
               {profileData.name || user?.displayName || 'LÍDER'}
             </h3>
-            <p className="text-[8px] font-bold text-yellow-600 dark:text-yellow-500 mt-2 uppercase tracking-widest">
+            <p className="text-[8px] font-bold text-blue-600 dark:text-blue-600 mt-2 uppercase tracking-widest">
               {profileData.zone || 'SETOR NÃO DEFINIDO'}
             </p>
           </div>
@@ -1346,11 +1346,11 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
               onClick={() => setActiveTab(tab.id as any)}
               className={`w-full flex items-center gap-3 px-5 py-4 rounded-sm font-black text-[9px] uppercase tracking-widest transition-all group ${
                 activeTab === tab.id 
-                ? 'bg-yellow-500 text-zinc-950 shadow-xl shadow-yellow-500/20' 
+                ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' 
                 : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]'
               }`}
             >
-              <span className={`${activeTab === tab.id ? 'text-zinc-950' : 'text-[var(--text-secondary)] group-hover:text-yellow-600'} transition-colors`}>
+              <span className={`${activeTab === tab.id ? 'text-white' : 'text-[var(--text-secondary)] group-hover:text-blue-600'} transition-colors`}>
                 {tab.icon}
               </span>
               {tab.label}
@@ -1372,13 +1372,18 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
         {/* TOP BAR */}
         <header className="h-16 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] px-6 lg:px-10 flex items-center justify-between flex-shrink-0 relative z-30 transition-colors duration-300">
           <div className="flex items-center gap-3 lg:hidden">
-            <ShieldCheck className="w-6 h-6 text-yellow-500" />
-            <h1 className="font-black text-base uppercase tracking-tighter text-[var(--text-primary)]">Líder Águia</h1>
+            <div className="flex items-center justify-center bg-transparent shrink-0">
+              <img 
+                src="/logo.png" 
+                alt="Logo" 
+                className="max-h-12 w-auto object-contain" 
+              />
+            </div>
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
-             <div className="bg-yellow-500/10 text-yellow-500 px-4 py-2 rounded-sm border border-yellow-500/20 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></div>
+             <div className="bg-blue-600/10 text-blue-600 px-4 py-2 rounded-sm border border-blue-600/20 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></div>
                 Setor: {profileData.zone || 'Identificando...'}
              </div>
           </div>
@@ -1386,7 +1391,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
           <div className="flex items-center gap-3 lg:gap-4">
             <button 
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-3 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm text-[var(--text-secondary)] hover:bg-yellow-500 hover:text-zinc-950 active:scale-90 transition-all shadow-xl"
+              className="p-3 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm text-[var(--text-secondary)] hover:bg-blue-600 hover:text-white active:scale-90 transition-all shadow-xl"
             >
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
@@ -1404,7 +1409,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
 
             <button 
               onClick={() => setIsProfileModalOpen(true)}
-              className="p-3 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm text-[var(--text-secondary)] hover:bg-yellow-500 hover:text-zinc-950 active:scale-95 transition-all shadow-[var(--shadow-sm)]"
+              className="p-3 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm text-[var(--text-secondary)] hover:bg-blue-600 hover:text-white active:scale-95 transition-all shadow-[var(--shadow-sm)]"
             >
               <Settings className="w-5 h-5" />
             </button>
@@ -1418,7 +1423,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
             {activeTab === 'logistica' ? (
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
                 {isLocating && (
-                  <div className="bg-yellow-500/10 border-2 border-yellow-500/20 text-yellow-500 p-6 rounded-sm text-center flex items-center justify-center gap-4 font-black text-xs uppercase tracking-[0.2em] shadow-2xl">
+                  <div className="bg-blue-600/10 border-2 border-blue-600/20 text-blue-600 p-6 rounded-sm text-center flex items-center justify-center gap-4 font-black text-xs uppercase tracking-[0.2em] shadow-2xl">
                     <RefreshCcw className="w-6 h-6 animate-spin" /> Verificando Assinatura de GPS e Segurança de Campo...
                   </div>
                 )}
@@ -1427,23 +1432,23 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-zinc-950 border-2 border-yellow-500/50 rounded-sm p-10 shadow-[var(--shadow-md)] relative overflow-hidden group"
+                    className="bg-zinc-950 border-2 border-blue-600/50 rounded-sm p-10 shadow-[var(--shadow-md)] relative overflow-hidden group"
                   >
                     <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-700">
-                      <ShieldCheck className="w-32 h-32 text-yellow-500 rotate-12" />
+                      <ShieldCheck className="w-32 h-32 text-blue-600 rotate-12" />
                     </div>
                     <div className="flex items-center gap-4 mb-8">
-                      <div className="bg-yellow-500 p-3 rounded-sm shadow-lg shadow-yellow-500/20"><Zap className="w-6 h-6 text-zinc-950" /></div>
+                      <div className="bg-blue-600 p-3 rounded-sm shadow-lg shadow-blue-600/20"><Zap className="w-6 h-6 text-white" /></div>
                       <div>
                         <h3 className="text-white font-black text-xl uppercase tracking-tighter">Ordem do Dia</h3>
-                        <p className="text-yellow-500 text-[8px] font-black uppercase tracking-[0.2em] mt-1 opacity-80">Diretriz Crítica de Campo</p>
+                        <p className="text-blue-600 text-[8px] font-black uppercase tracking-[0.2em] mt-1 opacity-80">Diretriz Crítica de Campo</p>
                       </div>
                     </div>
-                    <p className="text-white font-black text-2xl leading-relaxed border-l-4 border-yellow-500 pl-8 max-w-4xl italic">
+                    <p className="text-white font-black text-2xl leading-relaxed border-l-4 border-blue-600 pl-8 max-w-4xl italic">
                       "{dailyOrder.text}"
                     </p>
                     <div className="mt-10 flex items-center gap-4 text-[9px] font-black text-zinc-500 uppercase tracking-widest bg-white/5 w-fit px-4 py-2 rounded-full border border-white/5">
-                       <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-yellow-500" /> Atualizado às {new Date(dailyOrder.updatedAt).toLocaleTimeString()}</span>
+                       <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-blue-600" /> Atualizado às {new Date(dailyOrder.updatedAt).toLocaleTimeString()}</span>
                     </div>
                   </motion.div>
                 )}
@@ -1454,10 +1459,10 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                       <StickyNote className="w-32 h-32 text-zinc-900 rotate-12" />
                     </div>
                     <div className="flex items-center gap-4 mb-6">
-                      <div className="bg-zinc-950 p-3 rounded-sm"><StickyNote className="w-6 h-6 text-yellow-500" /></div>
+                      <div className="bg-zinc-950 p-3 rounded-sm"><StickyNote className="w-6 h-6 text-blue-600" /></div>
                       <h3 className="text-zinc-950 font-black text-xl uppercase tracking-tighter">Comunicações da Central</h3>
                     </div>
-                    <p className="text-zinc-600 font-bold text-lg leading-relaxed whitespace-pre-wrap pl-2 border-l-4 border-yellow-500">
+                    <p className="text-zinc-600 font-bold text-lg leading-relaxed whitespace-pre-wrap pl-2 border-l-4 border-blue-600">
                       {teamData.observations}
                     </p>
                   </section>
@@ -1474,13 +1479,13 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                       key={action.id}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => processAction(action.id as any)}
-                      className={`aspect-square bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-sm p-6 lg:p-8 flex flex-col items-center justify-center gap-6 shadow-[var(--shadow-md)] border border-[var(--border-color)] hover:border-yellow-500/30 transition-all group relative overflow-hidden`}
+                      className={`aspect-square bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-sm p-6 lg:p-8 flex flex-col items-center justify-center gap-6 shadow-[var(--shadow-md)] border border-[var(--border-color)] hover:border-blue-600/30 transition-all group relative overflow-hidden`}
                     >
                       <div className={`absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity`}>
                         {action.icon}
                       </div>
                       <div className={`p-5 rounded-sm transition-all shadow-inner ${
-                        action.color === 'yellow' ? 'bg-yellow-500/10 text-yellow-500 group-hover:bg-yellow-500 group-hover:text-zinc-950' :
+                        action.color === 'blue' ? 'bg-blue-600/10 text-blue-600 group-hover:bg-blue-600 group-hover:text-white' :
                         action.color === 'blue' ? 'bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white' :
                         action.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white' :
                         action.color === 'orange' ? 'bg-orange-500/10 text-orange-500 group-hover:bg-orange-500 group-hover:text-white' :
@@ -1505,7 +1510,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                     <section className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-10 shadow-[var(--shadow-sm)] overflow-hidden flex flex-col h-full group">
                       <div className="flex justify-between items-center mb-8">
                         <h3 className="text-[var(--text-primary)] font-black text-lg uppercase tracking-tighter flex items-center gap-3">
-                          <div className="bg-[var(--bg-tertiary)] p-2.5 rounded-sm group-hover:bg-zinc-950 group-hover:text-white transition-all shadow-inner border border-[var(--border-color)]"><RefreshCcw className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-yellow-500" /></div>
+                          <div className="bg-[var(--bg-tertiary)] p-2.5 rounded-sm group-hover:bg-zinc-950 group-hover:text-white transition-all shadow-inner border border-[var(--border-color)]"><RefreshCcw className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-blue-600" /></div>
                           Fluxo de Suporte
                         </h3>
                         <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-60">Últimas 5</span>
@@ -1515,17 +1520,17 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                           <motion.div 
                             key={req.id} 
                             initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                            className="p-5 bg-[var(--bg-tertiary)] rounded-sm border border-[var(--border-color)] flex items-center justify-between gap-6 hover:border-yellow-500/30 transition-all group/item"
+                            className="p-5 bg-[var(--bg-tertiary)] rounded-sm border border-[var(--border-color)] flex items-center justify-between gap-6 hover:border-blue-600/30 transition-all group/item"
                           >
                             <div className="flex items-center gap-4">
                               <div className={`p-4 rounded-sm shadow-inner ${
                                 req.type === 'combustivel' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 
-                                req.type === 'demanda' ? 'bg-yellow-500/10 text-yellow-600' : 'bg-red-500/10 text-red-600'
+                                req.type === 'demanda' ? 'bg-blue-600/10 text-blue-600' : 'bg-red-500/10 text-red-600'
                               }`}>
                                 {req.type === 'combustivel' ? <Fuel className="w-5 h-5" /> : <StickyNote className="w-5 h-5" />}
                               </div>
                               <div className="text-left">
-                                <p className="font-black text-[var(--text-primary)] text-xs uppercase leading-none mb-2 tracking-tight group-hover/item:text-yellow-600 transition-colors uppercase">{req.title}</p>
+                                <p className="font-black text-[var(--text-primary)] text-xs uppercase leading-none mb-2 tracking-tight group-hover/item:text-blue-600 transition-colors uppercase">{req.title}</p>
                                 <p className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-widest opacity-60">{new Date(req.createdAt).toLocaleDateString()} • {new Date(req.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                               </div>
                             </div>
@@ -1555,7 +1560,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                           <motion.div 
                             key={agenda.id} 
                             initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                            className="p-5 bg-[var(--bg-tertiary)] rounded-sm border border-[var(--border-color)] flex items-center justify-between gap-6 hover:border-yellow-500/30 transition-all group/item"
+                            className="p-5 bg-[var(--bg-tertiary)] rounded-sm border border-[var(--border-color)] flex items-center justify-between gap-6 hover:border-blue-600/30 transition-all group/item"
                           >
                             <div className="flex items-center gap-4">
                               <div className={`p-4 rounded-sm shadow-inner ${
@@ -1598,11 +1603,11 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <section className="bg-zinc-950 text-white rounded-sm p-10 shadow-2xl relative overflow-hidden group border border-white/5">
-                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent"></div>
                     <div className="bg-zinc-900/50 p-4 rounded-sm relative mb-6 w-max mx-auto shadow-inner border border-white/5">
-                      <RefreshCcw className={`w-10 h-10 text-yellow-500 ${queueCount > 0 ? 'animate-spin-slow' : ''}`} />
+                      <RefreshCcw className={`w-10 h-10 text-blue-600 ${queueCount > 0 ? 'animate-spin-slow' : ''}`} />
                       {queueCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-yellow-500 text-zinc-950 text-xs font-black w-8 h-8 flex items-center justify-center rounded-sm border-4 border-zinc-950 shadow-2xl">
+                        <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-black w-8 h-8 flex items-center justify-center rounded-sm border-4 border-zinc-950 shadow-2xl">
                           {queueCount}
                         </span>
                       )}
@@ -1615,7 +1620,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                       {isOnline && queueCount > 0 && (
                         <button 
                           onClick={syncOfflineQueue}
-                          className="mt-10 w-full bg-yellow-500 text-zinc-950 py-5 rounded-sm font-black text-sm uppercase tracking-[0.2em] shadow-xl hover:bg-white transition-all active:scale-95"
+                          className="mt-10 w-full bg-blue-600 text-white py-5 rounded-sm font-black text-sm uppercase tracking-[0.2em] shadow-xl hover:bg-white transition-all active:scale-95"
                         >
                           Sincronizar Terminal
                         </button>
@@ -1633,7 +1638,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                        <div className="w-16 h-1 bg-white/30 rounded-sm overflow-hidden">
                           <motion.div initial={{ x: -100 }} animate={{ x: 0 }} transition={{ duration: 2, repeat: Infinity }} className="w-full h-full bg-white"></motion.div>
                        </div>
-                       <span className="text-blue-100 text-[10px] font-black uppercase tracking-[0.3em] opacity-80">Comando Estratégico Águia</span>
+                       <span className="text-blue-100 text-[10px] font-black uppercase tracking-[0.3em] opacity-80">Comando Estratégico</span>
                     </div>
                   </div>
                 </div>
@@ -1644,7 +1649,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
               <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
                 <div className="flex items-center gap-4">
                   <div className="bg-zinc-950 p-4 rounded-sm shadow-xl border border-white/5">
-                    <Users className="w-8 h-8 text-yellow-500" />
+                    <Users className="w-8 h-8 text-blue-600" />
                   </div>
                   <div className="text-left">
                     <h2 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none font-sans">Minha Equipe Regional</h2>
@@ -1656,7 +1661,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                   <button 
                     onClick={() => setVoterViewState('list')}
                     className={`px-8 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all ${
-                      voterViewState === 'list' ? 'bg-yellow-500 text-zinc-950 shadow-lg' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      voterViewState === 'list' ? 'bg-blue-600 text-white shadow-lg' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                     }`}
                   >
                     Lista
@@ -1664,7 +1669,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                   <button 
                     onClick={() => setVoterViewState('network')}
                     className={`px-8 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all ${
-                      voterViewState === 'network' ? 'bg-yellow-500 text-zinc-950 shadow-lg' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      voterViewState === 'network' ? 'bg-blue-600 text-white shadow-lg' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                     }`}
                   >
                     Rede
@@ -1681,7 +1686,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                     value={voterSearch}
                     onChange={e => setVoterSearch(e.target.value)}
                     placeholder="Pesquisar por nome ou telefone..."
-                    className="w-full bg-zinc-50 border border-zinc-100 rounded-sm py-4 pl-12 pr-4 text-xs font-bold text-zinc-900 outline-none focus:border-yellow-500 transition-all shadow-inner"
+                    className="w-full bg-zinc-50 border border-zinc-100 rounded-sm py-4 pl-12 pr-4 text-xs font-bold text-zinc-900 outline-none focus:border-blue-600 transition-all shadow-inner"
                   />
                 </div>
                 <div className="flex flex-wrap gap-2 items-center">
@@ -1698,7 +1703,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                       }}
                       className={`px-3 py-1.5 rounded-sm text-[9px] font-black uppercase transition-all ${
                         voterFilterTags.includes(tag)
-                        ? 'bg-yellow-500 text-zinc-950 shadow-md'
+                        ? 'bg-blue-600 text-white shadow-md'
                         : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
                       }`}
                     >
@@ -1728,12 +1733,12 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                           setSelectedVoter(voter);
                           setIsVoterDetailOpen(true);
                         }}
-                        className="flex justify-between items-center p-5 bg-[var(--bg-secondary)] rounded-sm border border-[var(--border-color)] shadow-[var(--shadow-sm)] hover:border-yellow-500 hover:shadow-[var(--shadow-md)] transition-all cursor-pointer text-left group overflow-hidden relative"
+                        className="flex justify-between items-center p-5 bg-[var(--bg-secondary)] rounded-sm border border-[var(--border-color)] shadow-[var(--shadow-sm)] hover:border-blue-600 hover:shadow-[var(--shadow-md)] transition-all cursor-pointer text-left group overflow-hidden relative"
                       >
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-500/5 blur-2xl -mr-12 -mt-12 group-hover:bg-yellow-500/10 transition-colors pointer-events-none opacity-0 dark:opacity-100" />
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/5 blur-2xl -mr-12 -mt-12 group-hover:bg-blue-600/10 transition-colors pointer-events-none opacity-0 dark:opacity-100" />
                         
                         <div className="flex items-center gap-5 relative z-10">
-                          <div className="bg-[var(--bg-tertiary)] text-[var(--text-secondary)] w-14 h-14 rounded-sm flex items-center justify-center font-black text-xl group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-colors shadow-inner border border-[var(--border-color)]">
+                          <div className="bg-[var(--bg-tertiary)] text-[var(--text-secondary)] w-14 h-14 rounded-sm flex items-center justify-center font-black text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors shadow-inner border border-[var(--border-color)]">
                             {voter.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
@@ -1743,7 +1748,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                               {voter.tags && voter.tags.length > 0 && (
                                 <div className="flex gap-1.5">
                                   {voter.tags.slice(0, 2).map((tag: string) => (
-                                    <span key={tag} className="text-[7.5px] bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 px-2 py-0.5 rounded-sm font-black uppercase tracking-widest border border-yellow-500/20">{tag}</span>
+                                    <span key={tag} className="text-[7.5px] bg-blue-600/10 text-blue-600 dark:text-blue-600 px-2 py-0.5 rounded-sm font-black uppercase tracking-widest border border-blue-600/20">{tag}</span>
                                   ))}
                                   {voter.tags.length > 2 && <span className="text-[8px] text-[var(--text-secondary)] font-black opacity-50">+{voter.tags.length - 2}</span>}
                                 </div>
@@ -1751,7 +1756,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                             </div>
                           </div>
                         </div>
-                        <ChevronRight className="text-[var(--text-secondary)] opacity-30 group-hover:text-yellow-500 group-hover:translate-x-1 group-hover:opacity-100 transition-all relative z-10" />
+                        <ChevronRight className="text-[var(--text-secondary)] opacity-30 group-hover:text-blue-600 group-hover:translate-x-1 group-hover:opacity-100 transition-all relative z-10" />
                       </motion.div>
                     )) : (
                       <div className="p-20 border-2 border-dashed border-zinc-200 rounded-sm text-center">
@@ -1760,7 +1765,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                         {(voterSearch || voterFilterTags.length > 0) && (
                           <button 
                             onClick={() => { setVoterSearch(''); setVoterFilterTags([]); }}
-                            className="mt-4 text-[10px] font-black text-yellow-600 underline uppercase tracking-widest"
+                            className="mt-4 text-[10px] font-black text-blue-600 underline uppercase tracking-widest"
                           >
                             Limpar todos os filtros
                           </button>
@@ -1770,7 +1775,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                   </div>
 
                   {loadingPaginatedVoters && (
-                    <div className="flex justify-center items-center gap-2 text-yellow-500 font-black text-[10px] uppercase tracking-widest mt-6">
+                    <div className="flex justify-center items-center gap-2 text-blue-600 font-black text-[10px] uppercase tracking-widest mt-6">
                       <span className="animate-spin text-sm">🔄</span> Sincronizando dados com o servidor...
                     </div>
                   )}
@@ -1779,7 +1784,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                     <div className="flex justify-center mt-6">
                       <button
                         onClick={() => setVoterPage(prev => prev + 1)}
-                        className="bg-yellow-500 text-zinc-950 hover:bg-yellow-400 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-sm flex items-center gap-2 transition-all shadow-md active:scale-95"
+                        className="bg-blue-600 text-white hover:bg-blue-500 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-sm flex items-center gap-2 transition-all shadow-md active:scale-95"
                       >
                         Carregar mais 50 eleitores
                       </button>
@@ -1796,7 +1801,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                           setVoterPageSize(Number(e.target.value));
                           setVoterPage(1);
                         }}
-                        className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] rounded-sm p-1.5 px-3 font-black uppercase outline-none focus:border-yellow-500 transition-colors cursor-pointer text-[10px]"
+                        className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] rounded-sm p-1.5 px-3 font-black uppercase outline-none focus:border-blue-600 transition-colors cursor-pointer text-[10px]"
                       >
                         {[5, 10, 15, 30, 50].map((size) => (
                           <option key={size} value={size}>
@@ -1833,7 +1838,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                             onClick={() => setVoterPage(pageNum)}
                             className={`w-8 h-8 rounded-sm font-black border transition-all text-[10px] ${
                               voterPage === pageNum
-                                ? 'bg-yellow-500 border-yellow-600 text-zinc-950 shadow-md'
+                                ? 'bg-blue-600 border-blue-600 text-white shadow-md'
                                 : 'border-[var(--border-color)] bg-[var(--bg-tertiary)] text-[var(--text-primary)] hover:bg-zinc-100 dark:hover:bg-zinc-800'
                             }`}
                           >
@@ -1907,7 +1912,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                               setSelectedTxToSign(tx);
                               setIsSignReceiptModalOpen(true);
                             }}
-                            className="bg-yellow-500 text-zinc-950 px-4 py-2.5 rounded-sm font-black text-[9px] uppercase shadow-lg shadow-yellow-500/20 hover:bg-yellow-400 active:scale-95 transition-all"
+                            className="bg-blue-600 text-white px-4 py-2.5 rounded-sm font-black text-[9px] uppercase shadow-lg shadow-blue-600/20 hover:bg-blue-500 active:scale-95 transition-all"
                           >
                             Assinar
                           </button>
@@ -1978,12 +1983,12 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                   <Package className="w-32 h-32" />
                 </div>
                 <h3 className="text-xs font-black uppercase text-[var(--text-primary)] mb-8 flex items-center gap-3 relative z-10">
-                  <div className="p-2 bg-yellow-500 rounded-sm shadow-lg shadow-yellow-500/20"><Plus className="w-4 h-4 text-zinc-950" /></div> Solicitar Material
+                  <div className="p-2 bg-blue-600 rounded-sm shadow-lg shadow-blue-600/20"><Plus className="w-4 h-4 text-white" /></div> Solicitar Material
                 </h3>
                 <form onSubmit={handleAddMaterialRequest} className="space-y-6 relative z-10">
                   <div className="space-y-2 text-left">
                     <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Tipo de Material</label>
-                    <select name="materialId" required className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors cursor-pointer">
+                    <select name="materialId" required className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-blue-600 transition-colors cursor-pointer">
                       <option value="">Selecione o Material</option>
                       {(() => {
                         const filtered = materials.filter(m => !resolvedCoordinatorId || m.coordinatorId === resolvedCoordinatorId);
@@ -1998,17 +2003,17 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                   </div>
                   <div className="space-y-2 text-left">
                     <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Quantidade Desejada</label>
-                    <input name="qty" type="number" required placeholder="Ex: 500" className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors" />
+                    <input name="qty" type="number" required placeholder="Ex: 500" className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-blue-600 transition-colors" />
                   </div>
                   <div className="space-y-2 text-left">
                     <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Previsão de Devolução (Se aplicável)</label>
-                    <input name="returnDate" type="date" className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors cursor-pointer" />
+                    <input name="returnDate" type="date" className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-blue-600 transition-colors cursor-pointer" />
                   </div>
                   <div className="space-y-2 text-left">
                     <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Finalidade / Observação</label>
-                    <textarea name="reason" placeholder="Para distribuição no bairro..." className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-colors min-h-[100px]" />
+                    <textarea name="reason" placeholder="Para distribuição no bairro..." className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-blue-600 transition-colors min-h-[100px]" />
                   </div>
-                  <button className="w-full bg-zinc-950 text-white dark:bg-yellow-500 dark:text-zinc-950 py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-yellow-400">
+                  <button className="w-full bg-zinc-950 text-white dark:bg-blue-600 dark:text-white py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-blue-500">
                     Enviar Solicitação
                   </button>
                 </form>
@@ -2019,13 +2024,13 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                 <h3 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] mb-4">Minhas Solicitações</h3>
                 {materialRequests.filter(r => r.leaderId === user.uid).length > 0 ? (
                   materialRequests.filter(r => r.leaderId === user.uid).sort((a, b) => b.createdAt - a.createdAt).map(req => (
-                    <div key={req.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:border-yellow-500/30 transition-all shadow-[var(--shadow-sm)]">
+                    <div key={req.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:border-blue-600/30 transition-all shadow-[var(--shadow-sm)]">
                       <div className="flex items-start gap-5">
                         <div className={`w-14 h-14 bg-[var(--bg-tertiary)] rounded-sm flex items-center justify-center border border-[var(--border-color)] shadow-inner flex-shrink-0 ${
                           req.status === 'aprovado' ? 'text-emerald-500' : 
                           req.status === 'devolucao_pendente' ? 'text-blue-500 animate-pulse' :
                           req.status === 'devolvido' ? 'text-zinc-500' :
-                          req.status === 'negado' ? 'text-red-500' : 'text-yellow-500'
+                          req.status === 'negado' ? 'text-red-500' : 'text-blue-600'
                         }`}>
                           <Package className="w-6 h-6" />
                         </div>
@@ -2038,7 +2043,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                               req.status === 'aprovado' ? 'text-emerald-600' : 
                               req.status === 'devolucao_pendente' ? 'text-blue-600' :
                               req.status === 'devolvido' ? 'text-zinc-500' :
-                              req.status === 'negado' ? 'text-red-600' : 'text-yellow-600'
+                              req.status === 'negado' ? 'text-red-600' : 'text-blue-600'
                             }`}>
                               {req.status === 'devolucao_pendente' ? 'Devolução Pendente' : req.status}
                             </span>
@@ -2052,7 +2057,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                             )}
                           </div>
                           {req.returnDate && (
-                            <p className="mt-1.5 text-[10px] font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-wider">
+                            <p className="mt-1.5 text-[10px] font-black text-blue-600 dark:text-blue-600 uppercase tracking-wider">
                               Previsão de Devolução: {new Date(req.returnDate + 'T12:00:00').toLocaleDateString('pt-BR')}
                             </p>
                           )}
@@ -2142,7 +2147,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
               </div>
               <button 
                 onClick={() => setIsNoteModalOpen(true)}
-                className="bg-yellow-500 text-zinc-950 px-6 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] hover:bg-yellow-400 transition-all shadow-xl shadow-yellow-500/20 active:scale-95 flex items-center gap-3"
+                className="bg-blue-600 text-white px-6 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 active:scale-95 flex items-center gap-3"
               >
                 <Plus className="w-4 h-4" /> Registrar Nota
               </button>
@@ -2182,9 +2187,9 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                 </div>
                 <button 
                   onClick={startVoiceNote}
-                  className="flex items-center gap-4 bg-zinc-950 text-white dark:bg-yellow-500 dark:text-zinc-950 px-8 py-5 rounded-sm font-black text-[11px] uppercase tracking-widest hover:bg-zinc-800 dark:hover:bg-yellow-400 transition-all shadow-2xl active:scale-95 group"
+                  className="flex items-center gap-4 bg-zinc-950 text-white dark:bg-blue-600 dark:text-white px-8 py-5 rounded-sm font-black text-[11px] uppercase tracking-widest hover:bg-zinc-800 dark:hover:bg-blue-500 transition-all shadow-2xl active:scale-95 group"
                 >
-                  <Mic className="w-5 h-5 text-yellow-500 dark:text-zinc-950 animate-pulse" />
+                  <Mic className="w-5 h-5 text-blue-600 dark:text-zinc-950 animate-pulse" />
                   Ativar Gravador Tático
                 </button>
               </div>
@@ -2223,9 +2228,9 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="bg-zinc-950 p-8 border-b-4 border-yellow-500 text-left dark:bg-zinc-900 transition-colors">
+              <div className="bg-zinc-950 p-8 border-b-4 border-blue-600 text-left dark:bg-zinc-900 transition-colors">
                 <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">Minhas Credenciais</h2>
-                <p className="text-yellow-500/70 text-[10px] font-black mt-3 uppercase tracking-[0.2em] leading-none">Ajuste de Identidade Operacional</p>
+                <p className="text-blue-600/70 text-[10px] font-black mt-3 uppercase tracking-[0.2em] leading-none">Ajuste de Identidade Operacional</p>
               </div>
 
               <div className="p-10 space-y-8 text-left">
@@ -2235,7 +2240,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                     type="text" 
                     value={profileData.name}
                     onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-4.5 font-bold text-sm text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-all"
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-4.5 font-bold text-sm text-[var(--text-primary)] shadow-inner outline-none focus:border-blue-600 transition-all"
                   />
                 </div>
                 <div className="space-y-2.5">
@@ -2244,7 +2249,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                     type="text" 
                     value={profileData.address || ''}
                     onChange={(e) => setProfileData({...profileData, address: e.target.value})}
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-4.5 font-bold text-sm text-[var(--text-primary)] shadow-inner outline-none focus:border-yellow-500 transition-all"
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-4.5 font-bold text-sm text-[var(--text-primary)] shadow-inner outline-none focus:border-blue-600 transition-all"
                     placeholder="Região de Atuação"
                   />
                 </div>
@@ -2259,7 +2264,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                         alert("Erro ao atualizar credenciais: " + err.message);
                       }
                     }}
-                    className="w-full bg-zinc-950 text-white dark:bg-yellow-500 dark:text-zinc-950 py-5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-2xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-yellow-400"
+                    className="w-full bg-zinc-950 text-white dark:bg-blue-600 dark:text-white py-5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-2xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-blue-500"
                   >
                     ATUALIZAR IDENTIDADE
                   </button>
@@ -2290,9 +2295,9 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                 <X className="w-6 h-6" />
               </button>
 
-              <div className="bg-zinc-950 p-8 border-b-4 border-yellow-500 text-left">
+              <div className="bg-zinc-950 p-8 border-b-4 border-blue-600 text-left">
                 <div className="flex items-center gap-4 mb-2">
-                   <div className="bg-yellow-500 text-zinc-950 w-12 h-12 rounded-sm flex items-center justify-center font-black text-xl">
+                   <div className="bg-blue-600 text-white w-12 h-12 rounded-sm flex items-center justify-center font-black text-xl">
                       {selectedVoter.name.charAt(0).toUpperCase()}
                    </div>
                    <div>
@@ -2349,7 +2354,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                         <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Tags de Segmentação</p>
                         <div className="flex flex-wrap gap-2 mt-1">
                           {selectedVoter.tags.map((tag: string) => (
-                            <span key={tag} className="bg-yellow-500/20 text-zinc-950 border border-yellow-500/30 px-2 py-0.5 rounded-sm text-[8px] font-black uppercase tracking-widest">
+                            <span key={tag} className="bg-blue-600/20 text-blue-700 dark:text-blue-300 border border-blue-600/30 px-2 py-0.5 rounded-sm text-[8px] font-black uppercase tracking-widest">
                               {tag}
                             </span>
                           ))}
@@ -2411,7 +2416,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
 
                   {selectedVoter.observations && (
                     <div className="flex items-start gap-4">
-                      <div className="bg-yellow-50 p-3 rounded-sm text-yellow-600"><StickyNote className="w-5 h-5" /></div>
+                      <div className="bg-blue-50 p-3 rounded-sm text-blue-600"><StickyNote className="w-5 h-5" /></div>
                       <div>
                         <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Observações de Campo</p>
                         <p className="text-sm font-bold text-zinc-600">"{selectedVoter.observations}"</p>
@@ -2501,7 +2506,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                     onClick={() => setRegisterMode('individual')}
                     className={`flex-1 py-3 text-[10px] font-black uppercase tracking-wider text-center transition-all rounded-sm ${
                       registerMode === 'individual'
-                        ? 'bg-yellow-500 text-zinc-950 shadow-sm'
+                        ? 'bg-blue-600 text-white shadow-sm'
                         : 'text-zinc-500 hover:text-zinc-800'
                     }`}
                   >
@@ -2512,7 +2517,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                     onClick={() => setRegisterMode('lote')}
                     className={`flex-1 py-3 text-[10px] font-black uppercase tracking-wider text-center transition-all rounded-sm ${
                       registerMode === 'lote'
-                        ? 'bg-yellow-500 text-zinc-950 shadow-sm'
+                        ? 'bg-blue-600 text-white shadow-sm'
                         : 'text-zinc-500 hover:text-zinc-800'
                     }`}
                   >
@@ -2523,7 +2528,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                     onClick={() => setRegisterMode('link')}
                     className={`flex-1 py-3 text-[10px] font-black uppercase tracking-wider text-center transition-all rounded-sm ${
                       registerMode === 'link'
-                        ? 'bg-yellow-500 text-zinc-950 shadow-sm'
+                        ? 'bg-blue-600 text-white shadow-sm'
                         : 'text-zinc-500 hover:text-zinc-800'
                     }`}
                   >
@@ -2536,53 +2541,53 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                 <form onSubmit={handleVoterSubmit} className="flex-1 overflow-y-auto p-6 space-y-4 text-left">
                   <div className="space-y-1.5">
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo do Cidadão</label>
-                    <input required type="text" value={voterForm.name} onChange={e => setVoterForm({...voterForm, name: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Digite identificação oficial..." />
+                    <input required type="text" value={voterForm.name} onChange={e => setVoterForm({...voterForm, name: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" placeholder="Digite identificação oficial..." />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">WhatsApp / Terminal Celular</label>
-                    <input type="text" value={voterForm.phone} onChange={e => setVoterForm({...voterForm, phone: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="(00) 00000-0000" />
+                    <input type="text" value={voterForm.phone} onChange={e => setVoterForm({...voterForm, phone: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" placeholder="(00) 00000-0000" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Localização Operacional</label>
-                    <input type="text" value={voterForm.address} onChange={e => setVoterForm({...voterForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Rua, Bairro ou Referência..." />
+                    <input type="text" value={voterForm.address} onChange={e => setVoterForm({...voterForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" placeholder="Rua, Bairro ou Referência..." />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">CPF</label>
-                      <input type="text" value={voterForm.cpf || ''} onChange={e => setVoterForm({...voterForm, cpf: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="000.000.000-00" />
+                      <input type="text" value={voterForm.cpf || ''} onChange={e => setVoterForm({...voterForm, cpf: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" placeholder="000.000.000-00" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">RG</label>
-                      <input type="text" value={voterForm.rg || ''} onChange={e => setVoterForm({...voterForm, rg: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Registro Geral RG..." />
+                      <input type="text" value={voterForm.rg || ''} onChange={e => setVoterForm({...voterForm, rg: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" placeholder="Registro Geral RG..." />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-1.5 col-span-1">
                       <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Título</label>
-                      <input type="text" value={voterForm.titulo || ''} onChange={e => setVoterForm({...voterForm, titulo: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Nº Título..." />
+                      <input type="text" value={voterForm.titulo || ''} onChange={e => setVoterForm({...voterForm, titulo: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" placeholder="Nº Título..." />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Zona</label>
-                      <input type="text" value={voterForm.zona || ''} onChange={e => setVoterForm({...voterForm, zona: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Zona..." />
+                      <input type="text" value={voterForm.zona || ''} onChange={e => setVoterForm({...voterForm, zona: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" placeholder="Zona..." />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Seção</label>
-                      <input type="text" value={voterForm.secao || ''} onChange={e => setVoterForm({...voterForm, secao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Seção..." />
+                      <input type="text" value={voterForm.secao || ''} onChange={e => setVoterForm({...voterForm, secao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" placeholder="Seção..." />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Local de Votação</label>
-                    <input type="text" value={voterForm.localVotacao || ''} onChange={e => setVoterForm({...voterForm, localVotacao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" placeholder="Nome da Escola / Seção..." />
+                    <input type="text" value={voterForm.localVotacao || ''} onChange={e => setVoterForm({...voterForm, localVotacao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" placeholder="Nome da Escola / Seção..." />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Articulador / Parceiro Associado</label>
                     <select 
                       value={voterForm.articulatorId} 
                       onChange={e => setVoterForm({...voterForm, articulatorId: e.target.value})}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all appearance-none"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all appearance-none"
                     >
                       <option value="">NENHUM ARTICULADOR SELECIONADO</option>
                       {partners.map(p => (
@@ -2597,7 +2602,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                       <select 
                         value={voterForm.referredBy} 
                         onChange={e => setVoterForm({...voterForm, referredBy: e.target.value})} 
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all appearance-none"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all appearance-none"
                       >
                         <option value="">NENHUM INDICIADOR SELECIONADO</option>
                         {[...campaignVoters]
@@ -2615,7 +2620,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Tags de Segmentação</label>
                     <div className="flex flex-wrap gap-2 mb-2">
                       {voterForm.tags.map(tag => (
-                        <span key={tag} className="bg-yellow-500/10 text-yellow-600 px-3 py-1 rounded-sm text-[9px] font-black uppercase flex items-center gap-2">
+                        <span key={tag} className="bg-blue-600/10 text-blue-600 px-3 py-1 rounded-sm text-[9px] font-black uppercase flex items-center gap-2">
                           {tag}
                           <button type="button" onClick={() => setVoterForm({...voterForm, tags: voterForm.tags.filter(t => t !== tag)})}>
                             <X className="w-2 h-2" />
@@ -2637,7 +2642,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                             }
                           }
                         }}
-                        className="flex-1 bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-500 transition-all placeholder:text-zinc-300" 
+                        className="flex-1 bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" 
                         placeholder="Adicionar tag (Enter)..." 
                       />
                       <button 
@@ -2679,8 +2684,8 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                                 }}
                                 className={`px-2 py-1 text-[9px] font-black uppercase rounded-sm border transition-all ${
                                   isSelected
-                                    ? 'bg-yellow-500/20 text-yellow-600 border-yellow-500/40 hover:bg-yellow-500/10'
-                                    : 'bg-white text-zinc-600 border-zinc-200 hover:border-yellow-500/50 hover:text-zinc-850'
+                                    ? 'bg-blue-600/20 text-blue-600 border-blue-600/40 hover:bg-blue-600/10'
+                                    : 'bg-white text-zinc-600 border-zinc-200 hover:border-blue-600/50 hover:text-zinc-850'
                                 }`}
                               >
                                 {isSelected ? `✓ ${tag}` : `+ ${tag}`}
@@ -2694,9 +2699,9 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
 
                   <div className="space-y-1.5">
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Observações Técnicas de Campo</label>
-                    <textarea value={voterForm.observations} onChange={e => setVoterForm({...voterForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-500 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Histórico de engajamento ou demandas específicas..." />
+                    <textarea value={voterForm.observations} onChange={e => setVoterForm({...voterForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-blue-600 transition-all h-24 resize-none placeholder:text-zinc-300" placeholder="Histórico de engajamento ou demandas específicas..." />
                   </div>
-                  <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-yellow-500/10 hover:bg-yellow-600 transition-all active:scale-[0.98] mt-2">
+                  <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-600/10 hover:bg-blue-600 transition-all active:scale-[0.98] mt-2">
                     {isEditingVoter ? 'ATUALIZAR REGISTRO' : 'EFETIVAR ALISTAMENTO'}
                   </button>
                 </form>
@@ -2704,7 +2709,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                 <form onSubmit={handleBulkSubmit} className="flex-1 overflow-y-auto p-6 space-y-5 text-left">
                   <div className="bg-zinc-50 border border-zinc-200 rounded-sm p-4 space-y-3">
                     <h3 className="text-xs font-black uppercase text-zinc-900 flex items-center gap-1.5">
-                      <FileDown className="w-4 h-4 text-yellow-500" />
+                      <FileDown className="w-4 h-4 text-blue-600" />
                       Como funciona o Cadastro em Lote?
                     </h3>
                     <p className="text-[11px] text-zinc-600 leading-relaxed font-bold">
@@ -2714,7 +2719,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                     <button
                       type="button"
                       onClick={downloadVoterTemplate}
-                      className="flex items-center gap-2 px-4 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-zinc-950 rounded-sm font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95"
+                      className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-600 text-white rounded-sm font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95"
                     >
                       <FileDown className="w-4 h-4" />
                       Baixar Modelo de Planilha (.XLSX)
@@ -2725,7 +2730,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">
                       Selecione o arquivo para Cadastro em Lote
                     </label>
-                    <div className="border-2 border-dashed border-zinc-300 rounded-sm p-8 text-center hover:border-yellow-500 transition-all bg-zinc-50 relative cursor-pointer group">
+                    <div className="border-2 border-dashed border-zinc-300 rounded-sm p-8 text-center hover:border-blue-600 transition-all bg-zinc-50 relative cursor-pointer group">
                       <input
                         type="file"
                         accept=".xlsx,.xls,.csv,.doc,.docx,.pdf"
@@ -2733,7 +2738,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       />
                       <div className="flex flex-col items-center justify-center space-y-2">
-                        <Upload className="w-8 h-8 text-zinc-400 group-hover:text-yellow-500 transition-colors" />
+                        <Upload className="w-8 h-8 text-zinc-400 group-hover:text-blue-600 transition-colors" />
                         <span className="text-[11px] font-black uppercase text-zinc-700">
                           Clique ou arraste a planilha aqui
                         </span>
@@ -2797,7 +2802,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                     className={`w-full py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl transition-all active:scale-[0.98] mt-2 ${
                       parsedVoters.length === 0 || isProcessingBulk
                         ? 'bg-zinc-100 text-zinc-400 border border-zinc-200 cursor-not-allowed shadow-none'
-                        : 'bg-yellow-500 text-zinc-950 shadow-yellow-500/10 hover:bg-yellow-600'
+                        : 'bg-blue-600 text-white shadow-blue-600/10 hover:bg-blue-600'
                     }`}
                   >
                     {isProcessingBulk ? 'SALVANDO LOTE NO FIRESTORE...' : `IMPORTAR ${parsedVoters.length} ELEITORES EM LOTE`}
@@ -2829,7 +2834,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                           navigator.clipboard.writeText(`${window.location.origin}/?leaderId=${user?.uid}`);
                           alert("✅ Link copiado para a área de transferência!");
                         }}
-                        className="px-5 bg-yellow-500 hover:bg-yellow-600 text-zinc-950 font-black text-[10px] uppercase tracking-wider rounded-sm active:scale-95 transition-all"
+                        className="px-5 bg-blue-600 hover:bg-blue-600 text-white font-black text-[10px] uppercase tracking-wider rounded-sm active:scale-95 transition-all"
                       >
                         Copiar
                       </button>
@@ -2896,20 +2901,20 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
               >
                 <X className="w-4 h-4" />
               </button>
-              <div className="bg-yellow-500 p-6">
+              <div className="bg-blue-600 p-6">
                 <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none">Demanda Territorial</h2>
                 <p className="text-zinc-900 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Monitoramento de Necessidades Sociais</p>
               </div>
               <form onSubmit={handleDemandSubmit} className="p-6 space-y-4 text-left">
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Natureza da Demanda</label>
-                  <input required type="text" value={demandForm.title} onChange={e => setDemandForm({...demandForm, title: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-yellow-600 transition-all placeholder:text-zinc-300" placeholder="Ex: Saneamento, Saúde, Infraestrutura..." />
+                  <input required type="text" value={demandForm.title} onChange={e => setDemandForm({...demandForm, title: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" placeholder="Ex: Saneamento, Saúde, Infraestrutura..." />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Briefing Detalhado</label>
-                  <textarea required value={demandForm.description} onChange={e => setDemandForm({...demandForm, description: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-yellow-600 transition-all h-32 resize-none placeholder:text-zinc-300" placeholder="Descreva a urgência e o impacto na comunidade..." />
+                  <textarea required value={demandForm.description} onChange={e => setDemandForm({...demandForm, description: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-blue-600 transition-all h-32 resize-none placeholder:text-zinc-300" placeholder="Descreva a urgência e o impacto na comunidade..." />
                 </div>
-                <button type="submit" className="w-full bg-yellow-500 text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-yellow-500/10 hover:bg-yellow-600 transition-all active:scale-[0.98] mt-2">ENVIAR PARA COORDENAÇÃO</button>
+                <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-600/10 hover:bg-blue-600 transition-all active:scale-[0.98] mt-2">ENVIAR PARA COORDENAÇÃO</button>
               </form>
             </motion.div>
           </motion.div>
@@ -2971,7 +2976,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                    </div>
 
                    <p className="text-[8px] font-black leading-relaxed text-zinc-400 text-center uppercase tracking-[0.2em] pt-4">
-                      Protocolo Digital Gerado via Rede Águia
+                      Protocolo Digital Gerado via Urna 360
                    </p>
                 </div>
               </div>
@@ -3010,9 +3015,9 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
               <div className="border border-zinc-200 p-6 md:p-8 rounded-sm space-y-6 md:space-y-8 relative">
                 <div className="flex justify-between items-start">
                    <div className="flex items-center gap-3">
-                      <div className="bg-zinc-950 p-2 rounded-sm"><ShieldCheck className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" /></div>
+                      <div className="bg-zinc-950 p-2 rounded-sm"><ShieldCheck className="text-blue-600 w-5 h-5 md:w-6 md:h-6" /></div>
                       <div>
-                        <h3 className="font-black text-lg md:text-xl leading-none uppercase tracking-tighter">PROTOCOLO ÁGUIA</h3>
+                        <h3 className="font-black text-lg md:text-xl leading-none uppercase tracking-tighter">PROTOCOLO URNA 360</h3>
                         <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comprovante de Transferência Digital</p>
                       </div>
                    </div>
@@ -3218,7 +3223,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                   <textarea 
                     value={noteText}
                     onChange={e => setNoteText(e.target.value)}
-                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-sm p-4 font-bold text-zinc-800 text-sm h-48 outline-none focus:border-yellow-500 transition-all resize-none"
+                    className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-sm p-4 font-bold text-zinc-800 text-sm h-48 outline-none focus:border-blue-600 transition-all resize-none"
                     placeholder="O que você está pensando? Ou continue gravando..."
                   />
                 </div>
@@ -3239,7 +3244,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                   <button 
                     onClick={() => handleNoteSubmit()}
                     disabled={isProcessingNote || !noteText.trim()}
-                    className={`flex-1 ${isProcessingNote ? 'bg-zinc-400' : 'bg-yellow-500'} text-zinc-950 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2`}
+                    className={`flex-1 ${isProcessingNote ? 'bg-zinc-400' : 'bg-blue-600'} text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2`}
                   >
                     {isProcessingNote ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                     {isProcessingNote ? 'PROCESSANDO...' : 'SALVAR NOTA'}
@@ -3264,11 +3269,11 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
             onClick={() => setActiveTab(tab.id as any)}
             className={`flex flex-col items-center gap-1 transition-all ${
               activeTab === tab.id 
-              ? 'text-yellow-500 scale-110' 
+              ? 'text-blue-600 scale-110' 
               : 'text-zinc-500'
             }`}
           >
-            <div className={`p-2 rounded-sm transition-all ${activeTab === tab.id ? 'bg-yellow-500/10' : ''}`}>
+            <div className={`p-2 rounded-sm transition-all ${activeTab === tab.id ? 'bg-blue-600/10' : ''}`}>
               {tab.icon}
             </div>
             <span className="text-[8px] font-black uppercase tracking-[0.1em]">

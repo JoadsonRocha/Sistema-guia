@@ -40,7 +40,7 @@ export default function NoteCard({ note, user, isAdmin, onDelete, currentUserNam
         id: commentId,
         text: newComment,
         authorId: user.uid,
-        authorName: currentUserName || user.displayName || 'Membro Águia',
+        authorName: currentUserName || user.displayName || 'Membro Urna 360',
         createdAt: Date.now()
       });
       setNewComment('');
@@ -56,9 +56,9 @@ export default function NoteCard({ note, user, isAdmin, onDelete, currentUserNam
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:border-yellow-500/50 transition-all flex flex-col h-full text-left relative overflow-hidden group"
+      className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:border-blue-600/50 transition-all flex flex-col h-full text-left relative overflow-hidden group"
     >
-      <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 blur-3xl -mr-16 -mt-16 group-hover:bg-yellow-500/10 transition-colors pointer-events-none opacity-0 dark:opacity-100" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl -mr-16 -mt-16 group-hover:bg-blue-600/10 transition-colors pointer-events-none opacity-0 dark:opacity-100" />
       
       <div className="flex justify-between items-start mb-4 relative z-10">
         <div className="flex items-center gap-2">
@@ -82,19 +82,19 @@ export default function NoteCard({ note, user, isAdmin, onDelete, currentUserNam
       <div className="mt-auto relative z-10">
         <div className="pt-4 border-t border-[var(--border-color)] flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-sm bg-yellow-500 flex items-center justify-center font-black text-[11px] text-zinc-950 shadow-sm border border-white/20">
+            <div className="w-9 h-9 rounded-sm bg-blue-600 flex items-center justify-center font-black text-[11px] text-white shadow-sm border border-white/20">
               {(note.leaderName || note.authorName || 'U').charAt(0)}
             </div>
             <div className="text-left">
               <p className="text-[7px] font-black text-[var(--text-secondary)] uppercase tracking-widest leading-none">Registrado por</p>
               <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tight mt-1 leading-none">{note.leaderName || note.authorName}</p>
-              <p className="text-[8px] font-bold text-yellow-600 dark:text-yellow-500 uppercase tracking-widest mt-1.5 leading-none">{note.teamName || note.team || (note.authorRole === 'coordinator' ? 'Liderança' : 'Campo')}</p>
+              <p className="text-[8px] font-bold text-blue-600 dark:text-blue-600 uppercase tracking-widest mt-1.5 leading-none">{note.teamName || note.team || (note.authorRole === 'coordinator' ? 'Liderança' : 'Campo')}</p>
             </div>
           </div>
           
           <button 
             onClick={() => setShowComments(!showComments)}
-            className={`flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest transition-all px-3 py-1.5 rounded-sm border ${showComments ? 'bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)]' : 'text-[var(--text-secondary)] border-[var(--border-color)] hover:border-yellow-600 hover:text-yellow-600'}`}
+            className={`flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest transition-all px-3 py-1.5 rounded-sm border ${showComments ? 'bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)]' : 'text-[var(--text-secondary)] border-[var(--border-color)] hover:border-blue-600 hover:text-blue-600'}`}
           >
             <MessageSquare className="w-3.5 h-3.5" /> {comments.length}
           </button>
@@ -128,11 +128,11 @@ export default function NoteCard({ note, user, isAdmin, onDelete, currentUserNam
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Comentar..."
-                  className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm px-4 py-3 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-yellow-500 shadow-inner transition-colors"
+                  className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm px-4 py-3 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-blue-600 shadow-inner transition-colors"
                 />
                 <button 
                   disabled={isSubmitting || !newComment.trim()}
-                  className="bg-yellow-500 text-zinc-950 p-3 rounded-sm active:scale-95 disabled:opacity-50 shadow-lg hover:bg-yellow-400 transition-colors"
+                  className="bg-blue-600 text-white p-3 rounded-sm active:scale-95 disabled:opacity-50 shadow-lg hover:bg-blue-500 transition-colors"
                   type="submit"
                 >
                   <Send className="w-4 h-4" />
