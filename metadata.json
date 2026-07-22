@@ -1,5 +1,5 @@
 {
-  "name": "Urna 360",
+  "name": "Nexus Política",
   "description": "Sistema de gestão de campanha eleitoral com foco em mapeamento, mobilização e inteligência estratégica.",
   "requestFramePermissions": ["camera", "geolocation"],
   "majorCapabilities": ["offline-first", "bi-analytics", "ai-integration", "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
