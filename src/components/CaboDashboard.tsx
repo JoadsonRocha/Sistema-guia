@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import logoImg from '../assets/logo.png';
 import { 
   ShieldCheck, 
   Fuel, 
@@ -1312,8 +1313,9 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
           <div className="flex items-center justify-center mb-6 relative z-10 w-full">
             <div className="flex items-center justify-center bg-transparent w-full">
               <img 
-                src="/logo.png" onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.jpg'; } }} 
-                alt="Logo" 
+                src={logoImg} 
+                onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }} 
+                alt="Logo Nexus Política" 
                 className="max-h-28 md:max-h-32 w-full max-w-[240px] object-contain transition-all" 
               />
             </div>
@@ -1374,8 +1376,9 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
           <div className="flex items-center gap-3 lg:hidden">
             <div className="flex items-center justify-center bg-transparent shrink-0">
               <img 
-                src="/logo.png" onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.jpg'; } }} 
-                alt="Logo" 
+                src={logoImg} 
+                onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }} 
+                alt="Logo Nexus Política" 
                 className="max-h-12 w-auto object-contain" 
               />
             </div>

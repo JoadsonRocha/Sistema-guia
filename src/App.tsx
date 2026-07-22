@@ -7,6 +7,7 @@ import PublicVoterRegister from './components/PublicVoterRegister';
 import CoordinatorDashboard from './components/CoordinatorDashboard';
 import CaboDashboard from './components/CaboDashboard';
 import { safeLocalStorage } from './utils/safeStorage';
+import logoImg from './assets/logo.png';
 
 export default function App() {
   const { 
@@ -105,8 +106,9 @@ export default function App() {
          <div className="relative">
            <div className="flex items-center justify-center bg-transparent">
              <img 
-               src="/logo.png" onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.jpg'; } }} 
-               alt="Logo" 
+               src={logoImg} 
+               onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }} 
+               alt="Logo Nexus Política" 
                className="max-h-40 md:max-h-48 w-auto object-contain relative z-10 animate-pulse" 
              />
            </div>
@@ -284,7 +286,8 @@ export default function App() {
           <div className="flex justify-center mb-6 text-[var(--text-primary)]">
             <div className="flex items-center justify-center bg-transparent w-full">
               <img 
-                src="/logo.png" onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.jpg'; } }} 
+                src={logoImg} 
+                onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }} 
                 alt="Logo Nexus Política" 
                 className="max-h-56 md:max-h-72 w-full max-w-[300px] md:max-w-[360px] object-contain transition-all" 
               />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import logoImg from '../assets/logo.png';
 import { db } from '../lib/firebase';
 import { collection, query, where, getDocs, doc, getDoc, limit } from 'firebase/firestore';
 import { firestoreService } from '../lib/firestoreService';
@@ -238,8 +239,9 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
         <div className="text-center mb-8">
           <div className="inline-flex mb-4 items-center justify-center bg-transparent">
             <img 
-              src="/logo.png" onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.jpg'; } }} 
-              alt="Logo" 
+              src={logoImg} 
+              onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }} 
+              alt="Logo Nexus Política" 
               className="max-h-28 sm:max-h-36 w-auto object-contain" 
             />
           </div>

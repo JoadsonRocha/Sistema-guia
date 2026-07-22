@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import logoImg from '../assets/logo.png';
 import { 
   ShieldCheck, 
   Fuel, 
@@ -1921,8 +1922,9 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         <div className="mb-6 px-1 flex justify-center">
           <div className="flex items-center justify-center bg-transparent w-full">
             <img 
-              src="/logo.png" onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.jpg'; } }} 
-              alt="Logo" 
+              src={logoImg} 
+              onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }} 
+              alt="Logo Nexus Política" 
               className="max-h-28 md:max-h-32 w-full max-w-[240px] object-contain transition-all" 
             />
           </div>
@@ -2063,8 +2065,9 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
             <div className="lg:hidden flex items-center gap-2">
               <div className="flex items-center justify-center bg-transparent shrink-0">
                 <img 
-                  src="/logo.png" onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.jpg'; } }} 
-                  alt="Logo" 
+                  src={logoImg} 
+                  onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }} 
+                  alt="Logo Nexus Política" 
                   className="max-h-12 w-auto object-contain" 
                 />
               </div>
