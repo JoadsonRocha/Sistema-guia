@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import logoImg from '../assets/logo.png';
 import { 
   User, 
   onAuthStateChanged, 
@@ -334,9 +335,32 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{ user, role, loading, login, loginWithEmail, signupWithEmail, logout, isAdmin, forcePasswordChange, changePassword, resetPassword, coordinatorId }}>
       {(!loading || user) ? children : (
-        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-8">
-           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-           <p className="text-zinc-400 font-bold uppercase tracking-widest">Iniciando Segurança Urna 360...</p>
+        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-8 select-none">
+          <div className="relative flex flex-col items-center max-w-sm w-full text-center">
+            {/* Logo container with subtle ambient glow */}
+            <div className="relative mb-6">
+              <div className="absolute -inset-2 bg-blue-600/20 rounded-full blur-xl animate-pulse" />
+              <img 
+                src={logoImg} 
+                onError={(e) => { 
+                  const t = e.currentTarget; 
+                  if (!t.dataset.fallback) { 
+                    t.dataset.fallback = 'true'; 
+                    t.src = '/logo.png'; 
+                  } 
+                }} 
+                alt="Logo Nexus Política" 
+                className="relative w-24 h-24 object-contain mx-auto drop-shadow-md"
+              />
+            </div>
+            
+            {/* Loading Spinner */}
+            <div className="w-10 h-10 border-3 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+            
+            {/* System Title & Status */}
+            <h2 className="text-xl font-bold text-white tracking-tight mb-1">Nexus Política</h2>
+            <p className="text-xs text-zinc-400 font-medium uppercase tracking-widest">Iniciando sistema seguro...</p>
+          </div>
         </div>
       )}
     </AuthContext.Provider>

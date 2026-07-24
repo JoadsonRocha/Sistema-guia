@@ -21,7 +21,7 @@ export const reportService = {
     // Header
     doc.setFontSize(22);
     doc.setTextColor(234, 179, 8); // Yellow 500
-    doc.text('URNA 360 - SISTEMA DE ESTRATÉGIA', 14, 20);
+    doc.text('NEXUS POLÍTICA - SISTEMA DE ESTRATÉGIA', 14, 20);
     
     doc.setFontSize(16);
     doc.setTextColor(40, 40, 40);

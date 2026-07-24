@@ -736,8 +736,8 @@ export default function EleitoralDashboard({
     ], { origin: -1 });
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Modelo TRE Urna 360");
-    XLSX.writeFile(wb, "modelo_planilha_tre_urna360.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Modelo TRE Nexus Política");
+    XLSX.writeFile(wb, "modelo_planilha_tre_nexus_politica.xlsx");
     
     setSuccessMsg("Modelo de planilha (.xlsx) baixado com sucesso!");
     setTimeout(() => setSuccessMsg(null), 5000);
@@ -857,7 +857,7 @@ export default function EleitoralDashboard({
         <div>
           <div className="flex items-center gap-2 text-blue-600 dark:text-blue-600 font-bold uppercase tracking-wider text-xs">
             <LayoutDashboard className="w-4 h-4 text-blue-600" />
-            <span>Sistema Urna 360 BI & Analytics TRE</span>
+            <span>Sistema Nexus Política BI & Analytics TRE</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase mt-1">
             Análise Eleitoral

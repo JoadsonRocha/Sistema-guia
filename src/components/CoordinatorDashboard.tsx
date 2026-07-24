@@ -165,7 +165,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head>
         <meta charset="utf-8">
-        <title>Manual Inteligente do Coordenador - Urna 360</title>
+        <title>Manual Inteligente do Coordenador - Nexus Política</title>
         <style>
           body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1a1a1a; margin: 40px; }
           .header { text-align: center; border-bottom: 3px solid #0578d3; padding-bottom: 20px; margin-bottom: 30px; }
@@ -182,51 +182,51 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       </head>
       <body>
         <div class="header">
-          <div class="title">Urna 360</div>
+          <div class="title">Nexus Política</div>
           <div class="subtitle">Manual Inteligente do Coordenador de Campanha</div>
         </div>
 
         <blockquote style="font-size: 13px;">
-          "A função central é cuidar, ajustar e direcionar a campanha eleitoral de um determinado candidato. O coordenador gerencia os acertos e compromissos diários de campanha. Ele é responsável por articular com parceiros no meio político, seja no âmbito estadual, municipal ou da república. O profissional realiza o gerenciamento das finanças, administrando os valores de campanha repassados pelo partido. O coordenador fatia e distribui o dinheiro para cobrir custos com cabos eleitorais, combustível, escritórios de mídia, santinhos e outros materiais. A figura do coordenador represents o homem de extrema confiança do político. A palavra desse profissional possui muito peso, sendo tratada como se fosse a palavra do próprio candidato. Todas as decisões, ideias, reuniões e resoluções de grupos dentro da campanha precisam passar pelo aval do coordenador."
+          "A função central é cuidar, ajustar e direcionar a campanha eleitoral de um determinado candidato. O coordenador gerencia os acertos e compromissos diários de campanha. Ele é responsável por articular com parceiros no meio político, seja no âmbito estadual, municipal ou da república. O profissional realiza o gerenciamento das finanças, administrando os valores de campanha repassados pelo partido. O coordenador fatia e distribui o dinheiro para cobrir custos com cabos eleitorais, combustível, escritórios de mídia, santinhos e outros materiais. A figura do coordenador representa o homem de extrema confiança do político. A palavra desse profissional possui muito peso, sendo tratada como se fosse a palavra do próprio candidato. Todas as decisões, ideias, reuniões e resoluções de grupos dentro da campanha precisam passar pelo aval do coordenador."
         </blockquote>
 
         <h2>1. Direcionar e Cuidar da Campanha</h2>
         <p><span class="meta-bold">Função Clássica:</span> Cuidar, ajustar e guiar estrategicamente o progresso e o foco das frentes eleitorais urbana e rural.</p>
-        <p><span class="meta-bold">No Urna 360:</span> Por meio do Dashboard Central Unificado (aba Visão Geral), o coordenador monitora em tempo real a estatística consolidada de eleitores cadastrados, metas gerais por equipes, andamento das visitas e nível de atividade de todos os cabos eleitorais integrados.</p>
+        <p><span class="meta-bold">No Nexus Política:</span> Por meio do Dashboard Central Unificado (aba Visão Geral), o coordenador monitora em tempo real a estatística consolidada de eleitores cadastrados, metas gerais por equipes, andamento das visitas e nível de atividade de todos os cabos eleitorais integrados.</p>
         <div class="highlight-box">
           <p>⚡ Impacto Prático vs. Método Tradicional: Substitui a dependência de telefonemas incertos e relatórios informais por métricas exatas centralizadas. O coordenador ganha poder de intervenção estratégica imediata para recalibrar frentes estagnadas.</p>
         </div>
 
         <h2>2. Gerenciamento de Compromissos e Acertos</h2>
         <p><span class="meta-bold">Função Clássica:</span> Gerenciar a pauta de rua, reuniões territoriais mundanas e compromissos diários do candidato, otimizando o tempo dele.</p>
-        <p><span class="meta-bold">No Urna 360:</span> Integrado na aba Mapa e Agenda, permitindo vincular compromissos locais às necessidades comunitárias. Permite cadastrar visitas regionais cruzando dados diretamente com o mapa de demandas prioritárias.</p>
+        <p><span class="meta-bold">No Nexus Política:</span> Integrado na aba Mapa e Agenda, permitindo vincular compromissos locais às necessidades comunitárias. Permite cadastrar visitas regionais cruzando dados diretamente com o mapa de demandas prioritárias.</p>
         <div class="highlight-box">
           <p>⚡ Impacto Prático vs. Método Tradicional: Evita colisões e redundâncias geográficas. O candidato sobe no palanque dominando minuciosamente quais as reais queixas e demandas geológicas do bairro visitado.</p>
         </div>
 
         <h2>3. Articulação com Parceiros Políticos</h2>
         <p><span class="meta-bold">Função Clássica:</span> Manter contato contínuo e equilibrar parcerias estratégicas regionais, de vereadores a lideranças municipais externas.</p>
-        <p><span class="meta-bold">No Urna 360:</span> Integrado na central de Articulação (CRM de Parceiros), permitindo registrar todas as lideranças agregadas, gerenciar o status de relacionamento ("Quente", "Morno", "Frio"), histórico de encontros e monitoramento das metas de angariação particulares a cada um.</p>
+        <p><span class="meta-bold">No Nexus Política:</span> Integrado na central de Articulação (CRM de Parceiros), permitindo registrar todas as lideranças agregadas, gerenciar o status de relacionamento ("Quente", "Morno", "Frio"), histórico de encontros e monitoramento das metas de angariação particulares a cada um.</p>
         <div class="highlight-box">
           <p>⚡ Impacto Prático vs. Método Tradicional: Evita o desengajamento ou o "esfriamento" de redutos eleitorais por falta de comunicação continuada. Cada parceria tem um histórico de atendimento digitalizado indelével.</p>
         </div>
 
         <h2>4. Administração das Finanças e Custos de Campanha</h2>
         <p><span class="meta-bold">Função Clássica:</span> Distribuir fatias financeiras para cabos eleitorais rurais, alimentação de bases, gastos de combustível integrado e confecção de santinhos físicos.</p>
-        <p><span class="meta-bold">No Urna 360:</span> Operado através da aba Financeiro e Gestão de Materiais, permitindo destinar limites financeiros exatos a frentes de atuação específicas, autorizar injeções de recursos urgentes no Vault Digital e auditar fotos de recibos e folhas de presença de rua imediatamente.</p>
+        <p><span class="meta-bold">No Nexus Política:</span> Operado através da aba Financeiro e Gestão de Materiais, permitindo destinar limites financeiros exatos a frentes de atuação específicas, autorizar injeções de recursos urgentes no Vault Digital e auditar fotos de recibos e folhas de presença de rua imediatamente.</p>
         <div class="highlight-box">
           <p>⚡ Impacto Prático vs. Método Tradicional: Elimina a famosa "caixa-preta" de rua. Toda transação exige comprovação fotográfica, mitigando desvios e cobrando o máximo de rendimento por cada centavo empregado.</p>
         </div>
 
         <h2>5. Representação de Confiança e Tomada de Decisão</h2>
         <p><span class="meta-bold">Função Clássica:</span> Atuar como a voz oficial com autoridade final para chancelar estratégias, pautas civis e responder resoluções internas.</p>
-        <p><span class="meta-bold">No Urna 360:</span> Concentrado no painel de Anotações Táticas (dividido em Fórum Comum da Equipe e Observações Privadas do Coordenador), além da central de aprovação de Demandas (Ouvidoria de Campo). Nenhuma questão ganha andamento legal ou visibilidade coletiva sem o endosso prévio do perfil do Coordenador.</p>
+        <p><span class="meta-bold">No Nexus Política:</span> Concentrado no painel de Anotações Táticas (dividido em Fórum Comum da Equipe e Observações Privadas do Coordenador), além da central de aprovação de Demandas (Ouvidoria de Campo). Nenhuma questão ganha andamento legal ou visibilidade coletiva sem o endosso prévio do perfil do Coordenador.</p>
         <div class="highlight-box">
           <p>⚡ Impacto Prático vs. Método Tradicional: Blinda o comitê contra espionagem por canais públicos (WhatsApp). Centraliza e hierarquiza cronogramas estratégicos de forma unívoca.</p>
         </div>
 
         <div class="footer">
-          <p>Documento Oficial Gerado Eletronicamente pelo Ecossistema Urna 360.</p>
+          <p>Documento Oficial Gerado Eletronicamente pelo Ecossistema Nexus Política.</p>
           <p>Confidencialidade de Nível Governamental e Alta Operação Militar de Campo.</p>
         </div>
       </body>
@@ -236,7 +236,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'MANUAL_INTELIGENTE_DO_COORDENADOR_URNA360.doc';
+    link.download = 'MANUAL_INTELIGENTE_DO_COORDENADOR_NEXUS_POLITICA.doc';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -253,7 +253,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
     doc.setTextColor(17, 24, 39); // Zinc-900 / Dark
-    doc.text("URNA 360", 14, 25);
+    doc.text("NEXUS POLÍTICA", 14, 25);
     
     doc.setFontSize(14);
     doc.setTextColor(100, 100, 100);
@@ -322,31 +322,31 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     
     drawSection(
       "1. Direcionar e Cuidar da Campanha",
-      "Função Clássica: Cuidar, ajustar e guiar estrategicamente o progresso e o foco das frentes eleitorais urbana e rural. No Urna 360: Por meio do Dashboard Central Unificado (aba Visão Geral), o coordenador monitora em tempo real a estatística consolidada de eleitores cadastrados, metas gerais por equipes, andamento das visitas e nível de atividade de todos os cabos eleitorais integrados.",
+      "Função Clássica: Cuidar, ajustar e guiar estrategicamente o progresso e o foco das frentes eleitorais urbana e rural. No Nexus Política: Por meio do Dashboard Central Unificado (aba Visão Geral), o coordenador monitora em tempo real a estatística consolidada de eleitores cadastrados, metas gerais por equipes, andamento das visitas e nível de atividade de todos os cabos eleitorais integrados.",
       "⚡ Impacto Prático vs. Método Tradicional: Substitui a dependência de relatórios informais por métricas exatas centralizadas. O coordenador ganha poder de intervenção estratégica imediata para recalibrar frentes estagnadas."
     );
     
     drawSection(
       "2. Gerenciamento de Compromissos e Acertos",
-      "Função Clássica: Gerenciar a pauta de rua, reuniões territoriais e compromissos diários do candidato, otimizando o tempo dele. No Urna 360: Integrado na aba Mapa e Agenda, permitindo vincular compromissos locais às necessidades comunitárias. Permite cadastrar visitas regionais cruzando dados diretamente com o mapa de demandas prioritárias.",
+      "Função Clássica: Gerenciar a pauta de rua, reuniões territoriais e compromissos diários do candidato, otimizando o tempo dele. No Nexus Política: Integrado na aba Mapa e Agenda, permitindo vincular compromissos locais às necessidades comunitárias. Permite cadastrar visitas regionais cruzando dados diretamente com o mapa de demandas prioritárias.",
       "⚡ Impacto Prático vs. Método Tradicional: Evita colisões e redundâncias geográficas. O candidato sobe no palanque dominando minuciosamente quais as reais queixas e demandas do bairro visitado."
     );
     
     drawSection(
       "3. Articulação com Parceiros Políticos",
-      "Função Clássica: Manter contato contínuo e equilibrar parcerias estratégicas regionais, de vereadores a lideranças municipais. No Urna 360: Integrado na central de Articulação (CRM de Parceiros), permitindo registrar todas as lideranças agregadas, gerenciar o status de relacionamento (Quente, Morno, Frio), histórico de encontros e monitoramento das metas particulares.",
+      "Função Clássica: Manter contato contínuo e equilibrar parcerias estratégicas regionais, de vereadores a lideranças municipais. No Nexus Política: Integrado na central de Articulação (CRM de Parceiros), permitindo registrar todas as lideranças agregadas, gerenciar o status de relacionamento (Quente, Morno, Frio), histórico de encontros e monitoramento das metas particulares.",
       "⚡ Impacto Prático vs. Método Tradicional: Evita o desengajamento de redutos eleitorais por falta de comunicação. Cada parceria tem um histórico de atendimento digitalizado indelével."
     );
     
     drawSection(
       "4. Administração das Finanças e Custos de Campanha",
-      "Função Clássica: Distribuir fatias financeiras para cabos eleitorais rurais, alimentação de bases, gastos de combustível e confecção de santinhos físicos. No Urna 360: Operado através da aba Financeiro e Gestão de Materiais, permitindo destinar limites financeiros exatos a frentes de atuação específicas, autorizar injeções de recursos urgentes e auditar fotos de recibos imediatamente.",
+      "Função Clássica: Distribuir fatias financeiras para cabos eleitorais rurais, alimentação de bases, gastos de combustível e confecção de santinhos físicos. No Nexus Política: Operado através da aba Financeiro e Gestão de Materiais, permitindo destinar limites financeiros exatos a frentes de atuação específicas, autorizar injeções de recursos urgentes e auditar fotos de recibos imediatamente.",
       "⚡ Impacto Prático vs. Método Tradicional: Elimina a famosa fossa financeira de rua. Toda transação exige comprovação fotográfica, mitigando desvios e cobrando o máximo de rendimento por cada centavo empregado."
     );
     
     drawSection(
       "5. Representação de Confiança e Tomada de Decisão",
-      "Função Clássica: Atuar como a voz oficial com autoridade final para chancelar estratégias, pautas civis e responder resoluções internas. No Urna 360: Concentrado no painel de Anotações Táticas (Fórum Comum da Equipe e Observações Privadas do Coordenador), além da central de aprovação de Demandas (Ouvidoria de Campo). Nenhuma questão ganha andamento sem o endosso prévio do Coordenador.",
+      "Função Clássica: Atuar como a voz oficial com autoridade final para chancelar estratégias, pautas civis e responder resoluções internas. No Nexus Política: Concentrado no painel de Anotações Táticas (Fórum Comum da Equipe e Observações Privadas do Coordenador), além da central de aprovação de Demandas (Ouvidoria de Campo). Nenhuma questão ganha andamento sem o endosso prévio do Coordenador.",
       "⚡ Impacto Prático vs. Método Tradicional: Blinda o comitê contra vazamento de dados em canais públicos inseguros. Centraliza e hierarquiza cronogramas estratégicos de forma segura."
     );
     
@@ -363,10 +363,10 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(156, 163, 175);
-    doc.text("Documento Oficial Gerado Eletronicamente pelo Ecossistema Urna 360.", 14, y);
+    doc.text("Documento Oficial Gerado Eletronicamente pelo Ecossistema Nexus Política.", 14, y);
     doc.text("Confidencialidade de Nível Governamental e Alta Operação Militar de Campo.", 14, y + 4);
     
-    doc.save("MANUAL_INTELIGENTE_DO_COORDENADOR_URNA360.pdf");
+    doc.save("MANUAL_INTELIGENTE_DO_COORDENADOR_NEXUS_POLITICA.pdf");
   };
 
   
@@ -2115,7 +2115,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
 
         {/* CONTENT AREA */}
-        <main className="flex-1 overflow-y-auto p-3.5 md:p-10 custom-scrollbar pb-32 lg:pb-20">
+        <main className="flex-1 overflow-y-auto p-2.5 sm:p-5 md:p-10 custom-scrollbar pb-28 md:pb-12">
           <div className="max-w-7xl mx-auto space-y-6 md:space-y-12 pb-20">
             
             {activeTab === 'overview' && (
@@ -2250,10 +2250,10 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
             {activeTab === 'teams' && (
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 md:space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4 md:pb-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2.5 border-b border-[var(--border-color)] pb-3 md:pb-6">
                   <div>
-                    <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Gestão de Equipes</h2>
-                    <p className="text-[var(--text-secondary)] text-[8px] md:text-[10px] font-bold uppercase tracking-widest mt-1.5 md:mt-2">Controle tático de recursos e unidades</p>
+                    <h2 className="text-lg sm:text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Gestão de Equipes</h2>
+                    <p className="text-[var(--text-secondary)] text-[8px] md:text-[10px] font-bold uppercase tracking-widest mt-1 md:mt-2">Controle tático de recursos e unidades</p>
                   </div>
                   <button 
                     onClick={() => {
@@ -2276,25 +2276,25 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         spent: 0
                       });
                     }}
-                    className="bg-blue-600 text-white px-5 md:px-6 py-3 md:py-3.5 rounded-sm font-black text-[9px] md:text-[10px] uppercase flex items-center justify-center gap-2 md:gap-2.5 shadow-lg shadow-blue-600/10 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto mt-2 md:mt-0"
+                    className="bg-blue-600 text-white px-4 md:px-6 py-2.5 md:py-3.5 rounded-sm font-black text-[9px] md:text-[10px] uppercase flex items-center justify-center gap-2 md:gap-2.5 shadow-lg shadow-blue-600/10 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto mt-1 md:mt-0"
                   >
-                    <Plus className="w-4 h-4 text-white" /> Cadastrar Nova Unidade
+                    <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" /> Cadastrar Nova Unidade
                   </button>
                 </div>
 
                 {/* Gerador de Link de Autocadastro de Eleitor para Equipes */}
-                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 space-y-4 shadow-xl">
-                  <div className="flex items-center gap-2 border-b border-[var(--border-color)] pb-3">
-                    <UserPlus className="w-4 h-4 text-blue-600" />
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-3.5 sm:p-5 md:p-6 space-y-3 sm:space-y-4 shadow-xl">
+                  <div className="flex items-center gap-2 border-b border-[var(--border-color)] pb-2.5">
+                    <UserPlus className="w-3.5 h-3.5 text-blue-600" />
                     <h3 className="text-xs font-black uppercase text-[var(--text-primary)] tracking-wider">Gerador de Link de Autocadastro</h3>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                    <div className="space-y-1.5 col-span-1">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                    <div className="space-y-1 col-span-1">
                       <label className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Selecione a Equipe</label>
                       <select
                         value={selectedLinkTeam}
                         onChange={(e) => setSelectedLinkTeam(e.target.value)}
-                        className="w-full bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600 transition-all"
+                        className="w-full bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-sm p-2.5 font-bold text-xs outline-none focus:border-blue-600 transition-all"
                       >
                         <option value="">-- Escolha uma equipe --</option>
                         {teams.map((t) => (
@@ -2304,14 +2304,14 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         ))}
                       </select>
                     </div>
-                    <div className="space-y-1.5 col-span-2">
+                    <div className="space-y-1 col-span-2">
                       <label className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Link Gerado</label>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <input
                           readOnly
                           type="text"
                           value={selectedLinkTeam ? `${window.location.origin}/?teamId=${selectedLinkTeam}` : 'Por favor, selecione uma equipe acima...'}
-                          className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-secondary)] rounded-sm p-3 font-mono text-xs outline-none select-all"
+                          className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-secondary)] rounded-sm p-2.5 font-mono text-[11px] sm:text-xs outline-none select-all"
                         />
                         <button
                           type="button"
@@ -2321,7 +2321,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                             navigator.clipboard.writeText(`${window.location.origin}/?teamId=${selectedLinkTeam}`);
                             alert("✅ Link copiado para a área de transferência!");
                           }}
-                          className={`px-5 py-3 rounded-sm font-black text-[10px] uppercase tracking-wider transition-all active:scale-95 flex items-center gap-1.5 ${
+                          className={`px-4 py-2.5 rounded-sm font-black text-[9px] md:text-[10px] uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap ${
                             selectedLinkTeam
                               ? 'bg-blue-600 hover:bg-blue-600 text-white'
                               : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border border-[var(--border-color)] cursor-not-allowed'
@@ -2339,58 +2339,58 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                     <motion.div 
                       key={team.id || team.name} 
                       layout
-                      className={`bg-[var(--bg-secondary)] border ${team.fraudAlert ? 'border-red-600 shadow-[var(--shadow-md)] animate-pulse' : 'border-[var(--border-color)]'} rounded-sm p-4 md:p-6 lg:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6 hover:shadow-[var(--shadow-md)] hover:border-blue-600/30 transition-all group relative overflow-hidden`}
+                      className={`bg-[var(--bg-secondary)] border ${team.fraudAlert ? 'border-red-600 shadow-[var(--shadow-md)] animate-pulse' : 'border-[var(--border-color)]'} rounded-sm p-3.5 sm:p-5 md:p-6 lg:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 sm:gap-5 md:gap-6 hover:shadow-[var(--shadow-md)] hover:border-blue-600/30 transition-all group relative overflow-hidden`}
                     >
                       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl -mr-16 -mt-16 group-hover:bg-blue-600/10 transition-colors pointer-events-none opacity-0 dark:opacity-100" />
                       
                       {team.fraudAlert && (
-                        <div className="absolute top-0 right-8 bg-red-600 text-white text-[8px] font-black px-6 py-1.5 rounded-sm uppercase flex items-center gap-1.5 shadow-lg z-10">
+                        <div className="absolute top-0 right-8 bg-red-600 text-white text-[8px] font-black px-4 py-1 rounded-sm uppercase flex items-center gap-1.5 shadow-lg z-10">
                           <AlertTriangle className="w-3 h-3" /> Alerta Crítico
                         </div>
                       )}
                       
-                      <div className="flex items-center gap-4 md:gap-5 min-w-[200px] md:min-w-[240px] relative z-10">
-                        <div className={`w-11 h-11 md:w-14 md:h-14 rounded-sm flex items-center justify-center transition-transform group-hover:rotate-3 shadow-inner ${
+                      <div className="flex items-center gap-3 sm:gap-4 md:gap-5 min-w-[180px] sm:min-w-[200px] md:min-w-[240px] relative z-10">
+                        <div className={`w-9 h-9 sm:w-11 sm:h-11 md:w-14 md:h-14 rounded-sm flex items-center justify-center transition-transform group-hover:rotate-3 shadow-inner shrink-0 ${
                           team.status === 'OK' ? 'bg-emerald-500/10 text-emerald-500' : 
                           team.status === 'ALERTA' ? 'bg-blue-600/10 text-blue-600' : 'bg-red-500/10 text-red-500'
                         }`}>
-                          <Users className="w-5 h-5 md:w-7 md:h-7" />
+                          <Users className="w-4 h-4 sm:w-5 sm:h-5 md:w-7 md:h-7" />
                         </div>
-                        <div className="space-y-1">
-                          <h3 className="font-black text-[var(--text-primary)] text-base md:text-xl uppercase tracking-tighter leading-none">{team.name}</h3>
-                          <div className="flex flex-col gap-1 pt-1 opacity-70">
-                            <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-1.5 tracking-widest leading-none">
-                              <User className="w-2 md:w-2.5 h-2 md:h-2.5 text-blue-600" /> Líder: {team.leader}
+                        <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                          <h3 className="font-black text-[var(--text-primary)] text-sm sm:text-base md:text-xl uppercase tracking-tight leading-snug truncate">{team.name}</h3>
+                          <div className="flex flex-col gap-0.5 sm:gap-1 pt-0.5 opacity-70">
+                            <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-1.5 tracking-widest leading-none truncate">
+                              <User className="w-2 md:w-2.5 h-2 md:h-2.5 text-blue-600 shrink-0" /> Líder: {team.leader}
                             </p>
-                            <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-1.5 tracking-widest leading-none">
-                              <MapPin className="w-2 md:w-2.5 h-2 md:h-2.5 text-blue-600" /> Base: {team.location}
+                            <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-1.5 tracking-widest leading-none truncate">
+                              <MapPin className="w-2 md:w-2.5 h-2 md:h-2.5 text-blue-600 shrink-0" /> Base: {team.location}
                             </p>
                           </div>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 flex-1 text-left relative z-10">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6 flex-1 text-left relative z-10 py-1 sm:py-0 border-y sm:border-y-0 border-[var(--border-color)]/50">
                         <div>
-                          <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Eleitores</p>
-                          <p className="text-base md:text-2xl font-black text-[var(--text-primary)] tracking-tighter">
+                          <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-0.5 sm:mb-1 leading-none opacity-60">Eleitores</p>
+                          <p className="text-sm sm:text-base md:text-2xl font-black text-[var(--text-primary)] tracking-tighter">
                             {teamVotersCountMap[team.name] !== undefined ? teamVotersCountMap[team.name] : allVoters.filter(v => v.team === team.name || v.teamName === team.name).length}
                           </p>
                         </div>
                         <div>
-                          <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Engajamento</p>
-                          <p className="text-base md:text-2xl font-black text-emerald-600 dark:text-emerald-500 tracking-tighter leading-none">
+                          <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-0.5 sm:mb-1 leading-none opacity-60">Engajamento</p>
+                          <p className="text-sm sm:text-base md:text-2xl font-black text-emerald-600 dark:text-emerald-500 tracking-tighter leading-none">
                             {Math.min(100, Math.round(((teamVotersCountMap[team.name] !== undefined ? teamVotersCountMap[team.name] : allVoters.filter(v => v.team === team.name || v.teamName === team.name).length) / 100) * 100))}%
                           </p>
                         </div>
                         <div>
-                          <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 leading-none opacity-60">Demandas</p>
-                          <p className={`text-base md:text-2xl font-black tracking-tighter leading-none ${urgencies.filter(u => u.team === team.name).length > 0 ? 'text-red-600' : 'text-[var(--bg-tertiary)] opacity-30 dark:opacity-10'}`}>
+                          <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-0.5 sm:mb-1 leading-none opacity-60">Demandas</p>
+                          <p className={`text-sm sm:text-base md:text-2xl font-black tracking-tighter leading-none ${urgencies.filter(u => u.team === team.name).length > 0 ? 'text-red-600' : 'text-[var(--bg-tertiary)] opacity-30 dark:opacity-10'}`}>
                             {urgencies.filter(u => u.team === team.name).length}
                           </p>
                         </div>
                         <div>
-                           <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1.5 md:mb-2 leading-none opacity-60">Status de Rede</p>
-                           <span className={`inline-flex items-center gap-1 text-[7px] md:text-[8px] font-black px-2 md:px-3 py-1 md:py-1.5 rounded-sm uppercase tracking-widest border transition-colors leading-none ${
+                           <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 sm:mb-1.5 md:mb-2 leading-none opacity-60">Status de Rede</p>
+                           <span className={`inline-flex items-center gap-1 text-[7px] md:text-[8px] font-black px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 md:py-1.5 rounded-sm uppercase tracking-widest border transition-colors leading-none ${
                             team.status === 'OK' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border-emerald-500/20' : 
                             team.status === 'ALERTA' ? 'bg-blue-600/10 text-blue-700 dark:text-blue-600 border-blue-600/20' : 'bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20'
                           }`}>
@@ -2401,35 +2401,35 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       </div>
 
                       <div className="flex flex-col sm:flex-row lg:flex-col gap-2 justify-end relative z-10 w-full lg:w-auto">
-                        <div className="flex gap-2 w-full lg:w-auto">
+                        <div className="flex gap-1.5 sm:gap-2 w-full lg:w-auto">
                            <button 
                              onClick={() => {
                                const tId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
                                navigator.clipboard.writeText(`${window.location.origin}/?teamId=${tId}`);
                                alert(`✅ Link de autocadastro da equipe "${team.name}" copiado com sucesso!`);
                              }}
-                             className="flex-1 lg:flex-none p-2.5 md:p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)] flex items-center justify-center"
+                             className="flex-1 lg:flex-none p-2 sm:p-2.5 md:p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)] flex items-center justify-center"
                              title="Copiar Link de Autocadastro de Eleitores"
                            >
                              <UserPlus className="w-3.5 h-3.5 md:w-4 md:h-4" />
                            </button>
                            <button 
                              onClick={() => handleCopyAccessLink(team)}
-                             className="flex-1 lg:flex-none p-2.5 md:p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)] flex items-center justify-center"
+                             className="flex-1 lg:flex-none p-2 sm:p-2.5 md:p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)] flex items-center justify-center"
                              title="Copiar Credenciais"
                            >
                              <LogIn className="w-3.5 h-3.5 md:w-4 md:h-4" />
                            </button>
                            <button 
                              onClick={() => handleEditTeam(team)}
-                             className="flex-1 lg:flex-none p-2.5 md:p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)] flex items-center justify-center"
+                             className="flex-1 lg:flex-none p-2 sm:p-2.5 md:p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)] flex items-center justify-center"
                              title="Editar Unidade"
                            >
                              <Edit3 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                            </button>
                            <button 
                              onClick={() => handleDeleteTeam(team.id || team.name.replace(/\s/g, '_').toLowerCase(), team.name)}
-                             className="flex-1 lg:flex-none p-2.5 md:p-3 bg-red-600 text-white rounded-sm hover:bg-red-700 transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-red-600/20 flex items-center justify-center"
+                             className="flex-1 lg:flex-none p-2 sm:p-2.5 md:p-3 bg-red-600 text-white rounded-sm hover:bg-red-700 transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-red-600/20 flex items-center justify-center"
                              title="Excluir"
                            >
                              <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
@@ -2440,7 +2440,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                             setSelectedManagingTeam(team);
                             setIsTeamManagementOpen(true);
                           }}
-                          className={`w-full px-4 md:px-6 py-3 rounded-sm font-black text-[9px] md:text-[10px] uppercase shadow-lg transition-all active:translate-y-0.5 whitespace-nowrap hover:scale-[1.02] ${
+                          className={`w-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 rounded-sm font-black text-[9px] md:text-[10px] uppercase shadow-lg transition-all active:translate-y-0.5 whitespace-nowrap hover:scale-[1.02] ${
                             urgencies.filter(u => u.team === team.name).length > 0 ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-zinc-950 text-white hover:bg-zinc-800'
                           }`}
                         >
@@ -5086,31 +5086,31 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       </AnimatePresence>
 
       {/* MOBILE BOTTOM NAV - COORDINATOR */}
-      <nav className="lg:hidden fixed bottom-6 left-6 right-6 h-20 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 rounded-sm flex items-center gap-3 overflow-x-auto px-4 z-50 shadow-2xl scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-14 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200/80 dark:border-zinc-800/80 flex items-center gap-1 overflow-x-auto px-2 z-50 shadow-lg scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {[
-          { id: 'overview', label: 'Dash', icon: <LayoutDashboard className="w-5 h-5" /> },
-          { id: 'teams', label: 'Equipes', icon: <Users className="w-5 h-5" /> },
-          { id: 'voters', label: 'Eleitores', icon: <Target className="w-5 h-5" /> },
-          { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-5 h-5" /> },
-          { id: 'analise_eleitoral', label: 'Análise', icon: <TrendingUp className="w-5 h-5" /> },
-          { id: 'materials', label: 'Materia', icon: <Package className="w-5 h-5" /> },
-          { id: 'demands', label: 'Mapa', icon: <Activity className="w-5 h-5" /> },
-          { id: 'notes', label: 'Notas', icon: <MessageSquare className="w-5 h-5" /> },
-          { id: 'reports', label: 'Relatórios', icon: <FileDown className="w-5 h-5" /> }
+          { id: 'overview', label: 'Dash', icon: <LayoutDashboard className="w-4 h-4" /> },
+          { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
+          { id: 'voters', label: 'Eleitores', icon: <Target className="w-4 h-4" /> },
+          { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
+          { id: 'analise_eleitoral', label: 'Análise', icon: <TrendingUp className="w-4 h-4" /> },
+          { id: 'materials', label: 'Materiais', icon: <Package className="w-4 h-4" /> },
+          { id: 'demands', label: 'Demandas', icon: <Activity className="w-4 h-4" /> },
+          { id: 'notes', label: 'Notas', icon: <MessageSquare className="w-4 h-4" /> },
+          { id: 'reports', label: 'Relatórios', icon: <FileDown className="w-4 h-4" /> }
         ].map(tab => (
           <button 
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex flex-col items-center gap-1 transition-all shrink-0 min-w-[64px] ${
+            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1.5 transition-all shrink-0 min-w-[54px] rounded-sm ${
               activeTab === tab.id 
-              ? 'text-blue-600 dark:text-blue-600 scale-105 font-black' 
-              : 'text-zinc-400 dark:text-zinc-500'
+              ? 'text-blue-600 dark:text-blue-500 font-black' 
+              : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300'
             }`}
           >
-            <div className={`p-2 rounded-sm transition-all ${activeTab === tab.id ? 'bg-blue-600/10' : ''}`}>
+            <div className={`p-1 rounded-sm transition-all ${activeTab === tab.id ? 'bg-blue-600/10 dark:bg-blue-500/15' : ''}`}>
               {tab.icon}
             </div>
-            <span className="text-[8px] font-black uppercase tracking-[0.1em]">
+            <span className="text-[7.5px] font-black uppercase tracking-tight leading-none">
               {tab.label}
             </span>
           </button>

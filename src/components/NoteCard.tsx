@@ -40,7 +40,7 @@ export default function NoteCard({ note, user, isAdmin, onDelete, currentUserNam
         id: commentId,
         text: newComment,
         authorId: user.uid,
-        authorName: currentUserName || user.displayName || 'Membro Urna 360',
+        authorName: currentUserName || user.displayName || 'Membro Nexus Política',
         createdAt: Date.now()
       });
       setNewComment('');

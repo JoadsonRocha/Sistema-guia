@@ -2979,7 +2979,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                    </div>
 
                    <p className="text-[8px] font-black leading-relaxed text-zinc-400 text-center uppercase tracking-[0.2em] pt-4">
-                      Protocolo Digital Gerado via Urna 360
+                      Protocolo Digital Gerado via Nexus Política
                    </p>
                 </div>
               </div>
@@ -3020,7 +3020,7 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                    <div className="flex items-center gap-3">
                       <div className="bg-zinc-950 p-2 rounded-sm"><ShieldCheck className="text-blue-600 w-5 h-5 md:w-6 md:h-6" /></div>
                       <div>
-                        <h3 className="font-black text-lg md:text-xl leading-none uppercase tracking-tighter">PROTOCOLO URNA 360</h3>
+                        <h3 className="font-black text-lg md:text-xl leading-none uppercase tracking-tighter">PROTOCOLO NEXUS POLÍTICA</h3>
                         <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Comprovante de Transferência Digital</p>
                       </div>
                    </div>
@@ -3260,26 +3260,26 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
       </AnimatePresence>
 
       {/* MOBILE BOTTOM NAV */}
-      <nav className="lg:hidden fixed bottom-6 left-6 right-6 h-20 bg-neutral-950/90 backdrop-blur-xl border border-white/10 rounded-sm flex items-center justify-around px-4 z-50 shadow-2xl">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-14 bg-neutral-950/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-white/10 flex items-center justify-around px-2 z-50 shadow-lg">
         {[
-          { id: 'logistica', label: 'Tático', icon: <MapPin className="w-5 h-5" /> },
-          { id: 'equipe', label: 'Equipe', icon: <Users className="w-5 h-5" /> },
-          { id: 'notas', label: 'Notas', icon: <Mic className="w-5 h-5" /> },
-          { id: 'feed', label: 'Feed', icon: <History className="w-5 h-5" /> }
+          { id: 'logistica', label: 'Tático', icon: <MapPin className="w-4 h-4" /> },
+          { id: 'equipe', label: 'Equipe', icon: <Users className="w-4 h-4" /> },
+          { id: 'notas', label: 'Notas', icon: <Mic className="w-4 h-4" /> },
+          { id: 'feed', label: 'Feed', icon: <History className="w-4 h-4" /> }
         ].map(tab => (
           <button 
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex flex-col items-center gap-1 transition-all ${
+            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-2 transition-all shrink-0 rounded-sm ${
               activeTab === tab.id 
-              ? 'text-blue-600 scale-110' 
-              : 'text-zinc-500'
+              ? 'text-blue-500 font-black scale-105' 
+              : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            <div className={`p-2 rounded-sm transition-all ${activeTab === tab.id ? 'bg-blue-600/10' : ''}`}>
+            <div className={`p-1 rounded-sm transition-all ${activeTab === tab.id ? 'bg-blue-600/15' : ''}`}>
               {tab.icon}
             </div>
-            <span className="text-[8px] font-black uppercase tracking-[0.1em]">
+            <span className="text-[7.5px] font-black uppercase tracking-tight leading-none">
               {tab.label}
             </span>
           </button>
