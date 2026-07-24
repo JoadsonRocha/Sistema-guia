@@ -2380,7 +2380,15 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               </div>
               <div className="hidden xl:block text-left">
                 <p className="text-[11px] font-black text-zinc-950 leading-none mb-0.5">{profileData?.name || user?.email?.split('@')[0]}</p>
-                <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">{isAdmin ? 'Coordenador' : 'Agente'}</p>
+                <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">
+                  {(profileData?.role === 'coordenador_regional' || isRegional) 
+                    ? 'Coordenador Regional' 
+                    : (profileData?.role === 'coordenador_geral' || isGeral) 
+                    ? 'Coordenador Geral' 
+                    : isLeader 
+                    ? 'Líder de Equipe' 
+                    : 'Coordenador'}
+                </p>
               </div>
             </button>
           </div>
@@ -5387,7 +5395,9 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
                         Meu Perfil
                       </h2>
-                      <p className="text-blue-600 text-[8px] font-black mt-2 uppercase tracking-widest">Acesso de Coordenação Geral</p>
+                      <p className="text-blue-600 text-[8px] font-black mt-2 uppercase tracking-widest">
+                        Acesso de {(profileData?.role === 'coordenador_regional' || isRegional) ? 'Coordenação Regional' : (profileData?.role === 'coordenador_geral' || isGeral) ? 'Coordenação Geral' : isLeader ? 'Liderança de Equipe' : 'Coordenação'}
+                      </p>
                    </div>
                 </div>
               </div>
