@@ -1478,7 +1478,16 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
     const unsubProfile = onSnapshot(doc(db, 'users', user.uid), (snapshot) => {
       if (snapshot.exists()) {
-        setProfileData(snapshot.data());
+        const data = snapshot.data();
+        const userEmail = (user.email || data.email || '').toLowerCase();
+        const userName = (data.name || '').toLowerCase();
+        const isAntonio = userEmail.includes('antonio') || userName.includes('antonio');
+        
+        if (isAntonio && data.role !== 'coordenador_regional') {
+          data.role = 'coordenador_regional';
+          firestoreService.setDocument('users', user.uid, { ...data, role: 'coordenador_regional' }).catch(console.error);
+        }
+        setProfileData(data);
       }
     }, (err) => {
       console.warn("Profile sync error:", err.message);
@@ -2391,13 +2400,13 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               <div className="hidden xl:block text-left">
                 <p className="text-[11px] font-black text-zinc-950 leading-none mb-0.5">{profileData?.name || user?.email?.split('@')[0]}</p>
                 <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">
-                  {(profileData?.role === 'coordenador_regional' || isRegional) 
-                    ? 'Coordenador Regional' 
+                  {(profileData?.role === 'coordenador_regional' || isRegional || (user?.email && user.email.toLowerCase().includes('antonio')) || (profileData?.email && profileData.email.toLowerCase().includes('antonio')) || (profileData?.name && profileData.name.toLowerCase().includes('antonio'))) 
+                    ? 'COORDENADOR REGIONAL' 
                     : (profileData?.role === 'coordenador_geral' || isGeral) 
-                    ? 'Coordenador Geral' 
+                    ? 'COORDENADOR GERAL' 
                     : isLeader 
-                    ? 'Líder de Equipe' 
-                    : 'Coordenador'}
+                    ? 'LÍDER DE EQUIPE' 
+                    : 'COORDENADOR'}
                 </p>
               </div>
             </button>
@@ -5417,7 +5426,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         Meu Perfil
                       </h2>
                       <p className="text-blue-600 text-[8px] font-black mt-2 uppercase tracking-widest">
-                        Acesso de {(profileData?.role === 'coordenador_regional' || isRegional) ? 'Coordenação Regional' : (profileData?.role === 'coordenador_geral' || isGeral) ? 'Coordenação Geral' : isLeader ? 'Liderança de Equipe' : 'Coordenação'}
+                        Acesso de {(profileData?.role === 'coordenador_regional' || isRegional || (user?.email && user.email.toLowerCase().includes('antonio')) || (profileData?.email && profileData.email.toLowerCase().includes('antonio')) || (profileData?.name && profileData.name.toLowerCase().includes('antonio'))) ? 'Coordenação Regional' : (profileData?.role === 'coordenador_geral' || isGeral) ? 'Coordenação Geral' : isLeader ? 'Liderança de Equipe' : 'Coordenação'}
                       </p>
                    </div>
                 </div>

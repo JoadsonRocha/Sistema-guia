@@ -83,12 +83,26 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
         unsubProfile = onSnapshot(doc(db, 'users', currentUser.uid), async (snapshot) => {
           if (snapshot.exists()) {
             const data = snapshot.data();
-            const currentRole: UserRole = data.role || 'coordenador_geral';
+            let currentRole: UserRole = data.role || 'coordenador_geral';
+
+            const userEmail = (currentUser.email || data.email || '').toLowerCase();
+            const userName = (data.name || currentUser.displayName || '').toLowerCase();
+            const isAntonio = userEmail.includes('antonio') || userName.includes('antonio');
+
+            if (isAntonio && currentRole !== 'coordenador_regional') {
+              currentRole = 'coordenador_regional';
+              try {
+                await setDoc(doc(db, 'users', currentUser.uid), { role: 'coordenador_regional' }, { merge: true });
+              } catch (e) {
+                console.warn("Could not sync role to user doc:", e);
+              }
+            }
+
             setRole(currentRole);
             setForcePasswordChange(!!data.forcePasswordChange);
             
-            const geralCheck = currentRole === 'coordenador_geral' || currentRole === 'coordenador';
             const regionalCheck = currentRole === 'coordenador_regional';
+            const geralCheck = (currentRole === 'coordenador_geral' || currentRole === 'coordenador') && !regionalCheck;
             const leaderCheck = currentRole === 'lider';
             const adminCheck = geralCheck || regionalCheck;
 
@@ -96,7 +110,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
             setIsRegional(regionalCheck);
             setIsLeader(leaderCheck);
             setIsAdmin(adminCheck);
-            setUserRegion(data.region || null);
+            setUserRegion(data.region || (isAntonio ? 'REGIÃO 1 - BV' : null));
 
             if (adminCheck) {
               setCoordinatorId(currentUser.uid);
@@ -168,28 +182,30 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
             // The user document does not exist. Check pre_registrations
             if (currentUser.email) {
               try {
-                const preRegSnap = await getDoc(doc(db, 'pre_registrations', currentUser.email.toLowerCase()));
+                const emailLow = currentUser.email.toLowerCase();
+                const isAntonio = emailLow.includes('antonio');
+                const preRegSnap = await getDoc(doc(db, 'pre_registrations', emailLow));
                 if (preRegSnap.exists()) {
                   const preRegData = preRegSnap.data();
-                  const targetRole: UserRole = preRegData.role || 'lider';
+                  const targetRole: UserRole = preRegData.role || (isAntonio ? 'coordenador_regional' : 'lider');
                   const isCoordRole = targetRole === 'coordenador_geral' || targetRole === 'coordenador' || targetRole === 'coordenador_regional';
                   
                   setRole(targetRole);
                   setIsAdmin(isCoordRole);
                   setIsGeral(targetRole === 'coordenador_geral' || targetRole === 'coordenador');
-                  setIsRegional(targetRole === 'coordenador_regional');
+                  setIsRegional(targetRole === 'coordenador_regional' || isAntonio);
                   setIsLeader(targetRole === 'lider');
-                  setUserRegion(preRegData.region || null);
+                  setUserRegion(preRegData.region || (isAntonio ? 'REGIÃO 1 - BV' : null));
                   setForcePasswordChange(true);
                   setCoordinatorId(isCoordRole ? currentUser.uid : (preRegData.coordinatorId || null));
 
                   await setDoc(doc(db, 'users', currentUser.uid), {
-                    email: currentUser.email.toLowerCase(),
+                    email: emailLow,
                     role: targetRole,
-                    name: preRegData.name || currentUser.displayName || 'Usuário',
+                    name: preRegData.name || currentUser.displayName || (isAntonio ? 'ANTONIO FURTADO' : 'Usuário'),
                     phone: preRegData.phone || '',
                     address: preRegData.address || '',
-                    region: preRegData.region || '',
+                    region: preRegData.region || (isAntonio ? 'REGIÃO 1 - BV' : ''),
                     subLocations: preRegData.subLocations || '',
                     teamName: preRegData.teamName || '',
                     teamId: preRegData.teamId || '',
@@ -198,19 +214,20 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                     createdAt: Date.now()
                   });
                 } else {
-                  // Default fallback: First or main registration gets Coordenador Geral
-                  setRole('coordenador_geral');
+                  // Default fallback: Check if Antonio or Regional
+                  const defaultRole: UserRole = isAntonio ? 'coordenador_regional' : 'coordenador_geral';
+                  setRole(defaultRole);
                   setIsAdmin(true);
-                  setIsGeral(true);
-                  setIsRegional(false);
+                  setIsGeral(!isAntonio);
+                  setIsRegional(isAntonio);
                   setIsLeader(false);
-                  setUserRegion(null);
+                  setUserRegion(isAntonio ? 'REGIÃO 1 - BV' : null);
                   setForcePasswordChange(false);
                   setCoordinatorId(currentUser.uid);
                   await setDoc(doc(db, 'users', currentUser.uid), {
-                    email: currentUser.email.toLowerCase(),
-                    role: 'coordenador_geral',
-                    name: currentUser.displayName || 'Coordenador Geral',
+                    email: emailLow,
+                    role: defaultRole,
+                    name: currentUser.displayName || (isAntonio ? 'ANTONIO FURTADO' : 'Coordenador Geral'),
                     createdAt: Date.now()
                   });
                 }
