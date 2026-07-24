@@ -211,53 +211,99 @@ export function isLocationMatchingGoal(
 
   if (!normGoal) return false;
 
-  // 1. Direct Substring Check
-  if (normRegion.includes(normGoal) || normGoal.includes(normRegion) && normRegion.length > 2) return true;
-  if (normSubs.includes(normGoal)) return true;
+  // 1. Exact Match Check
+  if (normRegion === normGoal || normSubs === normGoal) return true;
 
-  // 2. Abbreviation Alias Matching (e.g. "bv" <-> "boa vista")
-  if (
-    (normGoal === 'boa vista' || normGoal === 'bv') &&
-    (normRegion.includes('bv') || normRegion.includes('boa vista') || normSubs.includes('bv') || normSubs.includes('boa vista'))
-  ) {
-    return true;
+  // Generic/Stop Words in Portuguese location naming that should NOT trigger matches alone
+  const STOP_WORDS = new Set([
+    'regiao', 'regiões', 'regioes', 'zona', 'zonas', 'municipio', 'municípios', 'municipios',
+    'bairro', 'bairros', 'equipe', 'equipes', 'polo', 'polos', 'distrito', 'distritos',
+    'setor', 'setores', 'meta', 'metas', 'geral', 'gerais', 'para', 'com', 'da', 'de', 'do',
+    'das', 'dos', 'em', 'no', 'na', 'nos', 'nas', 'local', 'locais'
+  ]);
+
+  // Extract non-stop words / significant tokens from Goal Location
+  const goalTokens = normGoal.split(/[\s,.-]+/).filter(t => t.length > 1 && !STOP_WORDS.has(t));
+
+  // If no specific tokens remain (e.g. goal was literally just "Região"), fallback to direct equality check
+  if (goalTokens.length === 0) {
+    return normRegion === normGoal || normSubs === normGoal;
   }
 
-  // 3. Check TRE-RR Roraima Municipality & Neighborhood Hierarchy
+  // 2. Specialized Check for "Boa Vista" / "BV"
+  const isGoalBoaVista = normGoal === 'boa vista' || normGoal === 'bv' || normGoal === 'municipio de boa vista';
+  if (isGoalBoaVista) {
+    const mentionsBV = normRegion.includes('boa vista') || normRegion.includes('bv') ||
+                       normSubs.includes('boa vista') || normSubs.includes('bv') ||
+                       normRegion.includes('regiao 1') || normRegion.includes('regiao 2') ||
+                       normRegion.includes('regiao 3') || normRegion.includes('regiao 4');
+
+    const bvMuni = RORAIMA_MUNICIPALITIES.find(m => m.id === 'boa_vista');
+    const hasBVBairro = bvMuni?.bairros.some(b => {
+      const nb = normalizeLoc(b);
+      return nb.length >= 3 && (normRegion.includes(nb) || normSubs.includes(nb));
+    });
+
+    const isInteriorOnly = RORAIMA_MUNICIPALITIES
+      .filter(m => m.id !== 'boa_vista')
+      .some(m => {
+        const normMuni = normalizeLoc(m.name);
+        return (normRegion.includes(normMuni) || normSubs.includes(normMuni)) && !mentionsBV;
+      });
+
+    if (isInteriorOnly) return false;
+    if (mentionsBV || hasBVBairro) return true;
+  }
+
+  // 3. Specialized Check for "Região Sul" / "Polo Sul" / "Sul"
+  const isGoalRegiaoSul = normGoal.includes('sul') && (normGoal.includes('regiao') || normGoal.includes('polo') || normGoal === 'sul' || normGoal === 'regiao sul');
+  if (isGoalRegiaoSul) {
+    const southMunis = ['rorainopolis', 'caroebe', 'sao joao da baliza', 'sao luiz', 'entre rios', 'baliza', 'anaua'];
+    const hasSouthMuni = southMunis.some(m => normRegion.includes(m) || normSubs.includes(m));
+    const hasExplicitSul = normRegion.includes('regiao sul') || normRegion.includes('polo sul') || normSubs.includes('regiao sul');
+
+    const isBVRegion = normRegion.includes('bv') || normRegion.includes('boa vista') || normRegion.includes('regiao 1') || normRegion.includes('regiao 2');
+    if (isBVRegion && !hasSouthMuni) return false;
+
+    if (hasExplicitSul || hasSouthMuni) return true;
+    return false;
+  }
+
+  // 4. TRE-RR Municipalities Check (e.g., "Caroebe", "Rorainópolis", "Cantá", "Pacaraima")
   const matchedMuni = RORAIMA_MUNICIPALITIES.find(m => {
     const normMuniName = normalizeLoc(m.name);
     return normMuniName === normGoal || m.aliases.some(a => normalizeLoc(a) === normGoal);
   });
 
   if (matchedMuni) {
-    // Check if coord region or subLocations contain any of the municipality's aliases
-    const hasAliasMatch = matchedMuni.aliases.some(alias => {
-      const normAlias = normalizeLoc(alias);
-      return normRegion.includes(normAlias) || normSubs.includes(normAlias);
+    const hasMuniMatch = [matchedMuni.name, ...matchedMuni.aliases].some(a => {
+      const normA = normalizeLoc(a);
+      if (normA.length < 3) return false;
+      return normRegion.includes(normA) || normSubs.includes(normA);
     });
-    if (hasAliasMatch) return true;
+    if (hasMuniMatch) return true;
 
-    // Check if coord region or subLocations contain any of the municipality's neighborhoods
-    const hasBairroMatch = matchedMuni.bairros.some(bairro => {
-      const normBairro = normalizeLoc(bairro);
-      if (normBairro.length < 3) return false; // skip tiny tokens
-      return normRegion.includes(normBairro) || normSubs.includes(normBairro);
+    const hasBairroMatch = matchedMuni.bairros.some(b => {
+      const normB = normalizeLoc(b);
+      if (normB.length < 3) return false;
+      return normRegion.includes(normB) || normSubs.includes(normB);
     });
     if (hasBairroMatch) return true;
+
+    return false;
   }
 
-  // 4. Reverse Check: If goalLocation is a specific Bairro (e.g., "Centro", "Pintolândia")
+  // 5. Neighborhood Check (if goalLocationName is a specific bairro, e.g. "Centro", "Pintolândia")
   for (const muni of RORAIMA_MUNICIPALITIES) {
     const matchedBairro = muni.bairros.find(b => normalizeLoc(b) === normGoal);
     if (matchedBairro) {
-      if (normRegion.includes(normGoal) || normSubs.includes(normGoal)) return true;
+      return normRegion.includes(normGoal) || normSubs.includes(normGoal);
     }
   }
 
-  // 5. Token overlap check (for strings with comma or hyphen separation like "Centro, Mecejana, 31 de Março")
-  const goalTokens = normGoal.split(/[\s,.-]+/).filter(t => t.length > 2);
+  // 6. Multi-word / Token Specificity Check
   const targetText = `${normRegion} ${normSubs}`;
-  const tokenMatch = goalTokens.some(token => targetText.includes(token));
-  
-  return tokenMatch;
+  const allTokensMatch = goalTokens.length > 0 && goalTokens.every(token => targetText.includes(token));
+
+  return allTokensMatch;
 }
