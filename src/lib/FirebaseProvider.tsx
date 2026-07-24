@@ -190,6 +190,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                     phone: preRegData.phone || '',
                     address: preRegData.address || '',
                     region: preRegData.region || '',
+                    subLocations: preRegData.subLocations || '',
                     teamName: preRegData.teamName || '',
                     teamId: preRegData.teamId || '',
                     coordinatorId: preRegData.coordinatorId || (isCoordRole ? currentUser.uid : ''),

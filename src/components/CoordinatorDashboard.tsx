@@ -172,6 +172,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     email: '',
     phone: '',
     region: '',
+    subLocations: '',
     targetVoters: 500,
   });
 
@@ -501,6 +502,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       await firestoreService.setDocument('regional_coordinators', coordId, {
         ...newRegCoord,
         email: newRegCoord.email.toLowerCase(),
+        subLocations: newRegCoord.subLocations || '',
         targetVoters: Number(newRegCoord.targetVoters) || 500,
         tempPassword,
         coordinatorId: coordinatorId || user?.uid || '',
@@ -512,6 +514,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         name: newRegCoord.name,
         phone: newRegCoord.phone,
         region: newRegCoord.region,
+        subLocations: newRegCoord.subLocations || '',
         role: 'coordenador_regional',
         tempPassword,
         coordinatorId: coordinatorId || user?.uid || '',
@@ -2454,7 +2457,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                     onClick={() => {
                       setIsRegionalModalOpen(true);
                       setRegCoordStep('form');
-                      setNewRegCoord({ name: '', email: '', phone: '', region: '', targetVoters: 500 });
+                      setNewRegCoord({ name: '', email: '', phone: '', region: '', subLocations: '', targetVoters: 500 });
                     }}
                     className="bg-blue-600 hover:bg-blue-500 text-white font-black text-xs px-5 py-3 rounded-sm uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
                   >
@@ -2510,15 +2513,23 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
                         <div className="space-y-2 py-3 border-y border-[var(--border-color)] my-3 text-[11px] font-medium text-[var(--text-primary)]">
                           <p className="flex items-center gap-2">
-                            <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16">E-mail:</span>
-                            <span className="font-mono text-xs">{coord.email}</span>
+                            <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16 shrink-0">E-mail:</span>
+                            <span className="font-mono text-xs truncate">{coord.email}</span>
                           </p>
                           <p className="flex items-center gap-2">
-                            <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16">WhatsApp:</span>
+                            <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16 shrink-0">WhatsApp:</span>
                             <span className="font-mono text-xs">{coord.phone || 'Não informado'}</span>
                           </p>
+                          {coord.subLocations && (
+                            <p className="flex items-start gap-2">
+                              <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16 shrink-0 mt-0.5">Composição:</span>
+                              <span className="font-mono text-[10px] text-blue-600 dark:text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded-sm flex-1 font-bold">
+                                {coord.subLocations}
+                              </span>
+                            </p>
+                          )}
                           <p className="flex items-center gap-2">
-                            <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16">Meta:</span>
+                            <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16 shrink-0">Meta:</span>
                             <span className="font-bold text-emerald-500">{coord.targetVoters ? Number(coord.targetVoters).toLocaleString('pt-BR') : '500'} Eleitores</span>
                           </p>
                         </div>
@@ -5587,7 +5598,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       />
                     </div>
                     <div>
-                      <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Região ou Polo</label>
+                      <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Região ou Polo Principal</label>
                       <input 
                         required
                         type="text" 
@@ -5597,6 +5608,27 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
+                        Municípios ou Bairros Integrantes (Opcional)
+                      </label>
+                      <span className="text-[8px] font-bold text-blue-500 uppercase tracking-widest bg-blue-500/10 px-1.5 py-0.5 rounded-sm border border-blue-500/20">
+                        Estratégia & TRE
+                      </span>
+                    </div>
+                    <input 
+                      type="text" 
+                      value={newRegCoord.subLocations}
+                      onChange={(e) => setNewRegCoord({ ...newRegCoord, subLocations: e.target.value })}
+                      placeholder="Ex: Caracaraí, Rorainópolis, São Luiz OU Pintolândia, Asa Branca"
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                    />
+                    <p className="text-[8px] font-bold text-[var(--text-secondary)] mt-1 uppercase tracking-wider">
+                      Relacione os municípios ou bairros que compõem esta região para cruzamento de inteligência e formulário de metas.
+                    </p>
                   </div>
 
                   <div>
