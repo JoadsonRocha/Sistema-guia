@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import logoImg from '../assets/logo.png';
+import { TreLocationFields } from './TreLocationFields';
 import { db } from '../lib/firebase';
 import { collection, query, where, getDocs, doc, getDoc, limit } from 'firebase/firestore';
 import { firestoreService } from '../lib/firestoreService';
@@ -394,49 +395,16 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                   <h3 className="font-black text-xs uppercase tracking-widest text-zinc-950">Dados Eleitorais (Opcional)</h3>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Título de Eleitor</label>
-                    <input 
-                      type="text" 
-                      value={voterForm.titulo} 
-                      onChange={e => setVoterForm({...voterForm, titulo: e.target.value})} 
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" 
-                      placeholder="Nº do título..." 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Zona</label>
-                    <input 
-                      type="text" 
-                      value={voterForm.zona} 
-                      onChange={e => setVoterForm({...voterForm, zona: e.target.value})} 
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" 
-                      placeholder="Zona..." 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Seção</label>
-                    <input 
-                      type="text" 
-                      value={voterForm.secao} 
-                      onChange={e => setVoterForm({...voterForm, secao: e.target.value})} 
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" 
-                      placeholder="Seção..." 
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Local de Votação (Nome do Colégio)</label>
-                  <input 
-                    type="text" 
-                    value={voterForm.localVotacao} 
-                    onChange={e => setVoterForm({...voterForm, localVotacao: e.target.value})} 
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" 
-                    placeholder="Nome da Escola ou Seção de Voto..." 
-                  />
-                </div>
+                <TreLocationFields
+                  titulo={voterForm.titulo || ''}
+                  onTituloChange={val => setVoterForm(prev => ({ ...prev, titulo: val }))}
+                  zona={voterForm.zona || ''}
+                  secao={voterForm.secao || ''}
+                  localVotacao={voterForm.localVotacao || ''}
+                  onChange={updates => setVoterForm(prev => ({ ...prev, ...updates }))}
+                  inputClassName="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300"
+                  labelClassName="text-[10px] font-black text-zinc-500 uppercase tracking-widest block"
+                />
               </div>
 
               {/* OBSERVACÕES */}

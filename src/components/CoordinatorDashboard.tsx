@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import logoImg from '../assets/logo.png';
+import { TreLocationFields } from './TreLocationFields';
 import { 
   ShieldCheck, 
   Fuel, 
@@ -5143,25 +5144,16 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-1 col-span-1">
-                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Título</label>
-                    <input type="text" value={voterEditForm.titulo || ''} onChange={e => setVoterEditForm({...voterEditForm, titulo: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Nº Título..." />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Zona</label>
-                    <input type="text" value={voterEditForm.zona || ''} onChange={e => setVoterEditForm({...voterEditForm, zona: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Zona..." />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Seção</label>
-                    <input type="text" value={voterEditForm.secao || ''} onChange={e => setVoterEditForm({...voterEditForm, secao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Seção..." />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Local de Votação</label>
-                  <input type="text" value={voterEditForm.localVotacao || ''} onChange={e => setVoterEditForm({...voterEditForm, localVotacao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Nome da Escola ou Local..." />
-                </div>
+                <TreLocationFields
+                  titulo={voterEditForm.titulo || ''}
+                  onTituloChange={val => setVoterEditForm(prev => ({ ...prev, titulo: val }))}
+                  zona={voterEditForm.zona || ''}
+                  secao={voterEditForm.secao || ''}
+                  localVotacao={voterEditForm.localVotacao || ''}
+                  onChange={updates => setVoterEditForm(prev => ({ ...prev, ...updates }))}
+                  inputClassName="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all"
+                  labelClassName="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1 block"
+                />
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Observações Estratégicas</label>
                   <textarea value={voterEditForm.observations} onChange={e => setVoterEditForm({...voterEditForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm h-24" placeholder="Ex: Prioritário, transporte necessário..."></textarea>

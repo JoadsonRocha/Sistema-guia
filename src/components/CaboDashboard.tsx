@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import logoImg from '../assets/logo.png';
+import { TreLocationFields } from './TreLocationFields';
 import { 
   ShieldCheck, 
   Fuel, 
@@ -2566,25 +2567,16 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-1.5 col-span-1">
-                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Título</label>
-                      <input type="text" value={voterForm.titulo || ''} onChange={e => setVoterForm({...voterForm, titulo: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" placeholder="Nº Título..." />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Zona</label>
-                      <input type="text" value={voterForm.zona || ''} onChange={e => setVoterForm({...voterForm, zona: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" placeholder="Zona..." />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Seção</label>
-                      <input type="text" value={voterForm.secao || ''} onChange={e => setVoterForm({...voterForm, secao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" placeholder="Seção..." />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Local de Votação</label>
-                    <input type="text" value={voterForm.localVotacao || ''} onChange={e => setVoterForm({...voterForm, localVotacao: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" placeholder="Nome da Escola / Seção..." />
-                  </div>
+                  <TreLocationFields
+                    titulo={voterForm.titulo || ''}
+                    onTituloChange={val => setVoterForm(prev => ({ ...prev, titulo: val }))}
+                    zona={voterForm.zona || ''}
+                    secao={voterForm.secao || ''}
+                    localVotacao={voterForm.localVotacao || ''}
+                    onChange={updates => setVoterForm(prev => ({ ...prev, ...updates }))}
+                    inputClassName="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-3.5 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300"
+                    labelClassName="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block"
+                  />
                   <div className="space-y-1.5">
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Articulador / Parceiro Associado</label>
                     <select 
