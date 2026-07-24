@@ -86,6 +86,7 @@ import { db, auth } from '../lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from '../lib/agendaLogic';
 import * as XLSX from 'xlsx';
 import { safeLocalStorage } from '../utils/safeStorage';
+import { isLocationMatchingGoal } from '../data/roraimaTreData';
 
 const AVAILABLE_COLUMNS_BY_TYPE: Record<string, { header: string; dataKey: string }[]> = {
   teams: [
@@ -648,11 +649,20 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
   // Helper function to find matched regional coordinators for a given goal location name
   const getMatchedRegCoordsForGoal = (locationName: string) => {
     if (!locationName) return [];
-    const normLoc = locationName.trim().toLowerCase();
     return regionalCoordinators.filter(coord => {
-      const reg = (coord.region || '').trim().toLowerCase();
-      const subs = (coord.subLocations || '').trim().toLowerCase();
-      return reg.includes(normLoc) || normLoc.includes(reg) || subs.includes(normLoc);
+      return isLocationMatchingGoal(locationName, coord.region, coord.subLocations);
+    });
+  };
+
+  // Helper function to find matched teams/leaders for a given goal location name
+  const getMatchedTeamsForGoal = (locationName: string) => {
+    if (!locationName) return [];
+    return teams.filter(team => {
+      return isLocationMatchingGoal(
+        locationName, 
+        team.region || team.name || '', 
+        team.neighborhoods || team.subLocations || team.description || ''
+      );
     });
   };
 
@@ -2652,16 +2662,22 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {goalsList.filter(g => g.category === goalCategory || (!g.category && goalCategory === 'municipio')).map(goal => {
                     const matchedRegCoords = getMatchedRegCoordsForGoal(goal.locationName);
+                    const matchedTeams = getMatchedTeamsForGoal(goal.locationName);
+
                     const totalAllocatedToCoords = matchedRegCoords.reduce((acc, c) => acc + (Number(c.targetVoters) || 0), 0);
-                    const unallocatedFromMeta = Math.max(0, (Number(goal.targetVoters) || 0) - totalAllocatedToCoords);
+                    const totalAllocatedToTeams = matchedTeams.reduce((acc, t) => acc + (Number(t.targetVoters || t.goal) || 0), 0);
+
+                    // Combine allocations (prefer Regional Coords if assigned, or sum standalone teams)
+                    const totalAllocated = totalAllocatedToCoords > 0 ? totalAllocatedToCoords : totalAllocatedToTeams;
+                    const unallocatedFromMeta = Math.max(0, (Number(goal.targetVoters) || 0) - totalAllocated);
 
                     const registeredCount = allVoters.filter(v => {
                       const loc = ((v.address || '') + ' ' + (v.neighborhood || '') + ' ' + (v.city || '') + ' ' + (v.municipality || '')).toLowerCase();
-                      return loc.includes(goal.locationName.toLowerCase());
+                      return isLocationMatchingGoal(goal.locationName, loc, loc);
                     }).length;
 
                     const target = Number(goal.targetVoters) || 1000;
-                    const allocPct = target > 0 ? Math.min(100, Math.round((totalAllocatedToCoords / target) * 100)) : 0;
+                    const allocPct = target > 0 ? Math.min(100, Math.round((totalAllocated / target) * 100)) : 0;
                     const reachPct = target > 0 ? Math.min(100, Math.round((registeredCount / target) * 100)) : 0;
 
                     return (
@@ -2700,7 +2716,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                             </div>
                             <div>
                               <p className="text-[7.5px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Alocado Regionais</p>
-                              <p className="text-sm font-black text-emerald-500 mt-0.5">{totalAllocatedToCoords.toLocaleString('pt-BR')}</p>
+                              <p className="text-sm font-black text-emerald-500 mt-0.5">{totalAllocated.toLocaleString('pt-BR')}</p>
                             </div>
                             <div>
                               <p className="text-[7.5px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Saldo Restante</p>
@@ -2708,10 +2724,10 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                             </div>
                           </div>
 
-                          {/* Matched Regional Coordinators List */}
+                          {/* Matched Regional Coordinators / Teams List */}
                           <div className="space-y-1.5 my-3">
                             <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
-                              Coordenadores Regionais Vinculados ({matchedRegCoords.length}):
+                              Coordenadores / Equipes Vinculados ({matchedRegCoords.length + (totalAllocatedToCoords === 0 ? matchedTeams.length : 0)}):
                             </p>
                             {matchedRegCoords.length > 0 ? (
                               <div className="flex flex-wrap gap-1.5">
@@ -2721,9 +2737,17 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                                   </span>
                                 ))}
                               </div>
+                            ) : matchedTeams.length > 0 ? (
+                              <div className="flex flex-wrap gap-1.5">
+                                {matchedTeams.map(t => (
+                                  <span key={t.id} className="inline-flex items-center gap-1 text-[9px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-sm uppercase">
+                                    <Users className="w-3 h-3" /> {t.name} ({Number(t.targetVoters || t.goal || 0).toLocaleString('pt-BR')} Eleitores)
+                                  </span>
+                                ))}
+                              </div>
                             ) : (
                               <p className="text-[9px] font-bold text-amber-500 uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-sm">
-                                ⚠️ Nenhum Coordenador Regional alocado para esta área ainda.
+                                ⚠️ Nenhum Coordenador Regional ou Equipe alocado para esta área ainda.
                               </p>
                             )}
                           </div>
@@ -2733,7 +2757,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         <div className="mt-4 pt-3 border-t border-[var(--border-color)] space-y-3">
                           <div>
                             <div className="flex justify-between items-center text-[8.5px] font-black uppercase tracking-wider mb-1">
-                              <span className="text-[var(--text-secondary)]">Distribuição entre Regionais ({totalAllocatedToCoords} / {target})</span>
+                              <span className="text-[var(--text-secondary)]">Distribuição entre Regionais ({totalAllocated} / {target})</span>
                               <span className="text-emerald-500">{allocPct}% Alocado</span>
                             </div>
                             <div className="w-full bg-[var(--bg-tertiary)] h-2 rounded-sm overflow-hidden border border-[var(--border-color)]">
@@ -2770,10 +2794,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                 {(() => {
                   const unlinkedCoords = regionalCoordinators.filter(coord => {
                     const matched = goalsList.some(g => {
-                      const normGoal = (g.locationName || '').trim().toLowerCase();
-                      const reg = (coord.region || '').trim().toLowerCase();
-                      const subs = (coord.subLocations || '').trim().toLowerCase();
-                      return reg.includes(normGoal) || normGoal.includes(reg) || subs.includes(normGoal);
+                      return isLocationMatchingGoal(g.locationName, coord.region, coord.subLocations);
                     });
                     return !matched;
                   });
