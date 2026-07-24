@@ -9,7 +9,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   updatePassword,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  sendEmailVerification
 } from './firebase';
 import { doc, getDoc, setDoc, onSnapshot, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from './firebase';
@@ -27,6 +28,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   changePassword: (newPass: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  verifyEmail: () => Promise<void>;
   isAdmin: boolean;
   isGeral: boolean;
   isRegional: boolean;
@@ -291,6 +293,12 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
           createdAt: Date.now(),
           ...extraData
         });
+        // Tentar enviar e-mail de verificação automaticamente ao criar a conta
+        try {
+          await sendEmailVerification(res.user);
+        } catch (vErr) {
+          console.warn("Aviso ao enviar e-mail de verificação na criação da conta:", vErr);
+        }
       }
     } catch (error) {
       console.error("Email signup failed:", error);
@@ -328,6 +336,16 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const verifyEmail = async () => {
+    if (!auth.currentUser) throw new Error("Usuário não autenticado");
+    try {
+      await sendEmailVerification(auth.currentUser);
+    } catch (error) {
+      console.error("Verification email failed:", error);
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -345,6 +363,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
       forcePasswordChange, 
       changePassword, 
       resetPassword, 
+      verifyEmail,
       coordinatorId 
     }}>
       {(!loading || user) ? children : (
