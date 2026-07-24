@@ -14,18 +14,24 @@ import {
 import { doc, getDoc, setDoc, onSnapshot, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from './firebase';
 
+export type UserRole = 'coordenador_geral' | 'coordenador_regional' | 'lider' | 'coordenador';
+
 interface AuthContextType {
   user: User | null;
-  role: 'coordenador' | 'lider' | null;
+  role: UserRole | null;
   loading: boolean;
   forcePasswordChange: boolean;
   login: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
-  signupWithEmail: (email: string, pass: string, role: 'coordenador' | 'lider', extraData?: any) => Promise<void>;
+  signupWithEmail: (email: string, pass: string, role: UserRole, extraData?: any) => Promise<void>;
   logout: () => Promise<void>;
   changePassword: (newPass: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   isAdmin: boolean;
+  isGeral: boolean;
+  isRegional: boolean;
+  isLeader: boolean;
+  userRegion: string | null;
   coordinatorId: string | null;
 }
 
@@ -33,9 +39,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<'coordenador' | 'lider' | null>(null);
+  const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isGeral, setIsGeral] = useState(false);
+  const [isRegional, setIsRegional] = useState(false);
+  const [isLeader, setIsLeader] = useState(false);
+  const [userRegion, setUserRegion] = useState<string | null>(null);
   const [forcePasswordChange, setForcePasswordChange] = useState(false);
   const [coordinatorId, setCoordinatorId] = useState<string | null>(null);
 
@@ -73,12 +83,22 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
         unsubProfile = onSnapshot(doc(db, 'users', currentUser.uid), async (snapshot) => {
           if (snapshot.exists()) {
             const data = snapshot.data();
-            setRole(data.role);
+            const currentRole: UserRole = data.role || 'coordenador_geral';
+            setRole(currentRole);
             setForcePasswordChange(!!data.forcePasswordChange);
-            const isCoordOrAdmin = data.role === 'coordenador';
-            setIsAdmin(isCoordOrAdmin);
+            
+            const geralCheck = currentRole === 'coordenador_geral' || currentRole === 'coordenador';
+            const regionalCheck = currentRole === 'coordenador_regional';
+            const leaderCheck = currentRole === 'lider';
+            const adminCheck = geralCheck || regionalCheck;
 
-            if (isCoordOrAdmin) {
+            setIsGeral(geralCheck);
+            setIsRegional(regionalCheck);
+            setIsLeader(leaderCheck);
+            setIsAdmin(adminCheck);
+            setUserRegion(data.region || null);
+
+            if (adminCheck) {
               setCoordinatorId(currentUser.uid);
             } else {
               // Priority 1: Check teamId's coordinatorId (source of truth)
@@ -90,7 +110,6 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                     const teamData = teamSnap.data();
                     if (teamData.coordinatorId) {
                       resolvedCoordId = teamData.coordinatorId;
-                      console.log(`🧠 [Auth] Resolved coordinatorId ${resolvedCoordId} from teamId: ${data.teamId}`);
                     }
                   }
                 } catch (e) {
@@ -117,7 +136,6 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                         teamName: teamData.name || '',
                         coordinatorId: resolvedCoordId
                       }, { merge: true });
-                      console.log(`🧠 [Auth] Healed leader profile using matching team: ${teamId}`);
                     }
                   }
                 } catch (e) {
@@ -138,7 +156,6 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                     await setDoc(doc(db, 'users', currentUser.uid), {
                       coordinatorId: resolvedCoordId
                     }, { merge: true });
-                    console.log(`🧠 [Auth] Propagated correct coordinatorId ${resolvedCoordId} to user profile`);
                   } catch (e) {
                     console.error("Error writing propagated coordinatorId:", e);
                   }
@@ -148,87 +165,53 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
               }
             }
           } else {
-            // The user document does not exist.
-            // Let's check if there is a pre_registration for this email.
+            // The user document does not exist. Check pre_registrations
             if (currentUser.email) {
               try {
                 const preRegSnap = await getDoc(doc(db, 'pre_registrations', currentUser.email.toLowerCase()));
                 if (preRegSnap.exists()) {
                   const preRegData = preRegSnap.data();
-                  if (preRegData.role === 'coordenador') {
-                    setRole('coordenador');
-                    setIsAdmin(true);
-                    setForcePasswordChange(true);
-                    setCoordinatorId(currentUser.uid);
-                    await setDoc(doc(db, 'users', currentUser.uid), {
-                      email: currentUser.email.toLowerCase(),
-                      role: 'coordenador',
-                      name: preRegData.name || currentUser.displayName || 'Coordenador',
-                      phone: preRegData.phone || '',
-                      forcePasswordChange: true,
-                      createdAt: Date.now()
-                    });
-                    console.log(`🧠 [Auth] Created coordinator profile from pre_registration for ${currentUser.email}`);
-                  } else {
-                    setRole('lider');
-                    setIsAdmin(false);
-                    setForcePasswordChange(true);
-                    setCoordinatorId(preRegData.coordinatorId || null);
-                    await setDoc(doc(db, 'users', currentUser.uid), {
-                      email: currentUser.email.toLowerCase(),
-                      role: 'lider',
-                      name: preRegData.name || currentUser.displayName || 'Líder',
-                      phone: preRegData.phone || '',
-                      address: preRegData.address || '',
-                      teamName: preRegData.teamName || '',
-                      teamId: preRegData.teamId || '',
-                      coordinatorId: preRegData.coordinatorId || '',
-                      forcePasswordChange: true,
-                      createdAt: Date.now()
-                    });
-                    console.log(`🧠 [Auth] Created missing profile from pre_registration for ${currentUser.email}`);
-                  }
+                  const targetRole: UserRole = preRegData.role || 'lider';
+                  const isCoordRole = targetRole === 'coordenador_geral' || targetRole === 'coordenador' || targetRole === 'coordenador_regional';
+                  
+                  setRole(targetRole);
+                  setIsAdmin(isCoordRole);
+                  setIsGeral(targetRole === 'coordenador_geral' || targetRole === 'coordenador');
+                  setIsRegional(targetRole === 'coordenador_regional');
+                  setIsLeader(targetRole === 'lider');
+                  setUserRegion(preRegData.region || null);
+                  setForcePasswordChange(true);
+                  setCoordinatorId(isCoordRole ? currentUser.uid : (preRegData.coordinatorId || null));
+
+                  await setDoc(doc(db, 'users', currentUser.uid), {
+                    email: currentUser.email.toLowerCase(),
+                    role: targetRole,
+                    name: preRegData.name || currentUser.displayName || 'Usuário',
+                    phone: preRegData.phone || '',
+                    address: preRegData.address || '',
+                    region: preRegData.region || '',
+                    teamName: preRegData.teamName || '',
+                    teamId: preRegData.teamId || '',
+                    coordinatorId: preRegData.coordinatorId || (isCoordRole ? currentUser.uid : ''),
+                    forcePasswordChange: true,
+                    createdAt: Date.now()
+                  });
                 } else {
-                  const emailVariants = Array.from(new Set([
-                    currentUser.email.toLowerCase(),
-                    currentUser.email
-                  ])).filter(Boolean);
-                  const qTeams = query(collection(db, 'teams'), where('leaderEmail', 'in', emailVariants));
-                  const snapTeams = await getDocs(qTeams);
-                  if (!snapTeams.empty) {
-                    const teamId = snapTeams.docs[0].id;
-                    const teamData = snapTeams.docs[0].data();
-                    setRole('lider');
-                    setIsAdmin(false);
-                    setForcePasswordChange(false);
-                    setCoordinatorId(teamData.coordinatorId || null);
-                    await setDoc(doc(db, 'users', currentUser.uid), {
-                      email: currentUser.email.toLowerCase(),
-                      role: 'lider',
-                      name: teamData.leader || currentUser.displayName || 'Líder',
-                      phone: teamData.leaderPhone || '',
-                      address: teamData.leaderAddress || '',
-                      teamName: teamData.name || '',
-                      teamId: teamId,
-                      coordinatorId: teamData.coordinatorId || '',
-                      createdAt: Date.now()
-                    });
-                    console.log(`🧠 [Auth] Created profile from matching team for ${currentUser.email}`);
-                  } else {
-                    // Default fallback: No pre_registration or team. Create a coordinator profile for them
-                    // so they have their own campaign!
-                    setRole('coordenador');
-                    setIsAdmin(true);
-                    setForcePasswordChange(false);
-                    setCoordinatorId(currentUser.uid);
-                    await setDoc(doc(db, 'users', currentUser.uid), {
-                      email: currentUser.email.toLowerCase(),
-                      role: 'coordenador',
-                      name: currentUser.displayName || 'Coordenador',
-                      createdAt: Date.now()
-                    });
-                    console.log(`🧠 [Auth] Created isolated coordinator campaign for ${currentUser.email}`);
-                  }
+                  // Default fallback: First or main registration gets Coordenador Geral
+                  setRole('coordenador_geral');
+                  setIsAdmin(true);
+                  setIsGeral(true);
+                  setIsRegional(false);
+                  setIsLeader(false);
+                  setUserRegion(null);
+                  setForcePasswordChange(false);
+                  setCoordinatorId(currentUser.uid);
+                  await setDoc(doc(db, 'users', currentUser.uid), {
+                    email: currentUser.email.toLowerCase(),
+                    role: 'coordenador_geral',
+                    name: currentUser.displayName || 'Coordenador Geral',
+                    createdAt: Date.now()
+                  });
                 }
               } catch (e) {
                 console.error("Error healing missing profile:", e);
@@ -243,6 +226,10 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
       } else {
         setRole(null);
         setIsAdmin(false);
+        setIsGeral(false);
+        setIsRegional(false);
+        setIsLeader(false);
+        setUserRegion(null);
         setForcePasswordChange(false);
         setCoordinatorId(null);
         setLoading(false);
@@ -260,7 +247,6 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
       await signInWithPopup(auth, googleProvider);
     } catch (error: any) {
       if (error?.code === 'auth/cancelled-popup-request') {
-        console.warn("Login Google cancelado ou requisição sobreposta:", error);
         return;
       }
       console.error("Login failed:", error);
@@ -270,25 +256,19 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithEmail = async (email: string, pass: string) => {
     try {
-      const res = await signInWithEmailAndPassword(auth, email, pass);
-      // Check if user has forcePasswordChange
-      const userDoc = await getDoc(doc(db, 'users', res.user.uid));
-      if (userDoc.exists() && userDoc.data().forcePasswordChange) {
-        // We'll handle this in the App component by checking the role and this flag
-      }
+      await signInWithEmailAndPassword(auth, email, pass);
     } catch (error: any) {
       console.error("Email login failed:", error);
       throw error;
     }
   };
 
-  const signupWithEmail = async (email: string, pass: string, userRole: 'coordenador' | 'lider', extraData?: any) => {
+  const signupWithEmail = async (email: string, pass: string, userRole: UserRole, extraData?: any) => {
     try {
       const res = await createUserWithEmailAndPassword(auth, email, pass);
       if (res.user) {
-        // Create profile in Firestore
         await setDoc(doc(db, 'users', res.user.uid), {
-          email: email,
+          email: email.toLowerCase(),
           role: userRole,
           createdAt: Date.now(),
           ...extraData
@@ -312,8 +292,6 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     if (!auth.currentUser) throw new Error("Usuário não autenticado");
     try {
       await updatePassword(auth.currentUser, newPass);
-      
-      // Clear flag in Firestore
       await setDoc(doc(db, 'users', auth.currentUser.uid), {
         forcePasswordChange: false
       }, { merge: true });
@@ -333,7 +311,24 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, role, loading, login, loginWithEmail, signupWithEmail, logout, isAdmin, forcePasswordChange, changePassword, resetPassword, coordinatorId }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      role, 
+      loading, 
+      login, 
+      loginWithEmail, 
+      signupWithEmail, 
+      logout, 
+      isAdmin, 
+      isGeral, 
+      isRegional, 
+      isLeader, 
+      userRegion, 
+      forcePasswordChange, 
+      changePassword, 
+      resetPassword, 
+      coordinatorId 
+    }}>
       {(!loading || user) ? children : (
         <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-8 select-none">
           <div className="relative flex flex-col items-center max-w-sm w-full text-center">

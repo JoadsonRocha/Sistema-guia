@@ -23,6 +23,8 @@ import {
   Send,
   X,
   Plus,
+  Check,
+  Copy,
   LogIn,
   LogOut,
   Settings,
@@ -155,10 +157,36 @@ const AVAILABLE_COLUMNS_BY_TYPE: Record<string, { header: string; dataKey: strin
 };
 
 export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme: (t: 'light' | 'dark') => void }) {
-  const { user, login, logout, isAdmin, coordinatorId } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral'>('overview');
+  const { user, login, logout, isAdmin, isGeral, isRegional, isLeader, userRegion, coordinatorId } = useAuth();
+  const [activeTab, setActiveTab] = useState<'overview' | 'regional_coords' | 'metas' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral'>('overview');
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
   const [selectedLinkTeam, setSelectedLinkTeam] = useState('');
+
+  // Coordenadores Regionais State
+  const [regionalCoordinators, setRegionalCoordinators] = useState<any[]>([]);
+  const [isRegionalModalOpen, setIsRegionalModalOpen] = useState(false);
+  const [regCoordStep, setRegCoordStep] = useState<'form' | 'success'>('form');
+  const [createdRegCoordLink, setCreatedRegCoordLink] = useState('');
+  const [newRegCoord, setNewRegCoord] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    region: '',
+    targetVoters: 500,
+  });
+
+  // Metas State
+  const [goalsList, setGoalsList] = useState<any[]>([]);
+  const [goalCategory, setGoalCategory] = useState<'bairro' | 'municipio' | 'regiao'>('municipio');
+  const [newGoal, setNewGoal] = useState({
+    locationName: '',
+    targetVoters: 1000,
+    category: 'municipio' as 'bairro' | 'municipio' | 'regiao'
+  });
+
+  // Link Share Modal
+  const [isShareLinkModalOpen, setIsShareLinkModalOpen] = useState(false);
+  const [selectedShareTeam, setSelectedShareTeam] = useState('');
 
   const handleDownloadDoc = () => {
     const textHtml = `
@@ -438,6 +466,150 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
   const [voterSearch, setVoterSearch] = useState('');
   const [voterFilterReferredBy, setVoterFilterReferredBy] = useState('');
   const [articulatorFilter, setArticulatorFilter] = useState('');
+
+  // Subscrições para Coordenadores Regionais e Metas
+  useEffect(() => {
+    if (!coordinatorId) return;
+    const unsubRegs = firestoreService.subscribeToCollectionFiltered<any>(
+      'regional_coordinators',
+      coordinatorId,
+      (data) => setRegionalCoordinators(data)
+    );
+    const unsubGoals = firestoreService.subscribeToCollectionFiltered<any>(
+      'goals',
+      coordinatorId,
+      (data) => setGoalsList(data)
+    );
+    return () => {
+      unsubRegs();
+      unsubGoals();
+    };
+  }, [coordinatorId]);
+
+  const handleCreateRegionalCoordinator = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRegCoord.name || !newRegCoord.email || !newRegCoord.region) {
+      alert("Preencha o nome, e-mail e região do Coordenador Regional.");
+      return;
+    }
+    
+    try {
+      setIsProcessing(true);
+      const coordId = `reg_${newRegCoord.email.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
+      const tempPassword = 'nexus' + Math.floor(1000 + Math.random() * 9000);
+      
+      await firestoreService.setDocument('regional_coordinators', coordId, {
+        ...newRegCoord,
+        email: newRegCoord.email.toLowerCase(),
+        targetVoters: Number(newRegCoord.targetVoters) || 500,
+        tempPassword,
+        coordinatorId: coordinatorId || user?.uid || '',
+        createdAt: Date.now()
+      });
+
+      await firestoreService.setDocument('pre_registrations', newRegCoord.email.toLowerCase(), {
+        email: newRegCoord.email.toLowerCase(),
+        name: newRegCoord.name,
+        phone: newRegCoord.phone,
+        region: newRegCoord.region,
+        role: 'coordenador_regional',
+        tempPassword,
+        coordinatorId: coordinatorId || user?.uid || '',
+        createdAt: Date.now()
+      });
+
+      const accessLink = `${window.location.origin}/?email=${encodeURIComponent(newRegCoord.email)}&access_token=${btoa(tempPassword)}&role=coordenador_regional`;
+      setCreatedRegCoordLink(accessLink);
+      setRegCoordStep('success');
+    } catch (err: any) {
+      alert("Erro ao cadastrar Coordenador Regional: " + err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDeleteRegionalCoordinator = async (id: string, email: string) => {
+    if (confirm("Deseja realmente remover este Coordenador Regional?")) {
+      try {
+        await firestoreService.deleteDocument('regional_coordinators', id);
+        if (email) {
+          await firestoreService.deleteDocument('pre_registrations', email.toLowerCase());
+        }
+        alert("Coordenador Regional removido!");
+      } catch (err: any) {
+        alert("Erro ao remover: " + err.message);
+      }
+    }
+  };
+
+  const handleCreateGoal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newGoal.locationName) {
+      alert("Informe o nome do local (Bairro, Município ou Região).");
+      return;
+    }
+    try {
+      const goalId = `goal_${newGoal.category}_${newGoal.locationName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
+      await firestoreService.setDocument('goals', goalId, {
+        ...newGoal,
+        targetVoters: Number(newGoal.targetVoters) || 500,
+        coordinatorId: coordinatorId || user?.uid || '',
+        createdAt: Date.now()
+      });
+      setNewGoal({ locationName: '', targetVoters: 1000, category: goalCategory });
+      alert("Meta registrada com sucesso!");
+    } catch (err: any) {
+      alert("Erro ao salvar meta: " + err.message);
+    }
+  };
+
+  const handleDeleteGoal = async (id: string) => {
+    if (confirm("Deseja excluir esta meta?")) {
+      try {
+        await firestoreService.deleteDocument('goals', id);
+      } catch (err: any) {
+        alert("Erro ao excluir meta: " + err.message);
+      }
+    }
+  };
+
+  const handlePurgeAllTestData = async () => {
+    if (!isAdmin) return;
+    if (window.confirm("⚠️ ATENÇÃO: ZERAR BANCO DE DADOS DA CAMPANHA\n\nDeseja LIMPAR TODOS OS DADOS (eleitores, equipes, materiais, demandas, anotações e pré-registros) para permitir o cadastro do Coordenador Geral a partir do ZERO?\n\nEsta ação é irreversível.")) {
+      try {
+        setIsProcessing(true);
+        const collectionsToWipe = [
+          'voters', 
+          'teams', 
+          'pre_registrations', 
+          'regional_coordinators', 
+          'transactions', 
+          'attendance', 
+          'notes', 
+          'urgencies', 
+          'agenda', 
+          'materials', 
+          'demands', 
+          'goals', 
+          'stats'
+        ];
+
+        for (const coll of collectionsToWipe) {
+          const docs = await firestoreService.getCollection<any>(coll);
+          for (const d of docs) {
+            await firestoreService.deleteDocument(coll, d.id);
+          }
+        }
+
+        alert("✅ Banco de dados zerado com sucesso! O sistema está pronto para cadastrar o Coordenador Geral em ambiente limpo.");
+        window.location.reload();
+      } catch (err: any) {
+        alert("Erro ao zerar banco de dados: " + err.message);
+      } finally {
+        setIsProcessing(false);
+      }
+    }
+  };
 
   // Carregar cache local de eleitores para carregamento imediato
   useEffect(() => {
@@ -1932,9 +2104,11 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
         <nav className="flex-1 space-y-1.5">
           {[
-            { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-            { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
-            { id: 'voters', label: 'Eleitores Geral', icon: <Target className="w-4 h-4" /> },
+            { id: 'overview', label: 'Dashboard Geral', icon: <LayoutDashboard className="w-4 h-4" /> },
+            ...(isGeral ? [{ id: 'regional_coords', label: 'Coord. Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
+            { id: 'metas', label: 'Metas Eleitorais', icon: <Target className="w-4 h-4" /> },
+            { id: 'teams', label: 'Equipes & Líderes', icon: <Users className="w-4 h-4" /> },
+            { id: 'voters', label: 'Eleitores Geral', icon: <UserPlus className="w-4 h-4" /> },
             { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
             { id: 'mapa', label: 'Mapa Regional', icon: <MapIcon className="w-4 h-4" /> },
             { id: 'analise_eleitoral', label: 'Análise Eleitoral', icon: <TrendingUp className="w-4 h-4" /> },
@@ -1942,7 +2116,6 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
             { id: 'demands', label: 'Demandas', icon: <Activity className="w-4 h-4" /> },
             { id: 'notes', label: 'Anotações', icon: <MessageSquare className="w-4 h-4" /> },
             { id: 'reports', label: 'Relatórios & BI', icon: <FileDown className="w-4 h-4" /> },
-
           ].map((item) => (
             <button
               key={item.id}
@@ -2074,7 +2247,25 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsShareLinkModalOpen(true)}
+              className="hidden sm:flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-emerald-600/20 active:scale-95"
+              title="Gerar e copiar link de cadastro de eleitores"
+            >
+              <Send className="w-3.5 h-3.5" /> Link de Cadastro
+            </button>
+
+            {isAdmin && (
+              <button 
+                onClick={handlePurgeAllTestData}
+                className="hidden md:flex items-center gap-2 px-3 py-2 bg-red-600/10 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 dark:border-red-900/50 rounded-sm text-xs font-black uppercase tracking-wider transition-all active:scale-95"
+                title="Limpar todos os dados do banco para recomeçar do zero"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Zerar Banco
+              </button>
+            )}
+
             <button 
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-sm text-zinc-500 dark:text-zinc-400 hover:bg-blue-600 hover:text-white active:scale-90 transition-all border border-zinc-200 dark:border-zinc-700"
@@ -2244,6 +2435,259 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       </div>
                     </div>
                   </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'regional_coords' && isGeral && (
+              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-2">
+                      <ShieldCheck className="w-6 h-6 text-blue-600" /> Coordenadores Regionais
+                    </h2>
+                    <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-2">
+                      Gestão de Diretores Regionais, Metas de Bairro e Links de Acesso
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setIsRegionalModalOpen(true);
+                      setRegCoordStep('form');
+                      setNewRegCoord({ name: '', email: '', phone: '', region: '', targetVoters: 500 });
+                    }}
+                    className="bg-blue-600 hover:bg-blue-500 text-white font-black text-xs px-5 py-3 rounded-sm uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
+                  >
+                    <Plus className="w-4 h-4" /> Cadastrar Coordenador Regional
+                  </button>
+                </div>
+
+                {/* Metric Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm">
+                    <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Coordenadores Ativos</p>
+                    <p className="text-2xl font-black text-blue-600 mt-1">{regionalCoordinators.length}</p>
+                    <p className="text-[8px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mt-1">Visão Regional Unificada</p>
+                  </div>
+                  <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm">
+                    <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Meta Acumulada Regional</p>
+                    <p className="text-2xl font-black text-emerald-500 mt-1">
+                      {regionalCoordinators.reduce((acc, curr) => acc + (Number(curr.targetVoters) || 0), 0).toLocaleString('pt-BR')}
+                    </p>
+                    <p className="text-[8px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mt-1">Eleitores Previstos</p>
+                  </div>
+                  <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm">
+                    <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Regiões Mapeadas</p>
+                    <p className="text-2xl font-black text-purple-500 mt-1">
+                      {new Set(regionalCoordinators.map(r => r.region).filter(Boolean)).size}
+                    </p>
+                    <p className="text-[8px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mt-1">Polos & Municípios</p>
+                  </div>
+                </div>
+
+                {/* List of Regional Coordinators */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {regionalCoordinators.map(coord => {
+                    const link = `${window.location.origin}/?email=${encodeURIComponent(coord.email)}&access_token=${btoa(coord.tempPassword || '123456')}&role=coordenador_regional`;
+                    return (
+                      <div key={coord.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative group hover:border-blue-500/50 transition-all">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <span className="text-[7px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2 py-0.5 rounded-sm uppercase tracking-widest">
+                              COORDENADOR REGIONAL
+                            </span>
+                            <h3 className="text-base font-black text-[var(--text-primary)] uppercase tracking-tight mt-1.5">{coord.name}</h3>
+                            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{coord.region || 'Região Não Definida'}</p>
+                          </div>
+                          <button 
+                            onClick={() => handleDeleteRegionalCoordinator(coord.id, coord.email)}
+                            className="text-zinc-400 hover:text-red-500 p-1 rounded-sm transition-colors"
+                            title="Remover Coordenador"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="space-y-2 py-3 border-y border-[var(--border-color)] my-3 text-[11px] font-medium text-[var(--text-primary)]">
+                          <p className="flex items-center gap-2">
+                            <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16">E-mail:</span>
+                            <span className="font-mono text-xs">{coord.email}</span>
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16">WhatsApp:</span>
+                            <span className="font-mono text-xs">{coord.phone || 'Não informado'}</span>
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16">Meta:</span>
+                            <span className="font-bold text-emerald-500">{coord.targetVoters ? Number(coord.targetVoters).toLocaleString('pt-BR') : '500'} Eleitores</span>
+                          </p>
+                        </div>
+
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(link);
+                            alert("Link de Acesso do Coordenador Regional copiado para a área de transferência!");
+                          }}
+                          className="w-full bg-zinc-900 hover:bg-zinc-800 text-blue-400 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-zinc-800"
+                        >
+                          <Send className="w-3.5 h-3.5" /> Copiar Link de Acesso WhatsApp
+                        </button>
+                      </div>
+                    );
+                  })}
+
+                  {regionalCoordinators.length === 0 && (
+                    <div className="col-span-full bg-[var(--bg-secondary)] border border-[var(--border-color)] p-12 text-center rounded-sm">
+                      <ShieldCheck className="w-12 h-12 text-zinc-400 mx-auto mb-3 opacity-50" />
+                      <h3 className="text-sm font-black uppercase text-[var(--text-primary)] tracking-tight">Nenhum Coordenador Regional Cadastrado</h3>
+                      <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mt-1 max-w-md mx-auto">
+                        Cadastre os coordenadores regionais para gerenciarem frentes de atuação específicas em municípios ou bairros.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'metas' && (
+              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-2">
+                      <Target className="w-6 h-6 text-blue-600" /> Central de Metas Eleitorais
+                    </h2>
+                    <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-2">
+                      Defina e acompanhe metas de cadastros de eleitores por Bairro, Município ou Região
+                    </p>
+                  </div>
+
+                  {/* Category selector */}
+                  <div className="flex items-center gap-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] p-1 rounded-sm">
+                    {(['municipio', 'bairro', 'regiao'] as const).map((cat) => (
+                      <button 
+                        key={cat}
+                        onClick={() => {
+                          setGoalCategory(cat);
+                          setNewGoal(g => ({ ...g, category: cat }));
+                        }}
+                        className={`px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider transition-all ${
+                          goalCategory === cat ? 'bg-blue-600 text-white shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                        }`}
+                      >
+                        Por {cat === 'municipio' ? 'Município' : cat === 'bairro' ? 'Bairro' : 'Região'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Form to add new goal */}
+                <form onSubmit={handleCreateGoal} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm space-y-4">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-[var(--text-primary)] flex items-center gap-2">
+                    <Plus className="w-4 h-4 text-blue-600" /> Cadastrar Nova Meta para {goalCategory === 'municipio' ? 'Município' : goalCategory === 'bairro' ? 'Bairro' : 'Região'}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">
+                        Nome do {goalCategory === 'municipio' ? 'Município' : goalCategory === 'bairro' ? 'Bairro' : 'Região'}
+                      </label>
+                      <input 
+                        required
+                        type="text" 
+                        value={newGoal.locationName}
+                        onChange={(e) => setNewGoal({ ...newGoal, locationName: e.target.value })}
+                        placeholder={goalCategory === 'municipio' ? "Ex: Boa Vista" : goalCategory === 'bairro' ? "Ex: Pintolândia" : "Ex: Zona Norte"}
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Meta de Eleitores</label>
+                      <input 
+                        required
+                        type="number" 
+                        min="10"
+                        value={newGoal.targetVoters}
+                        onChange={(e) => setNewGoal({ ...newGoal, targetVoters: Number(e.target.value) })}
+                        placeholder="Ex: 1000"
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <button 
+                        type="submit"
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-sm uppercase tracking-wider shadow-md shadow-blue-600/20 active:scale-95 transition-all"
+                      >
+                        Salvar Meta
+                      </button>
+                    </div>
+                  </div>
+                </form>
+
+                {/* Goals Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {goalsList.filter(g => g.category === goalCategory || (!g.category && goalCategory === 'municipio')).map(goal => {
+                    const registeredCount = allVoters.filter(v => {
+                      const loc = (v.address || '') + ' ' + (v.neighborhood || '') + ' ' + (v.city || '') + ' ' + (v.municipality || '');
+                      return loc.toLowerCase().includes(goal.locationName.toLowerCase());
+                    }).length;
+
+                    const target = Number(goal.targetVoters) || 1000;
+                    const pct = Math.min(100, Math.round((registeredCount / target) * 100));
+
+                    return (
+                      <div key={goal.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <span className="text-[7px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2 py-0.5 rounded-sm uppercase tracking-widest">
+                              META POR {goal.category ? goal.category.toUpperCase() : 'MUNICÍPIO'}
+                            </span>
+                            <h3 className="text-lg font-black text-[var(--text-primary)] uppercase tracking-tight mt-1">{goal.locationName}</h3>
+                          </div>
+                          <button 
+                            onClick={() => handleDeleteGoal(goal.id)}
+                            className="text-zinc-400 hover:text-red-500 p-1 rounded-sm transition-colors"
+                            title="Excluir meta"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="flex items-baseline justify-between mt-4">
+                          <div>
+                            <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Mapeados</p>
+                            <p className="text-2xl font-black text-blue-600">{registeredCount}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Meta</p>
+                            <p className="text-2xl font-black text-[var(--text-primary)]">{target.toLocaleString('pt-BR')}</p>
+                          </div>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="mt-4 space-y-1.5">
+                          <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-wider">
+                            <span className="text-[var(--text-secondary)]">Progresso</span>
+                            <span className={pct >= 100 ? 'text-emerald-500 font-bold' : pct >= 50 ? 'text-blue-500 font-bold' : 'text-amber-500 font-bold'}>{pct}% Concluído</span>
+                          </div>
+                          <div className="w-full bg-[var(--bg-tertiary)] h-2.5 rounded-sm overflow-hidden border border-[var(--border-color)]">
+                            <div 
+                              className={`h-full transition-all duration-500 ${pct >= 100 ? 'bg-emerald-500' : pct >= 50 ? 'bg-blue-600' : 'bg-amber-500'}`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {goalsList.filter(g => g.category === goalCategory || (!g.category && goalCategory === 'municipio')).length === 0 && (
+                    <div className="col-span-full bg-[var(--bg-secondary)] border border-[var(--border-color)] p-10 text-center rounded-sm">
+                      <Target className="w-10 h-10 text-zinc-400 mx-auto mb-2 opacity-50" />
+                      <p className="text-xs font-black uppercase text-[var(--text-primary)] tracking-tight">Nenhuma meta cadastrada nesta categoria</p>
+                      <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mt-1">
+                        Preencha o formulário acima para criar metas por {goalCategory === 'municipio' ? 'município' : goalCategory === 'bairro' ? 'bairro' : 'região'}.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -5085,12 +5529,197 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {isRegionalModalOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative">
+              <button onClick={() => setIsRegionalModalOpen(false)} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-[var(--text-primary)]">
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="p-6 bg-zinc-950 border-b border-zinc-800 text-left">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-sm bg-blue-600 flex items-center justify-center text-white font-black">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black text-white uppercase tracking-tight">Cadastrar Coordenador Regional</h2>
+                    <p className="text-[9px] font-bold text-blue-400 uppercase tracking-widest">Gera acesso direto ao painel regional</p>
+                  </div>
+                </div>
+              </div>
+
+              {regCoordStep === 'form' ? (
+                <form onSubmit={handleCreateRegionalCoordinator} className="p-6 space-y-4 text-left">
+                  <div>
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Nome Completo do Coordenador</label>
+                    <input 
+                      required
+                      type="text" 
+                      value={newRegCoord.name}
+                      onChange={(e) => setNewRegCoord({ ...newRegCoord, name: e.target.value })}
+                      placeholder="Ex: Carlos Eduardo Silva"
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">E-mail de Acesso</label>
+                    <input 
+                      required
+                      type="email" 
+                      value={newRegCoord.email}
+                      onChange={(e) => setNewRegCoord({ ...newRegCoord, email: e.target.value })}
+                      placeholder="carlos@nexuspolitica.com"
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">WhatsApp / Telefone</label>
+                      <input 
+                        type="text" 
+                        value={newRegCoord.phone}
+                        onChange={(e) => setNewRegCoord({ ...newRegCoord, phone: e.target.value })}
+                        placeholder="(95) 99999-0000"
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Região ou Polo</label>
+                      <input 
+                        required
+                        type="text" 
+                        value={newRegCoord.region}
+                        onChange={(e) => setNewRegCoord({ ...newRegCoord, region: e.target.value })}
+                        placeholder="Ex: Região Sul / Caracaraí"
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Meta de Eleitores Cadastrados</label>
+                    <input 
+                      type="number" 
+                      value={newRegCoord.targetVoters}
+                      onChange={(e) => setNewRegCoord({ ...newRegCoord, targetVoters: Number(e.target.value) })}
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                    />
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    disabled={isProcessing}
+                    className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-sm font-black text-xs uppercase tracking-wider shadow-lg shadow-blue-600/20 active:scale-95 transition-all mt-2"
+                  >
+                    {isProcessing ? 'GERANDO ACESSO...' : 'CADASTRAR E GERAR LINK'}
+                  </button>
+                </form>
+              ) : (
+                <div className="p-6 space-y-5 text-center">
+                  <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto">
+                    <Check className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-[var(--text-primary)] uppercase tracking-tight">Coordenador Cadastrado com Sucesso!</h3>
+                    <p className="text-xs font-bold text-[var(--text-secondary)] mt-1">Envie o link abaixo para o Coordenador Regional acessar o painel dele.</p>
+                  </div>
+
+                  <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-3 rounded-sm font-mono text-xs text-blue-500 break-all select-all">
+                    {createdRegCoordLink}
+                  </div>
+
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(createdRegCoordLink);
+                      alert("Link de acesso copiado!");
+                    }}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-sm font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all"
+                  >
+                    <Copy className="w-4 h-4" /> Copiar Link de Acesso
+                  </button>
+
+                  <button 
+                    onClick={() => setIsRegionalModalOpen(false)}
+                    className="w-full bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] text-[var(--text-primary)] py-2.5 rounded-sm font-black text-xs uppercase tracking-wider transition-all"
+                  >
+                    Concluir
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isShareLinkModalOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-md rounded-sm overflow-hidden shadow-2xl relative">
+              <button onClick={() => setIsShareLinkModalOpen(false)} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-[var(--text-primary)]">
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="p-6 bg-zinc-950 border-b border-zinc-800 text-left">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-sm bg-emerald-600 flex items-center justify-center text-white font-black">
+                    <Send className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black text-white uppercase tracking-tight">Link de Cadastro Externo</h2>
+                    <p className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest">Para Coordenadores & Líderes cadastrarem Eleitores</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4 text-left">
+                <div>
+                  <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Selecione a Equipe / Líder Vinculado</label>
+                  <select 
+                    value={selectedShareTeam}
+                    onChange={(e) => setSelectedShareTeam(e.target.value)}
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                  >
+                    <option value="">-- Cadastro Geral (Sem Equipe Específica) --</option>
+                    {teams.map(t => (
+                      <option key={t.id} value={t.id}>{t.name} - Líder: {t.leaderName || t.leader}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-3 rounded-sm">
+                  <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">URL de Cadastro Público:</p>
+                  <p className="font-mono text-xs text-blue-500 break-all select-all">
+                    {`${window.location.origin}/?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}`}
+                  </p>
+                </div>
+
+                <button 
+                  onClick={() => {
+                    const finalUrl = `${window.location.origin}/?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}`;
+                    navigator.clipboard.writeText(finalUrl);
+                    alert("Link de cadastro copiado para a área de transferência!");
+                  }}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-sm font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all"
+                >
+                  <Copy className="w-4 h-4" /> Copiar Link para WhatsApp
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* MOBILE BOTTOM NAV - COORDINATOR */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-14 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200/80 dark:border-zinc-800/80 flex items-center gap-1 overflow-x-auto px-2 z-50 shadow-lg scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {[
           { id: 'overview', label: 'Dash', icon: <LayoutDashboard className="w-4 h-4" /> },
+          ...(isGeral ? [{ id: 'regional_coords', label: 'Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
+          { id: 'metas', label: 'Metas', icon: <Target className="w-4 h-4" /> },
           { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
-          { id: 'voters', label: 'Eleitores', icon: <Target className="w-4 h-4" /> },
+          { id: 'voters', label: 'Eleitores', icon: <UserPlus className="w-4 h-4" /> },
           { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
           { id: 'analise_eleitoral', label: 'Análise', icon: <TrendingUp className="w-4 h-4" /> },
           { id: 'materials', label: 'Materiais', icon: <Package className="w-4 h-4" /> },

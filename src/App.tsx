@@ -56,7 +56,7 @@ export default function App() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [userRole, setUserRole] = useState<'coordenador' | 'lider'>('coordenador');
+  const [userRole, setUserRole] = useState<'coordenador_geral' | 'coordenador_regional' | 'lider'>('coordenador_geral');
   const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState('');
   const [showDomainGuide, setShowDomainGuide] = useState(false);
@@ -158,15 +158,16 @@ export default function App() {
             const preRegDoc = await firestoreService.getDocument('pre_registrations', email.toLowerCase()) as any;
             
             if (preRegDoc && preRegDoc.tempPassword === password) {
-              // É um líder com senha temporária! Criar a conta oficial agora.
-              await signupWithEmail(email, password, 'lider', {
-                name: preRegDoc.name,
-                phone: preRegDoc.phone,
-                address: preRegDoc.address,
-                teamName: preRegDoc.teamName,
-                teamId: preRegDoc.teamId,
+              const assignedRole = preRegDoc.role || 'lider';
+              await signupWithEmail(email, password, assignedRole, {
+                name: preRegDoc.name || '',
+                phone: preRegDoc.phone || '',
+                address: preRegDoc.address || '',
+                region: preRegDoc.region || '',
+                teamName: preRegDoc.teamName || '',
+                teamId: preRegDoc.teamId || '',
                 coordinatorId: preRegDoc.coordinatorId || '',
-                forcePasswordChange: true // Obrigar a trocar a senha
+                forcePasswordChange: true
               });
             } else {
               throw err;

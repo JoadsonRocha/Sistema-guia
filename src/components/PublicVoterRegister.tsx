@@ -131,7 +131,13 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
             throw new Error("Equipe não encontrada no sistema.");
           }
         } else {
-          throw new Error("Link inválido. Identificação da equipe ausente.");
+          // General coordinator link
+          const urlParams = new URLSearchParams(window.location.search);
+          const activeCoordId = urlParams.get('coordinatorId');
+          resolvedCoordinatorId = activeCoordId || '';
+          resolvedLeaderName = 'Coordenação Geral';
+          resolvedTeamName = 'Nexus Política';
+          resolvedLeaderId = 'geral';
         }
 
         // Se o coordinatorId estiver em falta, tentar buscar do primeiro coordenador do sistema
