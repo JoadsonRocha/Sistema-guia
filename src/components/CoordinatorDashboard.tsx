@@ -185,6 +185,14 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     category: 'municipio' as 'bairro' | 'municipio' | 'regiao'
   });
 
+  // Edit Goal State
+  const [editingGoal, setEditingGoal] = useState<any | null>(null);
+  const [isEditGoalModalOpen, setIsEditGoalModalOpen] = useState(false);
+
+  // Edit Regional Coordinator State
+  const [editingRegCoord, setEditingRegCoord] = useState<any | null>(null);
+  const [isEditRegCoordModalOpen, setIsEditRegCoordModalOpen] = useState(false);
+
   // Link Share Modal
   const [isShareLinkModalOpen, setIsShareLinkModalOpen] = useState(false);
   const [selectedShareTeam, setSelectedShareTeam] = useState('');
@@ -574,6 +582,78 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         alert("Erro ao excluir meta: " + err.message);
       }
     }
+  };
+
+  const handleOpenEditGoal = (goal: any) => {
+    setEditingGoal({ ...goal });
+    setIsEditGoalModalOpen(true);
+  };
+
+  const handleUpdateGoal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingGoal || !editingGoal.locationName) return;
+    try {
+      setIsProcessing(true);
+      await firestoreService.setDocument('goals', editingGoal.id, {
+        ...editingGoal,
+        targetVoters: Number(editingGoal.targetVoters) || 0,
+        updatedAt: Date.now()
+      });
+      setIsEditGoalModalOpen(false);
+      setEditingGoal(null);
+      alert("Meta geral atualizada com sucesso!");
+    } catch (err: any) {
+      alert("Erro ao atualizar meta: " + err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleOpenEditRegCoord = (coord: any) => {
+    setEditingRegCoord({ ...coord });
+    setIsEditRegCoordModalOpen(true);
+  };
+
+  const handleUpdateRegionalCoordinator = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingRegCoord || !editingRegCoord.name || !editingRegCoord.email) return;
+    try {
+      setIsProcessing(true);
+      await firestoreService.setDocument('regional_coordinators', editingRegCoord.id, {
+        ...editingRegCoord,
+        targetVoters: Number(editingRegCoord.targetVoters) || 0,
+        updatedAt: Date.now()
+      });
+      if (editingRegCoord.email) {
+        await firestoreService.setDocument('pre_registrations', editingRegCoord.email.toLowerCase(), {
+          email: editingRegCoord.email.toLowerCase(),
+          name: editingRegCoord.name,
+          phone: editingRegCoord.phone || '',
+          region: editingRegCoord.region || '',
+          subLocations: editingRegCoord.subLocations || '',
+          role: 'coordenador_regional',
+          updatedAt: Date.now()
+        });
+      }
+      setIsEditRegCoordModalOpen(false);
+      setEditingRegCoord(null);
+      alert("Coordenador Regional e meta atualizados com sucesso!");
+    } catch (err: any) {
+      alert("Erro ao atualizar Coordenador Regional: " + err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Helper function to find matched regional coordinators for a given goal location name
+  const getMatchedRegCoordsForGoal = (locationName: string) => {
+    if (!locationName) return [];
+    const normLoc = locationName.trim().toLowerCase();
+    return regionalCoordinators.filter(coord => {
+      const reg = (coord.region || '').trim().toLowerCase();
+      const subs = (coord.subLocations || '').trim().toLowerCase();
+      return reg.includes(normLoc) || normLoc.includes(reg) || subs.includes(normLoc);
+    });
   };
 
   const handlePurgeAllTestData = async () => {
@@ -2108,8 +2188,8 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         <nav className="flex-1 space-y-1.5">
           {[
             { id: 'overview', label: 'Dashboard Geral', icon: <LayoutDashboard className="w-4 h-4" /> },
-            ...(isGeral ? [{ id: 'regional_coords', label: 'Coord. Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
             { id: 'metas', label: 'Metas Eleitorais', icon: <Target className="w-4 h-4" /> },
+            ...(isGeral ? [{ id: 'regional_coords', label: 'Coord. Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
             { id: 'teams', label: 'Equipes & Líderes', icon: <Users className="w-4 h-4" /> },
             { id: 'voters', label: 'Eleitores Geral', icon: <UserPlus className="w-4 h-4" /> },
             { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
@@ -2442,6 +2522,300 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               </motion.div>
             )}
 
+            {activeTab === 'metas' && (
+              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-2">
+                      <Target className="w-6 h-6 text-blue-600" /> Central de Metas Eleitorais
+                    </h2>
+                    <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-2">
+                      Visão Macro das Metas Gerais, Distribuição entre Coordenadores Regionais e Saldo Restante
+                    </p>
+                  </div>
+
+                  {/* Category selector */}
+                  <div className="flex items-center gap-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] p-1 rounded-sm">
+                    {(['municipio', 'bairro', 'regiao'] as const).map((cat) => (
+                      <button 
+                        key={cat}
+                        onClick={() => {
+                          setGoalCategory(cat);
+                          setNewGoal(g => ({ ...g, category: cat }));
+                        }}
+                        className={`px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider transition-all ${
+                          goalCategory === cat ? 'bg-blue-600 text-white shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                        }`}
+                      >
+                        Por {cat === 'municipio' ? 'Município' : cat === 'bairro' ? 'Bairro' : 'Região'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Macro Summary Cards */}
+                {(() => {
+                  const filteredGoals = goalsList.filter(g => g.category === goalCategory || (!g.category && goalCategory === 'municipio'));
+                  const totalMetaGeral = filteredGoals.reduce((sum, g) => sum + (Number(g.targetVoters) || 0), 0);
+                  const totalMetaDistribuidaRegionais = regionalCoordinators.reduce((sum, c) => sum + (Number(c.targetVoters) || 0), 0);
+                  const totalPendenteAlocacao = Math.max(0, totalMetaGeral - totalMetaDistribuidaRegionais);
+                  const totalMapeados = allVoters.length;
+
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-2 h-full bg-blue-600" />
+                        <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Meta Geral Total ({goalCategory})</p>
+                        <p className="text-2xl font-black text-[var(--text-primary)] mt-1">{totalMetaGeral.toLocaleString('pt-BR')}</p>
+                        <p className="text-[8px] font-bold text-blue-500 uppercase tracking-wider mt-1">Objetivo Macro da Campanha</p>
+                      </div>
+
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-2 h-full bg-emerald-500" />
+                        <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Alocado a Coord. Regionais</p>
+                        <p className="text-2xl font-black text-emerald-500 mt-1">{totalMetaDistribuidaRegionais.toLocaleString('pt-BR')}</p>
+                        <p className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mt-1">
+                          {totalMetaGeral > 0 ? `${Math.min(100, Math.round((totalMetaDistribuidaRegionais / totalMetaGeral) * 100))}% da Meta Geral Distribuída` : 'Coordenadores em Campo'}
+                        </p>
+                      </div>
+
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-2 h-full bg-amber-500" />
+                        <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Saldo Restante a Alocar</p>
+                        <p className="text-2xl font-black text-amber-500 mt-1">{totalPendenteAlocacao.toLocaleString('pt-BR')}</p>
+                        <p className="text-[8px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mt-1">Meta a Distribuir p/ Coordenadores</p>
+                      </div>
+
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-2 h-full bg-purple-500" />
+                        <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Eleitores Mapeados (Real)</p>
+                        <p className="text-2xl font-black text-purple-500 mt-1">{totalMapeados.toLocaleString('pt-BR')}</p>
+                        <p className="text-[8px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider mt-1">
+                          {totalMetaGeral > 0 ? `${Math.min(100, Math.round((totalMapeados / totalMetaGeral) * 100))}% da Meta Geral Alcançada` : 'Cadastros no Banco'}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Form to add new goal */}
+                <form onSubmit={handleCreateGoal} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm space-y-4 shadow-sm">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-[var(--text-primary)] flex items-center gap-2">
+                    <Plus className="w-4 h-4 text-blue-600" /> Cadastrar Nova Meta Geral para {goalCategory === 'municipio' ? 'Município' : goalCategory === 'bairro' ? 'Bairro' : 'Região'}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">
+                        Nome do {goalCategory === 'municipio' ? 'Município' : goalCategory === 'bairro' ? 'Bairro' : 'Região'}
+                      </label>
+                      <input 
+                        required
+                        type="text" 
+                        value={newGoal.locationName}
+                        onChange={(e) => setNewGoal({ ...newGoal, locationName: e.target.value })}
+                        placeholder={goalCategory === 'municipio' ? "Ex: Boa Vista" : goalCategory === 'bairro' ? "Ex: Pintolândia" : "Ex: Região Sul"}
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Meta Geral de Eleitores</label>
+                      <input 
+                        required
+                        type="number" 
+                        min="10"
+                        value={newGoal.targetVoters}
+                        onChange={(e) => setNewGoal({ ...newGoal, targetVoters: Number(e.target.value) })}
+                        placeholder="Ex: 5000"
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <button 
+                        type="submit"
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-sm uppercase tracking-wider shadow-md shadow-blue-600/20 active:scale-95 transition-all"
+                      >
+                        Salvar Meta Geral
+                      </button>
+                    </div>
+                  </div>
+                </form>
+
+                {/* Goals Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {goalsList.filter(g => g.category === goalCategory || (!g.category && goalCategory === 'municipio')).map(goal => {
+                    const matchedRegCoords = getMatchedRegCoordsForGoal(goal.locationName);
+                    const totalAllocatedToCoords = matchedRegCoords.reduce((acc, c) => acc + (Number(c.targetVoters) || 0), 0);
+                    const unallocatedFromMeta = Math.max(0, (Number(goal.targetVoters) || 0) - totalAllocatedToCoords);
+
+                    const registeredCount = allVoters.filter(v => {
+                      const loc = ((v.address || '') + ' ' + (v.neighborhood || '') + ' ' + (v.city || '') + ' ' + (v.municipality || '')).toLowerCase();
+                      return loc.includes(goal.locationName.toLowerCase());
+                    }).length;
+
+                    const target = Number(goal.targetVoters) || 1000;
+                    const allocPct = target > 0 ? Math.min(100, Math.round((totalAllocatedToCoords / target) * 100)) : 0;
+                    const reachPct = target > 0 ? Math.min(100, Math.round((registeredCount / target) * 100)) : 0;
+
+                    return (
+                      <div key={goal.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative flex flex-col justify-between hover:border-blue-500/50 transition-all shadow-sm">
+                        <div>
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <span className="text-[7px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2 py-0.5 rounded-sm uppercase tracking-widest">
+                                META POR {goal.category ? goal.category.toUpperCase() : 'MUNICÍPIO'}
+                              </span>
+                              <h3 className="text-lg font-black text-[var(--text-primary)] uppercase tracking-tight mt-1">{goal.locationName}</h3>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <button 
+                                onClick={() => handleOpenEditGoal(goal)}
+                                className="text-zinc-400 hover:text-blue-500 p-1.5 rounded-sm transition-colors hover:bg-[var(--bg-tertiary)]"
+                                title="Editar Meta Geral"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteGoal(goal.id)}
+                                className="text-zinc-400 hover:text-red-500 p-1.5 rounded-sm transition-colors hover:bg-[var(--bg-tertiary)]"
+                                title="Excluir meta"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Goal Breakdown Grid */}
+                          <div className="grid grid-cols-3 gap-2 p-3 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm my-3">
+                            <div>
+                              <p className="text-[7.5px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Meta Geral</p>
+                              <p className="text-sm font-black text-[var(--text-primary)] mt-0.5">{target.toLocaleString('pt-BR')}</p>
+                            </div>
+                            <div>
+                              <p className="text-[7.5px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Alocado Regionais</p>
+                              <p className="text-sm font-black text-emerald-500 mt-0.5">{totalAllocatedToCoords.toLocaleString('pt-BR')}</p>
+                            </div>
+                            <div>
+                              <p className="text-[7.5px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Saldo Restante</p>
+                              <p className="text-sm font-black text-amber-500 mt-0.5">{unallocatedFromMeta.toLocaleString('pt-BR')}</p>
+                            </div>
+                          </div>
+
+                          {/* Matched Regional Coordinators List */}
+                          <div className="space-y-1.5 my-3">
+                            <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
+                              Coordenadores Regionais Vinculados ({matchedRegCoords.length}):
+                            </p>
+                            {matchedRegCoords.length > 0 ? (
+                              <div className="flex flex-wrap gap-1.5">
+                                {matchedRegCoords.map(c => (
+                                  <span key={c.id} className="inline-flex items-center gap-1 text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-sm uppercase">
+                                    <ShieldCheck className="w-3 h-3" /> {c.name} ({Number(c.targetVoters || 0).toLocaleString('pt-BR')} Eleitores)
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-[9px] font-bold text-amber-500 uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-sm">
+                                ⚠️ Nenhum Coordenador Regional alocado para esta área ainda.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Progress Bars */}
+                        <div className="mt-4 pt-3 border-t border-[var(--border-color)] space-y-3">
+                          <div>
+                            <div className="flex justify-between items-center text-[8.5px] font-black uppercase tracking-wider mb-1">
+                              <span className="text-[var(--text-secondary)]">Distribuição entre Regionais ({totalAllocatedToCoords} / {target})</span>
+                              <span className="text-emerald-500">{allocPct}% Alocado</span>
+                            </div>
+                            <div className="w-full bg-[var(--bg-tertiary)] h-2 rounded-sm overflow-hidden border border-[var(--border-color)]">
+                              <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${allocPct}%` }} />
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex justify-between items-center text-[8.5px] font-black uppercase tracking-wider mb-1">
+                              <span className="text-[var(--text-secondary)]">Eleitores Mapeados no Banco ({registeredCount} / {target})</span>
+                              <span className={reachPct >= 100 ? 'text-purple-500 font-bold' : 'text-blue-500 font-bold'}>{reachPct}% Alcançado</span>
+                            </div>
+                            <div className="w-full bg-[var(--bg-tertiary)] h-2 rounded-sm overflow-hidden border border-[var(--border-color)]">
+                              <div className="h-full bg-purple-500 transition-all duration-500" style={{ width: `${reachPct}%` }} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {goalsList.filter(g => g.category === goalCategory || (!g.category && goalCategory === 'municipio')).length === 0 && (
+                    <div className="col-span-full bg-[var(--bg-secondary)] border border-[var(--border-color)] p-10 text-center rounded-sm">
+                      <Target className="w-10 h-10 text-zinc-400 mx-auto mb-2 opacity-50" />
+                      <p className="text-xs font-black uppercase text-[var(--text-primary)] tracking-tight">Nenhuma meta geral cadastrada nesta categoria</p>
+                      <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mt-1">
+                        Preencha o formulário acima para criar metas gerais por {goalCategory === 'municipio' ? 'município' : goalCategory === 'bairro' ? 'bairro' : 'região'}.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Section for Regional Coords without explicit Goal registered */}
+                {(() => {
+                  const unlinkedCoords = regionalCoordinators.filter(coord => {
+                    const matched = goalsList.some(g => {
+                      const normGoal = (g.locationName || '').trim().toLowerCase();
+                      const reg = (coord.region || '').trim().toLowerCase();
+                      const subs = (coord.subLocations || '').trim().toLowerCase();
+                      return reg.includes(normGoal) || normGoal.includes(reg) || subs.includes(normGoal);
+                    });
+                    return !matched;
+                  });
+
+                  if (unlinkedCoords.length === 0) return null;
+
+                  return (
+                    <div className="mt-8 bg-[var(--bg-secondary)] border border-amber-500/30 p-5 rounded-sm space-y-4">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-5 h-5 text-amber-500" />
+                        <div>
+                          <h3 className="text-xs font-black uppercase text-[var(--text-primary)] tracking-tight">
+                            Coordenadores Regionais Aguardando Meta Geral Cadastrada ({unlinkedCoords.length})
+                          </h3>
+                          <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                            Estes coordenadores possuem metas de atuação mas a região correspondente ainda não possui uma Meta Geral definida.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {unlinkedCoords.map(coord => (
+                          <div key={coord.id} className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-3 rounded-sm flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-xs font-black text-[var(--text-primary)] uppercase">{coord.name}</p>
+                              <p className="text-[9px] font-bold text-blue-500 uppercase">Região: {coord.region} • Meta: {Number(coord.targetVoters || 0).toLocaleString('pt-BR')}</p>
+                              {coord.subLocations && <p className="text-[8px] text-[var(--text-secondary)] font-mono">Bairros/Municípios: {coord.subLocations}</p>}
+                            </div>
+                            <button
+                              onClick={() => {
+                                setNewGoal({
+                                  locationName: coord.region || coord.subLocations || 'Nova Região',
+                                  targetVoters: (Number(coord.targetVoters) || 500) * 2,
+                                  category: goalCategory
+                                });
+                                window.scrollTo({ top: 300, behavior: 'smooth' });
+                              }}
+                              className="bg-amber-600 hover:bg-amber-500 text-white font-black text-[9px] px-3 py-2 rounded-sm uppercase tracking-wider shrink-0"
+                            >
+                              + Criar Meta Geral
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </motion.div>
+            )}
+
             {activeTab === 'regional_coords' && isGeral && (
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
@@ -2493,45 +2867,56 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                   {regionalCoordinators.map(coord => {
                     const link = `${window.location.origin}/?email=${encodeURIComponent(coord.email)}&access_token=${btoa(coord.tempPassword || '123456')}&role=coordenador_regional`;
                     return (
-                      <div key={coord.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative group hover:border-blue-500/50 transition-all">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <span className="text-[7px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2 py-0.5 rounded-sm uppercase tracking-widest">
-                              COORDENADOR REGIONAL
-                            </span>
-                            <h3 className="text-base font-black text-[var(--text-primary)] uppercase tracking-tight mt-1.5">{coord.name}</h3>
-                            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{coord.region || 'Região Não Definida'}</p>
-                          </div>
-                          <button 
-                            onClick={() => handleDeleteRegionalCoordinator(coord.id, coord.email)}
-                            className="text-zinc-400 hover:text-red-500 p-1 rounded-sm transition-colors"
-                            title="Remover Coordenador"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-
-                        <div className="space-y-2 py-3 border-y border-[var(--border-color)] my-3 text-[11px] font-medium text-[var(--text-primary)]">
-                          <p className="flex items-center gap-2">
-                            <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16 shrink-0">E-mail:</span>
-                            <span className="font-mono text-xs truncate">{coord.email}</span>
-                          </p>
-                          <p className="flex items-center gap-2">
-                            <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16 shrink-0">WhatsApp:</span>
-                            <span className="font-mono text-xs">{coord.phone || 'Não informado'}</span>
-                          </p>
-                          {coord.subLocations && (
-                            <p className="flex items-start gap-2">
-                              <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16 shrink-0 mt-0.5">Composição:</span>
-                              <span className="font-mono text-[10px] text-blue-600 dark:text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded-sm flex-1 font-bold">
-                                {coord.subLocations}
+                      <div key={coord.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative group hover:border-blue-500/50 transition-all flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <span className="text-[7px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2 py-0.5 rounded-sm uppercase tracking-widest">
+                                COORDENADOR REGIONAL
                               </span>
+                              <h3 className="text-base font-black text-[var(--text-primary)] uppercase tracking-tight mt-1.5">{coord.name}</h3>
+                              <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{coord.region || 'Região Não Definida'}</p>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <button 
+                                onClick={() => handleOpenEditRegCoord(coord)}
+                                className="text-zinc-400 hover:text-blue-500 p-1.5 rounded-sm transition-colors hover:bg-[var(--bg-tertiary)]"
+                                title="Editar Coordenador Regional"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteRegionalCoordinator(coord.id, coord.email)}
+                                className="text-zinc-400 hover:text-red-500 p-1.5 rounded-sm transition-colors hover:bg-[var(--bg-tertiary)]"
+                                title="Remover Coordenador"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2 py-3 border-y border-[var(--border-color)] my-3 text-[11px] font-medium text-[var(--text-primary)]">
+                            <p className="flex items-center gap-2">
+                              <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16 shrink-0">E-mail:</span>
+                              <span className="font-mono text-xs truncate">{coord.email}</span>
                             </p>
-                          )}
-                          <p className="flex items-center gap-2">
-                            <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16 shrink-0">Meta:</span>
-                            <span className="font-bold text-emerald-500">{coord.targetVoters ? Number(coord.targetVoters).toLocaleString('pt-BR') : '500'} Eleitores</span>
-                          </p>
+                            <p className="flex items-center gap-2">
+                              <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16 shrink-0">WhatsApp:</span>
+                              <span className="font-mono text-xs">{coord.phone || 'Não informado'}</span>
+                            </p>
+                            {coord.subLocations && (
+                              <p className="flex items-start gap-2">
+                                <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16 shrink-0 mt-0.5">Composição:</span>
+                                <span className="font-mono text-[10px] text-blue-600 dark:text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded-sm flex-1 font-bold">
+                                  {coord.subLocations}
+                                </span>
+                              </p>
+                            )}
+                            <p className="flex items-center gap-2">
+                              <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16 shrink-0">Meta:</span>
+                              <span className="font-bold text-emerald-500">{coord.targetVoters ? Number(coord.targetVoters).toLocaleString('pt-BR') : '500'} Eleitores</span>
+                            </p>
+                          </div>
                         </div>
 
                         <button 
@@ -2539,7 +2924,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                             navigator.clipboard.writeText(link);
                             alert("Link de Acesso do Coordenador Regional copiado para a área de transferência!");
                           }}
-                          className="w-full bg-zinc-900 hover:bg-zinc-800 text-blue-400 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-zinc-800"
+                          className="w-full bg-zinc-900 hover:bg-zinc-800 text-blue-400 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-zinc-800 mt-2"
                         >
                           <Send className="w-3.5 h-3.5" /> Copiar Link de Acesso WhatsApp
                         </button>
@@ -2553,149 +2938,6 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                       <h3 className="text-sm font-black uppercase text-[var(--text-primary)] tracking-tight">Nenhum Coordenador Regional Cadastrado</h3>
                       <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mt-1 max-w-md mx-auto">
                         Cadastre os coordenadores regionais para gerenciarem frentes de atuação específicas em municípios ou bairros.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'metas' && (
-              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
-                  <div>
-                    <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-2">
-                      <Target className="w-6 h-6 text-blue-600" /> Central de Metas Eleitorais
-                    </h2>
-                    <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-2">
-                      Defina e acompanhe metas de cadastros de eleitores por Bairro, Município ou Região
-                    </p>
-                  </div>
-
-                  {/* Category selector */}
-                  <div className="flex items-center gap-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] p-1 rounded-sm">
-                    {(['municipio', 'bairro', 'regiao'] as const).map((cat) => (
-                      <button 
-                        key={cat}
-                        onClick={() => {
-                          setGoalCategory(cat);
-                          setNewGoal(g => ({ ...g, category: cat }));
-                        }}
-                        className={`px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider transition-all ${
-                          goalCategory === cat ? 'bg-blue-600 text-white shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                        }`}
-                      >
-                        Por {cat === 'municipio' ? 'Município' : cat === 'bairro' ? 'Bairro' : 'Região'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Form to add new goal */}
-                <form onSubmit={handleCreateGoal} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm space-y-4">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-[var(--text-primary)] flex items-center gap-2">
-                    <Plus className="w-4 h-4 text-blue-600" /> Cadastrar Nova Meta para {goalCategory === 'municipio' ? 'Município' : goalCategory === 'bairro' ? 'Bairro' : 'Região'}
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">
-                        Nome do {goalCategory === 'municipio' ? 'Município' : goalCategory === 'bairro' ? 'Bairro' : 'Região'}
-                      </label>
-                      <input 
-                        required
-                        type="text" 
-                        value={newGoal.locationName}
-                        onChange={(e) => setNewGoal({ ...newGoal, locationName: e.target.value })}
-                        placeholder={goalCategory === 'municipio' ? "Ex: Boa Vista" : goalCategory === 'bairro' ? "Ex: Pintolândia" : "Ex: Zona Norte"}
-                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Meta de Eleitores</label>
-                      <input 
-                        required
-                        type="number" 
-                        min="10"
-                        value={newGoal.targetVoters}
-                        onChange={(e) => setNewGoal({ ...newGoal, targetVoters: Number(e.target.value) })}
-                        placeholder="Ex: 1000"
-                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
-                      />
-                    </div>
-                    <div className="flex items-end">
-                      <button 
-                        type="submit"
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-sm uppercase tracking-wider shadow-md shadow-blue-600/20 active:scale-95 transition-all"
-                      >
-                        Salvar Meta
-                      </button>
-                    </div>
-                  </div>
-                </form>
-
-                {/* Goals Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {goalsList.filter(g => g.category === goalCategory || (!g.category && goalCategory === 'municipio')).map(goal => {
-                    const registeredCount = allVoters.filter(v => {
-                      const loc = (v.address || '') + ' ' + (v.neighborhood || '') + ' ' + (v.city || '') + ' ' + (v.municipality || '');
-                      return loc.toLowerCase().includes(goal.locationName.toLowerCase());
-                    }).length;
-
-                    const target = Number(goal.targetVoters) || 1000;
-                    const pct = Math.min(100, Math.round((registeredCount / target) * 100));
-
-                    return (
-                      <div key={goal.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <span className="text-[7px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2 py-0.5 rounded-sm uppercase tracking-widest">
-                              META POR {goal.category ? goal.category.toUpperCase() : 'MUNICÍPIO'}
-                            </span>
-                            <h3 className="text-lg font-black text-[var(--text-primary)] uppercase tracking-tight mt-1">{goal.locationName}</h3>
-                          </div>
-                          <button 
-                            onClick={() => handleDeleteGoal(goal.id)}
-                            className="text-zinc-400 hover:text-red-500 p-1 rounded-sm transition-colors"
-                            title="Excluir meta"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-
-                        <div className="flex items-baseline justify-between mt-4">
-                          <div>
-                            <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Mapeados</p>
-                            <p className="text-2xl font-black text-blue-600">{registeredCount}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Meta</p>
-                            <p className="text-2xl font-black text-[var(--text-primary)]">{target.toLocaleString('pt-BR')}</p>
-                          </div>
-                        </div>
-
-                        {/* Progress Bar */}
-                        <div className="mt-4 space-y-1.5">
-                          <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-wider">
-                            <span className="text-[var(--text-secondary)]">Progresso</span>
-                            <span className={pct >= 100 ? 'text-emerald-500 font-bold' : pct >= 50 ? 'text-blue-500 font-bold' : 'text-amber-500 font-bold'}>{pct}% Concluído</span>
-                          </div>
-                          <div className="w-full bg-[var(--bg-tertiary)] h-2.5 rounded-sm overflow-hidden border border-[var(--border-color)]">
-                            <div 
-                              className={`h-full transition-all duration-500 ${pct >= 100 ? 'bg-emerald-500' : pct >= 50 ? 'bg-blue-600' : 'bg-amber-500'}`}
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {goalsList.filter(g => g.category === goalCategory || (!g.category && goalCategory === 'municipio')).length === 0 && (
-                    <div className="col-span-full bg-[var(--bg-secondary)] border border-[var(--border-color)] p-10 text-center rounded-sm">
-                      <Target className="w-10 h-10 text-zinc-400 mx-auto mb-2 opacity-50" />
-                      <p className="text-xs font-black uppercase text-[var(--text-primary)] tracking-tight">Nenhuma meta cadastrada nesta categoria</p>
-                      <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mt-1">
-                        Preencha o formulário acima para criar metas por {goalCategory === 'municipio' ? 'município' : goalCategory === 'bairro' ? 'bairro' : 'região'}.
                       </p>
                     </div>
                   )}
@@ -5744,12 +5986,176 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {isEditGoalModalOpen && editingGoal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-md rounded-sm overflow-hidden shadow-2xl relative">
+              <button onClick={() => setIsEditGoalModalOpen(false)} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-[var(--text-primary)]">
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="p-6 bg-zinc-950 border-b border-zinc-800 text-left">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-sm bg-blue-600 flex items-center justify-center text-white font-black">
+                    <Target className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black text-white uppercase tracking-tight">Editar Meta Geral</h2>
+                    <p className="text-[9px] font-bold text-blue-400 uppercase tracking-widest">{editingGoal.locationName}</p>
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleUpdateGoal} className="p-6 space-y-4 text-left">
+                <div>
+                  <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Nome da Localidade</label>
+                  <input 
+                    required
+                    type="text" 
+                    value={editingGoal.locationName || ''}
+                    onChange={(e) => setEditingGoal({ ...editingGoal, locationName: e.target.value })}
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Meta Geral de Eleitores</label>
+                  <input 
+                    required
+                    type="number" 
+                    min="1"
+                    value={editingGoal.targetVoters || 0}
+                    onChange={(e) => setEditingGoal({ ...editingGoal, targetVoters: Number(e.target.value) })}
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button 
+                    type="button"
+                    onClick={() => setIsEditGoalModalOpen(false)}
+                    className="w-1/2 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] text-[var(--text-primary)] py-3 rounded-sm font-black text-xs uppercase tracking-wider"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={isProcessing}
+                    className="w-1/2 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-sm font-black text-xs uppercase tracking-wider shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
+                  >
+                    {isProcessing ? 'Salvando...' : 'Atualizar Meta'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isEditRegCoordModalOpen && editingRegCoord && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative">
+              <button onClick={() => setIsEditRegCoordModalOpen(false)} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-[var(--text-primary)]">
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="p-6 bg-zinc-950 border-b border-zinc-800 text-left">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-sm bg-blue-600 flex items-center justify-center text-white font-black">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black text-white uppercase tracking-tight">Editar Coordenador Regional</h2>
+                    <p className="text-[9px] font-bold text-blue-400 uppercase tracking-widest">{editingRegCoord.name}</p>
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleUpdateRegionalCoordinator} className="p-6 space-y-4 text-left">
+                <div>
+                  <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Nome Completo</label>
+                  <input 
+                    required
+                    type="text" 
+                    value={editingRegCoord.name || ''}
+                    onChange={(e) => setEditingRegCoord({ ...editingRegCoord, name: e.target.value })}
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">WhatsApp / Telefone</label>
+                    <input 
+                      type="text" 
+                      value={editingRegCoord.phone || ''}
+                      onChange={(e) => setEditingRegCoord({ ...editingRegCoord, phone: e.target.value })}
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Região Principal</label>
+                    <input 
+                      required
+                      type="text" 
+                      value={editingRegCoord.region || ''}
+                      onChange={(e) => setEditingRegCoord({ ...editingRegCoord, region: e.target.value })}
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Municípios ou Bairros Integrantes</label>
+                  <input 
+                    type="text" 
+                    value={editingRegCoord.subLocations || ''}
+                    onChange={(e) => setEditingRegCoord({ ...editingRegCoord, subLocations: e.target.value })}
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Meta de Eleitores Alocada</label>
+                  <input 
+                    required
+                    type="number" 
+                    min="10"
+                    value={editingRegCoord.targetVoters || 0}
+                    onChange={(e) => setEditingRegCoord({ ...editingRegCoord, targetVoters: Number(e.target.value) })}
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button 
+                    type="button"
+                    onClick={() => setIsEditRegCoordModalOpen(false)}
+                    className="w-1/2 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] text-[var(--text-primary)] py-3 rounded-sm font-black text-xs uppercase tracking-wider"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={isProcessing}
+                    className="w-1/2 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-sm font-black text-xs uppercase tracking-wider shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
+                  >
+                    {isProcessing ? 'Salvando...' : 'Atualizar Dados'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* MOBILE BOTTOM NAV - COORDINATOR */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-14 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200/80 dark:border-zinc-800/80 flex items-center gap-1 overflow-x-auto px-2 z-50 shadow-lg scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {[
           { id: 'overview', label: 'Dash', icon: <LayoutDashboard className="w-4 h-4" /> },
-          ...(isGeral ? [{ id: 'regional_coords', label: 'Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
           { id: 'metas', label: 'Metas', icon: <Target className="w-4 h-4" /> },
+          ...(isGeral ? [{ id: 'regional_coords', label: 'Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
           { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
           { id: 'voters', label: 'Eleitores', icon: <UserPlus className="w-4 h-4" /> },
           { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
