@@ -158,6 +158,27 @@ const AVAILABLE_COLUMNS_BY_TYPE: Record<string, { header: string; dataKey: strin
   ]
 };
 
+export const isVoterInTeam = (voter: any, team: any) => {
+  if (!voter || !team) return false;
+  const teamName = (team.name || '').trim().toLowerCase();
+  
+  const voterTeam = (voter.team || '').trim().toLowerCase();
+  const voterTeamName = (voter.teamName || '').trim().toLowerCase();
+  if (teamName && (voterTeam === teamName || voterTeamName === teamName)) return true;
+
+  const teamLeader = (team.leader || '').trim().toLowerCase();
+  const voterLeader = (voter.leaderName || '').trim().toLowerCase();
+  if (teamLeader && voterLeader && teamLeader === voterLeader) return true;
+
+  const teamLeaderEmail = (team.leaderEmail || '').trim().toLowerCase();
+  const voterLeaderEmail = (voter.leaderEmail || voter.registeredBy || voter.createdBy || '').trim().toLowerCase();
+  if (teamLeaderEmail && voterLeaderEmail && teamLeaderEmail === voterLeaderEmail) return true;
+
+  if (voter.leaderId && (voter.leaderId === team.id || voter.leaderId === team.leaderId || voter.leaderId === team.createdBy)) return true;
+
+  return false;
+};
+
 export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme: (t: 'light' | 'dark') => void }) {
   const { user, login, logout, isAdmin, isGeral, isRegional, isLeader, userRegion, coordinatorId } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'regional_coords' | 'metas' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral'>('overview');
@@ -1107,7 +1128,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               return true;
             }).map(t => ({
               ...t,
-              realContacts: allVoters.filter(v => v.team === t.name || v.teamName === t.name).length,
+              realContacts: allVoters.filter(v => isVoterInTeam(v, t)).length,
               demandCount: urgencies.filter(u => u.team === t.name).length,
               spentStr: `R$ ${t.spent?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`,
               status: t.status || 'OK'
@@ -1587,7 +1608,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     }
   }, [coordinatorId, activeTab, isGeral]);
 
-  // 2. Busca as contagens de eleitores por equipe em paralelo (sem puxar todos os registros)
+// 2. Busca as contagens de eleitores por equipe em paralelo (sem puxar todos os registros)
   useEffect(() => {
     if (!coordinatorId || teams.length === 0) return;
 
@@ -1608,7 +1629,15 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                   where('team', '==', teamName)
                 );
             const snap = await getCountFromServer(q);
-            counts[teamName] = snap.data().count;
+            let total = snap.data().count;
+
+            if (allVoters.length > 0) {
+              const matchedFromAll = allVoters.filter(v => isVoterInTeam(v, team)).length;
+              if (matchedFromAll > total) {
+                total = matchedFromAll;
+              }
+            }
+            counts[teamName] = total;
           })
         );
         setTeamVotersCountMap(counts);
@@ -1618,14 +1647,14 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     };
 
     fetchTeamVoterCounts();
-  }, [coordinatorId, teams, isGeral]);
+  }, [coordinatorId, teams, isGeral, allVoters]);
 
   // 3. Sincroniza eleitores de forma preguiçosa (apenas quando em telas de mapas, relatórios ou análise eleitoral)
   useEffect(() => {
     if (!coordinatorId) return;
 
-    const tabsThatNeedAllVoters = ['mapa', 'analise_eleitoral', 'reports', 'overview'];
-    if (!tabsThatNeedAllVoters.includes(activeTab)) {
+    const tabsThatNeedAllVoters = ['mapa', 'analise_eleitoral', 'reports', 'overview', 'teams', 'voters', 'regional_coords', 'metas'];
+    if (!tabsThatNeedAllVoters.includes(activeTab) && !isGeral) {
       return;
     }
 
@@ -1887,47 +1916,48 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
   // Sincronizar eleitores da equipe gerenciada pelo coordenador
   useEffect(() => {
-    if (selectedManagingTeam && isAdmin && coordinatorId) {
+    if (selectedManagingTeam) {
+      const matchedFromAll = allVoters.filter(v => isVoterInTeam(v, selectedManagingTeam));
+      if (matchedFromAll.length > 0) {
+        setManagingTeamVoters(matchedFromAll);
+        return;
+      }
+
       const leaderEmail = selectedManagingTeam.leaderEmail?.toLowerCase();
-      if (!leaderEmail) return;
+      const teamName = selectedManagingTeam.name;
 
       const fetchLeaderAndVoters = async () => {
         try {
-          const usersRef = collection(db, 'users');
-          const qUser = query(
-            usersRef, 
-            where('email', '==', leaderEmail),
-            where('coordinatorId', '==', coordinatorId)
-          );
-          const userSnap = await getDocs(qUser);
-          
-          if (!userSnap.empty) {
-            const leaderId = userSnap.docs[0].id;
-            const votersRef = collection(db, 'voters');
-            const qVoters = query(
-              votersRef, 
-              where('leaderId', '==', leaderId),
-              where('coordinatorId', '==', coordinatorId)
-            );
-            
-            const unsub = onSnapshot(qVoters, (snapshot) => {
-              const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-              setManagingTeamVoters(data);
-            }, (err) => {
-              console.warn("Error listening to managing team voters:", err.message);
-            });
-            return unsub;
+          let qVoters = isGeral
+            ? query(collection(db, 'voters'), where('team', '==', teamName))
+            : query(collection(db, 'voters'), where('team', '==', teamName), where('coordinatorId', '==', coordinatorId));
+          let snapVoters = await getDocs(qVoters);
+
+          if (snapVoters.empty && leaderEmail) {
+            const usersRef = collection(db, 'users');
+            const qUser = isGeral
+              ? query(usersRef, where('email', '==', leaderEmail))
+              : query(usersRef, where('email', '==', leaderEmail), where('coordinatorId', '==', coordinatorId));
+            const userSnap = await getDocs(qUser);
+            if (!userSnap.empty) {
+              const leaderId = userSnap.docs[0].id;
+              qVoters = isGeral
+                ? query(collection(db, 'voters'), where('leaderId', '==', leaderId))
+                : query(collection(db, 'voters'), where('leaderId', '==', leaderId), where('coordinatorId', '==', coordinatorId));
+              snapVoters = await getDocs(qVoters);
+            }
           }
+
+          const data = snapVoters.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setManagingTeamVoters(data);
         } catch (err) {
           console.error("Erro ao buscar eleitores da equipe:", err);
         }
       };
 
-      let unsub: any;
-      fetchLeaderAndVoters().then(u => unsub = u);
-      return () => unsub && unsub();
+      fetchLeaderAndVoters();
     }
-  }, [selectedManagingTeam, isAdmin, coordinatorId]);
+  }, [selectedManagingTeam, isAdmin, coordinatorId, isGeral, allVoters]);
 
 
 
@@ -3145,13 +3175,25 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                         <div>
                           <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-0.5 sm:mb-1 leading-none opacity-60">Eleitores</p>
                           <p className="text-sm sm:text-base md:text-2xl font-black text-[var(--text-primary)] tracking-tighter">
-                            {teamVotersCountMap[team.name] !== undefined ? teamVotersCountMap[team.name] : allVoters.filter(v => v.team === team.name || v.teamName === team.name).length}
+                            {(() => {
+                              const matched = allVoters.filter(v => isVoterInTeam(v, team)).length;
+                              const count = teamVotersCountMap[team.name] !== undefined 
+                                ? Math.max(teamVotersCountMap[team.name], matched) 
+                                : matched;
+                              return count;
+                            })()}
                           </p>
                         </div>
                         <div>
                           <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-0.5 sm:mb-1 leading-none opacity-60">Engajamento</p>
                           <p className="text-sm sm:text-base md:text-2xl font-black text-emerald-600 dark:text-emerald-500 tracking-tighter leading-none">
-                            {Math.min(100, Math.round(((teamVotersCountMap[team.name] !== undefined ? teamVotersCountMap[team.name] : allVoters.filter(v => v.team === team.name || v.teamName === team.name).length) / 100) * 100))}%
+                            {(() => {
+                              const matched = allVoters.filter(v => isVoterInTeam(v, team)).length;
+                              const count = teamVotersCountMap[team.name] !== undefined 
+                                ? Math.max(teamVotersCountMap[team.name], matched) 
+                                : matched;
+                              return Math.min(100, Math.round((count / 100) * 100));
+                            })()}%
                           </p>
                         </div>
                         <div>

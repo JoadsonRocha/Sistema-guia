@@ -299,22 +299,30 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
               }).catch(err => console.error("Error writing coordinatorId to user profile:", err));
             }
             
-            // Auto-heal existing voters and material requests with empty/missing coordinatorId
+            // Auto-heal existing voters and material requests with empty/missing coordinatorId or team
             const healVotersAndRequests = async (rCoordId: string) => {
               try {
+                const targetTeamName = teamData?.name || profileData.zone || '';
                 // 1. Heal Voters
                 const qVoters = query(collection(db, 'voters'), where('leaderId', '==', user.uid));
                 const snapVoters = await getDocs(qVoters);
                 const voterPromises = snapVoters.docs
-                  .filter(doc => {
-                    const d = doc.data();
-                    return !d.coordinatorId || d.coordinatorId === '';
+                  .filter(vDoc => {
+                    const d = vDoc.data();
+                    const needsCoord = !d.coordinatorId || d.coordinatorId === '';
+                    const needsTeam = targetTeamName && (d.team !== targetTeamName || d.teamName !== targetTeamName);
+                    return needsCoord || needsTeam;
                   })
-                  .map(vDoc => 
-                    updateDoc(doc(db, 'voters', vDoc.id), {
-                      coordinatorId: rCoordId
-                    })
-                  );
+                  .map(vDoc => {
+                    const d = vDoc.data();
+                    const updates: any = {};
+                    if (!d.coordinatorId || d.coordinatorId === '') updates.coordinatorId = rCoordId;
+                    if (targetTeamName) {
+                      updates.team = targetTeamName;
+                      updates.teamName = targetTeamName;
+                    }
+                    return updateDoc(doc(db, 'voters', vDoc.id), updates);
+                  });
                 
                 // 2. Heal Material Requests
                 const qRequests = query(collection(db, 'material_requests'), where('leaderId', '==', user.uid));
@@ -824,7 +832,8 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
           ...voterForm,
           leaderId: user.uid,
           leaderName: profileData.name || user.displayName || "Líder",
-          team: profileData.zone || "Base",
+          team: teamData?.name || profileData.zone || "Base",
+          teamName: teamData?.name || profileData.zone || "Base",
           createdAt: Date.now(),
           registeredBy: user.email || user.uid,
           createdBy: user.uid,
@@ -1046,7 +1055,8 @@ export default function CaboDashboard({ theme, setTheme }: { theme: 'light' | 'd
             ...voter,
             leaderId: user.uid,
             leaderName: profileData.name || user.displayName || "Líder",
-            team: profileData.zone || "Base",
+            team: teamData?.name || profileData.zone || "Base",
+            teamName: teamData?.name || profileData.zone || "Base",
             createdAt: Date.now(),
             registeredBy: user.email || user.uid,
             createdBy: user.uid,
