@@ -487,21 +487,19 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
   // Subscrições para Coordenadores Regionais e Metas
   useEffect(() => {
     if (!coordinatorId) return;
-    const unsubRegs = firestoreService.subscribeToCollectionFiltered<any>(
-      'regional_coordinators',
-      coordinatorId,
-      (data) => setRegionalCoordinators(data)
-    );
-    const unsubGoals = firestoreService.subscribeToCollectionFiltered<any>(
-      'goals',
-      coordinatorId,
-      (data) => setGoalsList(data)
-    );
+    const unsubRegs = isGeral
+      ? firestoreService.subscribeToCollection<any>('regional_coordinators', (data) => setRegionalCoordinators(data))
+      : firestoreService.subscribeToCollectionFiltered<any>('regional_coordinators', coordinatorId, (data) => setRegionalCoordinators(data));
+
+    const unsubGoals = isGeral
+      ? firestoreService.subscribeToCollection<any>('goals', (data) => setGoalsList(data))
+      : firestoreService.subscribeToCollectionFiltered<any>('goals', coordinatorId, (data) => setGoalsList(data));
+
     return () => {
       unsubRegs();
       unsubGoals();
     };
-  }, [coordinatorId]);
+  }, [coordinatorId, isGeral]);
 
   const handleCreateRegionalCoordinator = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1441,14 +1439,14 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
   useEffect(() => {
     if (!user || !coordinatorId) return;
 
-    // Subs para dados reais filtrados por coordenador
-    const unsubTeams = firestoreService.subscribeToCollectionFiltered('teams', coordinatorId, (data) => {
-      setTeams(data);
-    });
+    // Subs para dados reais (Geral vê tudo, Regional vê filtrado por coordinatorId)
+    const unsubTeams = isGeral
+      ? firestoreService.subscribeToCollection('teams', (data) => setTeams(data))
+      : firestoreService.subscribeToCollectionFiltered('teams', coordinatorId, (data) => setTeams(data));
     
-    const unsubUrgencies = firestoreService.subscribeToCollectionFiltered('urgencies', coordinatorId, (data) => {
-      setUrgencies(data);
-    });
+    const unsubUrgencies = isGeral
+      ? firestoreService.subscribeToCollection('urgencies', (data) => setUrgencies(data))
+      : firestoreService.subscribeToCollectionFiltered('urgencies', coordinatorId, (data) => setUrgencies(data));
 
     const unsubStats = onSnapshot(doc(db, 'stats', `stats_${coordinatorId}`), (snapshot) => {
       if (snapshot.exists()) {
@@ -1468,13 +1466,13 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       console.error("Stats sync error details:", JSON.stringify(errInfo));
     });
 
-    const unsubAgendas = firestoreService.subscribeToCollectionFiltered('agenda', coordinatorId, (data) => {
-      setAgendas(data);
-    });
+    const unsubAgendas = isGeral
+      ? firestoreService.subscribeToCollection('agenda', (data) => setAgendas(data))
+      : firestoreService.subscribeToCollectionFiltered('agenda', coordinatorId, (data) => setAgendas(data));
 
     const unsubNotes = query(
       collection(db, 'notes'), 
-      where('coordinatorId', '==', coordinatorId),
+      ...(isGeral ? [] : [where('coordinatorId', '==', coordinatorId)]),
       orderBy('createdAt', 'desc')
     );
     const unsubNotesSnap = onSnapshot(unsubNotes, (snapshot) => {
@@ -1518,7 +1516,9 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     });
 
     const unsubMaterials = onSnapshot(
-      query(collection(db, 'materials'), where('coordinatorId', '==', coordinatorId)), 
+      isGeral
+        ? collection(db, 'materials')
+        : query(collection(db, 'materials'), where('coordinatorId', '==', coordinatorId)), 
       (snap) => {
         setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       }, 
@@ -1527,14 +1527,14 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       }
     );
 
-    const unsubMaterialRequests = firestoreService.subscribeToCollectionFiltered('material_requests', coordinatorId, (data) => {
-      setMaterialRequests(data);
-    });
+    const unsubMaterialRequests = isGeral
+      ? firestoreService.subscribeToCollection('material_requests', (data) => setMaterialRequests(data))
+      : firestoreService.subscribeToCollectionFiltered('material_requests', coordinatorId, (data) => setMaterialRequests(data));
 
     const unsubReports = onSnapshot(
       query(
         collection(db, 'reports'), 
-        where('coordinatorId', '==', coordinatorId),
+        ...(isGeral ? [] : [where('coordinatorId', '==', coordinatorId)]),
         orderBy('createdAt', 'desc')
       ), 
       (snap) => {
@@ -1557,17 +1557,21 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       unsubMaterialRequests();
       unsubReports();
     };
-  }, [user, isAdmin, coordinatorId]);
+  }, [user, isAdmin, isGeral, coordinatorId]);
 
   // 1. Recarrega as estatísticas de contagem do servidor sem puxar todos os documentos
   const fetchServerCounts = async () => {
     if (!coordinatorId) return;
     try {
-      const qTotal = query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId));
+      const qTotal = isGeral
+        ? query(collection(db, 'voters'))
+        : query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId));
       const snapTotal = await getCountFromServer(qTotal);
       setTotalVotersCount(snapTotal.data().count);
 
-      const qVoted = query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId), where('voted', '==', true));
+      const qVoted = isGeral
+        ? query(collection(db, 'voters'), where('voted', '==', true))
+        : query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId), where('voted', '==', true));
       const snapVoted = await getCountFromServer(qVoted);
       setVotedVotersCount(snapVoted.data().count);
     } catch (err) {
@@ -1580,7 +1584,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     if (activeTab === 'overview' || activeTab === 'voters') {
       fetchServerCounts();
     }
-  }, [coordinatorId, activeTab]);
+  }, [coordinatorId, activeTab, isGeral]);
 
   // 2. Busca as contagens de eleitores por equipe em paralelo (sem puxar todos os registros)
   useEffect(() => {
@@ -1592,11 +1596,16 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         await Promise.all(
           teams.map(async (team) => {
             const teamName = team.name;
-            const q = query(
-              collection(db, 'voters'),
-              where('coordinatorId', '==', coordinatorId),
-              where('team', '==', teamName)
-            );
+            const q = isGeral
+              ? query(
+                  collection(db, 'voters'),
+                  where('team', '==', teamName)
+                )
+              : query(
+                  collection(db, 'voters'),
+                  where('coordinatorId', '==', coordinatorId),
+                  where('team', '==', teamName)
+                );
             const snap = await getCountFromServer(q);
             counts[teamName] = snap.data().count;
           })
@@ -1608,20 +1617,24 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     };
 
     fetchTeamVoterCounts();
-  }, [coordinatorId, teams]);
+  }, [coordinatorId, teams, isGeral]);
 
   // 3. Sincroniza eleitores de forma preguiçosa (apenas quando em telas de mapas, relatórios ou análise eleitoral)
   useEffect(() => {
     if (!coordinatorId) return;
 
-    const tabsThatNeedAllVoters = ['mapa', 'analise_eleitoral', 'reports'];
+    const tabsThatNeedAllVoters = ['mapa', 'analise_eleitoral', 'reports', 'overview'];
     if (!tabsThatNeedAllVoters.includes(activeTab)) {
       return;
     }
 
     console.log("🧠 [Optimization] Lazy loading all campaign voters for tab:", activeTab);
+    const qVoters = isGeral
+      ? collection(db, 'voters')
+      : query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId));
+
     const unsubVoters = onSnapshot(
-      query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId)), 
+      qVoters, 
       (snap) => {
         const rawData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
         const uniqueMap = new Map();
@@ -1646,17 +1659,19 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     );
 
     return () => unsubVoters();
-  }, [coordinatorId, activeTab]);
+  }, [coordinatorId, activeTab, isGeral]);
 
   // 4. Sincronização reativa paginada para a listagem principal de eleitores (carregando de 50 em 50)
   useEffect(() => {
     if (!coordinatorId || activeTab !== 'voters') return;
 
     setLoadingPaginatedVoters(true);
-    let q = query(
-      collection(db, 'voters'),
-      where('coordinatorId', '==', coordinatorId)
-    );
+    let q = isGeral
+      ? query(collection(db, 'voters'))
+      : query(
+          collection(db, 'voters'),
+          where('coordinatorId', '==', coordinatorId)
+        );
 
     if (articulatorFilter) {
       q = query(q, where('articulatorId', '==', articulatorFilter));
@@ -1678,7 +1693,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     });
 
     return () => unsub();
-  }, [coordinatorId, activeTab, voterPage, articulatorFilter]);
+  }, [coordinatorId, activeTab, voterPage, articulatorFilter, isGeral]);
 
   // 5. Carregar articuladores específicos para filtros na aba de eleitores de forma leve
   useEffect(() => {
@@ -1686,11 +1701,13 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
     const fetchArticulators = async () => {
       try {
-        const qArt = query(
-          collection(db, 'voters'),
-          where('coordinatorId', '==', coordinatorId),
-          where('isArticulator', '==', true)
-        );
+        const qArt = isGeral
+          ? query(collection(db, 'voters'), where('isArticulator', '==', true))
+          : query(
+              collection(db, 'voters'),
+              where('coordinatorId', '==', coordinatorId),
+              where('isArticulator', '==', true)
+            );
         const snap = await getDocs(qArt);
         setArticulators(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       } catch (err) {
@@ -1699,10 +1716,10 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     };
 
     fetchArticulators();
-  }, [coordinatorId, activeTab]);
+  }, [coordinatorId, activeTab, isGeral]);
 
   useEffect(() => {
-    if (!coordinatorId || teams.length === 0) return;
+    if (!coordinatorId || teams.length === 0 || isGeral) return;
 
     const healCoordinatorVotersAndRequests = async () => {
       try {
@@ -1750,7 +1767,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     };
 
     healCoordinatorVotersAndRequests();
-  }, [teams, coordinatorId]);
+  }, [teams, coordinatorId, isGeral]);
 
   // --- GLOBAL SEARCH LOGIC ---
   useEffect(() => {
