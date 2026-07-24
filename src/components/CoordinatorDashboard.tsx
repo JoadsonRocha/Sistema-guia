@@ -163,6 +163,13 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
   const [selectedLinkTeam, setSelectedLinkTeam] = useState('');
 
+  // Redirect away from Coordenador Geral tabs if user is not Coordenador Geral
+  useEffect(() => {
+    if (!isGeral && (activeTab === 'metas' || activeTab === 'regional_coords')) {
+      setActiveTab('overview');
+    }
+  }, [isGeral, activeTab]);
+
   // Coordenadores Regionais State
   const [regionalCoordinators, setRegionalCoordinators] = useState<any[]>([]);
   const [isRegionalModalOpen, setIsRegionalModalOpen] = useState(false);
@@ -2207,7 +2214,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         <nav className="flex-1 space-y-1.5">
           {[
             { id: 'overview', label: 'Dashboard Geral', icon: <LayoutDashboard className="w-4 h-4" /> },
-            { id: 'metas', label: 'Metas Eleitorais', icon: <Target className="w-4 h-4" /> },
+            ...(isGeral ? [{ id: 'metas', label: 'Metas Eleitorais', icon: <Target className="w-4 h-4" /> }] : []),
             ...(isGeral ? [{ id: 'regional_coords', label: 'Coord. Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
             { id: 'teams', label: 'Equipes & Líderes', icon: <Users className="w-4 h-4" /> },
             { id: 'voters', label: 'Eleitores Geral', icon: <UserPlus className="w-4 h-4" /> },
@@ -2549,7 +2556,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               </motion.div>
             )}
 
-            {activeTab === 'metas' && (
+            {activeTab === 'metas' && isGeral && (
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
                   <div>
@@ -6206,7 +6213,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-14 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200/80 dark:border-zinc-800/80 flex items-center gap-1 overflow-x-auto px-2 z-50 shadow-lg scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {[
           { id: 'overview', label: 'Dash', icon: <LayoutDashboard className="w-4 h-4" /> },
-          { id: 'metas', label: 'Metas', icon: <Target className="w-4 h-4" /> },
+          ...(isGeral ? [{ id: 'metas', label: 'Metas', icon: <Target className="w-4 h-4" /> }] : []),
           ...(isGeral ? [{ id: 'regional_coords', label: 'Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
           { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
           { id: 'voters', label: 'Eleitores', icon: <UserPlus className="w-4 h-4" /> },
