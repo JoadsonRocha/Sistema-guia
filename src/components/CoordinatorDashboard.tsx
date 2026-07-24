@@ -2734,31 +2734,43 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                           </div>
 
                           {/* Matched Regional Coordinators / Teams List */}
-                          <div className="space-y-1.5 my-3">
+                          <div className="space-y-2 my-3">
                             <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
-                              Coordenadores / Equipes Vinculados ({matchedRegCoords.length + (totalAllocatedToCoords === 0 ? matchedTeams.length : 0)}):
+                              Coordenadores / Equipes Vinculados ({matchedRegCoords.length + matchedTeams.length}):
                             </p>
-                            {matchedRegCoords.length > 0 ? (
-                              <div className="flex flex-wrap gap-1.5">
-                                {matchedRegCoords.map(c => (
-                                  <span key={c.id} className="inline-flex items-center gap-1 text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-sm uppercase">
-                                    <ShieldCheck className="w-3 h-3" /> {c.name} ({Number(c.targetVoters || 0).toLocaleString('pt-BR')} Eleitores)
+                            <div className="flex flex-col gap-1.5">
+                              {/* Coordenadores Regionais */}
+                              {matchedRegCoords.map(c => (
+                                <div key={c.id} className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1.5 rounded-sm text-[9px] font-bold text-emerald-700 dark:text-emerald-300 uppercase">
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                    <span className="font-black truncate">{c.name}</span>
+                                  </div>
+                                  <span className="font-black bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded text-[9px] border border-emerald-500/30 shrink-0 ml-2">
+                                    {Number(c.targetVoters || 0).toLocaleString('pt-BR')} Eleitores Alocados
                                   </span>
-                                ))}
-                              </div>
-                            ) : matchedTeams.length > 0 ? (
-                              <div className="flex flex-wrap gap-1.5">
-                                {matchedTeams.map(t => (
-                                  <span key={t.id} className="inline-flex items-center gap-1 text-[9px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-sm uppercase">
-                                    <Users className="w-3 h-3" /> {t.name} ({Number(t.targetVoters || t.goal || 0).toLocaleString('pt-BR')} Eleitores)
+                                </div>
+                              ))}
+
+                              {/* Equipes e Líderes */}
+                              {matchedTeams.map(t => (
+                                <div key={t.id} className="flex items-center justify-between bg-blue-500/10 border border-blue-500/20 px-2.5 py-1.5 rounded-sm text-[9px] font-bold text-blue-700 dark:text-blue-300 uppercase">
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    <Users className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                    <span className="font-black truncate">{t.name}</span>
+                                  </div>
+                                  <span className="font-black bg-blue-500/20 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded text-[9px] border border-blue-500/30 shrink-0 ml-2">
+                                    {Number(t.targetVoters || t.goal || 0).toLocaleString('pt-BR')} Eleitores Alocados
                                   </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-[9px] font-bold text-amber-500 uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-sm">
-                                ⚠️ Nenhum Coordenador Regional ou Equipe alocado para esta área ainda.
-                              </p>
-                            )}
+                                </div>
+                              ))}
+
+                              {matchedRegCoords.length === 0 && matchedTeams.length === 0 && (
+                                <p className="text-[9px] font-bold text-amber-500 uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-sm">
+                                  ⚠️ Nenhum Coordenador Regional ou Equipe alocado para esta área ainda.
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </div>
 
