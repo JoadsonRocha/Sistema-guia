@@ -2467,7 +2467,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
           </div>
 
           <div className="flex items-center gap-3">
-            {(isGeral || isAdmin) && (
+            {isGeral && (
               <button 
                 onClick={() => setIsCandidateModalOpen(true)}
                 className="hidden sm:flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
