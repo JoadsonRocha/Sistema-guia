@@ -92,13 +92,16 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
         const activeLeaderId = leaderId;
         const activeTeamId = teamId;
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const inviterParam = urlParams.get('inviter') || urlParams.get('name') || urlParams.get('leaderName') || urlParams.get('convidadoPor');
+
         if (activeLeaderId) {
           // 1. Tentar carregar de 'users'
           const userDoc = await getDoc(doc(db, 'users', activeLeaderId));
           if (userDoc.exists()) {
             const uData = userDoc.data();
             resolvedLeaderId = activeLeaderId;
-            resolvedLeaderName = uData.name || uData.displayName || 'Líder';
+            resolvedLeaderName = uData.name || uData.displayName || inviterParam || 'Líder';
             resolvedTeamName = uData.teamName || uData.zone || uData.team || 'Base';
             resolvedCoordinatorId = uData.coordinatorId || uData.uid || activeLeaderId;
             resolvedTeamId = uData.teamId || '';
@@ -108,7 +111,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
             if (teamDoc.exists()) {
               const tData = teamDoc.data();
               resolvedTeamId = activeLeaderId;
-              resolvedLeaderName = tData.leader || 'Líder';
+              resolvedLeaderName = tData.leaderName || tData.leader || inviterParam || 'Líder';
               resolvedTeamName = tData.name || 'Base';
               resolvedCoordinatorId = tData.coordinatorId || '';
               
@@ -120,6 +123,10 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
               const userSnap = await getDocs(userQ);
               if (!userSnap.empty) {
                 resolvedLeaderId = userSnap.docs[0].id;
+                const u = userSnap.docs[0].data();
+                if (u.name || u.displayName) {
+                  resolvedLeaderName = u.name || u.displayName;
+                }
               } else {
                 resolvedLeaderId = activeLeaderId;
               }
@@ -133,7 +140,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
           if (teamDoc.exists()) {
             const tData = teamDoc.data();
             resolvedTeamId = activeTeamId;
-            resolvedLeaderName = tData.leader || 'Líder';
+            resolvedLeaderName = tData.leaderName || tData.leader || inviterParam || 'Líder';
             resolvedTeamName = tData.name || 'Base';
             resolvedCoordinatorId = tData.coordinatorId || '';
             
@@ -145,6 +152,10 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
             const userSnap = await getDocs(userQ);
             if (!userSnap.empty) {
               resolvedLeaderId = userSnap.docs[0].id;
+              const u = userSnap.docs[0].data();
+              if (u.name || u.displayName) {
+                resolvedLeaderName = u.name || u.displayName;
+              }
             } else {
               resolvedLeaderId = activeTeamId;
             }
@@ -153,10 +164,9 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
           }
         } else {
           // General coordinator link
-          const urlParams = new URLSearchParams(window.location.search);
           const activeCoordId = urlParams.get('coordinatorId');
           resolvedCoordinatorId = activeCoordId || '';
-          resolvedLeaderName = 'Coordenação Geral';
+          resolvedLeaderName = inviterParam || '';
           resolvedTeamName = 'Nexus Política';
           resolvedLeaderId = 'geral';
         }
@@ -166,7 +176,30 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
           const snapCoords = await getDocs(qCoords);
           if (!snapCoords.empty) {
             resolvedCoordinatorId = snapCoords.docs[0].id;
+            const cData = snapCoords.docs[0].data();
+            if (!resolvedLeaderName || resolvedLeaderName === 'Coordenação Geral' || resolvedLeaderName === 'Líder') {
+              resolvedLeaderName = cData.name || cData.displayName || inviterParam || '';
+            }
           }
+        }
+
+        // Buscar nome real do coordenador se o nome atual for genérico ou vago
+        if ((!resolvedLeaderName || resolvedLeaderName === 'Coordenação Geral' || resolvedLeaderName === 'Líder' || resolvedLeaderName === 'geral') && resolvedCoordinatorId) {
+          try {
+            const coordDoc = await getDoc(doc(db, 'users', resolvedCoordinatorId));
+            if (coordDoc.exists()) {
+              const cData = coordDoc.data();
+              if (cData.name || cData.displayName) {
+                resolvedLeaderName = cData.name || cData.displayName;
+              }
+            }
+          } catch (e) {
+            console.warn("Aviso ao buscar nome do coordenador:", e);
+          }
+        }
+
+        if (!resolvedLeaderName || resolvedLeaderName === 'Coordenação Geral' || resolvedLeaderName === 'Líder') {
+          resolvedLeaderName = inviterParam || 'Sérgio Bezerra';
         }
 
         setLeaderInfo({

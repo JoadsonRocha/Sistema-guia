@@ -241,6 +241,40 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     return () => unsub();
   }, []);
 
+  const handleCandidatePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 600;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          setCandidateForm(prev => ({ ...prev, photoUrl: dataUrl }));
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSaveCandidateInfo = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingCandidate(true);
@@ -6114,17 +6148,17 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                 <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-3 rounded-sm">
                   <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">URL de Cadastro Público:</p>
                   <p className="font-mono text-xs text-blue-500 break-all select-all">
-                    {`${window.location.origin}/?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}`}
+                    {`${window.location.origin}/?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`}
                   </p>
                 </div>
 
                 <button 
                   onClick={() => {
-                    const finalUrl = `${window.location.origin}/?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}`;
+                    const finalUrl = `${window.location.origin}/?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`;
                     navigator.clipboard.writeText(finalUrl);
                     alert("Link de cadastro copiado para a área de transferência!");
                   }}
-                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-sm font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all"
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-sm font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer"
                 >
                   <Copy className="w-4 h-4" /> Copiar Link para WhatsApp
                 </button>
@@ -6199,21 +6233,37 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                   </div>
                 </div>
 
-                <div className="space-y-1">
+                {/* Foto do Candidato com upload do dispositivo */}
+                <div className="space-y-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-4 rounded-xl">
                   <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">
-                    URL da Foto do Candidato *
+                    Foto do Candidato *
                   </label>
-                  <input 
-                    required
-                    type="text" 
-                    value={candidateForm.photoUrl} 
-                    onChange={e => setCandidateForm({...candidateForm, photoUrl: e.target.value})} 
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600 font-mono text-[11px]" 
-                    placeholder="https://sua-imagem.com/foto.jpg" 
-                  />
-                  <p className="text-[9px] font-medium text-[var(--text-secondary)]">
-                    Insira o link direto de uma imagem online da foto do candidato.
-                  </p>
+                  
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <label className="flex-1 flex items-center justify-center gap-2 p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl cursor-pointer font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95">
+                      <Upload className="w-4 h-4" /> Escolher Foto do Dispositivo
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleCandidatePhotoUpload} 
+                        className="hidden" 
+                      />
+                    </label>
+                  </div>
+
+                  <div className="pt-2 border-t border-[var(--border-color)]">
+                    <label className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block mb-1">
+                      Ou informe o Link / URL da Imagem Online:
+                    </label>
+                    <input 
+                      required
+                      type="text" 
+                      value={candidateForm.photoUrl} 
+                      onChange={e => setCandidateForm({...candidateForm, photoUrl: e.target.value})} 
+                      className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-2.5 font-mono text-[10px] outline-none focus:border-blue-600" 
+                      placeholder="https://sua-imagem.com/foto.jpg ou data:image/..." 
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-1">
