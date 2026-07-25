@@ -58,6 +58,7 @@ import {
   Activity,
   Sun,
   Moon,
+  Loader2,
   Map as MapIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -67,6 +68,7 @@ import { processarCaos, gerarBriefingCandidato, processarNotaAudio } from '../se
 import { reportService } from '../services/reportService';
 import { useAuth } from '../lib/FirebaseProvider';
 import { firestoreService } from '../lib/firestoreService';
+import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO } from '../lib/candidateService';
 import NoteCard from './NoteCard';
 import RoraimaMapComponent from './RoraimaMapComponent';
 import EleitoralDashboard from './EleitoralDashboard';
@@ -226,6 +228,32 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
   // Link Share Modal
   const [isShareLinkModalOpen, setIsShareLinkModalOpen] = useState(false);
   const [selectedShareTeam, setSelectedShareTeam] = useState('');
+
+  // Padronização do Candidato State
+  const [isCandidateModalOpen, setIsCandidateModalOpen] = useState(false);
+  const [candidateForm, setCandidateForm] = useState<CandidateInfo>(DEFAULT_CANDIDATE_INFO);
+  const [isSavingCandidate, setIsSavingCandidate] = useState(false);
+
+  useEffect(() => {
+    const unsub = candidateService.subscribeCandidateInfo((info) => {
+      setCandidateForm(info);
+    });
+    return () => unsub();
+  }, []);
+
+  const handleSaveCandidateInfo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingCandidate(true);
+    try {
+      await candidateService.saveCandidateInfo(candidateForm, user?.uid);
+      alert("✅ Informações e apresentação do candidato salvas com sucesso! O link externo de cadastro foi atualizado.");
+      setIsCandidateModalOpen(false);
+    } catch (err: any) {
+      alert("Erro ao salvar informações do candidato: " + err.message);
+    } finally {
+      setIsSavingCandidate(false);
+    }
+  };
 
   const handleDownloadDoc = () => {
     const textHtml = `
@@ -2405,6 +2433,16 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
           </div>
 
           <div className="flex items-center gap-3">
+            {(isGeral || isAdmin) && (
+              <button 
+                onClick={() => setIsCandidateModalOpen(true)}
+                className="hidden sm:flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+                title="Padronizar foto e biografia do candidato no link de cadastro"
+              >
+                <UserPlus className="w-3.5 h-3.5" /> Padronizar Candidato
+              </button>
+            )}
+
             <button 
               onClick={() => setIsShareLinkModalOpen(true)}
               className="hidden sm:flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-emerald-600/20 active:scale-95"
@@ -6091,6 +6129,157 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                   <Copy className="w-4 h-4" /> Copiar Link para WhatsApp
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isCandidateModalOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl relative my-8">
+              <button onClick={() => setIsCandidateModalOpen(false)} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-[var(--text-primary)] cursor-pointer z-10">
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="p-6 bg-gradient-to-r from-blue-700 to-blue-900 border-b border-blue-600 text-left text-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white font-black border border-white/20">
+                    <UserPlus className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black uppercase tracking-tight text-white">Padronização do Candidato</h2>
+                    <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest">
+                      Defina a foto, nome e apresentação exibidos nos links externos de cadastro
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveCandidateInfo} className="p-6 space-y-5 text-left max-h-[75vh] overflow-y-auto">
+                
+                {/* Live Preview */}
+                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 p-4 rounded-xl flex items-center gap-4">
+                  <img 
+                    src={candidateForm.photoUrl} 
+                    alt="Preview" 
+                    className="w-16 h-16 rounded-full object-cover border-2 border-blue-600 shadow-md bg-zinc-200 shrink-0"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+                  />
+                  <div className="overflow-hidden">
+                    <p className="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-wider">Pré-visualização da Apresentação</p>
+                    <p className="text-sm font-black text-[var(--text-primary)] truncate">{candidateForm.name || 'Nome do Candidato'}</p>
+                    <p className="text-[10px] font-bold text-[var(--text-secondary)] truncate">{candidateForm.title || 'Cargo do Candidato'}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Nome do Candidato *</label>
+                    <input 
+                      required
+                      type="text" 
+                      value={candidateForm.name} 
+                      onChange={e => setCandidateForm({...candidateForm, name: e.target.value})} 
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600" 
+                      placeholder="Ex: Soldado Sampaio" 
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Cargo / Função *</label>
+                    <input 
+                      required
+                      type="text" 
+                      value={candidateForm.title} 
+                      onChange={e => setCandidateForm({...candidateForm, title: e.target.value})} 
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600" 
+                      placeholder="Ex: Governador do Estado de Roraima" 
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">
+                    URL da Foto do Candidato *
+                  </label>
+                  <input 
+                    required
+                    type="text" 
+                    value={candidateForm.photoUrl} 
+                    onChange={e => setCandidateForm({...candidateForm, photoUrl: e.target.value})} 
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600 font-mono text-[11px]" 
+                    placeholder="https://sua-imagem.com/foto.jpg" 
+                  />
+                  <p className="text-[9px] font-medium text-[var(--text-secondary)]">
+                    Insira o link direto de uma imagem online da foto do candidato.
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">
+                    Biografia / Texto de Apresentação *
+                  </label>
+                  <textarea 
+                    required
+                    rows={4}
+                    value={candidateForm.bio} 
+                    onChange={e => setCandidateForm({...candidateForm, bio: e.target.value})} 
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600 resize-none" 
+                    placeholder="Escreva uma breve biografia ou mensagem de apresentação do candidato..." 
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Título do Projeto no Formulário</label>
+                    <input 
+                      type="text" 
+                      value={candidateForm.badgeTitle} 
+                      onChange={e => setCandidateForm({...candidateForm, badgeTitle: e.target.value})} 
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600" 
+                      placeholder="Faça Parte do Nosso Projeto! 🎉" 
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Subtítulo Explicativo</label>
+                    <input 
+                      type="text" 
+                      value={candidateForm.subtitle} 
+                      onChange={e => setCandidateForm({...candidateForm, subtitle: e.target.value})} 
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600" 
+                      placeholder="Preencha o formulário e ajude..." 
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-[var(--border-color)] flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsCandidateModalOpen(false)}
+                    className="px-5 py-3 bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-xl font-black text-xs uppercase tracking-wider hover:bg-zinc-300 transition-all cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingCandidate}
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-blue-600/30 flex items-center gap-2 cursor-pointer"
+                  >
+                    {isSavingCandidate ? (
+                      <>
+                        <Loader2 className="w-4 h-4 text-white animate-spin" /> Salvando...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4" /> Salvar Padronização
+                      </>
+                    )}
+                  </button>
+                </div>
+
+              </form>
             </motion.div>
           </motion.div>
         )}

@@ -30,7 +30,7 @@ export default function App() {
 
   const [isExternalRegister] = useState(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.has('leaderId') || params.has('liderId') || params.has('teamId');
+    return params.has('leaderId') || params.has('liderId') || params.has('teamId') || params.has('coordinatorId') || params.has('cadastro');
   });
   
   const [extLeaderId] = useState(() => {
