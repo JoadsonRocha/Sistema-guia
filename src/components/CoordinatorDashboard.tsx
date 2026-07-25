@@ -378,25 +378,25 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     // Configurações de cores e fontes
     doc.setTextColor(26, 26, 26);
     
-    // Título Principal
+    // Título Principal em Azul Nexus
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    doc.setTextColor(17, 24, 39); // Zinc-900 / Dark
+    doc.setTextColor(37, 99, 235); // Blue-600 Nexus
     doc.text("NEXUS POLÍTICA", 14, 25);
     
     doc.setFontSize(14);
-    doc.setTextColor(100, 100, 100);
+    doc.setTextColor(71, 85, 105);
     doc.text("Manual Inteligente do Coordenador de Campanha", 14, 33);
     
-    // Linha horizontal Amarela
-    doc.setDrawColor(234, 179, 8); // Yellow-500
+    // Linha horizontal Azul Nexus
+    doc.setDrawColor(37, 99, 235); // Blue-600
     doc.setLineWidth(1.5);
     doc.line(14, 38, 196, 38);
     
     // Bloco de citação
-    doc.setFillColor(250, 250, 250);
+    doc.setFillColor(248, 250, 252);
     doc.rect(14, 43, 182, 50, "F");
-    doc.setDrawColor(234, 179, 8);
+    doc.setDrawColor(37, 99, 235);
     doc.setLineWidth(1);
     doc.line(14, 43, 14, 93);
     
@@ -1400,24 +1400,6 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         }
       }
 
-      // Generate PDF
-      const doc = new jsPDF() as any;
-      const timestamp = new Date().toLocaleString('pt-BR');
-      
-      // Header
-      doc.setFontSize(22);
-      doc.setTextColor(218, 165, 32); // Dourado
-      doc.text('RELATÓRIO ESTRATÉGICO DE CAMPANHA', 14, 20);
-      
-      doc.setFontSize(16);
-      doc.setTextColor(40, 40, 40);
-      doc.text(title.toUpperCase(), 14, 30);
-
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text(subtitle, 14, 40);
-      doc.text(`Gerado em: ${timestamp} | Por: ${userName}`, 14, 48);
-
       // Filter out columns that have no data across all rows
       const visibleColumns = reportColumns.filter((col: any) => {
         return data.some(row => {
@@ -1437,38 +1419,16 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
           type
         });
       } else {
-        // Generate PDF
-        const doc = new jsPDF() as any;
-        const timestamp = new Date().toLocaleString('pt-BR');
-        
-        // Header
-        doc.setFontSize(22);
-        doc.setTextColor(218, 165, 32); // Dourado
-        doc.text('RELATÓRIO ESTRATÉGICO DE CAMPANHA', 14, 20);
-        
-        doc.setFontSize(16);
-        doc.setTextColor(40, 40, 40);
-        doc.text(title.toUpperCase(), 14, 30);
-
-        doc.setFontSize(10);
-        doc.setTextColor(100, 100, 100);
-        doc.text(subtitle, 14, 40);
-        doc.text(`Gerado em: ${timestamp} | Por: ${userName}`, 14, 48);
-
-        autoTable(doc, {
-          startY: 55,
-          head: [visibleColumns.map((col: any) => col.header.toUpperCase())],
-          body: data.map(row => visibleColumns.map((col: any) => {
-            const val = row[col.dataKey];
-            return val !== undefined && val !== null ? String(val) : '---';
-          })),
-          styles: { fontSize: 7, font: 'helvetica', cellPadding: 2 },
-          headStyles: { fillColor: [218, 165, 32], textColor: [255, 255, 255], fontStyle: 'bold' },
-          alternateRowStyles: { fillColor: [245, 245, 245] },
-          margin: { top: 55 }
+        // Generate PDF using central reportService with Nexus branding & Logo
+        await reportService.generatePDF({
+          title,
+          subtitle,
+          columns: visibleColumns,
+          data,
+          filters,
+          userName,
+          type
         });
-
-        doc.save(`${type}-relatorio-${Date.now()}.pdf`);
       }
 
       // Add to Firestore History
@@ -2485,7 +2445,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
               <Send className="w-3.5 h-3.5" /> Link de Cadastro
             </button>
 
-            {isAdmin && (
+            {isGeral && (
               <button 
                 onClick={handlePurgeAllTestData}
                 className="hidden md:flex items-center gap-2 px-3 py-2 bg-red-600/10 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 dark:border-red-900/50 rounded-sm text-xs font-black uppercase tracking-wider transition-all active:scale-95"
