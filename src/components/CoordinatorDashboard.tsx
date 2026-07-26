@@ -2430,11 +2430,11 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {isGeral && (
               <button 
                 onClick={() => setIsCandidateModalOpen(true)}
-                className="hidden sm:flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer whitespace-nowrap"
                 title="Padronizar foto e biografia do candidato no link de cadastro"
               >
                 <UserPlus className="w-3.5 h-3.5" /> Padronizar Candidato
@@ -2443,7 +2443,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
             <button 
               onClick={() => setIsManualOpen(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-amber-600/20 active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-sm shadow-amber-600/20 active:scale-95 cursor-pointer whitespace-nowrap"
               title="Manual Completo e Tutorial do Sistema"
             >
               <BookOpen className="w-3.5 h-3.5" /> Manual do Sistema
@@ -2451,7 +2451,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
             <button 
               onClick={() => setIsWaModalOpen(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-emerald-600/20 active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-sm shadow-emerald-600/20 active:scale-95 cursor-pointer whitespace-nowrap"
               title="Disparo de mensagens via WhatsApp (Gratuito wa.me)"
             >
               <MessageSquare className="w-3.5 h-3.5" /> Disparo WhatsApp
@@ -2459,7 +2459,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
 
             <button 
               onClick={() => setIsShareLinkModalOpen(true)}
-              className="hidden sm:flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-blue-600/20 active:scale-95"
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-sm shadow-blue-600/20 active:scale-95 whitespace-nowrap"
               title="Gerar e copiar link de cadastro de eleitores"
             >
               <Send className="w-3.5 h-3.5" /> Link de Cadastro
@@ -2468,7 +2468,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
             {isGeral && (
               <button 
                 onClick={handlePurgeAllTestData}
-                className="hidden md:flex items-center gap-2 px-3 py-2 bg-red-600/10 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 dark:border-red-900/50 rounded-sm text-xs font-black uppercase tracking-wider transition-all active:scale-95"
+                className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 bg-red-600/10 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 dark:border-red-900/50 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all active:scale-95 whitespace-nowrap"
                 title="Limpar todos os dados do banco para recomeçar do zero"
               >
                 <Trash2 className="w-3.5 h-3.5" /> Zerar Banco
@@ -3112,7 +3112,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                   <div className="flex items-center gap-2 w-full md:w-auto mt-1 md:mt-0">
                     <button
                       onClick={() => setIsWaModalOpen(true)}
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 md:px-5 py-2.5 md:py-3.5 rounded-sm font-black text-[9px] md:text-[10px] uppercase flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/10 active:scale-95 transition-all flex-1 md:flex-initial"
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded font-bold text-[10px] md:text-[11px] uppercase flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/10 active:scale-95 transition-all flex-1 md:flex-initial whitespace-nowrap"
                     >
                       <MessageSquare className="w-3.5 h-3.5" /> Disparar WhatsApp Líderes
                     </button>
@@ -3137,9 +3137,9 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                           spent: 0
                         });
                       }}
-                      className="bg-blue-600 text-white px-4 md:px-6 py-2.5 md:py-3.5 rounded-sm font-black text-[9px] md:text-[10px] uppercase flex items-center justify-center gap-2 md:gap-2.5 shadow-lg shadow-blue-600/10 hover:scale-[1.01] active:scale-95 transition-all flex-1 md:flex-initial"
+                      className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded font-bold text-[10px] md:text-[11px] uppercase flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/10 hover:scale-[1.01] active:scale-95 transition-all flex-1 md:flex-initial whitespace-nowrap"
                     >
-                      <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" /> Cadastrar Nova Unidade
+                      <Plus className="w-3.5 h-3.5 text-white" /> Cadastrar Nova Unidade
                     </button>
                   </div>
                 </div>
