@@ -71,7 +71,7 @@ import { reportService } from '../services/reportService';
 import { useAuth } from '../lib/FirebaseProvider';
 import { firestoreService } from '../lib/firestoreService';
 import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO } from '../lib/candidateService';
-import { getSubscriptionInfo, saveSubscriptionPlan, PlanType, PLAN_CONFIGS } from '../lib/planService';
+import { getSubscriptionInfo, saveSubscriptionPlan, PlanType, PLAN_CONFIGS, validateLeaderRegistration, validateRegionalRegistration, triggerUpgradeRedirect } from '../lib/planService';
 import NoteCard from './NoteCard';
 import RoraimaMapComponent from './RoraimaMapComponent';
 import EleitoralDashboard from './EleitoralDashboard';
@@ -614,6 +614,12 @@ export default function CoordinatorDashboard({
       return;
     }
     
+    const regValidation = await validateRegionalRegistration(coordinatorId || user?.uid);
+    if (!regValidation.allowed) {
+      triggerUpgradeRedirect(regValidation.reason!, isGeral);
+      return;
+    }
+
     try {
       setIsProcessing(true);
       const coordId = `reg_${newRegCoord.email.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
@@ -2096,6 +2102,14 @@ export default function CoordinatorDashboard({
     e.preventDefault();
     if (!isAdmin) return alert("Apenas administradores podem criar equipes.");
     
+    if (!isEditMode) {
+      const leaderValidation = await validateLeaderRegistration(coordinatorId || user?.uid);
+      if (!leaderValidation.allowed) {
+        triggerUpgradeRedirect(leaderValidation.reason!, isGeral);
+        return;
+      }
+    }
+
     try {
       const teamId = editingTeamId || newTeam.name.replace(/\s/g, '_').toLowerCase();
       const defaultPassword = 'urna' + Math.floor(1000 + Math.random() * 9000);
@@ -2468,6 +2482,22 @@ export default function CoordinatorDashboard({
                 title="Padronizar foto e biografia do candidato no link de cadastro"
               >
                 <UserPlus className="w-3.5 h-3.5" /> Padronizar Candidato
+              </button>
+            )}
+
+            {isGeral && (
+              <button 
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('open_sales_landing'));
+                  setTimeout(() => {
+                    const el = document.getElementById('planos');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }, 300);
+                }}
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black rounded text-[10px] sm:text-[11px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer whitespace-nowrap"
+                title="Página de Apresentação e Aquisição dos Planos da Campanha"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" /> Planos da Campanha
               </button>
             )}
 
@@ -6360,8 +6390,9 @@ export default function CoordinatorDashboard({
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 pt-1">
                     {[
+                      { key: 'free', name: 'Degustação (Grátis)', limit: '7 Eleitores, 2 Líderes, 2 Regionais, 1 Geral', badge: 'Grátis' },
                       { key: 'start', name: 'Start Tático', limit: 'Até 2.500 Eleitores', badge: 'R$ 490/mês' },
                       { key: 'comando', name: 'Comando Tático', limit: 'Até 10.000 Eleitores', badge: 'R$ 1.290/mês' },
                       { key: 'dominio', name: 'Domínio Total', limit: 'Eleitores Ilimitados', badge: 'R$ 2.490/mês' }
@@ -6390,7 +6421,7 @@ export default function CoordinatorDashboard({
                     ))}
                   </div>
 
-                  <div className="flex items-center gap-3 pt-1">
+                  <div className="flex items-center justify-between gap-3 pt-1">
                     <button
                       type="button"
                       onClick={() => {
@@ -6404,6 +6435,21 @@ export default function CoordinatorDashboard({
                       }`}
                     >
                       {selectedPlan === 'none' ? '⚠️ Plano marcado como Sem Licença Ativa (Simular Bloqueio Total)' : 'Simular Suspensão de Plano (Bloquear Cadastros)'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCandidateModalOpen(false);
+                        window.dispatchEvent(new CustomEvent('open_sales_landing'));
+                        setTimeout(() => {
+                          const el = document.getElementById('planos');
+                          if (el) el.scrollIntoView({ behavior: 'smooth' });
+                        }, 300);
+                      }}
+                      className="text-[10px] font-black text-amber-500 hover:text-amber-400 underline transition-all cursor-pointer"
+                    >
+                      💎 Ver Página Completa dos Planos
                     </button>
                   </div>
                 </div>

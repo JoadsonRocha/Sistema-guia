@@ -10,6 +10,7 @@ import { SalesLandingPage } from './components/SalesLandingPage';
 import { DemoHeaderBanner } from './components/DemoHeaderBanner';
 import { DemoBlockModal } from './components/DemoBlockModal';
 import { safeLocalStorage } from './utils/safeStorage';
+import { validateGeneralCoordinatorRegistration, triggerUpgradeRedirect } from './lib/planService';
 import logoImg from './assets/logo.png';
 
 export default function App() {
@@ -121,6 +122,14 @@ export default function App() {
   const [copiedDomain, setCopiedDomain] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
 
+  useEffect(() => {
+    const handleOpenSales = (e: any) => {
+      setIsSalesLanding(true);
+    };
+    window.addEventListener('open_sales_landing', handleOpenSales);
+    return () => window.removeEventListener('open_sales_landing', handleOpenSales);
+  }, []);
+
   // Handle URL Params for Easy Access
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -215,6 +224,13 @@ export default function App() {
     setAuthError('');
     try {
       if (isRegistering) {
+        if (userRole === 'coordenador_geral') {
+          const validation = await validateGeneralCoordinatorRegistration();
+          if (!validation.allowed) {
+            triggerUpgradeRedirect(validation.reason!, true);
+            return;
+          }
+        }
         await signupWithEmail(email, password, userRole);
       } else {
         try {

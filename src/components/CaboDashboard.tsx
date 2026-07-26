@@ -68,7 +68,7 @@ import { validarSugestaoAgenda, AgendaItem } from '../lib/agendaLogic';
 import * as XLSX from 'xlsx';
 import { maskCurrency, parseCurrencyToNumber } from '../utils/currency';
 import { safeLocalStorage } from '../utils/safeStorage';
-import { validateVoterRegistration } from '../lib/planService';
+import { validateVoterRegistration, triggerUpgradeRedirect } from '../lib/planService';
 
 interface GeoLocation {
   lat: number;
@@ -887,7 +887,7 @@ export default function CaboDashboard({
       if (!isEditingVoter) {
         const validation = await validateVoterRegistration(activeCoordId);
         if (!validation.allowed) {
-          alert(`🚨 CADASTRO BLOQUEADO PELA LICENÇA:\n\n${validation.reason}`);
+          triggerUpgradeRedirect(validation.reason!);
           return;
         }
       }
@@ -1129,7 +1129,7 @@ export default function CaboDashboard({
     const activeCoordId = resolvedCoordinatorId || coordinatorId || teamData?.coordinatorId || '';
     const validation = await validateVoterRegistration(activeCoordId);
     if (!validation.allowed) {
-      alert(`🚨 IMPORTAÇÃO EM LOTE BLOQUEADA PELA LICENÇA:\n\n${validation.reason}`);
+      triggerUpgradeRedirect(validation.reason!);
       return;
     }
 

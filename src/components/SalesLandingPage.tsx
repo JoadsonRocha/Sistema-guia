@@ -289,7 +289,46 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
+            
+            {/* Plano 0: Grátis / Degustação */}
+            <div className="p-6 rounded-2xl bg-zinc-900/90 border border-emerald-500/40 flex flex-col justify-between space-y-6">
+              <div className="space-y-4">
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Degustação Inicial</span>
+                <h3 className="text-xl font-black text-white">Plano Grátis</h3>
+                <div className="text-3xl font-black text-emerald-400">
+                  R$ 0 <span className="text-xs text-zinc-400 font-normal">/grátis</span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-800/40 text-[11px] text-emerald-200 font-medium">
+                  Perfeito para testar e validar o sistema com sua equipe sem nenhum custo inicial.
+                </div>
+                <ul className="space-y-2.5 text-xs text-zinc-300">
+                  <li className="flex items-center gap-2 font-bold text-emerald-400">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" /> Até 7 Eleitores Cadastrados
+                  </li>
+                  <li className="flex items-center gap-2 font-bold text-zinc-200">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 2 Líderes / Equipes
+                  </li>
+                  <li className="flex items-center gap-2 font-bold text-zinc-200">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 2 Coordenadores Regionais
+                  </li>
+                  <li className="flex items-center gap-2 font-bold text-zinc-200">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> 1 Coordenador Geral (1º Cadastro)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Sistema 100% Liberado
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                type="button"
+                onClick={onStartDemoMode || onAccessSystem}
+                className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs text-center block transition-all active:scale-95 cursor-pointer shadow-lg shadow-emerald-600/20"
+              >
+                Experimentar Plano Grátis
+              </button>
+            </div>
             
             {/* Plano 1: Start Tático */}
             <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 flex flex-col justify-between space-y-6">

@@ -5,7 +5,7 @@ import { db } from '../lib/firebase';
 import { collection, query, where, getDocs, doc, getDoc, limit } from 'firebase/firestore';
 import { firestoreService } from '../lib/firestoreService';
 import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO } from '../lib/candidateService';
-import { validateVoterRegistration } from '../lib/planService';
+import { validateVoterRegistration, triggerUpgradeRedirect } from '../lib/planService';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ShieldCheck, 
@@ -233,7 +233,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
     // Verificar se o plano do coordenador autoriza novos cadastros
     const validation = await validateVoterRegistration(leaderInfo.coordinatorId);
     if (!validation.allowed) {
-      alert(`🚨 CADASTROS TEMPORARIAMENTE INDISPONÍVEIS:\n\n${validation.reason}`);
+      triggerUpgradeRedirect(validation.reason!);
       return;
     }
     
