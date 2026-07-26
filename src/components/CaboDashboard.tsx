@@ -227,6 +227,52 @@ export default function CaboDashboard({
           photoUrl: '',
           zone: 'Equipe Tática Bairro Centro'
         });
+        const demoCoordId = 'demo_coord_geral';
+        setResolvedCoordinatorId(demoCoordId);
+
+        if (!subscribedMaterials) {
+          subscribedMaterials = true;
+          if (unsubMaterials) unsubMaterials();
+          unsubMaterials = onSnapshot(
+            collection(db, 'materials'),
+            (snap) => {
+              const mats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+              setMaterials(mats);
+            },
+            (err) => {
+              console.warn("Materials Cabo sync error:", err.message);
+            }
+          );
+        }
+
+        if (demoCoordId !== currentSubscribedCoordId) {
+          currentSubscribedCoordId = demoCoordId;
+
+          if (unsubNotes) unsubNotes();
+          const notesQuery = query(
+            collection(db, 'notes'), 
+            where('type', '==', 'tactical'), 
+            orderBy('createdAt', 'desc')
+          );
+          unsubNotes = onSnapshot(notesQuery, (snapshot) => {
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setNotes(data);
+          }, (err) => {
+            console.warn("Erro ao escutar notas demo:", err.message);
+          });
+
+          if (unsubDailyOrder) unsubDailyOrder();
+          unsubDailyOrder = onSnapshot(doc(db, 'config', `dailyOrder_${demoCoordId}`), (snap) => {
+            if (snap.exists()) setDailyOrder(snap.data());
+          }, (err) => {
+            console.warn("DailyOrder Cabo sync error:", err.message);
+          });
+
+          if (unsubMaterialRequests) unsubMaterialRequests();
+          unsubMaterialRequests = firestoreService.subscribeToCollection('material_requests', (data) => {
+            setMaterialRequests(data);
+          });
+        }
       } else {
         unsubProfile = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
           if (docSnap.exists()) {
@@ -450,8 +496,8 @@ export default function CaboDashboard({
        });
 
        return () => {
-         unsubProfile();
-         unsubAgendas();
+         if (unsubProfile) unsubProfile();
+         if (unsubAgendas) unsubAgendas();
          if (unsubNotes) unsubNotes();
          if (unsubTx) unsubTx();
          if (unsubDailyOrder) unsubDailyOrder();

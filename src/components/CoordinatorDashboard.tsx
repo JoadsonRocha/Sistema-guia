@@ -1621,13 +1621,13 @@ export default function CoordinatorDashboard({
       unsubStats();
       unsubAgendas();
       unsubNotesSnap();
-      unsubProfile();
+      if (unsubProfile) unsubProfile();
       unsubDailyOrder();
       unsubMaterials();
       unsubMaterialRequests();
       unsubReports();
     };
-  }, [user, isAdmin, isGeral, coordinatorId]);
+  }, [user, isAdmin, isGeral, isRegional, coordinatorId]);
 
   // 1. Recarrega as estatísticas de contagem do servidor sem puxar todos os documentos
   const fetchServerCounts = async () => {
