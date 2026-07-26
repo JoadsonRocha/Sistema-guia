@@ -32,7 +32,7 @@ export const PLAN_CONFIGS: Record<PlanType, {
   },
   start: {
     name: 'Plano Start Tático',
-    price: 'R$ 490/mês',
+    price: 'R$ 379/mês',
     maxVoters: 2500,
     maxLeaders: 25,
     maxRegionals: 25,
@@ -40,7 +40,7 @@ export const PLAN_CONFIGS: Record<PlanType, {
   },
   comando: {
     name: 'Plano Comando Tático',
-    price: 'R$ 1.290/mês',
+    price: 'R$ 679/mês',
     maxVoters: 10000,
     maxLeaders: 100,
     maxRegionals: 100,
@@ -48,7 +48,7 @@ export const PLAN_CONFIGS: Record<PlanType, {
   },
   dominio: {
     name: 'Plano Domínio Total',
-    price: 'R$ 2.490/mês',
+    price: 'R$ 850/mês',
     maxVoters: Infinity,
     maxLeaders: Infinity,
     maxRegionals: Infinity,

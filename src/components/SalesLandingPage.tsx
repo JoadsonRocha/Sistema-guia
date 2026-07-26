@@ -22,6 +22,7 @@ import {
   Award
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
+import { ASAAS_PLAN_LINKS, COMMERCIAL_WHATSAPP_NUMBER } from '../config/asaasConfig';
 
 interface SalesLandingPageProps {
   onAccessSystem: () => void;
@@ -160,7 +161,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               </div>
               <h3 className="text-lg font-black text-amber-300 uppercase tracking-wide">1. Coordenador Geral</h3>
               <p className="text-zinc-400 text-xs leading-relaxed">
-                Comando supremo da campanha. Define metas por bairro, autoriza verba de combustível, analisa o mapa de calor e publica a <strong className="text-zinc-200">Ordem do Dia</strong> diária para toda a militância.
+                Comando supremo da campanha. Define metas por bairro, autoriza materiais de logística, analisa o mapa de calor e publica a <strong className="text-zinc-200">Ordem do Dia</strong> diária para toda a militância.
               </p>
             </div>
 
@@ -328,7 +329,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
                 <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Até 2.500 Eleitores</span>
                 <h3 className="text-xl font-black text-white">Plano Start Tático</h3>
                 <div className="text-3xl font-black text-white">
-                  R$ 490 <span className="text-xs text-zinc-400 font-normal">/mês</span>
+                  R$ 379 <span className="text-xs text-zinc-400 font-normal">/mês</span>
                 </div>
                 <div className="p-2.5 rounded-lg bg-zinc-950/60 border border-zinc-800 text-[11px] text-zinc-300 font-medium">
                   Ideal para pré-campanhas e mobilizações locais em início de estruturação.
@@ -353,7 +354,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               </div>
 
               <a
-                href="https://wa.me/5511999999999?text=Quero%20contratar%20o%20Plano%20Start%20T%C3%A1tico%20do%20Nexus%20Pol%C3%ADtica."
+                href={ASAAS_PLAN_LINKS.startTatico.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Start%20T%C3%A1tico%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.startTatico}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs text-center block transition-all active:scale-95"
@@ -372,7 +373,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
                 <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Até 10.000 Eleitores</span>
                 <h3 className="text-xl font-black text-white">Plano Comando Tático</h3>
                 <div className="text-3xl font-black text-white">
-                  R$ 1.290 <span className="text-xs text-zinc-400 font-normal">/mês</span>
+                  R$ 679 <span className="text-xs text-zinc-400 font-normal">/mês</span>
                 </div>
                 <div className="p-2.5 rounded-lg bg-blue-950/40 border border-blue-800/50 text-[11px] text-blue-200 font-medium">
                   Para campanhas consolidadas com alta frequência de abordagens e cabos eleitorais nas ruas.
@@ -397,7 +398,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               </div>
 
               <a
-                href="https://wa.me/5511999999999?text=Quero%20contratar%20o%20Plano%20Comando%20T%C3%A1tico%20do%20Nexus%20Pol%C3%ADtica."
+                href={ASAAS_PLAN_LINKS.comandoTatico.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Comando%20T%C3%A1tico%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.comandoTatico}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs text-center block shadow-lg shadow-blue-600/30 transition-all active:scale-95"
@@ -412,7 +413,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
                 <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Capacidade Ilimitada</span>
                 <h3 className="text-xl font-black text-white">Plano Domínio Total</h3>
                 <div className="text-3xl font-black text-white">
-                  R$ 2.490 <span className="text-xs text-zinc-400 font-normal">/mês</span>
+                  R$ 850 <span className="text-xs text-zinc-400 font-normal">/mês</span>
                 </div>
                 <div className="p-2.5 rounded-lg bg-amber-950/30 border border-amber-800/40 text-[11px] text-amber-200 font-medium">
                   Para grandes operações estaduais, coligações de grande porte e exércitos de mobilização.
@@ -437,7 +438,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               </div>
 
               <a
-                href="https://wa.me/5511999999999?text=Quero%20contratar%20o%20Plano%20Dom%C3%ADnio%20Total%20do%20Nexus%20Pol%C3%ADtica."
+                href={ASAAS_PLAN_LINKS.dominioTotal.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Dom%C3%ADnio%20Total%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.dominioTotal}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs text-center block transition-all active:scale-95"
@@ -469,8 +470,8 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               a: "Não! O sistema é 100% web e responsivo. Funciona perfeitamente em qualquer navegador (Chrome, Safari, Firefox) no Android ou iPhone."
             },
             {
-              q: "Como configurar o subdomínio vendas.nexuspolicy.com.br ou app.nexuspolicy.com.br?",
-              a: "É muito simples! Basta acessar o painel do seu domínio (Registro.br, Cloudflare, etc.) e criar um registro do tipo CNAME ou A apontando para a sua hospedagem com certificado SSL ativado."
+              q: "Como acompanho a produtividade da equipe e o mapa de calor de votos em tempo real?",
+              a: "O Coordenador Geral possui um painel gerencial completo com mapa de calor interativo da cidade, gráfico de metas por bairro e acompanhamento de entregas de logística e cadastros de cada Líder de Bairro em tempo real."
             },
             {
               q: "Os dados dos meus eleitores ficam seguros?",

@@ -65,7 +65,7 @@ export const DemoBlockModal: React.FC<DemoBlockModalProps> = ({ isOpen, onClose,
             </li>
             <li className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Controle de verba de combustível e metas por líder</span>
+              <span>Controle de materiais de logística e metas por líder</span>
             </li>
           </ul>
         </div>

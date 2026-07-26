@@ -6440,9 +6440,9 @@ export default function CoordinatorDashboard({
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 pt-1">
                     {[
                       { key: 'free', name: 'Degustação (Grátis)', limit: '7 Eleitores, 2 Líderes, 2 Regionais, 1 Geral', badge: 'Grátis' },
-                      { key: 'start', name: 'Start Tático', limit: 'Até 2.500 Eleitores', badge: 'R$ 490/mês' },
-                      { key: 'comando', name: 'Comando Tático', limit: 'Até 10.000 Eleitores', badge: 'R$ 1.290/mês' },
-                      { key: 'dominio', name: 'Domínio Total', limit: 'Eleitores Ilimitados', badge: 'R$ 2.490/mês' }
+                      { key: 'start', name: 'Start Tático', limit: 'Até 2.500 Eleitores', badge: 'R$ 379/mês' },
+                      { key: 'comando', name: 'Comando Tático', limit: 'Até 10.000 Eleitores', badge: 'R$ 679/mês' },
+                      { key: 'dominio', name: 'Domínio Total', limit: 'Eleitores Ilimitados', badge: 'R$ 850/mês' }
                     ].map((p) => (
                       <button
                         type="button"
