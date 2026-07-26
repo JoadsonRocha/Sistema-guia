@@ -6,6 +6,7 @@ import { firestoreService } from './lib/firestoreService';
 import PublicVoterRegister from './components/PublicVoterRegister';
 import CoordinatorDashboard from './components/CoordinatorDashboard';
 import CaboDashboard from './components/CaboDashboard';
+import { SalesLandingPage } from './components/SalesLandingPage';
 import { safeLocalStorage } from './utils/safeStorage';
 import logoImg from './assets/logo.png';
 
@@ -26,6 +27,12 @@ export default function App() {
   const [view, setView] = useState<'coord' | 'cabo'>('cabo');
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (safeLocalStorage.getItem('urna360-theme') as 'light' | 'dark') || 'light';
+  });
+
+  const [isSalesLanding, setIsSalesLanding] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const host = window.location.hostname.toLowerCase();
+    return params.has('vendas') || params.has('landing') || params.has('comercial') || host.startsWith('vendas.') || host.startsWith('comercial.');
   });
 
   const [isExternalRegister] = useState(() => {
@@ -98,6 +105,10 @@ export default function App() {
 
   if (isExternalRegister) {
     return <PublicVoterRegister leaderId={extLeaderId} teamId={extTeamId} />;
+  }
+
+  if (isSalesLanding) {
+    return <SalesLandingPage onAccessSystem={() => setIsSalesLanding(false)} />;
   }
 
   if (loading) {
@@ -428,12 +439,21 @@ export default function App() {
             Google Cloud Auth
           </button>
 
-          <button 
-            onClick={() => setIsRegistering(!isRegistering)}
-            className="mt-10 text-[10px] font-black text-[var(--text-secondary)] hover:text-blue-600 uppercase tracking-widest transition-colors opacity-50 block w-full relative z-10"
-          >
-            {isRegistering ? 'Já possui acesso? Efetuar Login' : 'Ainda não é operador? Registrar'}
-          </button>
+          <div className="flex items-center justify-between mt-8 pt-4 border-t border-[var(--border-color)] relative z-10 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">
+            <button 
+              onClick={() => setIsRegistering(!isRegistering)}
+              className="hover:text-blue-600 transition-colors opacity-70"
+            >
+              {isRegistering ? 'Efetuar Login' : 'Registrar Operador'}
+            </button>
+
+            <button 
+              onClick={() => setIsSalesLanding(true)}
+              className="text-blue-600 hover:text-blue-500 transition-colors flex items-center gap-1 font-extrabold"
+            >
+              Página de Vendas &rarr;
+            </button>
+          </div>
         </motion.div>
         
         <p className="mt-12 text-[10px] font-black text-[var(--text-secondary)] opacity-20 uppercase tracking-[0.5em] relative z-20">Eagle Intelligence Systems • 2026</p>
