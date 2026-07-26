@@ -1539,22 +1539,34 @@ export default function CoordinatorDashboard({
       console.warn("Notes sync error (permission or query failure):", err.message);
     });
 
-    const unsubProfile = onSnapshot(doc(db, 'users', user.uid), (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        const userEmail = (user.email || data.email || '').toLowerCase();
-        const userName = (data.name || '').toLowerCase();
-        const isAntonio = userEmail.includes('antonio') || userName.includes('antonio');
-        
-        if (isAntonio && data.role !== 'coordenador_regional') {
-          data.role = 'coordenador_regional';
-          firestoreService.setDocument('users', user.uid, { ...data, role: 'coordenador_regional' }).catch(console.error);
+    let unsubProfile: (() => void) | null = null;
+    if (user?.uid && user.uid.startsWith('demo_')) {
+      setProfileData({
+        name: isRegional 
+          ? 'Coordenador Regional (Demonstração)' 
+          : 'Coordenador Geral (Demonstração)',
+        email: user.email || 'demo@nexuspolitica.com.br',
+        role: isRegional ? 'coordenador_regional' : 'coordenador_geral',
+        region: isRegional ? 'REGIÃO 1 - NORTE' : 'Todas as Regiões'
+      });
+    } else if (user?.uid) {
+      unsubProfile = onSnapshot(doc(db, 'users', user.uid), (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          const userEmail = (user.email || data.email || '').toLowerCase();
+          const userName = (data.name || '').toLowerCase();
+          const isAntonio = userEmail.includes('antonio') || userName.includes('antonio');
+          
+          if (isAntonio && data.role !== 'coordenador_regional') {
+            data.role = 'coordenador_regional';
+            firestoreService.setDocument('users', user.uid, { ...data, role: 'coordenador_regional' }).catch(console.error);
+          }
+          setProfileData(data);
         }
-        setProfileData(data);
-      }
-    }, (err) => {
-      console.warn("Profile sync error:", err.message);
-    });
+      }, (err) => {
+        console.warn("Profile sync error:", err.message);
+      });
+    }
     
     // Fallback for empty collections
     const checkAndSeed = async () => {

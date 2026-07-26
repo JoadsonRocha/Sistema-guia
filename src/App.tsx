@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Lock } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useAuth } from './lib/FirebaseProvider';
+import { useAuth, UserRole } from './lib/FirebaseProvider';
 import { firestoreService } from './lib/firestoreService';
 import PublicVoterRegister from './components/PublicVoterRegister';
 import CoordinatorDashboard from './components/CoordinatorDashboard';
@@ -23,10 +23,12 @@ export default function App() {
     isAdmin, 
     forcePasswordChange, 
     changePassword, 
-    resetPassword 
+    resetPassword,
+    demoRole,
+    setDemoRole 
   } = useAuth();
 
-  const [view, setView] = useState<'coord' | 'cabo'>('cabo');
+  const [view, setView] = useState<'coord' | 'cabo'>('coord');
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (safeLocalStorage.getItem('urna360-theme') as 'light' | 'dark') || 'light';
   });
@@ -36,6 +38,35 @@ export default function App() {
     return params.has('demo');
   });
   const [showDemoBlockModal, setShowDemoBlockModal] = useState(false);
+
+  // Sync demoRole when demo mode starts
+  useEffect(() => {
+    if (isDemoMode && !demoRole) {
+      setDemoRole('coordenador_geral');
+      setView('coord');
+    }
+  }, [isDemoMode, demoRole, setDemoRole]);
+
+  const handleStartDemoMode = () => {
+    setDemoRole('coordenador_geral');
+    setView('coord');
+    setIsDemoMode(true);
+    setIsSalesLanding(false);
+  };
+
+  const handleSelectDemoRole = (newRole: UserRole) => {
+    setDemoRole(newRole);
+    if (newRole === 'lider') {
+      setView('cabo');
+    } else {
+      setView('coord');
+    }
+  };
+
+  const handleExitDemoMode = () => {
+    setDemoRole(null);
+    setIsDemoMode(false);
+  };
 
   const [isSalesLanding, setIsSalesLanding] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -131,10 +162,7 @@ export default function App() {
     return (
       <SalesLandingPage 
         onAccessSystem={() => setIsSalesLanding(false)} 
-        onStartDemoMode={() => {
-          setIsDemoMode(true);
-          setIsSalesLanding(false);
-        }}
+        onStartDemoMode={handleStartDemoMode}
       />
     );
   }
@@ -476,7 +504,7 @@ export default function App() {
             </button>
 
             <button 
-              onClick={() => setIsDemoMode(true)}
+              onClick={handleStartDemoMode}
               className="text-amber-500 hover:text-amber-400 transition-colors flex items-center gap-1 font-extrabold"
             >
               ⚡ Testar Demonstração ao Vivo
@@ -500,8 +528,10 @@ export default function App() {
     <div className={`${theme} min-h-screen transition-colors duration-300 relative flex flex-col`}>
       {isDemoMode && (
         <DemoHeaderBanner 
+          activeRole={demoRole || 'coordenador_geral'}
+          onSelectRole={handleSelectDemoRole}
           onGoToSalesPage={() => setIsSalesLanding(true)} 
-          onExitDemo={() => setIsDemoMode(false)} 
+          onExitDemo={handleExitDemoMode} 
         />
       )}
 

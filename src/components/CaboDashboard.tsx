@@ -219,18 +219,27 @@ export default function CaboDashboard({
       let currentSubscribedCoordId: string | null = null;
       let subscribedMaterials = false;
       
-      const unsubProfile = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          const teamName = data.teamName || data.zone || data.team || '';
-          setProfileData({
-            name: data.name || user.displayName || '',
-            phone: data.phone || '',
-            photoUrl: data.photoUrl || user.photoURL || '',
-            zone: teamName
-          });
-          
-          if (!subscribedMaterials) {
+      let unsubProfile: (() => void) | null = null;
+      if (user?.uid && user.uid.startsWith('demo_')) {
+        setProfileData({
+          name: 'Líder de Bairro (Demonstração)',
+          phone: '(95) 99111-2026',
+          photoUrl: '',
+          zone: 'Equipe Tática Bairro Centro'
+        });
+      } else {
+        unsubProfile = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            const teamName = data.teamName || data.zone || data.team || '';
+            setProfileData({
+              name: data.name || user.displayName || '',
+              phone: data.phone || '',
+              photoUrl: data.photoUrl || user.photoURL || '',
+              zone: teamName
+            });
+            
+            if (!subscribedMaterials) {
             subscribedMaterials = true;
             if (unsubMaterials) unsubMaterials();
             unsubMaterials = onSnapshot(
@@ -428,6 +437,7 @@ export default function CaboDashboard({
       }, (error) => {
         console.error("Erro ao escutar perfil:", error);
       });
+    }
 
        // We remove the full unsubVoters from here because it's replaced by the new paginated effect hook below
 

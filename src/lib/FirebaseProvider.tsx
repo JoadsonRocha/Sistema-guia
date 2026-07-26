@@ -35,6 +35,8 @@ interface AuthContextType {
   isLeader: boolean;
   userRegion: string | null;
   coordinatorId: string | null;
+  demoRole: UserRole | null;
+  setDemoRole: (role: UserRole | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,6 +44,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
+  const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isGeral, setIsGeral] = useState(false);
@@ -346,27 +349,85 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Compute effective auth context values for Demo Mode or normal Auth
+  let effectiveUser = user;
+  let effectiveRole = role;
+  let effectiveIsAdmin = isAdmin;
+  let effectiveIsGeral = isGeral;
+  let effectiveIsRegional = isRegional;
+  let effectiveIsLeader = isLeader;
+  let effectiveUserRegion = userRegion;
+  let effectiveCoordinatorId = coordinatorId;
+
+  if (demoRole) {
+    if (demoRole === 'coordenador_geral') {
+      effectiveUser = {
+        uid: 'demo_coord_geral',
+        email: 'geral@nexuspolitica.com.br',
+        displayName: 'Coordenador Geral (Demo)',
+        emailVerified: true
+      } as any;
+      effectiveRole = 'coordenador_geral';
+      effectiveIsGeral = true;
+      effectiveIsRegional = false;
+      effectiveIsLeader = false;
+      effectiveIsAdmin = true;
+      effectiveUserRegion = null;
+      effectiveCoordinatorId = 'demo_coord_geral';
+    } else if (demoRole === 'coordenador_regional') {
+      effectiveUser = {
+        uid: 'demo_coord_regional',
+        email: 'regional.norte@nexuspolitica.com.br',
+        displayName: 'Coordenador Regional (Demo)',
+        emailVerified: true
+      } as any;
+      effectiveRole = 'coordenador_regional';
+      effectiveIsGeral = false;
+      effectiveIsRegional = true;
+      effectiveIsLeader = false;
+      effectiveIsAdmin = true;
+      effectiveUserRegion = 'REGIÃO 1 - NORTE';
+      effectiveCoordinatorId = 'demo_coord_geral';
+    } else if (demoRole === 'lider') {
+      effectiveUser = {
+        uid: 'demo_lider',
+        email: 'lider.bairro@nexuspolitica.com.br',
+        displayName: 'Líder de Bairro (Demo)',
+        emailVerified: true
+      } as any;
+      effectiveRole = 'lider';
+      effectiveIsGeral = false;
+      effectiveIsRegional = false;
+      effectiveIsLeader = true;
+      effectiveIsAdmin = false;
+      effectiveUserRegion = 'REGIÃO 1 - NORTE';
+      effectiveCoordinatorId = 'demo_coord_geral';
+    }
+  }
+
   return (
     <AuthContext.Provider value={{ 
-      user, 
-      role, 
-      loading, 
+      user: effectiveUser, 
+      role: effectiveRole, 
+      loading: demoRole ? false : loading, 
       login, 
       loginWithEmail, 
       signupWithEmail, 
       logout, 
-      isAdmin, 
-      isGeral, 
-      isRegional, 
-      isLeader, 
-      userRegion, 
+      isAdmin: effectiveIsAdmin, 
+      isGeral: effectiveIsGeral, 
+      isRegional: effectiveIsRegional, 
+      isLeader: effectiveIsLeader, 
+      userRegion: effectiveUserRegion, 
       forcePasswordChange, 
       changePassword, 
       resetPassword, 
       verifyEmail,
-      coordinatorId 
+      coordinatorId: effectiveCoordinatorId,
+      demoRole,
+      setDemoRole
     }}>
-      {(!loading || user) ? children : (
+      {(!loading || effectiveUser) ? children : (
         <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-8 select-none">
           <div className="relative flex flex-col items-center max-w-sm w-full text-center">
             {/* Logo container with subtle ambient glow */}
