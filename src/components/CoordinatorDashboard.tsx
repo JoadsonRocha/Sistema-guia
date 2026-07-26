@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import logoImg from '../assets/logo.png';
 import { TreLocationFields } from './TreLocationFields';
 import { WhatsAppDispatchModal } from './WhatsAppDispatchModal';
+import { SystemManualModal } from './SystemManualModal';
 import { 
+  BookOpen,
   ShieldCheck, 
   Fuel, 
   Users, 
@@ -45,7 +47,6 @@ import {
   Layers,
   DollarSign,
   Briefcase,
-  BookOpen,
   Target,
   Wallet,
   History,
@@ -516,6 +517,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
   const [newDailyOrder, setNewDailyOrder] = useState('');
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isWaModalOpen, setIsWaModalOpen] = useState(false);
+  const [isManualOpen, setIsManualOpen] = useState(false);
   const [chaosText, setChaosText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [aiResult, setAiResult] = useState<any>(null);
@@ -2438,6 +2440,14 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                 <UserPlus className="w-3.5 h-3.5" /> Padronizar Candidato
               </button>
             )}
+
+            <button 
+              onClick={() => setIsManualOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-amber-600/20 active:scale-95 cursor-pointer"
+              title="Manual Completo e Tutorial do Sistema"
+            >
+              <BookOpen className="w-3.5 h-3.5" /> Manual do Sistema
+            </button>
 
             <button 
               onClick={() => setIsWaModalOpen(true)}
@@ -6480,6 +6490,12 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         onClose={() => setIsWaModalOpen(false)}
         voters={filteredVoters}
         leaders={teams}
+      />
+
+      {/* MODAL MANUAL COMPLETO DO SISTEMA */}
+      <SystemManualModal
+        isOpen={isManualOpen}
+        onClose={() => setIsManualOpen(false)}
       />
 
       {/* MOBILE BOTTOM NAV - COORDINATOR */}
