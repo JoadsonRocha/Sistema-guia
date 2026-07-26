@@ -40,28 +40,8 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-blue-600 selection:text-white">
       
       {/* HEADER DA PÁGINA DE VENDAS */}
-      <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800/80 px-4 md:px-8 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img 
-            src={logoImg} 
-            onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }} 
-            alt="Nexus Política" 
-            className="h-9 md:h-11 w-auto object-contain" 
-          />
-          <span className="text-[10px] uppercase font-black tracking-widest text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded border border-blue-500/20 hidden sm:inline-block">
-            Edição Eleições 2026
-          </span>
-        </div>
-
+      <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800/80 px-4 md:px-8 py-3.5 flex items-center justify-end">
         <div className="flex items-center gap-2 md:gap-3">
-          <button
-            onClick={() => setShowDomainModal(true)}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-bold text-zinc-300 transition-all"
-          >
-            <Globe className="w-3.5 h-3.5 text-blue-400" />
-            <span>Guia de Subdomínio</span>
-          </button>
-
           <a
             href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20o%20Nexus%20Pol%C3%ADtica%20para%20minha%20campanha."
             target="_blank"
@@ -84,9 +64,21 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
       </header>
 
       {/* HERO SECTION */}
-      <section className="relative px-4 md:px-8 py-16 md:py-24 max-w-6xl mx-auto text-center space-y-8 overflow-hidden">
+      <section className="relative px-4 md:px-8 py-12 md:py-20 max-w-6xl mx-auto text-center space-y-6 overflow-hidden">
         {/* Glows */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 md:w-[600px] h-96 md:h-[600px] bg-blue-600/15 rounded-full blur-[140px] pointer-events-none"></div>
+
+        {/* LOGO CENTRALIZADO NO RETÂNGULO BRANCO COM CANTOS ARREDONDADOS */}
+        <div className="flex justify-center pt-2 pb-2">
+          <div className="bg-white p-2 sm:p-3 rounded-2xl sm:rounded-3xl shadow-2xl shadow-white/10 border border-zinc-200/80 inline-flex items-center justify-center transition-all hover:scale-105 overflow-hidden">
+            <img 
+              src={logoImg} 
+              onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }} 
+              alt="Nexus Política" 
+              className="h-28 sm:h-40 md:h-48 w-auto object-contain scale-125 transform p-1" 
+            />
+          </div>
+        </div>
 
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-wider animate-bounce">
           <Sparkles className="w-3.5 h-3.5 text-amber-400" />
@@ -478,7 +470,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
             },
             {
               q: "Como configurar o subdomínio vendas.nexuspolicy.com.br ou app.nexuspolicy.com.br?",
-              a: "É muito simples! Basta acessar o painel do seu domínio (Registro.br, Cloudflare, etc.) e criar um registro do tipo CNAME ou A apontando para a sua hospedagem. Clique no botão 'Guia de Subdomínio' no topo da página para ver o passo a passo completo."
+              a: "É muito simples! Basta acessar o painel do seu domínio (Registro.br, Cloudflare, etc.) e criar um registro do tipo CNAME ou A apontando para a sua hospedagem com certificado SSL ativado."
             },
             {
               q: "Os dados dos meus eleitores ficam seguros?",
