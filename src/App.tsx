@@ -32,7 +32,19 @@ export default function App() {
   const [isSalesLanding, setIsSalesLanding] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     const host = window.location.hostname.toLowerCase();
-    return params.has('vendas') || params.has('landing') || params.has('comercial') || host.startsWith('vendas.') || host.startsWith('comercial.');
+    
+    // Se o usuário acessar explicitamente via app.nexuspolicy.com.br ou painel.nexuspolicy.com.br ou ?app, abre direto o sistema
+    if (host.startsWith('app.') || host.startsWith('painel.') || params.has('app') || params.has('login')) {
+      return false;
+    }
+    
+    // Se for link externo de cadastro de eleitor, não é landing de vendas
+    if (params.has('leaderId') || params.has('liderId') || params.has('teamId') || params.has('coordinatorId') || params.has('cadastro')) {
+      return false;
+    }
+
+    // Por padrão (ex: acessando nexuspolicy.com.br no domínio principal), a página de vendas é a Porta de Entrada!
+    return true;
   });
 
   const [isExternalRegister] = useState(() => {
