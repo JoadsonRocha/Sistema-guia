@@ -5617,32 +5617,53 @@ export default function CoordinatorDashboard({
               >
                 {/* Módulos do Sistema & Licença */}
                 <div className="p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm space-y-2.5">
-                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-0.5">Módulos da Campanha & Suporte</p>
+                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-0.5">Módulos da Campanha & Licença</p>
                   
                   {isGeral && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsProfileModalOpen(false);
-                        window.dispatchEvent(new CustomEvent('open_sales_landing'));
-                        setTimeout(() => {
-                          const el = document.getElementById('planos');
-                          if (el) el.scrollIntoView({ behavior: 'smooth' });
-                        }, 300);
-                      }}
-                      className="w-full flex items-center justify-between p-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 font-bold rounded-sm transition-all cursor-pointer group text-left"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded bg-amber-500 text-zinc-950 flex items-center justify-center shrink-0 font-black shadow-sm">
-                          <ShieldCheck className="w-4 h-4" />
+                    <div className="p-3 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-sm space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <ShieldCheck className="w-4 h-4 text-amber-500" />
+                          <span className="text-xs font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-100">
+                            Plano Atual da Campanha
+                          </span>
                         </div>
-                        <div>
-                          <p className="font-black uppercase tracking-tight text-xs text-zinc-900 dark:text-zinc-100">Planos da Campanha & Licença</p>
-                          <p className="text-[10px] text-zinc-500 font-medium">Visualizar e adquirir pacotes de eleitores</p>
-                        </div>
+                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
+                          selectedPlanStatus === 'active' 
+                            ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' 
+                            : 'bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30'
+                        }`}>
+                          {selectedPlanStatus === 'active' ? '● Licença Ativa' : '⚠️ Suspenso / Sem Licença'}
+                        </span>
                       </div>
-                      <span className="text-[10px] bg-amber-500 text-zinc-950 font-black px-2.5 py-1 rounded uppercase tracking-wider group-hover:scale-105 transition-transform shadow-sm">Ver Planos</span>
-                    </button>
+
+                      <div className="flex items-end justify-between pt-1">
+                        <div>
+                          <p className="text-sm font-black text-amber-500 uppercase tracking-tight">
+                            {PLAN_CONFIGS[selectedPlan]?.name || 'Plano Grátis (Degustação)'}
+                          </p>
+                          <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium mt-0.5">
+                            Limite da Licença: <strong className="text-zinc-800 dark:text-zinc-200 font-bold">
+                              {PLAN_CONFIGS[selectedPlan]?.maxVoters === Infinity ? 'Ilimitado' : `${PLAN_CONFIGS[selectedPlan]?.maxVoters?.toLocaleString('pt-BR')} Eleitores`}
+                            </strong>
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsProfileModalOpen(false);
+                            window.dispatchEvent(new CustomEvent('open_sales_landing'));
+                            setTimeout(() => {
+                              const el = document.getElementById('planos');
+                              if (el) el.scrollIntoView({ behavior: 'smooth' });
+                            }, 300);
+                          }}
+                          className="text-[10px] bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black px-2.5 py-1.5 rounded uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer whitespace-nowrap"
+                        >
+                          Upgrade de Plano
+                        </button>
+                      </div>
+                    </div>
                   )}
 
                   <button
