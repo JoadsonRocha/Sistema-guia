@@ -279,98 +279,139 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
           
           <div className="text-center space-y-3">
             <span className="text-xs font-black uppercase text-emerald-400 tracking-widest bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-              INVESTIMENTO E PLANOS - ELEIÇÕES 2026
+              INVESTIMENTO E PLANOS POR CAPACIDADE
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-              Escolha o Plano Ideal para Sua Vitória em 2026
+              Escolha o Plano Ideal para o Tamanho da Sua Equipe
             </h2>
-            <p className="text-zinc-400 text-xs sm:text-sm max-w-lg mx-auto">
-              Sem surpresas ou cobranças por mensagem enviada. Licenciamento transparente para toda a sua pré-campanha e eleição.
+            <p className="text-zinc-400 text-xs sm:text-sm max-w-xl mx-auto">
+              Todas as funcionalidades do sistema estão <strong className="text-emerald-400">100% liberadas em todos os planos</strong>. O único diferencial é a capacidade de cadastros e líderes da sua campanha.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
             
-            {/* Plano 1: Deputado Estadual */}
+            {/* Plano 1: Start Tático */}
             <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 flex flex-col justify-between space-y-6">
               <div className="space-y-4">
-                <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Campanha Estadual</span>
-                <h3 className="text-xl font-black text-white">Plano Deputado Estadual</h3>
+                <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Até 2.500 Eleitores</span>
+                <h3 className="text-xl font-black text-white">Plano Start Tático</h3>
                 <div className="text-3xl font-black text-white">
                   R$ 490 <span className="text-xs text-zinc-400 font-normal">/mês</span>
                 </div>
+                <div className="p-2.5 rounded-lg bg-zinc-950/60 border border-zinc-800 text-[11px] text-zinc-300 font-medium">
+                  Ideal para pré-campanhas e mobilizações locais em início de estruturação.
+                </div>
                 <ul className="space-y-2.5 text-xs text-zinc-300">
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 25 Líderes de Equipe</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 2.500 Eleitores Cadastrados</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Disparo WhatsApp Grátis (wa.me)</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Controle de Combustível e Metas</li>
+                  <li className="flex items-center gap-2 font-bold text-emerald-400">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" /> Até 2.500 Eleitores Cadastrados
+                  </li>
+                  <li className="flex items-center gap-2 font-bold text-zinc-200">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 25 Líderes de Equipe
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Gestão de pessoas, materiais e Metas
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Disparo WhatsApp Grátis (wa.me)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Sistema 100% Liberado (Todas as Funções)
+                  </li>
                 </ul>
               </div>
 
               <a
-                href="https://wa.me/5511999999999?text=Quero%20contratar%20o%20Plano%20Deputado%20Estadual%20do%20Nexus%20Pol%C3%ADtica."
+                href="https://wa.me/5511999999999?text=Quero%20contratar%20o%20Plano%20Start%20T%C3%A1tico%20do%20Nexus%20Pol%C3%ADtica."
                 target="_blank"
                 rel="noreferrer"
-                className="w-full py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs text-center block transition-all"
+                className="w-full py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs text-center block transition-all active:scale-95"
               >
-                Contratar Deputado Estadual
+                Contratar Start Tático
               </a>
             </div>
 
-            {/* Plano 2: Deputado Federal / Senador (Destaque) */}
+            {/* Plano 2: Comando Tático (Destaque) */}
             <div className="p-6 rounded-2xl bg-gradient-to-b from-blue-900/40 to-zinc-900 border-2 border-blue-500 relative flex flex-col justify-between space-y-6 shadow-2xl shadow-blue-600/20">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest shadow-md">
                 Mais Vendido
               </div>
 
               <div className="space-y-4 pt-2">
-                <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Campanha Federal / Senado</span>
-                <h3 className="text-xl font-black text-white">Plano Deputado Federal / Senador</h3>
+                <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Até 10.000 Eleitores</span>
+                <h3 className="text-xl font-black text-white">Plano Comando Tático</h3>
                 <div className="text-3xl font-black text-white">
                   R$ 1.290 <span className="text-xs text-zinc-400 font-normal">/mês</span>
                 </div>
+                <div className="p-2.5 rounded-lg bg-blue-950/40 border border-blue-800/50 text-[11px] text-blue-200 font-medium">
+                  Para campanhas consolidadas com alta frequência de abordagens e cabos eleitorais nas ruas.
+                </div>
                 <ul className="space-y-2.5 text-xs text-zinc-300">
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Líderes e Regionais Ilimitados</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Eleitores Cadastrados Ilimitados</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Análise Histórica Completa TRE</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Mapa de Calor de todos os Municípios</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Suporte VIP com Especialista Tático</li>
+                  <li className="flex items-center gap-2 font-bold text-emerald-400">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" /> Até 10.000 Eleitores Cadastrados
+                  </li>
+                  <li className="flex items-center gap-2 font-bold text-zinc-200">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 100 Líderes de Equipe
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Gestão de pessoas, materiais e Metas
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Disparo WhatsApp Grátis (wa.me)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Sistema 100% Liberado (Todas as Funções)
+                  </li>
                 </ul>
               </div>
 
               <a
-                href="https://wa.me/5511999999999?text=Quero%20contratar%20o%20Plano%20Deputado%20Federal%20/%20Senador%20do%20Nexus%20Pol%C3%ADtica."
+                href="https://wa.me/5511999999999?text=Quero%20contratar%20o%20Plano%20Comando%20T%C3%A1tico%20do%20Nexus%20Pol%C3%ADtica."
                 target="_blank"
                 rel="noreferrer"
-                className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs text-center block shadow-lg shadow-blue-600/30 transition-all"
+                className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs text-center block shadow-lg shadow-blue-600/30 transition-all active:scale-95"
               >
-                Garantir Licença VIP 2026
+                Garantir Licença Comando
               </a>
             </div>
 
-            {/* Plano 3: Governador / Coligação */}
+            {/* Plano 3: Domínio Total */}
             <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 flex flex-col justify-between space-y-6">
               <div className="space-y-4">
-                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Grandes Coligações / Governo</span>
-                <h3 className="text-xl font-black text-white">Plano Governador / Coligação</h3>
-                <div className="text-2xl font-black text-amber-400">
-                  Sob Consulta
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Capacidade Ilimitada</span>
+                <h3 className="text-xl font-black text-white">Plano Domínio Total</h3>
+                <div className="text-3xl font-black text-white">
+                  R$ 2.490 <span className="text-xs text-zinc-400 font-normal">/mês</span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-amber-950/30 border border-amber-800/40 text-[11px] text-amber-200 font-medium">
+                  Para grandes operações estaduais, coligações de grande porte e exércitos de mobilização.
                 </div>
                 <ul className="space-y-2.5 text-xs text-zinc-300">
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Cobertura de Todo o Estado</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Servidor Dedicado e Isolado</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Customização com Marca da Coligação</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Treinamento Presencial da Equipe</li>
+                  <li className="flex items-center gap-2 font-bold text-emerald-400">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" /> Eleitores Cadastrados Ilimitados
+                  </li>
+                  <li className="flex items-center gap-2 font-bold text-zinc-200">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Líderes e Regionais Ilimitados
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Gestão de pessoas, materiais e Metas
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Disparo WhatsApp Grátis (wa.me)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Sistema 100% Liberado (Todas as Funções)
+                  </li>
                 </ul>
               </div>
 
               <a
-                href="https://wa.me/5511999999999?text=Gostaria%20de%20uma%20proposta%20personalizada%20para%20o%20Plano%20Governador%20/%20Coliga%C3%A7%C3%A3o."
+                href="https://wa.me/5511999999999?text=Quero%20contratar%20o%20Plano%20Dom%C3%ADnio%20Total%20do%20Nexus%20Pol%C3%ADtica."
                 target="_blank"
                 rel="noreferrer"
-                className="w-full py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs text-center block transition-all"
+                className="w-full py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs text-center block transition-all active:scale-95"
               >
-                Falar com Diretor Comercial
+                Contratar Domínio Total
               </a>
             </div>
 

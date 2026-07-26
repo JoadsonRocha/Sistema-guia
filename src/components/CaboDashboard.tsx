@@ -68,6 +68,7 @@ import { validarSugestaoAgenda, AgendaItem } from '../lib/agendaLogic';
 import * as XLSX from 'xlsx';
 import { maskCurrency, parseCurrencyToNumber } from '../utils/currency';
 import { safeLocalStorage } from '../utils/safeStorage';
+import { validateVoterRegistration } from '../lib/planService';
 
 interface GeoLocation {
   lat: number;
@@ -881,6 +882,16 @@ export default function CaboDashboard({
 
     try {
       const activeCoordId = resolvedCoordinatorId || coordinatorId || teamData?.coordinatorId || '';
+      
+      // Validação de limite e licença do plano da campanha antes de novo cadastro
+      if (!isEditingVoter) {
+        const validation = await validateVoterRegistration(activeCoordId);
+        if (!validation.allowed) {
+          alert(`🚨 CADASTRO BLOQUEADO PELA LICENÇA:\n\n${validation.reason}`);
+          return;
+        }
+      }
+
       // Verificar se já existe um eleitor com este telefone antes de criar um novo dentro da mesma campanha
       if (!isEditingVoter && voterForm.phone && voterForm.phone.length > 5) {
         const q = query(
@@ -1112,6 +1123,13 @@ export default function CaboDashboard({
     }
     if (parsedVoters.length === 0) {
       alert("Nenhum dado de eleitor carregado para salvar.");
+      return;
+    }
+
+    const activeCoordId = resolvedCoordinatorId || coordinatorId || teamData?.coordinatorId || '';
+    const validation = await validateVoterRegistration(activeCoordId);
+    if (!validation.allowed) {
+      alert(`🚨 IMPORTAÇÃO EM LOTE BLOQUEADA PELA LICENÇA:\n\n${validation.reason}`);
       return;
     }
 
