@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import logoImg from '../assets/logo.png';
 import { TreLocationFields } from './TreLocationFields';
+import { WhatsAppDispatchModal } from './WhatsAppDispatchModal';
 import { 
   ShieldCheck, 
   Fuel, 
@@ -514,6 +515,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
   const [isEditingDailyOrder, setIsEditingDailyOrder] = useState(false);
   const [newDailyOrder, setNewDailyOrder] = useState('');
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isWaModalOpen, setIsWaModalOpen] = useState(false);
   const [chaosText, setChaosText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [aiResult, setAiResult] = useState<any>(null);
@@ -3356,13 +3358,10 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                   {isAdmin && (
                     <div className="pt-4 border-t border-[var(--border-color)] flex flex-col sm:flex-row gap-3">
                       <button 
-                        onClick={() => {
-                          const area = voterSearch || 'Filtro Atual';
-                          alert(`📢 CONVOCAÇÃO ENVIADA!\nTodos os eleitores filtrados (${filteredVoters.length}) na segmentação "${area}" receberam o aviso via WhatsApp via robô de envio.`);
-                        }}
-                        className="flex-1 bg-zinc-950 text-blue-600 py-3 md:py-4 rounded-sm font-black text-[9px] md:text-[10px] uppercase tracking-[0.2em] shadow-lg flex items-center justify-center gap-2 hover:bg-zinc-900 active:scale-95 transition-all outline-none"
+                        onClick={() => setIsWaModalOpen(true)}
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 md:py-4 rounded-sm font-black text-[9px] md:text-[10px] uppercase tracking-[0.2em] shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all outline-none"
                       >
-                        <Send className="w-3.5 h-3.5" /> Disparar Convite de Reunião para {filteredVoters.length} Eleitores
+                        <Send className="w-3.5 h-3.5" /> Disparar Convite via WhatsApp (wa.me) para {filteredVoters.length} Eleitores
                       </button>
                       <button 
                         onClick={() => {
@@ -6458,6 +6457,14 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* MODAL DISPARO WHATSAPP (ESTRATÉGIA B WA.ME) */}
+      <WhatsAppDispatchModal
+        isOpen={isWaModalOpen}
+        onClose={() => setIsWaModalOpen(false)}
+        voters={filteredVoters}
+        leaders={teams}
+      />
 
       {/* MOBILE BOTTOM NAV - COORDINATOR */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-14 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200/80 dark:border-zinc-800/80 flex items-center gap-1 overflow-x-auto px-2 z-50 shadow-lg scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
