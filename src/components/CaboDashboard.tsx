@@ -98,7 +98,7 @@ export default function CaboDashboard({
   isDemoMode?: boolean;
   onBlockDemoVoterRegistration?: () => void;
 }) {
-  const { user, logout, isAdmin, coordinatorId } = useAuth();
+  const { user, logout, isAdmin, isGeral, coordinatorId } = useAuth();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [queueCount, setQueueCount] = useState(0);
   const [isLocating, setIsLocating] = useState(false);
@@ -887,7 +887,7 @@ export default function CaboDashboard({
       if (!isEditingVoter) {
         const validation = await validateVoterRegistration(activeCoordId);
         if (!validation.allowed) {
-          triggerUpgradeRedirect(validation.reason!);
+          triggerUpgradeRedirect(validation.reason!, isGeral);
           return;
         }
       }
@@ -1129,7 +1129,7 @@ export default function CaboDashboard({
     const activeCoordId = resolvedCoordinatorId || coordinatorId || teamData?.coordinatorId || '';
     const validation = await validateVoterRegistration(activeCoordId);
     if (!validation.allowed) {
-      triggerUpgradeRedirect(validation.reason!);
+      triggerUpgradeRedirect(validation.reason!, isGeral);
       return;
     }
 
