@@ -2440,8 +2440,16 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
             )}
 
             <button 
+              onClick={() => setIsWaModalOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-emerald-600/20 active:scale-95 cursor-pointer"
+              title="Disparo de mensagens via WhatsApp (Gratuito wa.me)"
+            >
+              <MessageSquare className="w-3.5 h-3.5" /> Disparo WhatsApp
+            </button>
+
+            <button 
               onClick={() => setIsShareLinkModalOpen(true)}
-              className="hidden sm:flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-emerald-600/20 active:scale-95"
+              className="hidden sm:flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-sm text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-blue-600/20 active:scale-95"
               title="Gerar e copiar link de cadastro de eleitores"
             >
               <Send className="w-3.5 h-3.5" /> Link de Cadastro
@@ -3091,31 +3099,39 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                     <h2 className="text-lg sm:text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Gestão de Equipes</h2>
                     <p className="text-[var(--text-secondary)] text-[8px] md:text-[10px] font-bold uppercase tracking-widest mt-1 md:mt-2">Controle tático de recursos e unidades</p>
                   </div>
-                  <button 
-                    onClick={() => {
-                      setIsTeamModalOpen(true);
-                      setIsEditMode(false);
-                      setEditingTeamId(null);
-                      setNewTeam({
-                        name: '',
-                        leader: '',
-                        leaderEmail: '',
-                        leaderPhone: '',
-                        leaderAddress: '',
-                        location: '',
-                        observations: '',
-                        status: 'OK',
-                        contacts: 0,
-                        fuel: 0,
-                        demands: 0,
-                        allocated: 0,
-                        spent: 0
-                      });
-                    }}
-                    className="bg-blue-600 text-white px-4 md:px-6 py-2.5 md:py-3.5 rounded-sm font-black text-[9px] md:text-[10px] uppercase flex items-center justify-center gap-2 md:gap-2.5 shadow-lg shadow-blue-600/10 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto mt-1 md:mt-0"
-                  >
-                    <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" /> Cadastrar Nova Unidade
-                  </button>
+                  <div className="flex items-center gap-2 w-full md:w-auto mt-1 md:mt-0">
+                    <button
+                      onClick={() => setIsWaModalOpen(true)}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 md:px-5 py-2.5 md:py-3.5 rounded-sm font-black text-[9px] md:text-[10px] uppercase flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/10 active:scale-95 transition-all flex-1 md:flex-initial"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" /> Disparar WhatsApp Líderes
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setIsTeamModalOpen(true);
+                        setIsEditMode(false);
+                        setEditingTeamId(null);
+                        setNewTeam({
+                          name: '',
+                          leader: '',
+                          leaderEmail: '',
+                          leaderPhone: '',
+                          leaderAddress: '',
+                          location: '',
+                          observations: '',
+                          status: 'OK',
+                          contacts: 0,
+                          fuel: 0,
+                          demands: 0,
+                          allocated: 0,
+                          spent: 0
+                        });
+                      }}
+                      className="bg-blue-600 text-white px-4 md:px-6 py-2.5 md:py-3.5 rounded-sm font-black text-[9px] md:text-[10px] uppercase flex items-center justify-center gap-2 md:gap-2.5 shadow-lg shadow-blue-600/10 hover:scale-[1.01] active:scale-95 transition-all flex-1 md:flex-initial"
+                    >
+                      <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" /> Cadastrar Nova Unidade
+                    </button>
+                  </div>
                 </div>
 
                 {/* Gerador de Link de Autocadastro de Eleitor para Equipes */}
