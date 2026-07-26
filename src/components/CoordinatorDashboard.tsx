@@ -2485,30 +2485,6 @@ export default function CoordinatorDashboard({
               </button>
             )}
 
-            {isGeral && (
-              <button 
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent('open_sales_landing'));
-                  setTimeout(() => {
-                    const el = document.getElementById('planos');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }, 300);
-                }}
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black rounded text-[10px] sm:text-[11px] uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer whitespace-nowrap"
-                title="Página de Apresentação e Aquisição dos Planos da Campanha"
-              >
-                <ShieldCheck className="w-3.5 h-3.5" /> Planos da Campanha
-              </button>
-            )}
-
-            <button 
-              onClick={() => setIsManualOpen(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-sm shadow-amber-600/20 active:scale-95 cursor-pointer whitespace-nowrap"
-              title="Manual Completo e Tutorial do Sistema"
-            >
-              <BookOpen className="w-3.5 h-3.5" /> Manual do Sistema
-            </button>
-
             <button 
               onClick={() => setIsWaModalOpen(true)}
               className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-sm shadow-emerald-600/20 active:scale-95 cursor-pointer whitespace-nowrap"
@@ -5610,7 +5586,7 @@ export default function CoordinatorDashboard({
                    </div>
                    <div>
                       <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
-                        Meu Perfil
+                        Configurações do Sistema
                       </h2>
                       <p className="text-blue-600 text-[8px] font-black mt-2 uppercase tracking-widest">
                         Acesso de {(profileData?.role === 'coordenador_regional' || isRegional || (user?.email && user.email.toLowerCase().includes('antonio')) || (profileData?.email && profileData.email.toLowerCase().includes('antonio')) || (profileData?.name && profileData.name.toLowerCase().includes('antonio'))) ? 'Coordenação Regional' : (profileData?.role === 'coordenador_geral' || isGeral) ? 'Coordenação Geral' : isLeader ? 'Liderança de Equipe' : 'Coordenação'}
@@ -5639,6 +5615,56 @@ export default function CoordinatorDashboard({
                 }} 
                 className="p-6 space-y-3.5 text-left font-sans"
               >
+                {/* Módulos do Sistema & Licença */}
+                <div className="p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm space-y-2.5">
+                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-0.5">Módulos da Campanha & Suporte</p>
+                  
+                  {isGeral && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProfileModalOpen(false);
+                        window.dispatchEvent(new CustomEvent('open_sales_landing'));
+                        setTimeout(() => {
+                          const el = document.getElementById('planos');
+                          if (el) el.scrollIntoView({ behavior: 'smooth' });
+                        }, 300);
+                      }}
+                      className="w-full flex items-center justify-between p-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 font-bold rounded-sm transition-all cursor-pointer group text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded bg-amber-500 text-zinc-950 flex items-center justify-center shrink-0 font-black shadow-sm">
+                          <ShieldCheck className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="font-black uppercase tracking-tight text-xs text-zinc-900 dark:text-zinc-100">Planos da Campanha & Licença</p>
+                          <p className="text-[10px] text-zinc-500 font-medium">Visualizar e adquirir pacotes de eleitores</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] bg-amber-500 text-zinc-950 font-black px-2.5 py-1 rounded uppercase tracking-wider group-hover:scale-105 transition-transform shadow-sm">Ver Planos</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileModalOpen(false);
+                      setIsManualOpen(true);
+                    }}
+                    className="w-full flex items-center justify-between p-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 font-bold rounded-sm transition-all cursor-pointer group text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded bg-blue-600 text-white flex items-center justify-center shrink-0 font-black shadow-sm">
+                        <BookOpen className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="font-black uppercase tracking-tight text-xs text-zinc-900 dark:text-zinc-100">Manual do Sistema & Tutoriais</p>
+                        <p className="text-[10px] text-zinc-500 font-medium">Guia passo a passo com orientações de uso</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] bg-blue-600 text-white font-black px-2.5 py-1 rounded uppercase tracking-wider group-hover:scale-105 transition-transform shadow-sm">Abrir Manual</span>
+                  </button>
+                </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Cole a URL ou use o botão de upload acima</label>
                   <input 
