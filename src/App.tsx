@@ -7,6 +7,8 @@ import PublicVoterRegister from './components/PublicVoterRegister';
 import CoordinatorDashboard from './components/CoordinatorDashboard';
 import CaboDashboard from './components/CaboDashboard';
 import { SalesLandingPage } from './components/SalesLandingPage';
+import { DemoHeaderBanner } from './components/DemoHeaderBanner';
+import { DemoBlockModal } from './components/DemoBlockModal';
 import { safeLocalStorage } from './utils/safeStorage';
 import logoImg from './assets/logo.png';
 
@@ -28,6 +30,12 @@ export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (safeLocalStorage.getItem('urna360-theme') as 'light' | 'dark') || 'light';
   });
+
+  const [isDemoMode, setIsDemoMode] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.has('demo');
+  });
+  const [showDemoBlockModal, setShowDemoBlockModal] = useState(false);
 
   const [isSalesLanding, setIsSalesLanding] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -120,7 +128,15 @@ export default function App() {
   }
 
   if (isSalesLanding) {
-    return <SalesLandingPage onAccessSystem={() => setIsSalesLanding(false)} />;
+    return (
+      <SalesLandingPage 
+        onAccessSystem={() => setIsSalesLanding(false)} 
+        onStartDemoMode={() => {
+          setIsDemoMode(true);
+          setIsSalesLanding(false);
+        }}
+      />
+    );
   }
 
   if (loading) {
@@ -294,7 +310,7 @@ export default function App() {
     );
   }
 
-  if (!user) {
+  if (!user && !isDemoMode) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 md:p-12 text-center selection:bg-blue-600 selection:text-white transition-colors duration-500 relative overflow-hidden">
         {/* Abstract Background Accents */}
@@ -460,6 +476,13 @@ export default function App() {
             </button>
 
             <button 
+              onClick={() => setIsDemoMode(true)}
+              className="text-amber-500 hover:text-amber-400 transition-colors flex items-center gap-1 font-extrabold"
+            >
+              ⚡ Testar Demonstração ao Vivo
+            </button>
+
+            <button 
               onClick={() => setIsSalesLanding(true)}
               className="text-blue-600 hover:text-blue-500 transition-colors flex items-center gap-1 font-extrabold"
             >
@@ -474,11 +497,37 @@ export default function App() {
   }
 
   return (
-    <div className={`${theme} min-h-screen transition-colors duration-300`}>
+    <div className={`${theme} min-h-screen transition-colors duration-300 relative flex flex-col`}>
+      {isDemoMode && (
+        <DemoHeaderBanner 
+          onGoToSalesPage={() => setIsSalesLanding(true)} 
+          onExitDemo={() => setIsDemoMode(false)} 
+        />
+      )}
+
+      <DemoBlockModal
+        isOpen={showDemoBlockModal}
+        onClose={() => setShowDemoBlockModal(false)}
+        onGoToSalesPage={() => {
+          setShowDemoBlockModal(false);
+          setIsSalesLanding(true);
+        }}
+      />
+
       {view === 'coord' ? (
-        <CoordinatorDashboard theme={theme} setTheme={setTheme} />
+        <CoordinatorDashboard 
+          theme={theme} 
+          setTheme={setTheme} 
+          isDemoMode={isDemoMode}
+          onBlockDemoVoterRegistration={() => setShowDemoBlockModal(true)}
+        />
       ) : (
-        <CaboDashboard theme={theme} setTheme={setTheme} />
+        <CaboDashboard 
+          theme={theme} 
+          setTheme={setTheme} 
+          isDemoMode={isDemoMode}
+          onBlockDemoVoterRegistration={() => setShowDemoBlockModal(true)}
+        />
       )}
     </div>
   );

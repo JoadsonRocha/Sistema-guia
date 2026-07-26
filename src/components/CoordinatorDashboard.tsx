@@ -183,7 +183,17 @@ export const isVoterInTeam = (voter: any, team: any) => {
   return false;
 };
 
-export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'light' | 'dark', setTheme: (t: 'light' | 'dark') => void }) {
+export default function CoordinatorDashboard({ 
+  theme, 
+  setTheme,
+  isDemoMode,
+  onBlockDemoVoterRegistration
+}: { 
+  theme: 'light' | 'dark'; 
+  setTheme: (t: 'light' | 'dark') => void;
+  isDemoMode?: boolean;
+  onBlockDemoVoterRegistration?: () => void;
+}) {
   const { user, login, logout, isAdmin, isGeral, isRegional, isLeader, userRegion, coordinatorId } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'regional_coords' | 'metas' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral'>('overview');
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
@@ -336,7 +346,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
         </div>
 
         <h2>3. Articulação com Parceiros Políticos</h2>
-        <p><span class="meta-bold">Função Clássica:</span> Manter contato contínuo e equilibrar parcerias estratégicas regionais, de vereadores a lideranças municipais externas.</p>
+        <p><span class="meta-bold">Função Clássica:</span> Manter contato contínuo e equilibrar parcerias estratégicas regionais, de lideranças locais a apoios estaduais.</p>
         <p><span class="meta-bold">No Nexus Política:</span> Integrado na central de Articulação (CRM de Parceiros), permitindo registrar todas as lideranças agregadas, gerenciar o status de relacionamento ("Quente", "Morno", "Frio"), histórico de encontros e monitoramento das metas de angariação particulares a cada um.</p>
         <div class="highlight-box">
           <p>⚡ Impacto Prático vs. Método Tradicional: Evita o desengajamento ou o "esfriamento" de redutos eleitorais por falta de comunicação continuada. Cada parceria tem um histórico de atendimento digitalizado indelével.</p>
@@ -465,7 +475,7 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
     
     drawSection(
       "3. Articulação com Parceiros Políticos",
-      "Função Clássica: Manter contato contínuo e equilibrar parcerias estratégicas regionais, de vereadores a lideranças municipais. No Nexus Política: Integrado na central de Articulação (CRM de Parceiros), permitindo registrar todas as lideranças agregadas, gerenciar o status de relacionamento (Quente, Morno, Frio), histórico de encontros e monitoramento das metas particulares.",
+      "Função Clássica: Manter contato contínuo e equilibrar parcerias estratégicas regionais, de lideranças locais a apoios estaduais. No Nexus Política: Integrado na central de Articulação (CRM de Parceiros), permitindo registrar todas as lideranças agregadas, gerenciar o status de relacionamento (Quente, Morno, Frio), histórico de encontros e monitoramento das metas particulares.",
       "⚡ Impacto Prático vs. Método Tradicional: Evita o desengajamento de redutos eleitorais por falta de comunicação. Cada parceria tem um histórico de atendimento digitalizado indelével."
     );
     
@@ -6206,15 +6216,36 @@ export default function CoordinatorDashboard({ theme, setTheme }: { theme: 'ligh
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Cargo / Função *</label>
+                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Cargo / Função * (Eleições 2026)</label>
                     <input 
                       required
                       type="text" 
                       value={candidateForm.title} 
                       onChange={e => setCandidateForm({...candidateForm, title: e.target.value})} 
                       className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600" 
-                      placeholder="Ex: Governador do Estado de Roraima" 
+                      placeholder="Ex: Deputado Estadual / Governador" 
                     />
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {[
+                        'Deputado Estadual',
+                        'Deputado Federal',
+                        'Senador',
+                        'Governador'
+                      ].map((cargo) => (
+                        <button
+                          type="button"
+                          key={cargo}
+                          onClick={() => setCandidateForm({...candidateForm, title: cargo})}
+                          className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase transition-all border ${
+                            candidateForm.title.toLowerCase().includes(cargo.toLowerCase())
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                              : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-blue-500'
+                          }`}
+                        >
+                          {cargo}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
