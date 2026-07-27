@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 import { ASAAS_PLAN_LINKS, COMMERCIAL_WHATSAPP_NUMBER } from '../config/asaasConfig';
+import { trackAdsConversion } from '../utils/gtag';
 
 interface SalesLandingPageProps {
   onAccessSystem: () => void;
@@ -429,6 +430,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
                 href={ASAAS_PLAN_LINKS.startTatico.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Start%20T%C3%A1tico%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.startTatico}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => trackAdsConversion(379)}
                 className="w-full py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs text-center block transition-all active:scale-95"
               >
                 Contratar Start Tático
@@ -473,6 +475,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
                 href={ASAAS_PLAN_LINKS.comandoTatico.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Comando%20T%C3%A1tico%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.comandoTatico}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => trackAdsConversion(679)}
                 className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs text-center block shadow-lg shadow-blue-600/30 transition-all active:scale-95"
               >
                 Garantir Licença Comando
@@ -513,6 +516,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
                 href={ASAAS_PLAN_LINKS.dominioTotal.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Dom%C3%ADnio%20Total%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.dominioTotal}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => trackAdsConversion(850)}
                 className="w-full py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs text-center block transition-all active:scale-95"
               >
                 Contratar Domínio Total
