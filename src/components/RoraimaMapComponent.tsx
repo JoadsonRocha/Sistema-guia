@@ -298,6 +298,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
   const [expandAllInfluence, setExpandAllInfluence] = useState<boolean>(false);
   const [sidebarMode, setSidebarMode] = useState<'lista' | 'mapa'>('lista');
   const [sidebarSearch, setSidebarSearch] = useState("");
+  const [selectedZoneFilter, setSelectedZoneFilter] = useState<string>("all");
   const [munSubTab, setMunSubTab] = useState<'frentes' | 'eleitores'>('frentes');
   const [voterViewMode, setVoterViewMode] = useState<'lista' | 'rede'>('lista');
 
@@ -626,18 +627,22 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
   };
 
   const filteredZonesGroups = useMemo(() => {
-    if (!sidebarSearch) return ZONES_GROUPS;
     return ZONES_GROUPS.map(group => {
+      if (selectedZoneFilter !== "all" && group.name !== selectedZoneFilter) {
+        return null;
+      }
       const filteredMuns = group.municipalities.filter(mun => 
+        !sidebarSearch ||
         mun.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
         (ZONE_INFO[mun]?.zone || "").toLowerCase().includes(sidebarSearch.toLowerCase())
       );
+      if (filteredMuns.length === 0) return null;
       return {
         ...group,
         municipalities: filteredMuns
       };
-    }).filter(group => group.municipalities.length > 0);
-  }, [sidebarSearch]);
+    }).filter(Boolean) as typeof ZONES_GROUPS;
+  }, [sidebarSearch, selectedZoneFilter]);
 
   return (
     <div className="space-y-6">
@@ -712,35 +717,49 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
             {/* Content area based on mode */}
             {sidebarMode === 'lista' ? (
               <div className="space-y-3">
-                {/* Search Bar inside sidebar */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={sidebarSearch}
-                    onChange={(e) => setSidebarSearch(e.target.value)}
-                    placeholder="Filtrar município ou zona..."
-                    className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm py-2 pl-8 pr-3 font-bold text-[9px] text-zinc-900 dark:text-white outline-none focus:border-blue-600 placeholder:text-zinc-400"
-                  />
-                  <Search className="absolute left-2.5 top-2.5 w-3 h-3 text-zinc-400" />
+                {/* Search & Filter controls inside sidebar */}
+                <div className="space-y-2">
+                  <select
+                    value={selectedZoneFilter}
+                    onChange={(e) => setSelectedZoneFilter(e.target.value)}
+                    className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm py-1.5 px-2 font-bold text-[9px] text-zinc-900 dark:text-white outline-none focus:border-blue-600"
+                  >
+                    <option value="all">Todas as Zonas Eleitorais</option>
+                    {ZONES_GROUPS.map(g => (
+                      <option key={g.name} value={g.name}>{g.name}</option>
+                    ))}
+                  </select>
+
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={sidebarSearch}
+                      onChange={(e) => setSidebarSearch(e.target.value)}
+                      placeholder="Filtrar município por nome..."
+                      className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm py-1.5 pl-7 pr-2 font-bold text-[9px] text-zinc-900 dark:text-white outline-none focus:border-blue-600 placeholder:text-zinc-400"
+                    />
+                    <Search className="absolute left-2 top-2 w-3 h-3 text-zinc-400" />
+                  </div>
                 </div>
 
                 {/* Grouped Zones List */}
-                <div className="space-y-3 max-h-[550px] overflow-y-auto pr-1">
+                <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
                   {filteredZonesGroups.map((group) => (
                     <div 
                       key={group.name} 
-                      className={`border ${group.borderColor} ${group.bgColor} rounded-sm p-3 space-y-2`}
+                      className="space-y-1.5"
                     >
-                      <div className="flex justify-between items-center border-b border-zinc-200/40 dark:border-zinc-800/40 pb-1.5">
-                        <h4 className="text-[10px] font-black uppercase text-zinc-900 dark:text-white leading-none tracking-wider">
+                      <div className="flex justify-between items-center px-1 pt-1 border-b border-zinc-100 dark:border-zinc-800/80 pb-1">
+                        <span className="text-[9px] font-bold uppercase text-zinc-600 dark:text-zinc-400 tracking-wider flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                           {group.name}
-                        </h4>
-                        <span className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm ${group.badgeColor}`}>
+                        </span>
+                        <span className="text-[8px] font-medium text-zinc-400 dark:text-zinc-500 truncate max-w-[120px]">
                           {group.region}
                         </span>
                       </div>
 
-                      <div className="space-y-1.5">
+                      <div className="space-y-1">
                         {group.municipalities.map((mun) => {
                           const isSelected = selectedMun === mun;
                           const stats = munStats[mun] || { voters: 0, teams: 0 };
@@ -749,32 +768,31 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                               type="button"
                               key={mun}
                               onClick={() => setSelectedMun(mun)}
-                              className={`w-full text-left p-2 border rounded-sm transition-all relative overflow-hidden flex items-center justify-between outline-none ${
+                              className={`w-full text-left p-2 rounded border transition-all flex items-center justify-between outline-none ${
                                 isSelected
-                                  ? 'border-blue-600 bg-blue-600/10 shadow-xs ring-1 ring-blue-600'
-                                  : 'border-zinc-150 dark:border-zinc-850 bg-white dark:bg-zinc-900 hover:border-zinc-350 dark:hover:border-zinc-750 shadow-xs'
+                                  ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 font-bold shadow-xs'
+                                  : 'border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-800 dark:text-zinc-200'
                               }`}
                             >
-                              <div 
-                                className="absolute top-0 left-0 bottom-0 w-1" 
-                                style={{ backgroundColor: ZONE_INFO[mun]?.color || "#0578d3" }}
-                              />
-                              <div className="pl-1.5">
-                                <h5 className="text-[11px] font-black uppercase text-zinc-900 dark:text-white leading-none">
-                                  {mun}
-                                </h5>
-                                <p className="text-[8px] text-zinc-450 dark:text-zinc-500 font-bold uppercase mt-1 leading-none tracking-wider">
-                                  {ZONE_INFO[mun]?.zone}
-                                </p>
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className="w-2 h-2 rounded-full shrink-0" 
+                                  style={{ backgroundColor: ZONE_INFO[mun]?.color || "#0578d3" }}
+                                />
+                                <div>
+                                  <h5 className="text-xs font-bold uppercase leading-none">
+                                    {mun}
+                                  </h5>
+                                  <p className="text-[9px] text-zinc-500 dark:text-zinc-400 font-medium uppercase mt-0.5 leading-none">
+                                    {ZONE_INFO[mun]?.zone}
+                                  </p>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-1.5 text-[8px] font-mono font-bold text-zinc-500 dark:text-zinc-400 shrink-0">
-                                <span className="flex items-center gap-0.5">
-                                  👥 {stats.voters}
-                                </span>
-                                <span className="text-zinc-300 dark:text-zinc-800">|</span>
-                                <span className="flex items-center gap-0.5">
-                                  🚩 {stats.teams}
-                                </span>
+
+                              <div className="flex items-center gap-2 text-[9px] font-mono text-zinc-500 dark:text-zinc-400 shrink-0">
+                                <span>👥 {stats.voters}</span>
+                                <span className="opacity-40">|</span>
+                                <span>🚩 {stats.teams}</span>
                               </div>
                             </button>
                           );
@@ -784,7 +802,7 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
                   ))}
                   {filteredZonesGroups.length === 0 && (
                     <div className="text-center p-6 text-zinc-400 text-[10px] uppercase font-bold">
-                      Nenhum município localizado.
+                      Nenhum município localizado com os filtros selecionados.
                     </div>
                   )}
                 </div>
