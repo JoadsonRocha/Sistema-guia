@@ -39,7 +39,11 @@ import {
   Briefcase,
   Search,
   AlertTriangle,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react';
 import { ELEITORAL_DATA, VotingLocation } from '../data/eleitoralData';
 import * as XLSX from 'xlsx';
@@ -284,6 +288,15 @@ export default function EleitoralDashboard({
   // Sorting State for Table
   const [sortField, setSortField] = useState<'local' | 'eleitores'>('eleitores');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  // Pagination State for Table
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const ITEMS_PER_PAGE = 10;
+
+  // Reset page to 1 whenever filters or sort change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedMunicipio, selectedZona, selectedBairro, selectedLocal, sortField, sortOrder]);
 
   // Total State Metrics
   const totalStateEleitores = useMemo(() => {
@@ -705,6 +718,13 @@ export default function EleitoralDashboard({
       }
     });
   }, [filteredData, sortField, sortOrder, totalStateEleitores, votingLocations]);
+
+  const totalPages = Math.max(1, Math.ceil(processedTableData.length / ITEMS_PER_PAGE));
+
+  const paginatedTableData = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return processedTableData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [processedTableData, currentPage]);
 
   const toggleSort = (field: 'local' | 'eleitores') => {
     if (sortField === field) {
@@ -1621,7 +1641,7 @@ export default function EleitoralDashboard({
                   Painel de Locais de Votação (Tabela Dinâmica)
                 </h3>
                 <p className="text-[11px] text-zinc-400 mt-0.5">
-                  Exibindo {processedTableData.length} locais filtrados. Ordenação automática por volume de eleitores.
+                  Exibindo {processedTableData.length} locais filtrados em {totalPages} {totalPages === 1 ? 'página' : 'páginas'} (10 por página).
                 </p>
               </div>
               <div className="text-[10px] font-bold text-zinc-500 uppercase bg-zinc-200 dark:bg-zinc-800 px-2.5 py-1 rounded">
@@ -1667,7 +1687,7 @@ export default function EleitoralDashboard({
                       </td>
                     </tr>
                   ) : (
-                    processedTableData.map((row, index) => (
+                    paginatedTableData.map((row, index) => (
                       <tr 
                         key={`${row.municipio}-${row.local}-${index}`}
                         className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
@@ -1722,6 +1742,59 @@ export default function EleitoralDashboard({
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {processedTableData.length > 0 && (
+              <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <div className="text-zinc-500 dark:text-zinc-400 text-center sm:text-left">
+                  Mostrando <span className="font-bold text-zinc-900 dark:text-zinc-100">{Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, processedTableData.length)}</span> a <span className="font-bold text-zinc-900 dark:text-zinc-100">{Math.min(currentPage * ITEMS_PER_PAGE, processedTableData.length)}</span> de <span className="font-bold text-zinc-900 dark:text-zinc-100">{processedTableData.length}</span> locais
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-zinc-500 dark:text-zinc-400 font-medium mr-1">
+                    Página <span className="font-bold text-zinc-900 dark:text-zinc-100">{currentPage}</span> de <span className="font-bold text-zinc-900 dark:text-zinc-100">{totalPages}</span>
+                  </span>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      className="p-1.5 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                      title="Primeira página"
+                    >
+                      <ChevronsLeft className="w-4 h-4" />
+                    </button>
+                    
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="p-1.5 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                      title="Página anterior"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="p-1.5 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                      title="Próxima página"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      className="p-1.5 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                      title="Última página"
+                    >
+                      <ChevronsRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
           </div>
         </>
