@@ -831,7 +831,14 @@ export default function CoordinatorDashboard({
           console.warn("Aviso ao deletar ordem do dia:", e);
         }
 
+        try {
+          await firestoreService.deleteDocument('eleitoral_data', `coord_${activeCoordId}`);
+        } catch (e) {
+          console.warn("Aviso ao deletar dados eleitorais:", e);
+        }
+
         safeLocalStorage.removeItem(`urna360_voters_cache_${activeCoordId}`);
+        safeLocalStorage.removeItem(`sistema_urna360_eleitoral_data_${activeCoordId}`);
 
         alert("✅ Banco de dados da sua campanha foi zerado com sucesso! Seus dados foram limpos com isolamento total.");
         window.location.reload();
@@ -4358,6 +4365,7 @@ export default function CoordinatorDashboard({
                   isCoordinator={true} 
                   canEditTreData={isGeral && !isRegional} 
                   campaignVoters={allVoters} 
+                  coordinatorId={coordinatorId || user?.uid}
                 />
               </motion.div>
             )}

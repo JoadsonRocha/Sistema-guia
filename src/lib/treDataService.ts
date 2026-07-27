@@ -1,4 +1,4 @@
-import { RORAIMA_MUNICIPALITIES, normalizeLoc } from '../data/roraimaTreData';
+import { normalizeLoc } from '../data/roraimaTreData';
 
 export interface TreLocationItem {
   id: string;
@@ -77,68 +77,79 @@ export function extractZonaNum(zonaRaw: string): string {
   return numMatch ? numMatch[0] : zonaRaw.toLowerCase().trim();
 }
 
-// Load and cache all TRE locations
-let cachedLocations: TreLocationItem[] | null = null;
+// Cache locations per coordinator
+const cachedLocationsByCoord = new Map<string, TreLocationItem[]>();
 
-export function getAllTreLocations(): TreLocationItem[] {
-  if (cachedLocations) return cachedLocations;
+export function setTreLocationsForCoordinator(coordinatorId: string, locations: any[]) {
+  if (!coordinatorId) return;
+  const items: TreLocationItem[] = [];
+  let counter = 1;
+
+  for (const item of locations) {
+    if (!item || !item.local) continue;
+    const zRaw = item.zona || '';
+    const zClean = extractZonaNum(zRaw);
+    const zLabel = normalizeZonaLabel(zRaw) || 'TRE Geral';
+    const parsedSec = parseSecoes(item.secoes || '');
+
+    items.push({
+      id: `loc_${counter++}`,
+      zona: zLabel,
+      zonaClean: zClean || '1',
+      secoes: parsedSec,
+      secoesStr: item.secoes || '',
+      local: item.local,
+      bairro: item.bairro || '',
+      municipio: item.municipio || '',
+      eleitores: item.eleitores || 0
+    });
+  }
+
+  cachedLocationsByCoord.set(coordinatorId, items);
+}
+
+export function clearTreLocationsCache(coordinatorId?: string) {
+  if (coordinatorId) {
+    cachedLocationsByCoord.delete(coordinatorId);
+  } else {
+    cachedLocationsByCoord.clear();
+  }
+}
+
+export function getAllTreLocations(coordinatorId?: string): TreLocationItem[] {
+  const coordKey = coordinatorId || 'default';
+
+  if (cachedLocationsByCoord.has(coordKey)) {
+    return cachedLocationsByCoord.get(coordKey)!;
+  }
 
   const locations: TreLocationItem[] = [];
   let counter = 1;
 
-  // 1. Load from built-in RORAIMA_MUNICIPALITIES
-  for (const muni of RORAIMA_MUNICIPALITIES) {
-    for (const loc of muni.locaisVotacao) {
-      const zonaClean = extractZonaNum(loc.zona || muni.zona);
-      const zonaLabel = normalizeZonaLabel(loc.zona || muni.zona);
-      const parsedSec = parseSecoes(loc.secoes);
-
-      locations.push({
-        id: `built_in_${counter++}`,
-        zona: zonaLabel,
-        zonaClean,
-        secoes: parsedSec,
-        secoesStr: loc.secoes,
-        local: loc.nome,
-        bairro: loc.bairro,
-        municipio: muni.name,
-        eleitores: loc.eleitoresAproximado
-      });
-    }
-  }
-
-  // 2. Load from localStorage if custom Excel TRE data was imported
   try {
-    const savedStr = localStorage.getItem('sistema_urna360_eleitoral_data') || localStorage.getItem('sistema_aguia_eleitoral_data');
+    const key = `sistema_urna360_eleitoral_data_${coordKey}`;
+    const savedStr = localStorage.getItem(key) || localStorage.getItem('sistema_urna360_eleitoral_data');
     if (savedStr) {
       const parsed = JSON.parse(savedStr);
-      if (Array.isArray(parsed)) {
+      if (Array.isArray(parsed) && parsed.length > 0) {
         for (const item of parsed) {
           if (!item || !item.local) continue;
           const zRaw = item.zona || '';
           const zClean = extractZonaNum(zRaw);
-          const zLabel = normalizeZonaLabel(zRaw) || 'TRE General';
+          const zLabel = normalizeZonaLabel(zRaw) || 'TRE Geral';
           const parsedSec = parseSecoes(item.secoes || '');
 
-          // Check if already exists to avoid exact duplicate
-          const existing = locations.find(
-            l => normalizeLoc(l.local) === normalizeLoc(item.local) &&
-                 (l.zonaClean === zClean || !zClean)
-          );
-
-          if (!existing) {
-            locations.push({
-              id: `custom_ls_${counter++}`,
-              zona: zLabel,
-              zonaClean: zClean || '1',
-              secoes: parsedSec,
-              secoesStr: item.secoes || '',
-              local: item.local,
-              bairro: item.bairro || '',
-              municipio: item.municipio || 'Boa Vista',
-              eleitores: item.eleitores || 0
-            });
-          }
+          locations.push({
+            id: `custom_ls_${counter++}`,
+            zona: zLabel,
+            zonaClean: zClean || '1',
+            secoes: parsedSec,
+            secoesStr: item.secoes || '',
+            local: item.local,
+            bairro: item.bairro || '',
+            municipio: item.municipio || '',
+            eleitores: item.eleitores || 0
+          });
         }
       }
     }
@@ -146,40 +157,14 @@ export function getAllTreLocations(): TreLocationItem[] {
     console.warn("Error parsing local electoral data cache:", err);
   }
 
-  cachedLocations = locations;
+  cachedLocationsByCoord.set(coordKey, locations);
   return locations;
 }
 
-// Invalidate cache if new spreadsheet is imported
-export function clearTreLocationsCache() {
-  cachedLocations = null;
-}
-
-// Get distinct list of Zonas
-export function getTreZonas(): TreZoneOption[] {
-  const locs = getAllTreLocations();
+// Get distinct list of Zonas for given coordinator
+export function getTreZonas(coordinatorId?: string): TreZoneOption[] {
+  const locs = getAllTreLocations(coordinatorId);
   const zoneMap = new Map<string, { zonaClean: string; municipios: Set<string>; count: number }>();
-
-  // Standard Roraima Zonas defaults
-  const standardZonas = [
-    { num: '1', label: '1ª ZE', muni: 'Boa Vista (Centro/Leste)' },
-    { num: '2', label: '2ª ZE', muni: 'Caracaraí' },
-    { num: '3', label: '3ª ZE', muni: 'Alto Alegre' },
-    { num: '4', label: '4ª ZE', muni: 'Rorainópolis / Sul' },
-    { num: '5', label: '5ª ZE', muni: 'Boa Vista (Zona Oeste) & Cantá' },
-    { num: '6', label: '6ª ZE', muni: 'Mucajaí & Iracema' },
-    { num: '7ª', label: '7ª ZE', muni: 'Pacaraima, Bonfim, Amajari, Normandia, Uiramutã' },
-    { num: '8', label: '8ª ZE', muni: 'Rorainópolis, Caroebe, Baliza, São Luiz' }
-  ];
-
-  for (const std of standardZonas) {
-    const clean = extractZonaNum(std.num);
-    zoneMap.set(std.label, {
-      zonaClean: clean,
-      municipios: new Set([std.muni]),
-      count: 0
-    });
-  }
 
   for (const loc of locs) {
     const label = loc.zona;
@@ -204,7 +189,7 @@ export function getTreZonas(): TreZoneOption[] {
       value: label,
       label,
       zonaClean: data.zonaClean,
-      municipioStr: Array.from(data.municipios).join(', '),
+      municipioStr: Array.from(data.municipios).filter(Boolean).join(', '),
       locaisCount: data.count
     });
   });
@@ -217,8 +202,8 @@ export function getTreZonas(): TreZoneOption[] {
 }
 
 // Get distinct list of Seções for a given Zona or Local
-export function getTreSecoes(zonaRaw?: string, localName?: string): { secao: string; local: string; zona: string; bairro?: string }[] {
-  const locs = getAllTreLocations();
+export function getTreSecoes(zonaRaw?: string, localName?: string, coordinatorId?: string): { secao: string; local: string; zona: string; bairro?: string }[] {
+  const locs = getAllTreLocations(coordinatorId);
   const zClean = zonaRaw ? extractZonaNum(zonaRaw) : '';
   const normLocal = localName ? normalizeLoc(localName) : '';
 
@@ -252,8 +237,8 @@ export function getTreSecoes(zonaRaw?: string, localName?: string): { secao: str
 }
 
 // Get distinct Locais de Votação
-export function getTreLocaisVotacao(zonaRaw?: string, secaoRaw?: string): TreLocationItem[] {
-  const locs = getAllTreLocations();
+export function getTreLocaisVotacao(zonaRaw?: string, secaoRaw?: string, coordinatorId?: string): TreLocationItem[] {
+  const locs = getAllTreLocations(coordinatorId);
   const zClean = zonaRaw ? extractZonaNum(zonaRaw) : '';
   const secClean = secaoRaw ? secaoRaw.trim().padStart(3, '0') : '';
 
@@ -268,8 +253,8 @@ export function getTreLocaisVotacao(zonaRaw?: string, secaoRaw?: string): TreLoc
 }
 
 // Auto-fill lookup helper
-export function findTreMatch(zonaRaw?: string, secaoRaw?: string, localName?: string) {
-  const locs = getAllTreLocations();
+export function findTreMatch(zonaRaw?: string, secaoRaw?: string, localName?: string, coordinatorId?: string) {
+  const locs = getAllTreLocations(coordinatorId);
   const zClean = zonaRaw ? extractZonaNum(zonaRaw) : '';
   const secClean = secaoRaw ? secaoRaw.trim().padStart(3, '0') : '';
   const normLocal = localName ? normalizeLoc(localName) : '';
@@ -295,3 +280,4 @@ export function findTreMatch(zonaRaw?: string, secaoRaw?: string, localName?: st
 
   return null;
 }
+

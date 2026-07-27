@@ -19,6 +19,7 @@ interface TreLocationFieldsProps {
   inputClassName?: string;
   labelClassName?: string;
   isCompact?: boolean;
+  coordinatorId?: string;
 }
 
 export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
@@ -30,7 +31,8 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
   onTituloChange,
   inputClassName = "w-full bg-zinc-50 border border-zinc-200 rounded-sm p-3.5 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300",
   labelClassName = "text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1",
-  isCompact = false
+  isCompact = false,
+  coordinatorId
 }) => {
   // Submenu Open States
   const [openSubmenu, setOpenSubmenu] = useState<'zona' | 'secao' | 'local' | null>(null);
@@ -62,9 +64,9 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
   }, [openSubmenu]);
 
   // Derived Data Options
-  const allZonas = getTreZonas();
-  const availableSecoes = getTreSecoes(zona, localVotacao);
-  const availableLocais = getTreLocaisVotacao(zona, secao);
+  const allZonas = getTreZonas(coordinatorId);
+  const availableSecoes = getTreSecoes(zona, localVotacao, coordinatorId);
+  const availableLocais = getTreLocaisVotacao(zona, secao, coordinatorId);
 
   // Filtered Lists
   const filteredZonas = allZonas.filter(z => 
@@ -92,7 +94,7 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
     onChange({ zona: newZona });
 
     // Check if current local matches new zona
-    const match = findTreMatch(newZona, secao, localVotacao);
+    const match = findTreMatch(newZona, secao, localVotacao, coordinatorId);
     if (match && match.local) {
       onChange({ zona: newZona, localVotacao: match.local });
     }
@@ -186,7 +188,7 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
             <div className="absolute left-0 top-full mt-1 w-64 md:w-72 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-xl z-50 overflow-hidden text-xs">
               <div className="p-2 bg-zinc-100 dark:bg-zinc-800/80 border-b border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
                 <span className="font-black text-[9px] uppercase tracking-wider text-zinc-600 dark:text-zinc-300 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-blue-600" /> Selecione a Zona (TRE-RR)
+                  <Sparkles className="w-3 h-3 text-blue-600" /> Selecione a Zona (Oficial TRE)
                 </span>
                 <span className="text-[8px] bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-bold px-1.5 py-0.5 rounded">
                   {filteredZonas.length} Zonas
