@@ -4361,7 +4361,11 @@ export default function CoordinatorDashboard({
 
             {activeTab === 'analise_eleitoral' && (
               <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }}>
-                <EleitoralDashboard isCoordinator={true} campaignVoters={allVoters} />
+                <EleitoralDashboard 
+                  isCoordinator={true} 
+                  canEditTreData={isGeral || isAdmin} 
+                  campaignVoters={allVoters} 
+                />
               </motion.div>
             )}
 

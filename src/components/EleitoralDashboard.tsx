@@ -141,9 +141,11 @@ const SAMPLE_TRE_DATA: VotingLocation[] = [
 
 export default function EleitoralDashboard({ 
   isCoordinator = false, 
+  canEditTreData = false,
   campaignVoters = [] 
 }: { 
   isCoordinator?: boolean; 
+  canEditTreData?: boolean;
   campaignVoters?: any[]; 
 }) {
   const [subTab, setSubTab] = useState<'tre_oficial' | 'cruzamento'>('tre_oficial');
@@ -859,9 +861,20 @@ export default function EleitoralDashboard({
             <LayoutDashboard className="w-4 h-4 text-blue-600" />
             <span>Sistema Nexus Política BI & Analytics TRE</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase mt-1">
-            Análise Eleitoral
-          </h1>
+          <div className="flex items-center gap-3 flex-wrap mt-1">
+            <h1 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">
+              Análise Eleitoral
+            </h1>
+            {isCoordinator && (
+              <span className={`px-2.5 py-1 rounded-sm text-[10px] font-black uppercase tracking-wider border ${
+                canEditTreData 
+                  ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400 border-blue-600/30' 
+                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+              }`}>
+                {canEditTreData ? 'Coordenador Geral (Gestão TRE)' : 'Coordenador Regional (Apenas Visualização)'}
+              </span>
+            )}
+          </div>
           <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
             Monitoramento analítico de eleitores aptos, locais de votação e representatividade estatística.
           </p>
@@ -923,13 +936,13 @@ export default function EleitoralDashboard({
         </div>
       )}
 
-      {/* SECTION: COORDINATOR ONLY EXCEL IMPORT CARD */}
-      {isCoordinator && (
+      {/* SECTION: COORDINATOR GERAL ONLY EXCEL IMPORT CARD */}
+      {isCoordinator && canEditTreData && (
         <div className="bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 text-white rounded-sm p-5 shadow-xl border border-zinc-800">
           <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3 mb-4 flex-wrap gap-2">
             <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
               <Database className="w-4 h-4 animate-pulse" />
-              <span>Importador Oficial TRE - Painel de Controle do Coordenador</span>
+              <span>Importador Oficial TRE - Painel do Coordenador Geral</span>
             </div>
             
             <div className="flex items-center gap-2">
@@ -1029,10 +1042,10 @@ export default function EleitoralDashboard({
             Iremos trabalhar exclusivamente com dados oficiais do TRE. Os dados simulados de teste foram zerados de acordo com as diretrizes de segurança da campanha.
           </p>
 
-          {isCoordinator ? (
+          {isCoordinator && canEditTreData ? (
             <div className="mt-8 space-y-4">
               <p className="text-[11px] font-black text-blue-600 dark:text-blue-600 uppercase tracking-widest">
-                Você possui privilégios de Coordenador Geral.
+                Você possui privilégios de Coordenador Geral para enviar dados do TRE.
               </p>
               <div className="flex items-center justify-center gap-3">
                 <button
@@ -1062,9 +1075,12 @@ export default function EleitoralDashboard({
               </div>
             </div>
           ) : (
-            <div className="mt-6 p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm">
-              <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-black uppercase tracking-widest">
-                Aguardando carregamento da planilha oficial de locais de votação do TRE pelo coordenador geral no painel administrativo.
+            <div className="mt-6 p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm space-y-1">
+              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-black uppercase tracking-widest">
+                Aguardando carregamento da planilha oficial de locais de votação do TRE pelo Coordenador Geral no painel administrativo.
+              </p>
+              <p className="text-[9px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider">
+                Como Coordenador Regional, seu acesso é para visualização e análise de dados assim que a base for carregada.
               </p>
             </div>
           )}
