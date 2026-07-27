@@ -593,19 +593,15 @@ export default function CoordinatorDashboard({
   // Subscrições para Coordenadores Regionais e Metas
   useEffect(() => {
     if (!coordinatorId) return;
-    const unsubRegs = isGeral
-      ? firestoreService.subscribeToCollection<any>('regional_coordinators', (data) => setRegionalCoordinators(data))
-      : firestoreService.subscribeToCollectionFiltered<any>('regional_coordinators', coordinatorId, (data) => setRegionalCoordinators(data));
+    const unsubRegs = firestoreService.subscribeToCollectionFiltered<any>('regional_coordinators', coordinatorId, (data) => setRegionalCoordinators(data));
 
-    const unsubGoals = isGeral
-      ? firestoreService.subscribeToCollection<any>('goals', (data) => setGoalsList(data))
-      : firestoreService.subscribeToCollectionFiltered<any>('goals', coordinatorId, (data) => setGoalsList(data));
+    const unsubGoals = firestoreService.subscribeToCollectionFiltered<any>('goals', coordinatorId, (data) => setGoalsList(data));
 
     return () => {
       unsubRegs();
       unsubGoals();
     };
-  }, [coordinatorId, isGeral]);
+  }, [coordinatorId]);
 
   const handleCreateRegionalCoordinator = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1511,14 +1507,10 @@ export default function CoordinatorDashboard({
   useEffect(() => {
     if (!user || !coordinatorId) return;
 
-    // Subs para dados reais (Geral vê tudo, Regional vê filtrado por coordinatorId)
-    const unsubTeams = isGeral
-      ? firestoreService.subscribeToCollection('teams', (data) => setTeams(data))
-      : firestoreService.subscribeToCollectionFiltered('teams', coordinatorId, (data) => setTeams(data));
+    // Subs para dados reais da campanha (filtrados por coordinatorId para isolamento total)
+    const unsubTeams = firestoreService.subscribeToCollectionFiltered('teams', coordinatorId, (data) => setTeams(data));
     
-    const unsubUrgencies = isGeral
-      ? firestoreService.subscribeToCollection('urgencies', (data) => setUrgencies(data))
-      : firestoreService.subscribeToCollectionFiltered('urgencies', coordinatorId, (data) => setUrgencies(data));
+    const unsubUrgencies = firestoreService.subscribeToCollectionFiltered('urgencies', coordinatorId, (data) => setUrgencies(data));
 
     const unsubStats = onSnapshot(doc(db, 'stats', `stats_${coordinatorId}`), (snapshot) => {
       if (snapshot.exists()) {
@@ -1538,13 +1530,11 @@ export default function CoordinatorDashboard({
       console.error("Stats sync error details:", JSON.stringify(errInfo));
     });
 
-    const unsubAgendas = isGeral
-      ? firestoreService.subscribeToCollection('agenda', (data) => setAgendas(data))
-      : firestoreService.subscribeToCollectionFiltered('agenda', coordinatorId, (data) => setAgendas(data));
+    const unsubAgendas = firestoreService.subscribeToCollectionFiltered('agenda', coordinatorId, (data) => setAgendas(data));
 
     const unsubNotes = query(
       collection(db, 'notes'), 
-      ...(isGeral ? [] : [where('coordinatorId', '==', coordinatorId)]),
+      where('coordinatorId', '==', coordinatorId),
       orderBy('createdAt', 'desc')
     );
     const unsubNotesSnap = onSnapshot(unsubNotes, (snapshot) => {
@@ -1600,9 +1590,7 @@ export default function CoordinatorDashboard({
     });
 
     const unsubMaterials = onSnapshot(
-      isGeral
-        ? collection(db, 'materials')
-        : query(collection(db, 'materials'), where('coordinatorId', '==', coordinatorId)), 
+      query(collection(db, 'materials'), where('coordinatorId', '==', coordinatorId)), 
       (snap) => {
         setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       }, 
@@ -1611,14 +1599,12 @@ export default function CoordinatorDashboard({
       }
     );
 
-    const unsubMaterialRequests = isGeral
-      ? firestoreService.subscribeToCollection('material_requests', (data) => setMaterialRequests(data))
-      : firestoreService.subscribeToCollectionFiltered('material_requests', coordinatorId, (data) => setMaterialRequests(data));
+    const unsubMaterialRequests = firestoreService.subscribeToCollectionFiltered('material_requests', coordinatorId, (data) => setMaterialRequests(data));
 
     const unsubReports = onSnapshot(
       query(
         collection(db, 'reports'), 
-        ...(isGeral ? [] : [where('coordinatorId', '==', coordinatorId)]),
+        where('coordinatorId', '==', coordinatorId),
         orderBy('createdAt', 'desc')
       ), 
       (snap) => {
@@ -1641,21 +1627,17 @@ export default function CoordinatorDashboard({
       unsubMaterialRequests();
       unsubReports();
     };
-  }, [user, isAdmin, isGeral, isRegional, coordinatorId]);
+  }, [user, isAdmin, isRegional, coordinatorId]);
 
-  // 1. Recarrega as estatísticas de contagem do servidor sem puxar todos os documentos
+  // 1. Recarrega as estatísticas de contagem do servidor para esta campanha
   const fetchServerCounts = async () => {
     if (!coordinatorId) return;
     try {
-      const qTotal = isGeral
-        ? query(collection(db, 'voters'))
-        : query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId));
+      const qTotal = query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId));
       const snapTotal = await getCountFromServer(qTotal);
       setTotalVotersCount(snapTotal.data().count);
 
-      const qVoted = isGeral
-        ? query(collection(db, 'voters'), where('voted', '==', true))
-        : query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId), where('voted', '==', true));
+      const qVoted = query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId), where('voted', '==', true));
       const snapVoted = await getCountFromServer(qVoted);
       setVotedVotersCount(snapVoted.data().count);
     } catch (err) {
@@ -1668,9 +1650,9 @@ export default function CoordinatorDashboard({
     if (activeTab === 'overview' || activeTab === 'voters') {
       fetchServerCounts();
     }
-  }, [coordinatorId, activeTab, isGeral]);
+  }, [coordinatorId, activeTab]);
 
-// 2. Busca as contagens de eleitores por equipe em paralelo (sem puxar todos os registros)
+// 2. Busca as contagens de eleitores por equipe em paralelo para esta campanha
   useEffect(() => {
     if (!coordinatorId || teams.length === 0) return;
 
@@ -1680,16 +1662,11 @@ export default function CoordinatorDashboard({
         await Promise.all(
           teams.map(async (team) => {
             const teamName = team.name;
-            const q = isGeral
-              ? query(
-                  collection(db, 'voters'),
-                  where('team', '==', teamName)
-                )
-              : query(
-                  collection(db, 'voters'),
-                  where('coordinatorId', '==', coordinatorId),
-                  where('team', '==', teamName)
-                );
+            const q = query(
+              collection(db, 'voters'),
+              where('coordinatorId', '==', coordinatorId),
+              where('team', '==', teamName)
+            );
             const snap = await getCountFromServer(q);
             let total = snap.data().count;
 
@@ -1709,21 +1686,19 @@ export default function CoordinatorDashboard({
     };
 
     fetchTeamVoterCounts();
-  }, [coordinatorId, teams, isGeral, allVoters]);
+  }, [coordinatorId, teams, allVoters]);
 
-  // 3. Sincroniza eleitores de forma preguiçosa (apenas quando em telas de mapas, relatórios ou análise eleitoral)
+  // 3. Sincroniza eleitores da campanha de forma isolada
   useEffect(() => {
     if (!coordinatorId) return;
 
     const tabsThatNeedAllVoters = ['mapa', 'analise_eleitoral', 'reports', 'overview', 'teams', 'voters', 'regional_coords', 'metas'];
-    if (!tabsThatNeedAllVoters.includes(activeTab) && !isGeral) {
+    if (!tabsThatNeedAllVoters.includes(activeTab)) {
       return;
     }
 
-    console.log("🧠 [Optimization] Lazy loading all campaign voters for tab:", activeTab);
-    const qVoters = isGeral
-      ? collection(db, 'voters')
-      : query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId));
+    console.log("🧠 [Optimization] Lazy loading campaign voters for coordinator:", coordinatorId, "tab:", activeTab);
+    const qVoters = query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId));
 
     const unsubVoters = onSnapshot(
       qVoters, 
@@ -1751,25 +1726,22 @@ export default function CoordinatorDashboard({
     );
 
     return () => unsubVoters();
-  }, [coordinatorId, activeTab, isGeral]);
+  }, [coordinatorId, activeTab]);
 
-  // 4. Sincronização reativa paginada para a listagem principal de eleitores (carregando de 50 em 50)
+  // 4. Sincronização reativa paginada para a listagem principal de eleitores da campanha
   useEffect(() => {
     if (!coordinatorId || activeTab !== 'voters') return;
 
     setLoadingPaginatedVoters(true);
-    let q = isGeral
-      ? query(collection(db, 'voters'))
-      : query(
-          collection(db, 'voters'),
-          where('coordinatorId', '==', coordinatorId)
-        );
+    let q = query(
+      collection(db, 'voters'),
+      where('coordinatorId', '==', coordinatorId)
+    );
 
     if (articulatorFilter) {
       q = query(q, where('articulatorId', '==', articulatorFilter));
     }
 
-    // Usamos um limite dinâmico de 50 * voterPage para permitir rolagem e paginação reativa segura
     const limitSize = 50 * voterPage;
     q = query(q, limit(limitSize));
 
@@ -1785,21 +1757,19 @@ export default function CoordinatorDashboard({
     });
 
     return () => unsub();
-  }, [coordinatorId, activeTab, voterPage, articulatorFilter, isGeral]);
+  }, [coordinatorId, activeTab, voterPage, articulatorFilter]);
 
-  // 5. Carregar articuladores específicos para filtros na aba de eleitores de forma leve
+  // 5. Carregar articuladores específicos para a campanha
   useEffect(() => {
     if (!coordinatorId || activeTab !== 'voters') return;
 
     const fetchArticulators = async () => {
       try {
-        const qArt = isGeral
-          ? query(collection(db, 'voters'), where('isArticulator', '==', true))
-          : query(
-              collection(db, 'voters'),
-              where('coordinatorId', '==', coordinatorId),
-              where('isArticulator', '==', true)
-            );
+        const qArt = query(
+          collection(db, 'voters'),
+          where('coordinatorId', '==', coordinatorId),
+          where('isArticulator', '==', true)
+        );
         const snap = await getDocs(qArt);
         setArticulators(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       } catch (err) {
@@ -1808,7 +1778,7 @@ export default function CoordinatorDashboard({
     };
 
     fetchArticulators();
-  }, [coordinatorId, activeTab, isGeral]);
+  }, [coordinatorId, activeTab]);
 
   useEffect(() => {
     if (!coordinatorId || teams.length === 0 || isGeral) return;
@@ -1990,22 +1960,16 @@ export default function CoordinatorDashboard({
 
       const fetchLeaderAndVoters = async () => {
         try {
-          let qVoters = isGeral
-            ? query(collection(db, 'voters'), where('team', '==', teamName))
-            : query(collection(db, 'voters'), where('team', '==', teamName), where('coordinatorId', '==', coordinatorId));
+          let qVoters = query(collection(db, 'voters'), where('team', '==', teamName), where('coordinatorId', '==', coordinatorId));
           let snapVoters = await getDocs(qVoters);
 
           if (snapVoters.empty && leaderEmail) {
             const usersRef = collection(db, 'users');
-            const qUser = isGeral
-              ? query(usersRef, where('email', '==', leaderEmail))
-              : query(usersRef, where('email', '==', leaderEmail), where('coordinatorId', '==', coordinatorId));
+            const qUser = query(usersRef, where('email', '==', leaderEmail), where('coordinatorId', '==', coordinatorId));
             const userSnap = await getDocs(qUser);
             if (!userSnap.empty) {
               const leaderId = userSnap.docs[0].id;
-              qVoters = isGeral
-                ? query(collection(db, 'voters'), where('leaderId', '==', leaderId))
-                : query(collection(db, 'voters'), where('leaderId', '==', leaderId), where('coordinatorId', '==', coordinatorId));
+              qVoters = query(collection(db, 'voters'), where('leaderId', '==', leaderId), where('coordinatorId', '==', coordinatorId));
               snapVoters = await getDocs(qVoters);
             }
           }

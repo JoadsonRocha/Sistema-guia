@@ -85,7 +85,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (currentUser) {
-        unsubProfile = onSnapshot(doc(db, 'users', currentUser.uid), async (snapshot) => {
+        unsubProfile = onSnapshot(doc(db, 'users', currentUser.uid), (snapshot) => {
           if (snapshot.exists()) {
             const data = snapshot.data();
             let currentRole: UserRole = data.role || 'coordenador_geral';
@@ -96,11 +96,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
 
             if (isAntonio && currentRole !== 'coordenador_regional') {
               currentRole = 'coordenador_regional';
-              try {
-                await setDoc(doc(db, 'users', currentUser.uid), { role: 'coordenador_regional' }, { merge: true });
-              } catch (e) {
-                console.warn("Could not sync role to user doc:", e);
-              }
+              setDoc(doc(db, 'users', currentUser.uid), { role: 'coordenador_regional' }, { merge: true }).catch(console.warn);
             }
 
             setRole(currentRole);
@@ -116,79 +112,77 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
             setIsLeader(leaderCheck);
             setIsAdmin(adminCheck);
             setUserRegion(data.region || (isAntonio ? 'REGIÃO 1 - BV' : null));
+            setCoordinatorId(adminCheck ? currentUser.uid : (data.coordinatorId || null));
 
-            if (adminCheck) {
-              setCoordinatorId(currentUser.uid);
-            } else {
-              // Priority 1: Check teamId's coordinatorId (source of truth)
-              let resolvedCoordId = '';
-              if (data.teamId) {
+            // Instantaneously release loading state to make login immediate and allow OAuth popup to close
+            setLoading(false);
+
+            // Asynchronously resolve team/leader coordinator propagation in background
+            if (!adminCheck) {
+              (async () => {
                 try {
-                  const teamSnap = await getDoc(doc(db, 'teams', data.teamId));
-                  if (teamSnap.exists()) {
-                    const teamData = teamSnap.data();
-                    if (teamData.coordinatorId) {
-                      resolvedCoordId = teamData.coordinatorId;
+                  let resolvedCoordId = data.coordinatorId || '';
+                  if (data.teamId) {
+                    const teamSnap = await getDoc(doc(db, 'teams', data.teamId));
+                    if (teamSnap.exists() && teamSnap.data()?.coordinatorId) {
+                      resolvedCoordId = teamSnap.data().coordinatorId;
+                    }
+                  }
+
+                  if (!resolvedCoordId && currentUser.email) {
+                    const emailVariants = Array.from(new Set([
+                      currentUser.email.toLowerCase(),
+                      currentUser.email
+                    ])).filter(Boolean);
+                    const qTeams = query(collection(db, 'teams'), where('leaderEmail', 'in', emailVariants));
+                    const snapTeams = await getDocs(qTeams);
+                    if (!snapTeams.empty) {
+                      const teamId = snapTeams.docs[0].id;
+                      const teamData = snapTeams.docs[0].data();
+                      resolvedCoordId = teamData.coordinatorId || '';
+                      if (resolvedCoordId) {
+                        await setDoc(doc(db, 'users', currentUser.uid), {
+                          teamId: teamId,
+                          teamName: teamData.name || '',
+                          coordinatorId: resolvedCoordId
+                        }, { merge: true });
+                      }
+                    }
+                  }
+
+                  if (resolvedCoordId) {
+                    setCoordinatorId(resolvedCoordId);
+                    if (data.coordinatorId !== resolvedCoordId) {
+                      await setDoc(doc(db, 'users', currentUser.uid), { coordinatorId: resolvedCoordId }, { merge: true });
                     }
                   }
                 } catch (e) {
-                  console.error("Error reading team for auth coordinatorId:", e);
+                  console.error("Error background resolving coordinatorId:", e);
                 }
-              }
-
-              // Priority 2: Fallback to leader email match
-              if (!resolvedCoordId && currentUser.email) {
-                try {
-                  const emailVariants = Array.from(new Set([
-                    currentUser.email.toLowerCase(),
-                    currentUser.email
-                  ])).filter(Boolean);
-                  const qTeams = query(collection(db, 'teams'), where('leaderEmail', 'in', emailVariants));
-                  const snapTeams = await getDocs(qTeams);
-                  if (!snapTeams.empty) {
-                    const teamId = snapTeams.docs[0].id;
-                    const teamData = snapTeams.docs[0].data();
-                    resolvedCoordId = teamData.coordinatorId || '';
-                    if (resolvedCoordId) {
-                      await setDoc(doc(db, 'users', currentUser.uid), {
-                        teamId: teamId,
-                        teamName: teamData.name || '',
-                        coordinatorId: resolvedCoordId
-                      }, { merge: true });
-                    }
-                  }
-                } catch (e) {
-                  console.error("Error matching team by email for auth:", e);
-                }
-              }
-
-              // Priority 3: Fallback to user document's coordinatorId
-              if (!resolvedCoordId && data.coordinatorId) {
-                resolvedCoordId = data.coordinatorId;
-              }
-
-              // Apply the resolved coordinatorId
-              if (resolvedCoordId) {
-                setCoordinatorId(resolvedCoordId);
-                if (data.coordinatorId !== resolvedCoordId) {
-                  try {
-                    await setDoc(doc(db, 'users', currentUser.uid), {
-                      coordinatorId: resolvedCoordId
-                    }, { merge: true });
-                  } catch (e) {
-                    console.error("Error writing propagated coordinatorId:", e);
-                  }
-                }
-              } else {
-                setCoordinatorId(null);
-              }
+              })();
             }
           } else {
-            // The user document does not exist. Check pre_registrations
-            if (currentUser.email) {
+            // User document does not exist yet (e.g. brand new Google sign-in)
+            const emailLow = (currentUser.email || '').toLowerCase();
+            const isAntonio = emailLow.includes('antonio');
+            const defaultRole: UserRole = isAntonio ? 'coordenador_regional' : 'coordenador_geral';
+
+            setRole(defaultRole);
+            setIsAdmin(true);
+            setIsGeral(!isAntonio);
+            setIsRegional(isAntonio);
+            setIsLeader(false);
+            setUserRegion(isAntonio ? 'REGIÃO 1 - BV' : null);
+            setForcePasswordChange(false);
+            setCoordinatorId(currentUser.uid);
+
+            // Set loading false instantly for immediate UI transition
+            setLoading(false);
+
+            // Heal or create user profile asynchronously
+            (async () => {
+              if (!emailLow) return;
               try {
-                const emailLow = currentUser.email.toLowerCase();
-                const isAntonio = emailLow.includes('antonio');
                 const preRegSnap = await getDoc(doc(db, 'pre_registrations', emailLow));
                 if (preRegSnap.exists()) {
                   const preRegData = preRegSnap.data();
@@ -219,16 +213,6 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                     createdAt: Date.now()
                   });
                 } else {
-                  // Default fallback: Check if Antonio or Regional
-                  const defaultRole: UserRole = isAntonio ? 'coordenador_regional' : 'coordenador_geral';
-                  setRole(defaultRole);
-                  setIsAdmin(true);
-                  setIsGeral(!isAntonio);
-                  setIsRegional(isAntonio);
-                  setIsLeader(false);
-                  setUserRegion(isAntonio ? 'REGIÃO 1 - BV' : null);
-                  setForcePasswordChange(false);
-                  setCoordinatorId(currentUser.uid);
                   await setDoc(doc(db, 'users', currentUser.uid), {
                     email: emailLow,
                     role: defaultRole,
@@ -239,9 +223,8 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
               } catch (e) {
                 console.error("Error healing missing profile:", e);
               }
-            }
+            })();
           }
-          setLoading(false);
         }, (err) => {
           handleFirestoreError(err, 'get', `users/${currentUser.uid}`);
           setLoading(false);
@@ -267,7 +250,11 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
 
   const login = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const res = await signInWithPopup(auth, googleProvider);
+      if (typeof window !== 'undefined' && window.focus) {
+        window.focus();
+      }
+      return res;
     } catch (error: any) {
       if (error?.code === 'auth/cancelled-popup-request') {
         return;
