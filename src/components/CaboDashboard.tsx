@@ -1450,7 +1450,7 @@ export default function CaboDashboard({
           </div>
         </div>
 
-        <nav className="flex-1 p-5 space-y-1.5 overflow-y-auto custom-scrollbar">
+        <nav className="flex-1 p-5 space-y-1 overflow-y-auto custom-scrollbar">
           {[
             { id: 'logistica', label: 'Painel Tático', icon: <MapPin className="w-4 h-4" /> },
             { id: 'equipe', label: 'Base de Eleitores', icon: <Users className="w-4 h-4" /> },
@@ -1461,13 +1461,13 @@ export default function CaboDashboard({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`w-full flex items-center gap-3 px-5 py-4 rounded-sm font-black text-[9px] uppercase tracking-widest transition-all group ${
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-md font-bold text-[10px] uppercase tracking-wider transition-all group ${
                 activeTab === tab.id 
-                ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' 
-                : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]'
+                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 font-black shadow-2xs' 
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100/70 dark:hover:bg-zinc-800/50'
               }`}
             >
-              <span className={`${activeTab === tab.id ? 'text-white' : 'text-[var(--text-secondary)] group-hover:text-blue-600'} transition-colors`}>
+              <span className={`${activeTab === tab.id ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-400 dark:text-zinc-500 group-hover:text-blue-600 dark:group-hover:text-blue-400'} transition-colors`}>
                 {tab.icon}
               </span>
               {tab.label}
@@ -1550,23 +1550,23 @@ export default function CaboDashboard({
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-zinc-950 border-2 border-blue-600/50 rounded-sm p-10 shadow-[var(--shadow-md)] relative overflow-hidden group"
+                    className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 md:p-8 shadow-xs relative overflow-hidden group transition-colors"
                   >
-                    <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-700">
-                      <ShieldCheck className="w-32 h-32 text-blue-600 rotate-12" />
+                    <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none text-zinc-400 group-hover:scale-110 transition-transform duration-700">
+                      <ShieldCheck className="w-32 h-32 rotate-12" />
                     </div>
-                    <div className="flex items-center gap-4 mb-8">
-                      <div className="bg-blue-600 p-3 rounded-sm shadow-lg shadow-blue-600/20"><Zap className="w-6 h-6 text-white" /></div>
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="bg-blue-50 dark:bg-blue-950/50 p-2.5 rounded-md border border-blue-100 dark:border-blue-900/40"><Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" /></div>
                       <div>
-                        <h3 className="text-white font-black text-xl uppercase tracking-tighter">Ordem do Dia</h3>
-                        <p className="text-blue-600 text-[8px] font-black uppercase tracking-[0.2em] mt-1 opacity-80">Diretriz Crítica de Campo</p>
+                        <h3 className="text-zinc-900 dark:text-white font-black text-lg uppercase tracking-tight">Ordem do Dia</h3>
+                        <p className="text-blue-600 dark:text-blue-400 text-[9px] font-bold uppercase tracking-wider">Diretriz Crítica de Campo</p>
                       </div>
                     </div>
-                    <p className="text-white font-black text-2xl leading-relaxed border-l-4 border-blue-600 pl-8 max-w-4xl italic">
+                    <p className="text-zinc-900 dark:text-white font-bold text-xl leading-relaxed border-l-4 border-blue-600 pl-6 max-w-4xl italic">
                       "{dailyOrder.text}"
                     </p>
-                    <div className="mt-10 flex items-center gap-4 text-[9px] font-black text-zinc-500 uppercase tracking-widest bg-white/5 w-fit px-4 py-2 rounded-full border border-white/5">
-                       <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-blue-600" /> Atualizado às {new Date(dailyOrder.updatedAt).toLocaleTimeString()}</span>
+                    <div className="mt-6 flex items-center gap-4 text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider bg-slate-50 dark:bg-zinc-800/60 w-fit px-3.5 py-1.5 rounded-md border border-slate-200 dark:border-zinc-700">
+                       <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> Atualizado às {new Date(dailyOrder.updatedAt).toLocaleTimeString()}</span>
                     </div>
                   </motion.div>
                 )}

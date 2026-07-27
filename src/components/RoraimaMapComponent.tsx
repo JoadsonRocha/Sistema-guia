@@ -1130,63 +1130,63 @@ export default function RoraimaMapComponent({ teams, allVoters, theme }: Roraima
         <div className="lg:col-span-8 space-y-5">
           
           {/* Selected City Overview Command Card */}
-          <div className="bg-zinc-950 text-white rounded-sm p-5 md:p-6 relative overflow-hidden shadow-xl border border-zinc-800">
+          <div className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-lg p-5 md:p-6 relative overflow-hidden shadow-xs border border-zinc-200 dark:border-zinc-800 transition-all">
             {/* Ambient subtle light overlay */}
-            <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+            <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none text-zinc-400">
               <MapIcon className="w-24 h-24" />
             </div>
 
             <div className="relative z-10">
-              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-blue-600">QG Municipal • Comando Eleitoral</span>
-              <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight mt-1">{selectedMun}</h3>
+              <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-blue-600 dark:text-blue-400">QG Municipal • Comando Eleitoral</span>
+              <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-zinc-900 dark:text-white mt-1">{selectedMun}</h3>
               
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] uppercase font-bold text-zinc-400 mt-2">
-                <span className="flex items-center gap-1 text-blue-600">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400 mt-2">
+                <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                  <span className="inline-block w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
                   {ZONE_INFO[selectedMun]?.zone}
                 </span>
-                <span className="text-zinc-700">•</span>
+                <span className="text-zinc-300 dark:text-zinc-700">•</span>
                 <span>TRE-RR</span>
-                <span className="text-zinc-700">•</span>
-                <span className="text-zinc-300 font-medium italic">{ZONE_INFO[selectedMun]?.description}</span>
+                <span className="text-zinc-300 dark:text-zinc-700">•</span>
+                <span className="text-zinc-600 dark:text-zinc-300 font-normal italic">{ZONE_INFO[selectedMun]?.description}</span>
               </div>
             </div>
 
             {/* General Metrics Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-zinc-900 pt-5 mt-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-zinc-100 dark:border-zinc-800 pt-5 mt-5">
               <div className="space-y-1">
-                <span className="text-[8px] font-black uppercase text-zinc-500 tracking-wider">Eleitores Mapeados</span>
+                <span className="text-[9px] font-bold uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">Eleitores Mapeados</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-xl md:text-2xl font-black text-white">{munStats[selectedMun]?.voters || 0}</span>
-                  <span className="text-[8px] font-bold text-zinc-500 uppercase">Fichas</span>
+                  <span className="text-xl md:text-2xl font-black text-zinc-900 dark:text-white">{munStats[selectedMun]?.voters || 0}</span>
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase">Fichas</span>
                 </div>
               </div>
               
               <div className="space-y-1">
-                <span className="text-[8px] font-black uppercase text-zinc-500 tracking-wider">Apoiadores Certos</span>
+                <span className="text-[9px] font-bold uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">Apoiadores Certos</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-xl md:text-2xl font-black text-green-400">{munStats[selectedMun]?.supporters || 0}</span>
-                  <span className="text-[8px] font-bold text-zinc-500 uppercase">
+                  <span className="text-xl md:text-2xl font-black text-emerald-600 dark:text-emerald-400">{munStats[selectedMun]?.supporters || 0}</span>
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase">
                     ({munStats[selectedMun]?.voters ? Math.round((munStats[selectedMun]?.supporters / munStats[selectedMun]?.voters) * 100) : 0}%)
                   </span>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <span className="text-[8px] font-black uppercase text-zinc-500 tracking-wider">Frentes / Equipes</span>
+                <span className="text-[9px] font-bold uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">Frentes / Equipes</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-xl md:text-2xl font-black text-blue-600">{munStats[selectedMun]?.teams || 0}</span>
-                  <span className="text-[8px] font-bold text-zinc-500 uppercase">Ativas</span>
+                  <span className="text-xl md:text-2xl font-black text-blue-600 dark:text-blue-400">{munStats[selectedMun]?.teams || 0}</span>
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase">Ativas</span>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <span className="text-[8px] font-black uppercase text-zinc-500 tracking-wider">Indicações Organicas</span>
+                <span className="text-[9px] font-bold uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">Indicações Orgânicas</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-xl md:text-2xl font-black text-teal-400">
+                  <span className="text-xl md:text-2xl font-black text-teal-600 dark:text-teal-400">
                     {municipalVoters.filter(v => v.referredBy && v.referredBy.trim() !== "").length}
                   </span>
-                  <span className="text-[8px] font-bold text-zinc-500 uppercase">Rede</span>
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase">Rede</span>
                 </div>
               </div>
             </div>

@@ -2329,7 +2329,7 @@ export default function CoordinatorDashboard({
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1.5">
+        <nav className="flex-1 space-y-1">
           {[
             { id: 'overview', label: 'Dashboard Geral', icon: <LayoutDashboard className="w-4 h-4" /> },
             ...(isGeral ? [{ id: 'metas', label: 'Metas Eleitorais', icon: <Target className="w-4 h-4" /> }] : []),
@@ -2347,13 +2347,13 @@ export default function CoordinatorDashboard({
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id as any)}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-sm text-xs font-black uppercase tracking-tight transition-all group ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md text-xs font-bold uppercase tracking-tight transition-all group ${
                 activeTab === item.id 
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
-                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]'
+                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 font-black shadow-2xs' 
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100/70 dark:hover:bg-zinc-800/50'
               }`}
             >
-              <div className={`transition-colors ${activeTab === item.id ? 'text-white' : 'text-[var(--text-secondary)] group-hover:text-blue-600'}`}>
+              <div className={`transition-colors ${activeTab === item.id ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-400 dark:text-zinc-500 group-hover:text-blue-600 dark:group-hover:text-blue-400'}`}>
                 {item.icon}
               </div>
               {item.label}
@@ -2478,36 +2478,36 @@ export default function CoordinatorDashboard({
             {isGeral && (
               <button 
                 onClick={() => setIsCandidateModalOpen(true)}
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer whitespace-nowrap"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-2xs active:scale-95 cursor-pointer whitespace-nowrap"
                 title="Padronizar foto e biografia do candidato no link de cadastro"
               >
-                <UserPlus className="w-3.5 h-3.5" /> Padronizar Candidato
+                <UserPlus className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> Padronizar Candidato
               </button>
             )}
 
             <button 
               onClick={() => setIsWaModalOpen(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-sm shadow-emerald-600/20 active:scale-95 cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-2xs active:scale-95 cursor-pointer whitespace-nowrap"
               title="Disparo de mensagens via WhatsApp (Gratuito wa.me)"
             >
-              <MessageSquare className="w-3.5 h-3.5" /> Disparo WhatsApp
+              <MessageSquare className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Disparo WhatsApp
             </button>
 
             <button 
               onClick={() => setIsShareLinkModalOpen(true)}
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-sm shadow-blue-600/20 active:scale-95 whitespace-nowrap"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-2xs active:scale-95 whitespace-nowrap"
               title="Gerar e copiar link de cadastro de eleitores"
             >
-              <Send className="w-3.5 h-3.5" /> Link de Cadastro
+              <Send className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> Link de Cadastro
             </button>
 
             {isGeral && (
               <button 
                 onClick={handlePurgeAllTestData}
-                className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 bg-red-600/10 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 dark:border-red-900/50 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all active:scale-95 whitespace-nowrap"
+                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50/50 dark:hover:bg-red-950/30 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-2xs active:scale-95 whitespace-nowrap"
                 title="Limpar todos os dados do banco para recomeçar do zero"
               >
-                <Trash2 className="w-3.5 h-3.5" /> Zerar Banco
+                <Trash2 className="w-3.5 h-3.5 text-red-500" /> Zerar Banco
               </button>
             )}
 
@@ -2572,26 +2572,26 @@ export default function CoordinatorDashboard({
               <motion.section 
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-zinc-950 rounded-sm p-4 md:p-6 shadow-2xl border border-blue-600/30 overflow-hidden relative group dark:bg-zinc-950"
+                className="bg-white dark:bg-zinc-900 rounded-lg p-4 md:p-6 shadow-xs border border-zinc-200 dark:border-zinc-800 overflow-hidden relative group transition-colors"
               >
-                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none group-hover:scale-110 transition-transform duration-700">
-                  <ShieldCheck className="w-40 h-40 text-blue-600" />
+                <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none text-zinc-400 group-hover:scale-110 transition-transform duration-700">
+                  <ShieldCheck className="w-40 h-40" />
                 </div>
                 
                 <div className="flex items-center justify-between mb-4 relative z-10 transition-transform">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-blue-600 rounded-sm shadow-lg shadow-blue-600/20">
-                      <Zap className="w-5 h-5 text-zinc-950" />
+                    <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 rounded-md border border-blue-100 dark:border-blue-900/40">
+                      <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-black text-white uppercase tracking-tighter">Ordem do Dia</h3>
-                      <p className="text-[8px] font-black text-blue-600 uppercase tracking-[0.2em] opacity-80">Diretiva Central de Comando</p>
+                      <h3 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-tighter">Ordem do Dia</h3>
+                      <p className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Diretiva Central de Comando</p>
                     </div>
                   </div>
                   {isAdmin && (
                     <button 
                       onClick={() => setIsEditingDailyOrder(!isEditingDailyOrder)}
-                      className="text-[9px] font-black text-zinc-400 uppercase tracking-widest hover:text-white transition-colors border border-white/10 px-3 py-1.5 rounded-sm hover:bg-white/5"
+                      className="text-[9px] font-bold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider hover:text-blue-600 transition-colors border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800"
                     >
                       {isEditingDailyOrder ? 'Cancelar' : 'Editar Diretiva'}
                     </button>
@@ -2616,16 +2616,16 @@ export default function CoordinatorDashboard({
                 ) : (
                   <div className="relative z-10">
                     {dailyOrder?.text ? (
-                      <p className="text-lg font-black text-white tracking-tight leading-relaxed max-w-3xl">
+                      <p className="text-base md:text-lg font-bold text-zinc-900 dark:text-white tracking-tight leading-relaxed max-w-3xl">
                         "{dailyOrder.text}"
                       </p>
                     ) : (
-                      <p className="text-zinc-500 text-xs font-bold italic">Nenhuma diretiva emitida para hoje.</p>
+                      <p className="text-zinc-400 text-xs font-medium italic">Nenhuma diretiva emitida para hoje.</p>
                     )}
-                    <div className="mt-6 flex items-center gap-4 text-[8px] font-black text-zinc-500 uppercase tracking-widest bg-white/5 w-fit px-4 py-2 rounded-full border border-white/10 shadow-inner">
-                      <span className="flex items-center gap-2"><Clock className="w-3 h-3 text-blue-600" /> {dailyOrder?.updatedAt ? new Date(dailyOrder.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '---'}</span>
-                      <span className="w-1.5 h-1.5 bg-blue-600/30 rounded-full"></span>
-                      <span className="flex items-center gap-2"><User className="w-3 h-3 text-blue-600" /> {dailyOrder?.updatedBy || 'Comando'}</span>
+                    <div className="mt-5 flex items-center gap-4 text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider bg-slate-50 dark:bg-zinc-800/60 w-fit px-3.5 py-1.5 rounded-md border border-slate-200 dark:border-zinc-700">
+                      <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> {dailyOrder?.updatedAt ? new Date(dailyOrder.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '---'}</span>
+                      <span className="w-1.5 h-1.5 bg-zinc-300 dark:bg-zinc-600 rounded-full"></span>
+                      <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> {dailyOrder?.updatedBy || 'Comando'}</span>
                     </div>
                   </div>
                 )}
