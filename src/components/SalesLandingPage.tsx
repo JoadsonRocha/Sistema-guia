@@ -19,7 +19,10 @@ import {
   ChevronRight,
   X,
   ExternalLink,
-  Award
+  Award,
+  Scale,
+  FileText,
+  Lock
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 import { ASAAS_PLAN_LINKS, COMMERCIAL_WHATSAPP_NUMBER } from '../config/asaasConfig';
@@ -31,6 +34,7 @@ interface SalesLandingPageProps {
 
 export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSystem, onStartDemoMode }) => {
   const [showDomainModal, setShowDomainModal] = useState(false);
+  const [showLegalModal, setShowLegalModal] = useState<'terms' | 'refund' | 'tse' | null>(null);
   const [leadersCount, setLeadersCount] = useState(15);
   const [votersPerLeader, setVotersPerLeader] = useState(80);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
@@ -517,6 +521,32 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
 
           </div>
 
+          {/* BADGE DE GARANTIA DE 7 DIAS (CDC ART. 49) */}
+          <div className="mt-10 bg-zinc-900/90 border border-emerald-500/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-5 max-w-4xl mx-auto shadow-lg shadow-emerald-950/20">
+            <div className="flex items-center gap-4 text-left">
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 shrink-0">
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-black text-white flex items-center gap-2 flex-wrap">
+                  Garantia Incondicional de 7 Dias 
+                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+                    Art. 49 CDC — Direito de Arrependimento
+                  </span>
+                </h4>
+                <p className="text-xs text-zinc-300 leading-relaxed">
+                  Assine sem nenhum risco! Teste a plataforma na sua campanha por 7 dias. Se por qualquer motivo entender que o sistema não é ideal para sua operação, basta solicitar o reembolso. Devolvemos 100% do seu dinheiro via Asaas sem burocracia.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowLegalModal('refund')}
+              className="shrink-0 px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-emerald-400 border border-emerald-500/30 font-bold text-xs transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-95"
+            >
+              <FileText className="w-4 h-4" /> Ver Termos de Reembolso
+            </button>
+          </div>
+
         </div>
       </section>
 
@@ -524,11 +554,19 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
       <section className="px-4 md:px-8 py-16 max-w-4xl mx-auto space-y-8">
         <div className="text-center space-y-2">
           <h2 className="text-2xl font-black text-white">Perguntas Frequentes (FAQ)</h2>
-          <p className="text-xs text-zinc-400">Tire suas dúvidas antes de começar a operar sua campanha</p>
+          <p className="text-xs text-zinc-400">Tire suas dúvidas técnicas, operacionais e jurídicas antes de começar</p>
         </div>
 
         <div className="space-y-3">
           {[
+            {
+              q: "Como funciona a Garantia de 7 Dias e o Pedido de Reembolso?",
+              a: "Conforme estipulado no Artigo 49 do Código de Defesa do Consumidor (CDC), você tem até 7 dias corridos após a contratação para testar todas as funcionalidades do Nexus Política. Se desejar cancelar, basta solicitar diretamente no WhatsApp Comercial ou e-mail de suporte. O estorno de 100% do valor pago é processado via intermediadora Asaas (PIX instantâneo ou estorno na fatura do cartão de crédito)."
+            },
+            {
+              q: "O sistema atende às exigências da LGPD e do TSE?",
+              a: "Sim. O Nexus Política é uma plataforma SaaS onde a campanha/candidato atua como Controladora dos Dados e o sistema como Operador (art. 5º da LGPD). Os dados dos eleitores são criptografados, armazenados em nuvem segura Google Cloud e restritos aos operadores autorizados da sua equipe. Para prestação de contas ao TSE, a contratação gera Nota Fiscal em nome do CNPJ do Candidato / Comitê Eleitoral."
+            },
             {
               q: "Como funciona o disparo de mensagens no WhatsApp sem pagar taxa?",
               a: "O Nexus Política utiliza o protocolo oficial wa.me do WhatsApp. O sistema gera a mensagem personalizada com o nome e bairro do eleitor. Ao clicar em enviar, o WhatsApp oficial do seu próprio celular ou computador abre já com o texto pronto. É 100% gratuito e não há risco de banimento da conta."
@@ -565,10 +603,32 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-zinc-800 py-8 px-4 text-center text-xs text-zinc-500 space-y-3">
-        <p>Nexus Política &bull; Plataforma Inteligente de Gestão e Inteligência Eleitoral</p>
-        <p className="text-[10px] text-zinc-600">
-          Desenvolvido com tecnologia de alta performance para campanhas municipais e estaduais.
+      <footer className="border-t border-zinc-800 py-10 px-4 text-center text-xs text-zinc-500 space-y-4">
+        <p className="font-semibold text-zinc-300">Nexus Política &bull; Plataforma Inteligente de Gestão e Inteligência Eleitoral</p>
+        
+        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 text-[11px] font-medium text-zinc-400">
+          <button 
+            onClick={() => setShowLegalModal('refund')} 
+            className="hover:text-emerald-400 transition-colors flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-800 px-3 py-1.5 rounded-lg border border-zinc-800"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Política de Reembolso (7 Dias CDC)
+          </button>
+          <button 
+            onClick={() => setShowLegalModal('terms')} 
+            className="hover:text-blue-400 transition-colors flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-800 px-3 py-1.5 rounded-lg border border-zinc-800"
+          >
+            <FileText className="w-3.5 h-3.5 text-blue-400" /> Termos de Uso e LGPD
+          </button>
+          <button 
+            onClick={() => setShowLegalModal('tse')} 
+            className="hover:text-amber-400 transition-colors flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-800 px-3 py-1.5 rounded-lg border border-zinc-800"
+          >
+            <Scale className="w-3.5 h-3.5 text-amber-400" /> Prestação de Contas Eleitoral (TSE)
+          </button>
+        </div>
+
+        <p className="text-[10px] text-zinc-600 max-w-2xl mx-auto leading-relaxed">
+          O Nexus Política é uma solução tecnológica de licenciamento de software (SaaS). A contratação é protegida pelo Art. 49 do Código de Defesa do Consumidor (Direito de Arrependimento de 7 dias) e em total conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).
         </p>
       </footer>
 
@@ -631,6 +691,166 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
                 className="px-5 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg hover:bg-blue-500 transition-colors"
               >
                 Entendi
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE TERMOS LEGAIS E POLÍTICA DE REEMBOLSO */}
+      {showLegalModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-zinc-900 border border-zinc-800 max-w-3xl w-full rounded-2xl p-6 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl">
+            
+            {/* CABEÇALHO */}
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                <div>
+                  <h3 className="font-black text-white text-base">Termos Legais, LGPD & Política de Reembolso</h3>
+                  <p className="text-[11px] text-zinc-400">Transparência jurídica e conformidade eleitoral do Nexus Política</p>
+                </div>
+              </div>
+              <button onClick={() => setShowLegalModal(null)} className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* ABAS */}
+            <div className="flex items-center gap-2 border-b border-zinc-800 pb-2 overflow-x-auto">
+              <button
+                onClick={() => setShowLegalModal('refund')}
+                className={`px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                  showLegalModal === 'refund' 
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                }`}
+              >
+                <ShieldCheck className="w-4 h-4" /> 1. Reembolso (7 Dias CDC)
+              </button>
+
+              <button
+                onClick={() => setShowLegalModal('terms')}
+                className={`px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                  showLegalModal === 'terms' 
+                    ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' 
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                }`}
+              >
+                <FileText className="w-4 h-4" /> 2. Termos de Uso & LGPD
+              </button>
+
+              <button
+                onClick={() => setShowLegalModal('tse')}
+                className={`px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                  showLegalModal === 'tse' 
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' 
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                }`}
+              >
+                <Scale className="w-4 h-4" /> 3. Prestação de Contas (TSE)
+              </button>
+            </div>
+
+            {/* CONTEÚDO DA ABA SELECIONADA */}
+            <div className="text-xs text-zinc-300 space-y-4 leading-relaxed">
+              
+              {showLegalModal === 'refund' && (
+                <div className="space-y-4 animate-in fade-in">
+                  <div className="p-4 bg-emerald-950/30 border border-emerald-500/30 rounded-xl space-y-2">
+                    <h4 className="font-bold text-emerald-300 text-sm flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      Garantia Incondicional de 7 Dias — Art. 49 do Código de Defesa do Consumidor
+                    </h4>
+                    <p className="text-zinc-300">
+                      O contratante tem o direito legal de desistir da contratação em até <strong>7 (sete) dias corridos</strong> contados a partir da data de confirmação do pagamento, com direito à devolução integral de 100% do valor pago.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h5 className="font-bold text-white text-xs uppercase tracking-wider text-zinc-400">Como Solicitar o Reembolso:</h5>
+                    <ol className="list-decimal list-inside space-y-2 text-zinc-300">
+                      <li>
+                        Entre em contato com o suporte comercial no WhatsApp: <strong className="text-emerald-400">+{COMMERCIAL_WHATSAPP_NUMBER}</strong> ou pelo e-mail oficial de atendimento informado na confirmação de assinatura.
+                      </li>
+                      <li>
+                        Informe o nome completo do contratante, CPF/CNPJ e e-mail cadastrado na plataforma.
+                      </li>
+                      <li>
+                        O estorno será processado diretamente pelo gateway de pagamentos intermediador <strong>Asaas Gestão Financeira</strong>:
+                        <ul className="list-disc list-inside pl-5 mt-1 space-y-1 text-zinc-400">
+                          <li><strong>Pagamentos via PIX:</strong> O valor retorna instantaneamente para a chave PIX de origem.</li>
+                          <li><strong>Pagamentos via Cartão de Crédito:</strong> O estorno é solicitado à administradora do cartão, constando como crédito na fatura atual ou seguinte.</li>
+                        </ul>
+                      </li>
+                    </ol>
+                  </div>
+
+                  <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-400 text-[11px] space-y-1">
+                    <p className="font-bold text-zinc-300">Aviso importante:</p>
+                    <p>
+                      Após o cancelamento e reembolso, o acesso aos servidores e ao banco de dados da campanha será desativado e os dados armazenados poderão ser exportados ou removidos conforme a solicitação do contratante.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {showLegalModal === 'terms' && (
+                <div className="space-y-4 animate-in fade-in">
+                  <div className="p-4 bg-blue-950/30 border border-blue-500/30 rounded-xl space-y-2">
+                    <h4 className="font-bold text-blue-300 text-sm flex items-center gap-2">
+                      <Lock className="w-4 h-4 text-blue-400" />
+                      Privacidade dos Dados e Conformidade com a LGPD (Lei 13.709/2018)
+                    </h4>
+                    <p className="text-zinc-300">
+                      O Nexus Política é uma plataforma SaaS onde a campanha contratante é a <strong>Controladora dos Dados</strong> e o Nexus Política atua exclusivamente como <strong>Operador Tecnológico</strong>.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h5 className="font-bold text-white text-xs uppercase tracking-wider text-zinc-400">Diretrizes de Segurança e Proteção:</h5>
+                    <ul className="list-disc list-inside space-y-2 text-zinc-300">
+                      <li><strong>Exclusividade dos Dados:</strong> As bases de dados de eleitores, líderes e logística pertencem 100% à campanha contratante. Jamais vendemos, compartilhamos, alugamos ou reutilizamos dados em outras campanhas.</li>
+                      <li><strong>Criptografia e Armazenamento:</strong> Todos os dados são armazenados na infraestrutura corporativa do Google Cloud Platform (Firestore), com regras de acesso restritas por permissão de usuário (Coordenador, Líder, Cabo).</li>
+                      <li><strong>Disparo de WhatsApp Assistido (wa.me):</strong> O Nexus Política não armazena nem envia mensagens sem ação humana direta. O envio de WhatsApp utiliza o protocolo wa.me do próprio usuário, respeitando as políticas do ecossistema Meta/WhatsApp.</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+              {showLegalModal === 'tse' && (
+                <div className="space-y-4 animate-in fade-in">
+                  <div className="p-4 bg-amber-950/30 border border-amber-500/30 rounded-xl space-y-2">
+                    <h4 className="font-bold text-amber-300 text-sm flex items-center gap-2">
+                      <Scale className="w-4 h-4 text-amber-400" />
+                      Prestação de Contas de Campanha Eleitoral (TSE / Receita Federal)
+                    </h4>
+                    <p className="text-zinc-300">
+                      A contratação do Nexus Política é um investimento em licença de software de gestão e inteligência tática, plenamente elegível para prestação de contas eleitorais.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h5 className="font-bold text-white text-xs uppercase tracking-wider text-zinc-400">Emissão de Nota Fiscal & Faturamento:</h5>
+                    <ul className="list-disc list-inside space-y-2 text-zinc-300">
+                      <li><strong>CNPJ de Campanha / CPF do Candidato:</strong> As Notas Fiscais de Prestação de Serviços de Software são emitidas com os dados informados no ato do faturamento via Asaas.</li>
+                      <li><strong>Comprovação de Despesa Eleitoral:</strong> O comprovante de pagamento do Asaas juntamente com a Nota Fiscal servem como documento contábil oficial para envio ao TSE no sistema SPCE.</li>
+                      <li><strong>Responsabilidade do Conteúdo:</strong> O Nexus Política fornece a ferramenta tecnológica. A campanha contratante é inteiramente responsável pelo conteúdo das mensagens e pelas diretrizes de propaganda eleitoral vigentes no país.</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* RODAPÉ DO MODAL */}
+            <div className="pt-4 border-t border-zinc-800 flex items-center justify-end">
+              <button
+                onClick={() => setShowLegalModal(null)}
+                className="px-5 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-xl transition-colors"
+              >
+                Fechar
               </button>
             </div>
 
