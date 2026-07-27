@@ -857,25 +857,10 @@ export default function EleitoralDashboard({
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
         <div>
-          <div className="flex items-center gap-2 text-blue-600 dark:text-blue-600 font-bold uppercase tracking-wider text-xs">
-            <LayoutDashboard className="w-4 h-4 text-blue-600" />
-            <span>Sistema Nexus Política BI & Analytics TRE</span>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap mt-1">
-            <h1 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">
-              Análise Eleitoral
-            </h1>
-            {isCoordinator && (
-              <span className={`px-2.5 py-1 rounded-sm text-[10px] font-black uppercase tracking-wider border ${
-                canEditTreData 
-                  ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400 border-blue-600/30' 
-                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
-              }`}>
-                {canEditTreData ? 'Coordenador Geral (Gestão TRE)' : 'Coordenador Regional (Apenas Visualização)'}
-              </span>
-            )}
-          </div>
-          <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+          <h1 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">
+            Análise Eleitoral
+          </h1>
+          <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Monitoramento analítico de eleitores aptos, locais de votação e representatividade estatística.
           </p>
         </div>
@@ -917,7 +902,6 @@ export default function EleitoralDashboard({
         >
           <Target className="w-4 h-4 text-blue-600" />
           Cruzamento de Dados & Estratégia
-          <span className="bg-blue-600 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded-sm">NOVO</span>
         </button>
       </div>
 
