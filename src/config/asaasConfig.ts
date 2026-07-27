@@ -13,4 +13,4 @@ export const ASAAS_PLAN_LINKS = {
 };
 
 // WhatsApp para suporte comercial / fechamento customizado
-export const COMMERCIAL_WHATSAPP_NUMBER = "5511999999999";
+export const COMMERCIAL_WHATSAPP_NUMBER = "5595991587413";

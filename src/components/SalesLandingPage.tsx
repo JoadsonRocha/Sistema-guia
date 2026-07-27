@@ -44,7 +44,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
       <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800/80 px-4 md:px-8 py-3.5 flex items-center justify-end">
         <div className="flex items-center gap-2 md:gap-3">
           <a
-            href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20o%20Nexus%20Pol%C3%ADtica%20para%20minha%20campanha."
+            href={`https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20o%20Nexus%20Pol%C3%ADtica%20para%20minha%20campanha.`}
             target="_blank"
             rel="noreferrer"
             className="px-3.5 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-emerald-600/20"
@@ -103,16 +103,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
             <Zap className="w-4 h-4 text-amber-300" />
             Testar Demonstração ao Vivo
           </button>
-
-          <a
-            href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Quero%20contratar%20o%20Nexus%20Pol%C3%ADtica%20para%20minha%20elei%C3%A7%C3%A3o."
-            target="_blank"
-            rel="noreferrer"
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-100 border border-zinc-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all"
-          >
-            <MessageSquare className="w-4 h-4 text-emerald-400" />
-            Contratar via WhatsApp Comercial
-          </a>
         </div>
 
         {/* PROOF STATS */}
@@ -136,55 +126,133 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
         </div>
       </section>
 
-      {/* RECURSO PRINCIPAL: A HIERARQUIA VITORIOSA */}
+      {/* RECURSO PRINCIPAL: A HIERARQUIA VITORIOSA E FLUXO DE CADASTRO */}
       <section className="px-4 md:px-8 py-16 bg-zinc-900/40 border-y border-zinc-800/80">
         <div className="max-w-6xl mx-auto space-y-12">
           
           <div className="text-center space-y-3">
             <span className="text-xs font-black uppercase text-blue-400 tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
-              ESTRUTURA TÁTICA DE COMANDO
+              ESTRUTURA HIERÁRQUICA E FLUXO DE ACESSO
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-              A Pirâmide Tática que Controla cada Voto da Cidade
+              Hierarquia Clara de Cadastro e Comando
             </h2>
-            <p className="text-zinc-400 text-xs sm:text-sm max-w-xl mx-auto">
-              Chega de desorganização e cabos eleitorais sem metas. O Nexus Política conecta o comando central ao morador da ponta da rua.
+            <p className="text-zinc-400 text-xs sm:text-sm max-w-2xl mx-auto leading-relaxed">
+              Do topo do comando até a sola do sapato na rua: entenda como cada nível se cadastra, delega acessos e opera no Nexus Política.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
             
-            {/* Nível 1 */}
-            <div className="p-6 rounded-2xl bg-zinc-900 border border-amber-500/30 hover:border-amber-500/60 transition-all space-y-4">
-              <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                <Crown className="w-6 h-6" />
+            {/* Nível 1: Coordenador Geral */}
+            <div className="p-6 rounded-2xl bg-zinc-900 border border-amber-500/40 hover:border-amber-500/70 transition-all flex flex-col justify-between space-y-5 shadow-lg shadow-amber-500/5">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                    <Crown className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 font-bold text-[10px] uppercase tracking-wider">
+                    1º Cadastro no Sistema
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-black text-amber-300 uppercase tracking-wide">1. Coordenador Geral</h3>
+                  <p className="text-xs text-amber-400/80 font-medium mt-0.5">Comando Central da Campanha</p>
+                </div>
+
+                <div className="space-y-3 text-xs text-zinc-300 pt-2 border-t border-zinc-800/80">
+                  <div className="p-2.5 rounded-lg bg-amber-950/30 border border-amber-800/30 text-[11px] text-amber-200 leading-relaxed">
+                    <strong className="text-amber-300 block mb-0.5">🔑 Acesso & Cadastro:</strong>
+                    Realiza o <strong>1º cadastro no sistema</strong>. Define metas globais, gera acessos para os Coordenadores Regionais e configura o link de convite externo.
+                  </div>
+
+                  <ul className="space-y-2 text-zinc-300 text-[11px] leading-relaxed">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <span><strong>Gestão Tática:</strong> Define metas por bairro/zona, autoriza entregas de materiais de logística e publica a <strong>Ordem do Dia</strong>.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <span><strong>Visão 360° do Sistema:</strong> Acompanha o <strong>Mapa de Calor</strong> da cidade em tempo real, dados históricos do TRE por seção e controle financeiro/operacional completo.</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
-              <h3 className="text-lg font-black text-amber-300 uppercase tracking-wide">1. Coordenador Geral</h3>
-              <p className="text-zinc-400 text-xs leading-relaxed">
-                Comando supremo da campanha. Define metas por bairro, autoriza materiais de logística, analisa o mapa de calor e publica a <strong className="text-zinc-200">Ordem do Dia</strong> diária para toda a militância.
-              </p>
             </div>
 
-            {/* Nível 2 */}
-            <div className="p-6 rounded-2xl bg-zinc-900 border border-blue-500/30 hover:border-blue-500/60 transition-all space-y-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
-                <MapPin className="w-6 h-6" />
+            {/* Nível 2: Coordenador Regional */}
+            <div className="p-6 rounded-2xl bg-zinc-900 border border-blue-500/40 hover:border-blue-500/70 transition-all flex flex-col justify-between space-y-5 shadow-lg shadow-blue-500/5">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                    <MapPin className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 font-bold text-[10px] uppercase tracking-wider">
+                    2º Nível de Acesso
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-black text-blue-300 uppercase tracking-wide">2. Coordenadores Regionais</h3>
+                  <p className="text-xs text-blue-400/80 font-medium mt-0.5">Gestores de Zonas e Bairros</p>
+                </div>
+
+                <div className="space-y-3 text-xs text-zinc-300 pt-2 border-t border-zinc-800/80">
+                  <div className="p-2.5 rounded-lg bg-blue-950/30 border border-blue-800/30 text-[11px] text-blue-200 leading-relaxed">
+                    <strong className="text-blue-300 block mb-0.5">🔑 Acesso & Cadastro:</strong>
+                    Recebem o acesso do Coordenador Geral. Criam as equipes regionais e liberam o acesso dos Líderes de Equipe de cada setor.
+                  </div>
+
+                  <ul className="space-y-2 text-zinc-300 text-[11px] leading-relaxed">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+                      <span><strong>Supervisão de Campo:</strong> Monitoram, incentivam e apoiam o trabalho dos líderes em suas equipes diariamente nas ruas.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+                      <span><strong>Controle de Metas:</strong> Garantem o alcance das metas locais, organizam pontos de apoio e coordenam a distribuição de materiais da campanha.</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
-              <h3 className="text-lg font-black text-blue-300 uppercase tracking-wide">2. Coordenadores Regionais</h3>
-              <p className="text-zinc-400 text-xs leading-relaxed">
-                Comandantes das zonas e bairros da cidade. Cadastram e acompanham o rendimento diário dos Líderes de Equipe locais, garantindo o alcance das metas.
-              </p>
             </div>
 
-            {/* Nível 3 */}
-            <div className="p-6 rounded-2xl bg-zinc-900 border border-emerald-500/30 hover:border-emerald-500/60 transition-all space-y-4">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                <Users className="w-6 h-6" />
+            {/* Nível 3: Líderes de Equipe / Cabos */}
+            <div className="p-6 rounded-2xl bg-zinc-900 border border-emerald-500/40 hover:border-emerald-500/70 transition-all flex flex-col justify-between space-y-5 shadow-lg shadow-emerald-500/5">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-bold text-[10px] uppercase tracking-wider">
+                    Linha de Frente
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-black text-emerald-300 uppercase tracking-wide">3. Líderes de Equipe / Cabos</h3>
+                  <p className="text-xs text-emerald-400/80 font-medium mt-0.5">Mobilizadores de Rua e WhatsApp</p>
+                </div>
+
+                <div className="space-y-3 text-xs text-zinc-300 pt-2 border-t border-zinc-800/80">
+                  <div className="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-800/30 text-[11px] text-emerald-200 leading-relaxed">
+                    <strong className="text-emerald-300 block mb-0.5">🔑 Acesso & Cadastro:</strong>
+                    Recebem o acesso do Coordenador Regional. Cadastram os eleitores diretamente ou compartilham o link de autocadastro.
+                  </div>
+
+                  <ul className="space-y-2 text-zinc-300 text-[11px] leading-relaxed">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span><strong>Captação Direta:</strong> Cadastram moradores de casa em casa pelo celular e registram demandas da comunidade.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span><strong>Engajamento Contínuo:</strong> Mantêm ativa a conversa com sua equipe/base pelo WhatsApp wa.me gratuito e garantem a presença no dia da votação.</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
-              <h3 className="text-lg font-black text-emerald-300 uppercase tracking-wide">3. Líderes de Equipe / Cabos</h3>
-              <p className="text-zinc-400 text-xs leading-relaxed">
-                Linha de frente nas ruas. Cadastram moradores de casa em casa pelo celular, enviam links de autocadastro no WhatsApp e anotam demandas do bairro.
-              </p>
             </div>
 
           </div>

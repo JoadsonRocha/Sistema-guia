@@ -1,5 +1,6 @@
 import React from 'react';
 import { Lock, Sparkles, MessageSquare, ArrowRight, X, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { COMMERCIAL_WHATSAPP_NUMBER } from '../config/asaasConfig';
 
 interface DemoBlockModalProps {
   isOpen: boolean;
@@ -84,7 +85,7 @@ export const DemoBlockModal: React.FC<DemoBlockModalProps> = ({ isOpen, onClose,
           </button>
 
           <a
-            href={`https://wa.me/5511999999999?text=${whatsappMessage}`}
+            href={`https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=${whatsappMessage}`}
             target="_blank"
             rel="noreferrer"
             className="w-full py-3 px-6 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold text-xs flex items-center justify-center gap-2 border border-zinc-700 transition-all"
