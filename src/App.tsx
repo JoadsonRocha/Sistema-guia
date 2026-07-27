@@ -1,17 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { ShieldCheck, Lock } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth, UserRole } from './lib/FirebaseProvider';
 import { firestoreService } from './lib/firestoreService';
-import PublicVoterRegister from './components/PublicVoterRegister';
-import CoordinatorDashboard from './components/CoordinatorDashboard';
-import CaboDashboard from './components/CaboDashboard';
-import { SalesLandingPage } from './components/SalesLandingPage';
 import { DemoHeaderBanner } from './components/DemoHeaderBanner';
 import { DemoBlockModal } from './components/DemoBlockModal';
 import { safeLocalStorage } from './utils/safeStorage';
 import { validateGeneralCoordinatorRegistration, triggerUpgradeRedirect } from './lib/planService';
 import logoImg from './assets/logo.png';
+
+// Lazy loading heavy components to optimize initial page load speed
+const PublicVoterRegister = lazy(() => import('./components/PublicVoterRegister'));
+const CoordinatorDashboard = lazy(() => import('./components/CoordinatorDashboard'));
+const CaboDashboard = lazy(() => import('./components/CaboDashboard'));
+const SalesLandingPage = lazy(() => import('./components/SalesLandingPage').then(m => ({ default: m.SalesLandingPage })));
+
+const ComponentLoader = () => (
+  <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-8 transition-colors duration-500">
+    <div className="relative">
+      <img 
+        src={logoImg} 
+        onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }} 
+        alt="Logo Nexus Política" 
+        className="max-h-24 w-auto object-contain relative z-10 animate-pulse" 
+      />
+      <div className="absolute inset-0 bg-blue-600 blur-2xl opacity-20 animate-pulse"></div>
+    </div>
+    <div className="mt-6 space-y-2 text-center">
+      <p className="text-[var(--text-secondary)] font-black uppercase tracking-widest text-[10px] opacity-60">Carregando Módulo...</p>
+      <div className="w-36 h-1 bg-[var(--bg-tertiary)] rounded-full overflow-hidden mx-auto">
+        <motion.div 
+          initial={{ x: '-100%' }}
+          animate={{ x: '100%' }}
+          transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+          className="w-full h-full bg-blue-600"
+        />
+      </div>
+    </div>
+  </div>
+);
 
 export default function App() {
   const { 
@@ -164,15 +191,21 @@ export default function App() {
   }, [user]);
 
   if (isExternalRegister) {
-    return <PublicVoterRegister leaderId={extLeaderId} teamId={extTeamId} />;
+    return (
+      <Suspense fallback={<ComponentLoader />}>
+        <PublicVoterRegister leaderId={extLeaderId} teamId={extTeamId} />
+      </Suspense>
+    );
   }
 
   if (isSalesLanding) {
     return (
-      <SalesLandingPage 
-        onAccessSystem={() => setIsSalesLanding(false)} 
-        onStartDemoMode={handleStartDemoMode}
-      />
+      <Suspense fallback={<ComponentLoader />}>
+        <SalesLandingPage 
+          onAccessSystem={() => setIsSalesLanding(false)} 
+          onStartDemoMode={handleStartDemoMode}
+        />
+      </Suspense>
     );
   }
 
@@ -560,21 +593,23 @@ export default function App() {
         }}
       />
 
-      {view === 'coord' ? (
-        <CoordinatorDashboard 
-          theme={theme} 
-          setTheme={setTheme} 
-          isDemoMode={isDemoMode}
-          onBlockDemoVoterRegistration={() => setShowDemoBlockModal(true)}
-        />
-      ) : (
-        <CaboDashboard 
-          theme={theme} 
-          setTheme={setTheme} 
-          isDemoMode={isDemoMode}
-          onBlockDemoVoterRegistration={() => setShowDemoBlockModal(true)}
-        />
-      )}
+      <Suspense fallback={<ComponentLoader />}>
+        {view === 'coord' ? (
+          <CoordinatorDashboard 
+            theme={theme} 
+            setTheme={setTheme} 
+            isDemoMode={isDemoMode}
+            onBlockDemoVoterRegistration={() => setShowDemoBlockModal(true)}
+          />
+        ) : (
+          <CaboDashboard 
+            theme={theme} 
+            setTheme={setTheme} 
+            isDemoMode={isDemoMode}
+            onBlockDemoVoterRegistration={() => setShowDemoBlockModal(true)}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }
