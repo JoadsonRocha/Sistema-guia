@@ -55,8 +55,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
             className="px-3.5 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-emerald-600/20"
           >
             <MessageSquare className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Falar com Consultor</span>
-            <span className="sm:hidden">Comprar</span>
+            <span>Falar com Consultor</span>
           </a>
 
           <button

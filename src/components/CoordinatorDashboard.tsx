@@ -780,14 +780,15 @@ export default function CoordinatorDashboard({
   };
 
   const handlePurgeAllTestData = async () => {
-    if (!isAdmin) return;
-    if (window.confirm("⚠️ ATENÇÃO: ZERAR BANCO DE DADOS DA CAMPANHA\n\nDeseja LIMPAR TODOS OS DADOS (eleitores, equipes, materiais, demandas, anotações e pré-registros) para permitir o cadastro do Coordenador Geral a partir do ZERO?\n\nEsta ação é irreversível.")) {
+    const activeCoordId = coordinatorId || user?.uid;
+    if (!isAdmin || !activeCoordId) return;
+
+    if (window.confirm("⚠️ ATENÇÃO: ZERAR BANCO DE DADOS DA SUA CAMPANHA\n\nDeseja LIMPAR TODOS OS DADOS DA SUA CAMPANHA (eleitores, equipes, regionais, materiais, demandas, anotações e metas)?\n\nEsta ação afeta APENAS o seu ambiente de Coordenador Geral e é totalmente isolada de outras campanhas. Esta ação é irreversível.")) {
       try {
         setIsProcessing(true);
         const collectionsToWipe = [
           'voters', 
           'teams', 
-          'pre_registrations', 
           'regional_coordinators', 
           'transactions', 
           'attendance', 
@@ -795,22 +796,47 @@ export default function CoordinatorDashboard({
           'urgencies', 
           'agenda', 
           'materials', 
+          'material_requests',
           'demands', 
-          'goals', 
-          'stats'
+          'goals',
+          'reports',
+          'partners'
         ];
 
         for (const coll of collectionsToWipe) {
-          const docs = await firestoreService.getCollection<any>(coll);
+          const docs = await firestoreService.getCollectionFiltered<any>(coll, activeCoordId);
           for (const d of docs) {
             await firestoreService.deleteDocument(coll, d.id);
           }
         }
 
-        alert("✅ Banco de dados zerado com sucesso! O sistema está pronto para cadastrar o Coordenador Geral em ambiente limpo.");
+        try {
+          const allPreRegs = await firestoreService.getCollection<any>('pre_registrations');
+          const myPreRegs = allPreRegs.filter(pr => pr.coordinatorId === activeCoordId);
+          for (const pr of myPreRegs) {
+            await firestoreService.deleteDocument('pre_registrations', pr.id);
+          }
+        } catch (e) {
+          console.warn("Aviso ao limpar pré-registros:", e);
+        }
+
+        try {
+          await firestoreService.deleteDocument('stats', `stats_${activeCoordId}`);
+        } catch (e) {
+          console.warn("Aviso ao deletar stats:", e);
+        }
+        try {
+          await firestoreService.deleteDocument('config', `dailyOrder_${activeCoordId}`);
+        } catch (e) {
+          console.warn("Aviso ao deletar ordem do dia:", e);
+        }
+
+        safeLocalStorage.removeItem(`urna360_voters_cache_${activeCoordId}`);
+
+        alert("✅ Banco de dados da sua campanha foi zerado com sucesso! Seus dados foram limpos com isolamento total.");
         window.location.reload();
       } catch (err: any) {
-        alert("Erro ao zerar banco de dados: " + err.message);
+        alert("Erro ao zerar banco de dados da sua campanha: " + err.message);
       } finally {
         setIsProcessing(false);
       }
@@ -933,13 +959,15 @@ export default function CoordinatorDashboard({
 
   const handleUpdateDailyOrder = async () => {
     try {
-      await firestoreService.setDocument('config', 'dailyOrder', {
+      const activeCoordId = coordinatorId || user?.uid || '';
+      await firestoreService.setDocument('config', `dailyOrder_${activeCoordId}`, {
         text: newDailyOrder,
         updatedAt: Date.now(),
-        updatedBy: profileData?.name || user?.email
+        updatedBy: profileData?.name || user?.email,
+        coordinatorId: activeCoordId
       });
       setIsEditingDailyOrder(false);
-      alert("Ordem do Dia enviada para todas as unidades!");
+      alert("Ordem do Dia enviada para todas as unidades da sua campanha!");
     } catch (err) {
       alert("Erro ao enviar ordem: " + err);
     }
@@ -1791,7 +1819,7 @@ export default function CoordinatorDashboard({
           const teamId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
           
           // 1. Heal Voters belonging to this team
-          const qVoters = query(collection(db, 'voters'), where('teamId', '==', teamId));
+          const qVoters = query(collection(db, 'voters'), where('teamId', '==', teamId), where('coordinatorId', '==', coordinatorId));
           const snapVoters = await getDocs(qVoters);
           snapVoters.docs.forEach((vDoc) => {
             const data = vDoc.data();
@@ -1805,7 +1833,7 @@ export default function CoordinatorDashboard({
           });
 
           // 2. Heal Material Requests belonging to this team
-          const qReqs = query(collection(db, 'material_requests'), where('teamId', '==', teamId));
+          const qReqs = query(collection(db, 'material_requests'), where('teamId', '==', teamId), where('coordinatorId', '==', coordinatorId));
           const snapReqs = await getDocs(qReqs);
           snapReqs.docs.forEach((rDoc) => {
             const data = rDoc.data();
@@ -2158,21 +2186,22 @@ export default function CoordinatorDashboard({
 
 
   const handleResetSystem = async () => {
-    if (!isAdmin) return;
-    if (window.confirm("⚠️ ALERTA DE SEGURANÇA: Deseja realmente ZERAR todos os dados do sistema? Isso removerá notas, ponto, financeiro, eleitores e agenda para começar do zero com dados REAIS.\n\nEsta ação não pode ser desfeita.")) {
+    const activeCoordId = coordinatorId || user?.uid;
+    if (!isAdmin || !activeCoordId) return;
+    if (window.confirm("⚠️ ALERTA DE SEGURANÇA: Deseja realmente ZERAR os dados da SUA CAMPANHA? Isso removerá notas, ponto, financeiro, eleitores e agenda da sua campanha.\n\nEsta ação é totalmente isolada do seu ID de Coordenador Geral e não pode ser desfeita.")) {
       try {
         setIsProcessing(true);
         
-        // 1. Limpar Coleções Principais
+        // 1. Limpar Coleções Principais da campanha
         const collections = ['transactions', 'attendance', 'notes', 'urgencies', 'agenda', 'voters'];
         for (const coll of collections) {
-          const docs = await firestoreService.getCollectionFiltered<any>(coll, coordinatorId || '');
+          const docs = await firestoreService.getCollectionFiltered<any>(coll, activeCoordId);
           for (const d of docs) {
             await firestoreService.deleteDocument(coll, d.id);
           }
         }
 
-        // 2. Resetar Campos das Equipes
+        // 2. Resetar Campos das Equipes da campanha
         for (const team of teams) {
           const teamId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
           await firestoreService.updateDocument('teams', teamId, {
@@ -2184,8 +2213,8 @@ export default function CoordinatorDashboard({
           });
         }
 
-        // 3. Resetar Stats Globais
-        await firestoreService.setDocument('stats', 'global', {
+        // 3. Resetar Stats da campanha
+        await firestoreService.setDocument('stats', `stats_${activeCoordId}`, {
           totalFunded: 0,
           combustivelHoje: 0,
           combustivelSaldo: 0,
@@ -2193,7 +2222,7 @@ export default function CoordinatorDashboard({
           lastUpdated: Date.now()
         }, true);
 
-        alert("✅ SISTEMA REINICIADO COM SUCESSO! Todos os valores fictícios foram removidos.");
+        alert("✅ DADOS DA SUA CAMPANHA REINICIADOS COM SUCESSO!");
         setIsProfileModalOpen(false);
       } catch (err: any) {
         alert("Erro ao formatar sistema: " + err.message);
