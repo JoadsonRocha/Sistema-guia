@@ -38,7 +38,8 @@ import {
   Compass,
   Briefcase,
   Search,
-  AlertTriangle
+  AlertTriangle,
+  X
 } from 'lucide-react';
 import { ELEITORAL_DATA, VotingLocation } from '../data/eleitoralData';
 import * as XLSX from 'xlsx';
@@ -263,7 +264,8 @@ export default function EleitoralDashboard({
     return () => unsub();
   }, []);
 
-  // Drag-and-drop state
+  // Drag-and-drop state & Modal
+  const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -879,30 +881,43 @@ export default function EleitoralDashboard({
         </div>
       </div>
 
-      {/* SUB-NAVIGATION TABS */}
-      <div className="flex border-b border-zinc-200 dark:border-zinc-800 gap-1 overflow-x-auto pb-px">
-        <button
-          onClick={() => setSubTab('tre_oficial')}
-          className={`px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all shrink-0 flex items-center gap-2 ${
-            subTab === 'tre_oficial'
-              ? 'border-blue-600 text-blue-600 dark:text-blue-600 bg-blue-600/5'
-              : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50'
-          }`}
-        >
-          <Database className="w-4 h-4" />
-          Dados Oficiais do TRE
-        </button>
-        <button
-          onClick={() => setSubTab('cruzamento')}
-          className={`px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all shrink-0 flex items-center gap-2 ${
-            subTab === 'cruzamento'
-              ? 'border-blue-600 text-blue-600 dark:text-blue-600 bg-blue-600/5'
-              : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50'
-          }`}
-        >
-          <Target className="w-4 h-4 text-blue-600" />
-          Cruzamento de Dados & Estratégia
-        </button>
+      {/* SUB-NAVIGATION TABS & ACTION BUTTON */}
+      <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 gap-2 pb-px flex-wrap">
+        <div className="flex gap-1 overflow-x-auto">
+          <button
+            onClick={() => setSubTab('tre_oficial')}
+            className={`px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all shrink-0 flex items-center gap-2 ${
+              subTab === 'tre_oficial'
+                ? 'border-blue-600 text-blue-600 dark:text-blue-500 bg-blue-600/5'
+                : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50'
+            }`}
+          >
+            <Database className="w-4 h-4 text-blue-600" />
+            Dados Oficiais do TRE
+          </button>
+          <button
+            onClick={() => setSubTab('cruzamento')}
+            className={`px-5 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all shrink-0 flex items-center gap-2 ${
+              subTab === 'cruzamento'
+                ? 'border-blue-600 text-blue-600 dark:text-blue-500 bg-blue-600/5'
+                : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50'
+            }`}
+          >
+            <Target className="w-4 h-4 text-blue-600" />
+            Cruzamento de Dados & Estratégia
+          </button>
+        </div>
+
+        {isCoordinator && canEditTreData && (
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="flex items-center gap-2 px-3.5 py-1.5 my-1 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
+            title="Importar ou gerenciar planilha de dados oficiais do TRE"
+          >
+            <UploadCloud className="w-4 h-4 text-blue-400" />
+            <span>Importar / Gerenciar Planilha TRE</span>
+          </button>
+        )}
       </div>
 
       {/* FEEDBACK BANNERS */}
@@ -920,73 +935,81 @@ export default function EleitoralDashboard({
         </div>
       )}
 
-      {/* SECTION: COORDINATOR GERAL ONLY EXCEL IMPORT CARD */}
-      {isCoordinator && canEditTreData && (
-        <div className="bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 text-white rounded-sm p-5 shadow-xl border border-zinc-800">
-          <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3 mb-4 flex-wrap gap-2">
-            <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-              <Database className="w-4 h-4 animate-pulse" />
-              <span>Importador Oficial TRE - Painel do Coordenador Geral</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <button
-                onClick={downloadTemplate}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-sm text-[10px] font-black uppercase tracking-wider transition-all"
-                title="Baixar planilha modelo do Excel pre-configurada"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Modelo de Planilha</span>
-              </button>
+      {/* MODAL: EXCEL IMPORT FOR COORDENADOR GERAL */}
+      {isImportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl max-w-xl w-full p-6 text-zinc-900 dark:text-white relative animate-in fade-in zoom-in duration-150">
+            <button 
+              onClick={() => setIsImportModalOpen(false)}
+              className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
 
-              <button
-                onClick={clearData}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-sm text-[10px] font-black uppercase tracking-wider transition-all"
-                title="Zerar todos os registros importados do banco"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Zerar Banco TRE</span>
-              </button>
-
-              {votingLocations.length === 0 && (
-                <button
-                  onClick={loadDemoData}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-blue-300 border border-blue-300/30 rounded-sm text-[10px] font-black uppercase tracking-wider transition-all"
-                  title="Alimenta dados demonstrativos para simulação de testes"
-                >
-                  <span>Massa de Teste</span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-center">
-            {/* Left instructions */}
-            <div className="lg:col-span-1 text-left space-y-2">
-              <h3 className="text-sm font-black text-white uppercase tracking-wider">
-                Alimentar Base de Dados Oficiais
-              </h3>
-              <p className="text-xs text-zinc-300 leading-relaxed">
-                Adicione a planilha do Excel com os dados reais do TRE. Nosso leitor reconhece automaticamente colunas de Município, Zona Eleitoral, Bairro, Local de Votação e Eleitores Aptos.
-              </p>
-              <div className="pt-2">
-                <span className="inline-block text-[8px] uppercase tracking-widest text-zinc-400 bg-white/10 px-2 py-0.5 rounded-sm">
-                  Extensões Suportadas: .xlsx, .xls, .csv
-                </span>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded-lg">
+                <Database className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+                  Importador de Dados Oficiais do TRE
+                </h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Gerencie a planilha de dados eleitorais oficiais de votação.
+                </p>
               </div>
             </div>
 
-            {/* Drag and Drop Zone */}
-            <div className="lg:col-span-2">
+            <div className="my-4 border-t border-b border-zinc-100 dark:border-zinc-800 py-4 space-y-4">
+              {/* Actions bar */}
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <button
+                  onClick={downloadTemplate}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded text-xs font-medium transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                  <span>Baixar Planilha Modelo</span>
+                </button>
+
+                <div className="flex items-center gap-2">
+                  {votingLocations.length === 0 && (
+                    <button
+                      onClick={() => {
+                        loadDemoData();
+                        setIsImportModalOpen(false);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded text-xs font-medium transition-colors"
+                    >
+                      <span>Carregar Massa de Teste</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      clearData();
+                      setIsImportModalOpen(false);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 rounded text-xs font-medium transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Zerar Banco TRE</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Dropzone */}
               <div 
                 onDragEnter={handleDrag}
                 onDragOver={handleDrag}
                 onDragLeave={handleDrag}
-                onDrop={handleDrop}
-                className={`relative border-2 border-dashed rounded-sm p-5 text-center transition-all ${
+                onDrop={(e) => {
+                  handleDrop(e);
+                  setIsImportModalOpen(false);
+                }}
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-all ${
                   dragActive 
-                    ? "border-blue-500 bg-blue-950/30" 
-                    : "border-zinc-850 hover:border-blue-600 bg-white/5 hover:bg-white/10"
+                    ? "border-blue-500 bg-blue-50/50 dark:bg-blue-950/30" 
+                    : "border-zinc-300 dark:border-zinc-700 hover:border-blue-500 bg-zinc-50 dark:bg-zinc-800/50"
                 }`}
               >
                 <input 
@@ -994,22 +1017,34 @@ export default function EleitoralDashboard({
                   id="excel-file-upload-input"
                   className="hidden" 
                   accept=".xlsx, .xls, .csv" 
-                  onChange={handleFileUpload} 
+                  onChange={(e) => {
+                    handleFileUpload(e);
+                    setIsImportModalOpen(false);
+                  }} 
                 />
                 
                 <label 
                   htmlFor="excel-file-upload-input"
-                  className="cursor-pointer flex flex-col items-center justify-center gap-2 h-full py-4"
+                  className="cursor-pointer flex flex-col items-center justify-center gap-2"
                 >
-                  <UploadCloud className="w-10 h-10 text-blue-600 animate-bounce" />
-                  <span className="text-xs font-black text-white uppercase tracking-wider">
+                  <UploadCloud className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-1" />
+                  <span className="text-sm font-bold text-zinc-800 dark:text-zinc-100">
                     Arraste a planilha do TRE aqui ou clique para selecionar
                   </span>
-                  <span className="text-[10px] text-zinc-400">
-                    O sistema irá ler e recalcular todos os gráficos de BI instantaneamente
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Suporta arquivos .xlsx, .xls e .csv com colunas de Município, Zona, Bairro, Local e Eleitores
                   </span>
                 </label>
               </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                onClick={() => setIsImportModalOpen(false)}
+                className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-medium rounded transition-colors"
+              >
+                Fechar
+              </button>
             </div>
           </div>
         </div>
