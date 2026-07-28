@@ -13,18 +13,19 @@ export interface CandidateInfo {
 }
 
 export const DEFAULT_CANDIDATE_INFO: CandidateInfo = {
-  name: 'Soldado Sampaio',
-  title: 'Governador do Estado de Roraima',
+  name: 'Seu Candidato',
+  title: 'Campanha Eleitoral',
   photoUrl: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=600',
-  bio: 'Soldado Sampaio – Governador do Estado de Roraima Francisco dos Santos Sampaio, conhecido como Soldado Sampaio, nasceu em 12 de maio de 1976, em Pedreiras, Maranhão. Filho de agricultores, desde cedo aprendeu o valor do trabalho e da dedicação com a comunidade.',
+  bio: 'Seja bem-vindo à nossa campanha eleitoral.',
   badgeTitle: 'Faça Parte do Nosso Projeto! 🎉',
-  subtitle: 'Preencha o formulário abaixo e ajude a construir um futuro melhor para nossa comunidade. Seus dados estão seguros e protegidos.'
+  subtitle: 'Preencha o formulário abaixo e ajude a construir o nosso projeto. Seus dados estão seguros e protegidos.'
 };
 
 export const candidateService = {
-  async getCandidateInfo(): Promise<CandidateInfo> {
+  async getCandidateInfo(coordinatorId?: string): Promise<CandidateInfo> {
     try {
-      const snap = await getDoc(doc(db, 'settings', 'candidate'));
+      const docKey = coordinatorId ? `candidate_${coordinatorId}` : 'candidate';
+      const snap = await getDoc(doc(db, 'settings', docKey));
       if (snap.exists()) {
         const data = snap.data();
         return {
@@ -44,17 +45,19 @@ export const candidateService = {
     return DEFAULT_CANDIDATE_INFO;
   },
 
-  async saveCandidateInfo(info: CandidateInfo, userId?: string): Promise<void> {
+  async saveCandidateInfo(info: CandidateInfo, userId?: string, coordinatorId?: string): Promise<void> {
     const payload = {
       ...info,
       updatedAt: Date.now(),
       updatedBy: userId || 'coordenador_geral'
     };
-    await setDoc(doc(db, 'settings', 'candidate'), payload, { merge: true });
+    const docKey = coordinatorId ? `candidate_${coordinatorId}` : 'candidate';
+    await setDoc(doc(db, 'settings', docKey), payload, { merge: true });
   },
 
-  subscribeCandidateInfo(callback: (info: CandidateInfo) => void) {
-    return onSnapshot(doc(db, 'settings', 'candidate'), (snap) => {
+  subscribeCandidateInfo(callback: (info: CandidateInfo) => void, coordinatorId?: string) {
+    const docKey = coordinatorId ? `candidate_${coordinatorId}` : 'candidate';
+    return onSnapshot(doc(db, 'settings', docKey), (snap) => {
       if (snap.exists()) {
         const data = snap.data();
         callback({

@@ -75,9 +75,9 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
   useEffect(() => {
     const unsub = candidateService.subscribeCandidateInfo((info) => {
       setCandidateInfo(info);
-    });
+    }, leaderInfo?.coordinatorId);
     return () => unsub();
-  }, []);
+  }, [leaderInfo?.coordinatorId]);
 
   useEffect(() => {
     const fetchInfo = async () => {

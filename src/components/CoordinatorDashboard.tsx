@@ -252,7 +252,7 @@ export default function CoordinatorDashboard({
   useEffect(() => {
     const unsub = candidateService.subscribeCandidateInfo((info) => {
       setCandidateForm(info);
-    });
+    }, coordinatorId);
     getSubscriptionInfo(coordinatorId).then(sub => {
       setSelectedPlan(sub.plan);
       setSelectedPlanStatus(sub.status === 'active' ? 'active' : 'none');
@@ -298,7 +298,7 @@ export default function CoordinatorDashboard({
     e.preventDefault();
     setIsSavingCandidate(true);
     try {
-      await candidateService.saveCandidateInfo(candidateForm, user?.uid);
+      await candidateService.saveCandidateInfo(candidateForm, user?.uid, coordinatorId);
       await saveSubscriptionPlan(selectedPlan, selectedPlanStatus, user?.email || undefined);
       alert("✅ Informações do candidato e Licença do Plano salvas com sucesso!");
       setIsCandidateModalOpen(false);
@@ -3820,6 +3820,7 @@ export default function CoordinatorDashboard({
                   teams={teams}
                   allVoters={allVoters}
                   theme={theme}
+                  coordinatorId={coordinatorId || user?.uid}
                 />
               </motion.div>
             )}

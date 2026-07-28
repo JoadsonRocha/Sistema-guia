@@ -62,89 +62,8 @@ const COLORS = [
   '#1d4ed8'  // Royal Blue
 ];
 
-// Sample demonstrative Roraima TRE data if they want to load mock data for testing
-const SAMPLE_TRE_DATA: VotingLocation[] = [
-  {
-    municipio: "Boa Vista",
-    zona: "01ª ZE",
-    bairro: "Centro",
-    local: "Escola Estadual Monteiro Lobato",
-    endereco: "Rua Nossa Senhora da Consolata, 512 - Centro",
-    secoes: "1, 2, 3, 4, 5, 6, 7, 8, 9, 10",
-    secoesCount: 10,
-    eleitores: 4250
-  },
-  {
-    municipio: "Boa Vista",
-    zona: "01ª ZE",
-    bairro: "Centro",
-    local: "Escola Estadual Lobo D'Almada",
-    endereco: "Avenida Getúlio Vargas, 1421 - Centro",
-    secoes: "11, 12, 13, 14, 15, 16, 17, 18",
-    secoesCount: 8,
-    eleitores: 3420
-  },
-  {
-    municipio: "Boa Vista",
-    zona: "05ª ZE",
-    bairro: "Alvorada",
-    local: "IFRR - Campus Boa Vista",
-    endereco: "Avenida Glaycon de Paiva, 2496 - Alvorada",
-    secoes: "101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112",
-    secoesCount: 12,
-    eleitores: 5120
-  },
-  {
-    municipio: "Boa Vista",
-    zona: "05ª ZE",
-    bairro: "Asa Branca",
-    local: "Escola Estadual Major Alcides",
-    endereco: "Rua Cararico, 452 - Asa Branca",
-    secoes: "113, 114, 115, 116, 117, 118, 119",
-    secoesCount: 7,
-    eleitores: 2980
-  },
-  {
-    municipio: "Rorainópolis",
-    zona: "08ª ZE",
-    bairro: "Centro",
-    local: "Escola Estadual José de Alencar",
-    endereco: "Avenida Bernardo Sayão, s/n - Centro",
-    secoes: "301, 302, 303, 304, 305, 306, 307, 308",
-    secoesCount: 8,
-    eleitores: 3200
-  },
-  {
-    municipio: "Cantá",
-    zona: "05ª ZE",
-    bairro: "Centro",
-    local: "Escola Estadual Cícero Vieira Neto",
-    endereco: "Avenida Central, s/n - Centro",
-    secoes: "151, 152, 153, 154, 155",
-    secoesCount: 5,
-    eleitores: 1980
-  },
-  {
-    municipio: "Caracaraí",
-    zona: "02ª ZE",
-    bairro: "Centro",
-    local: "Escola Estadual Presidente Castelo Branco",
-    endereco: "Avenida Doutor Zany, 85 - Centro",
-    secoes: "201, 202, 203, 204, 205, 206",
-    secoesCount: 6,
-    eleitores: 2540
-  },
-  {
-    municipio: "Mucajaí",
-    zona: "06ª ZE",
-    bairro: "Centro",
-    local: "Escola Estadual Padre José Monticone",
-    endereco: "Avenida Padre José Monticone, s/n - Centro",
-    secoes: "251, 252, 253, 254, 255, 256, 257",
-    secoesCount: 7,
-    eleitores: 2880
-  }
-];
+// Empty default array - data must be loaded by Coordenador Geral
+const SAMPLE_TRE_DATA: VotingLocation[] = [];
 
 export default function EleitoralDashboard({ 
   isCoordinator = false, 
@@ -1115,14 +1034,7 @@ export default function EleitoralDashboard({
                 </label>
               </div>
               
-              <div className="pt-4">
-                <button 
-                  onClick={loadDemoData}
-                  className="text-[10px] text-zinc-400 hover:text-blue-600 underline font-bold transition-colors uppercase tracking-wider"
-                >
-                  Ou clique aqui para carregar a massa de teste demonstrativa de Roraima para visualização rápida.
-                </button>
-              </div>
+
             </div>
           ) : (
             <div className="mt-6 p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm space-y-1">

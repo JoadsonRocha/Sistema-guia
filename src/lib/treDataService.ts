@@ -128,7 +128,7 @@ export function getAllTreLocations(coordinatorId?: string): TreLocationItem[] {
 
   try {
     const key = `sistema_urna360_eleitoral_data_${coordKey}`;
-    const savedStr = localStorage.getItem(key) || localStorage.getItem('sistema_urna360_eleitoral_data');
+    const savedStr = localStorage.getItem(key);
     if (savedStr) {
       const parsed = JSON.parse(savedStr);
       if (Array.isArray(parsed) && parsed.length > 0) {

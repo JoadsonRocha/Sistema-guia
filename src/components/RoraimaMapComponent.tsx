@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { getAllTreLocations } from '../lib/treDataService';
 import { 
   motion, 
   AnimatePresence 
@@ -31,6 +32,7 @@ interface RoraimaMapComponentProps {
   teams: any[];
   allVoters: any[];
   theme: 'light' | 'dark';
+  coordinatorId?: string;
 }
 
 const MUNICIPALITIES = [
@@ -289,8 +291,65 @@ export function resolveTeamMunicipality(location: string | null | undefined): st
   return "Boa Vista"; // Default fallback
 }
 
-export default function RoraimaMapComponent({ teams, allVoters, theme }: RoraimaMapComponentProps) {
-  const [selectedMun, setSelectedMun] = useState<string>("Boa Vista");
+export default function RoraimaMapComponent({ teams = [], allVoters = [], theme, coordinatorId }: RoraimaMapComponentProps) {
+  // Fetch official TRE locations for this specific coordinator
+  const treLocations = useMemo(() => getAllTreLocations(coordinatorId), [coordinatorId]);
+
+  // Extract unique municipalities dynamically from TRE locations, teams, and voters for THIS campaign
+  const dynamicMunicipalities = useMemo(() => {
+    const munSet = new Set<string>();
+
+    treLocations.forEach(loc => {
+      if (loc.municipio && loc.municipio.trim()) {
+        munSet.add(loc.municipio.trim());
+      }
+    });
+
+    (teams || []).forEach(t => {
+      if (t.location && t.location.trim()) {
+        munSet.add(t.location.trim());
+      }
+    });
+
+    (allVoters || []).forEach(v => {
+      const m = v.municipality || v.location;
+      if (m && m.trim()) {
+        munSet.add(m.trim());
+      }
+    });
+
+    return Array.from(munSet).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [treLocations, teams, allVoters]);
+
+  // If no TRE file has been uploaded and no teams/voters have location data for this coordinator
+  if (dynamicMunicipalities.length === 0) {
+    return (
+      <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-8 md:p-12 text-center space-y-4 shadow-sm my-4">
+        <div className="w-14 h-14 bg-amber-100 dark:bg-amber-900/30 text-amber-600 rounded-full flex items-center justify-center mx-auto">
+          <MapIcon className="w-7 h-7" />
+        </div>
+        <div className="max-w-md mx-auto space-y-3">
+          <h2 className="text-base md:text-lg font-black uppercase text-zinc-900 dark:text-white tracking-tight">
+            Nenhum Dado Regional ou Planilha TRE Carregada
+          </h2>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+            Sua campanha ainda não possui dados territoriais ou planilha oficial do TRE cadastrada.
+          </p>
+          <p className="text-[11px] text-zinc-400 dark:text-zinc-500 leading-relaxed">
+            Para visualizar a divisão territorial, zonas eleitorais, seções e municípios do seu estado no <strong>Mapa Regional</strong>, acesse a guia <strong>'Análise Eleitoral'</strong> e envie a planilha oficial do TRE da sua região, ou cadastre equipes e eleitores com seus respectivos municípios.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const [selectedMun, setSelectedMun] = useState<string>(() => dynamicMunicipalities[0] || "");
+
+  useEffect(() => {
+    if (dynamicMunicipalities.length > 0 && !dynamicMunicipalities.includes(selectedMun)) {
+      setSelectedMun(dynamicMunicipalities[0]);
+    }
+  }, [dynamicMunicipalities, selectedMun]);
   const [hoveredMun, setHoveredMun] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sentimentFilter, setSentimentFilter] = useState<string>("all");
