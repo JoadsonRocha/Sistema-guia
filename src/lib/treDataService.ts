@@ -86,22 +86,26 @@ export function setTreLocationsForCoordinator(coordinatorId: string, locations: 
   let counter = 1;
 
   for (const item of locations) {
-    if (!item || !item.local) continue;
-    const zRaw = item.zona || '';
+    if (!item) continue;
+    const localName = item.nmLocalVotacao || item.local;
+    if (!localName) continue;
+
+    const zRaw = String(item.nrZona || item.zona || '');
     const zClean = extractZonaNum(zRaw);
     const zLabel = normalizeZonaLabel(zRaw) || 'TRE Geral';
-    const parsedSec = parseSecoes(item.secoes || '');
+    const secaoVal = String(item.nrSecao || item.secoes || '');
+    const parsedSec = parseSecoes(secaoVal);
 
     items.push({
       id: `loc_${counter++}`,
       zona: zLabel,
       zonaClean: zClean || '1',
       secoes: parsedSec,
-      secoesStr: item.secoes || '',
-      local: item.local,
-      bairro: item.bairro || '',
-      municipio: item.municipio || '',
-      eleitores: item.eleitores || 0
+      secoesStr: secaoVal,
+      local: localName,
+      bairro: item.nmBairro || item.bairro || '',
+      municipio: item.nmMunicipio || item.municipio || '',
+      eleitores: Number(item.qtEleitorSecao ?? item.eleitores) || 0
     });
   }
 
@@ -133,22 +137,26 @@ export function getAllTreLocations(coordinatorId?: string): TreLocationItem[] {
       const parsed = JSON.parse(savedStr);
       if (Array.isArray(parsed) && parsed.length > 0) {
         for (const item of parsed) {
-          if (!item || !item.local) continue;
-          const zRaw = item.zona || '';
+          if (!item) continue;
+          const localName = item.nmLocalVotacao || item.local;
+          if (!localName) continue;
+
+          const zRaw = String(item.nrZona || item.zona || '');
           const zClean = extractZonaNum(zRaw);
           const zLabel = normalizeZonaLabel(zRaw) || 'TRE Geral';
-          const parsedSec = parseSecoes(item.secoes || '');
+          const secaoVal = String(item.nrSecao || item.secoes || '');
+          const parsedSec = parseSecoes(secaoVal);
 
           locations.push({
             id: `custom_ls_${counter++}`,
             zona: zLabel,
             zonaClean: zClean || '1',
             secoes: parsedSec,
-            secoesStr: item.secoes || '',
-            local: item.local,
-            bairro: item.bairro || '',
-            municipio: item.municipio || '',
-            eleitores: item.eleitores || 0
+            secoesStr: secaoVal,
+            local: localName,
+            bairro: item.nmBairro || item.bairro || '',
+            municipio: item.nmMunicipio || item.municipio || '',
+            eleitores: Number(item.qtEleitorSecao ?? item.eleitores) || 0
           });
         }
       }

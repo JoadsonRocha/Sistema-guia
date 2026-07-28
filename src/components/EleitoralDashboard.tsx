@@ -3,6 +3,7 @@ import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../lib/FirebaseProvider';
 import { setTreLocationsForCoordinator } from '../lib/treDataService';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   BarChart, 
   Bar, 
@@ -45,9 +46,11 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
+  HelpCircle,
+  Info
 } from 'lucide-react';
-import { VotingLocation } from '../data/eleitoralData';
+import { VotingLocation, TSE_COLUMNS, TseColumnDef } from '../data/eleitoralData';
 import * as XLSX from 'xlsx';
 
 // Constants for theme colors (Navy & Royal Blue)
@@ -61,6 +64,63 @@ const COLORS = [
   '#0284c7', // Dark Sky
   '#1d4ed8'  // Royal Blue
 ];
+
+// Header cell component with hover speech bubble tooltip (balão explicativo)
+function TseHeaderCell({ 
+  variable, 
+  description, 
+  align = 'left',
+  isSortable = false,
+  onSort
+}: { 
+  key?: string;
+  variable: string; 
+  description: string; 
+  align?: 'left' | 'center' | 'right';
+  isSortable?: boolean;
+  onSort?: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <th 
+      className={`py-3.5 px-3 relative font-black text-[9px] uppercase tracking-wider text-zinc-700 dark:text-zinc-200 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-850 select-none whitespace-nowrap transition-colors ${
+        isSortable ? 'cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800' : ''
+      } ${align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left'}`}
+      onClick={() => isSortable && onSort && onSort()}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div className={`inline-flex items-center gap-1.5 ${align === 'right' ? 'justify-end' : align === 'center' ? 'justify-center' : 'justify-start'}`}>
+        <span className="text-zinc-900 dark:text-zinc-100 font-extrabold">{variable}</span>
+        <HelpCircle className="w-3 h-3 text-blue-500 opacity-70 hover:opacity-100 shrink-0 cursor-help" />
+        {isSortable && <ArrowUpDown className="w-3 h-3 text-zinc-400 shrink-0" />}
+      </div>
+
+      {/* BALÃO EXPLICATIVO (HOVER TOOLTIP) */}
+      <AnimatePresence>
+        {hovered && (
+          <motion.div 
+            initial={{ opacity: 0, y: 6, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.95 }}
+            transition={{ duration: 0.12 }}
+            className={`absolute bottom-full mb-2 ${align === 'right' ? 'right-0' : 'left-0'} w-72 p-3 bg-zinc-950 text-white rounded-md shadow-2xl border border-blue-500/50 z-50 pointer-events-none normal-case font-normal text-left text-xs leading-relaxed`}
+          >
+            <div className="flex items-center gap-1.5 font-bold text-blue-400 uppercase text-[10px] tracking-wider mb-1 border-b border-zinc-800 pb-1">
+              <Info className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+              <span>Variável TSE: {variable}</span>
+            </div>
+            <p className="text-zinc-200 text-[11px] whitespace-pre-line leading-snug">
+              {description}
+            </p>
+            <div className={`absolute top-full ${align === 'right' ? 'right-4' : 'left-4'} border-4 border-transparent border-t-zinc-950`}></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </th>
+  );
+}
 
 // Empty default array - data must be loaded by Coordenador Geral
 const SAMPLE_TRE_DATA: VotingLocation[] = [];
@@ -668,32 +728,31 @@ export default function EleitoralDashboard({
   // EXCEL IMPORTER & TEMPLATE GENERATOR
   const downloadTemplate = () => {
     const headers = [
-      ["Município", "Zona Eleitoral", "Bairro", "Local de Votação", "Endereço", "Seção", "Quantidade de Eleitores Aptos"]
+      TSE_COLUMNS.map(col => col.variable)
     ];
     
     const ws = XLSX.utils.aoa_to_sheet(headers);
-    ws['!cols'] = [
-      { wch: 20 }, // Município
-      { wch: 15 }, // Zona Eleitoral
-      { wch: 20 }, // Bairro
-      { wch: 40 }, // Local de Votação
-      { wch: 50 }, // Endereço
-      { wch: 15 }, // Seção
-      { wch: 30 }  // Quantidade de Eleitores Aptos
-    ];
+    ws['!cols'] = TSE_COLUMNS.map(col => ({ wch: Math.max(col.variable.length + 4, 18) }));
 
-    // Example rows
+    // Example rows in official TSE format
     XLSX.utils.sheet_add_aoa(ws, [
-      ["Boa Vista", "01ª ZE", "Centro", "Escola Estadual Monteiro Lobato", "Rua Nossa Senhora da Consolata, 512 - Centro", "1, 2, 3", 1250],
-      ["Rorainópolis", "08ª ZE", "Centro", "Escola Estadual José de Alencar", "Avenida Bernardo Sayão, s/n - Centro", "301, 302, 303", 850],
-      ["Cantá", "05ª ZE", "Centro", "Escola Estadual Cícero Vieira Neto", "Avenida Central, s/n - Centro", "151, 152", 650]
+      [
+        "SÃO PAULO", "001", "0001", 1, "Principal", -1, 1015,
+        "ESCOLA ESTADUAL PADRE ANCHIETA", "RUA DOS TRÊS IRMÃOS, 100", "MORUMBI",
+        380, "ESCOLA ESTADUAL PADRE ANCHIETA", "RUA DOS TRÊS IRMÃOS, 100"
+      ],
+      [
+        "RIO DE JANEIRO", "004", "0012", 2, "Agregada", 11, 1088,
+        "COLÉGIO PEDRO II", "AVENIDA MARECHAL FLORIANO, 80", "CENTRO",
+        295, "COLÉGIO PEDRO II", "AVENIDA MARECHAL FLORIANO, 80"
+      ]
     ], { origin: -1 });
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Modelo TRE Nexus Política");
-    XLSX.writeFile(wb, "modelo_planilha_tre_nexus_politica.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Tabela_Variaveis_TSE");
+    XLSX.writeFile(wb, "modelo_planilha_oficial_tse.xlsx");
     
-    setSuccessMsg("Modelo de planilha (.xlsx) baixado com sucesso!");
+    setSuccessMsg("Modelo oficial de planilha do TSE (.xlsx) baixado com sucesso!");
     setTimeout(() => setSuccessMsg(null), 5000);
   };
 
@@ -715,45 +774,66 @@ export default function EleitoralDashboard({
         const parsedRows: VotingLocation[] = jsonData.map((row: any) => {
           const findValue = (keys: string[]) => {
             for (const key of keys) {
-              const foundKey = Object.keys(row).find(k => k.trim().toLowerCase() === key.toLowerCase());
-              if (foundKey) return row[foundKey];
+              const foundKey = Object.keys(row).find(k => {
+                const normK = String(k).trim().toLowerCase().replace(/_/g, ' ');
+                const normTarget = key.trim().toLowerCase().replace(/_/g, ' ');
+                return normK === normTarget;
+              });
+              if (foundKey && row[foundKey] !== undefined && row[foundKey] !== null) return row[foundKey];
             }
             return undefined;
           };
 
-          const municipio = findValue(["Município", "Municipio", "Cidade"]) || "";
-          const zona = findValue(["Zona Eleitoral", "Zona", "ZE"]) || "";
-          const bairro = findValue(["Bairro", "Região", "Regiao"]) || "";
-          const local = findValue(["Local de Votação", "Local", "Escola", "Estabelecimento"]) || "";
-          const endereco = findValue(["Endereço", "Endereco", "Logradouro"]) || "";
-          const secoes = String(findValue(["Seção", "Secao", "Seções", "Secoes"]) || "");
-          const eleitoresVal = findValue(["Quantidade de Eleitores Aptos", "Eleitores Aptos", "Eleitores", "Quantidade de Eleitores", "Aptos"]);
-          const eleitores = Number(eleitoresVal) || 0;
+          const nmMunicipio = String(findValue(["NM MUNICIPIO", "NM_MUNICIPIO", "MUNICÍPIO", "MUNICIPIO", "CIDADE"]) || "").trim();
+          const nrZona = String(findValue(["NR ZONA", "NR_ZONA", "ZONA", "ZE", "ZONA ELEITORAL"]) || "").trim();
+          const nrSecao = String(findValue(["NR SECAO", "NR_SECAO", "SEÇÃO", "SECAO", "SECOES"]) || "").trim();
+          const cdTipoSecaoAgregada = findValue(["CD TIPO SECAO AGREGADA", "CD_TIPO_SECAO_AGREGADA", "CD TIPO SECAO"]) ?? -1;
+          const dsTipoSecaoAgregada = String(findValue(["DS_TIPO_SECAO_AGREGADA", "DS TIPO SECAO AGREGADA", "DS TIPO SECAO"]) || "#NULO").trim();
+          const nrSecaoPrincipal = findValue(["NR SECAO PRINCIPAL", "NR_SECAO_PRINCIPAL"]) ?? -1;
+          const nrLocalVotacao = findValue(["NR LOCAL VOTACAO", "NR_LOCAL_VOTACAO", "NR LOCAL"]) ?? "";
+          const nmLocalVotacao = String(findValue(["NM LOCAL VOTACAO", "NM_LOCAL_VOTACAO", "LOCAL DE VOTAÇÃO", "LOCAL DE VOTACAO", "LOCAL", "ESCOLA"]) || "").trim();
+          const dsEndereco = String(findValue(["DS ENDERECO", "DS_ENDERECO", "ENDEREÇO", "ENDERECO", "LOGRADOURO"]) || "").trim();
+          const nmBairro = String(findValue(["NM BAIRRO", "NM_BAIRRO", "BAIRRO", "REGIÃO"]) || "").trim();
+          const qtEleitorSecao = Number(findValue(["QT_ELEITOR_SECAO", "QT ELEITOR SECAO", "ELEITORES", "QUANTIDADE DE ELEITORES APTOS", "APTOS"])) || 0;
+          const nmLocalVotacaoOriginal = String(findValue(["NM LOCAL VOTACAO ORIGINAL", "NM_LOCAL_VOTACAO_ORIGINAL"]) || nmLocalVotacao).trim();
+          const dsEnderecoLocvtOriginal = String(findValue(["DS ENDERECO_LOCVT_ORIGINAL", "DS_ENDERECO_LOCVT_ORIGINAL"]) || dsEndereco).trim();
 
-          let secoesCount = 1;
-          if (secoes) {
-            secoesCount = secoes.split(',').filter(s => s.trim().length > 0).length || 1;
-          }
+          const zonaFormatted = nrZona ? (nrZona.toLowerCase().includes('ze') ? nrZona : `${nrZona}ª ZE`) : '';
 
           return {
-            municipio: String(municipio).trim(),
-            zona: String(zona).trim(),
-            bairro: String(bairro).trim(),
-            local: String(local).trim(),
-            endereco: String(endereco).trim(),
-            secoes: secoes.trim(),
-            secoesCount,
-            eleitores
+            nmMunicipio,
+            nrZona,
+            nrSecao,
+            cdTipoSecaoAgregada,
+            dsTipoSecaoAgregada,
+            nrSecaoPrincipal,
+            nrLocalVotacao,
+            nmLocalVotacao,
+            dsEndereco,
+            nmBairro,
+            qtEleitorSecao,
+            nmLocalVotacaoOriginal,
+            dsEnderecoLocvtOriginal,
+
+            // Compatibility computed fields
+            municipio: nmMunicipio,
+            zona: zonaFormatted || nrZona,
+            secoes: nrSecao,
+            secoesCount: 1,
+            local: nmLocalVotacao,
+            endereco: dsEndereco,
+            bairro: nmBairro,
+            eleitores: qtEleitorSecao
           };
-        }).filter(row => row.municipio && row.local && row.eleitores > 0);
+        }).filter(row => (row.nmMunicipio || row.municipio) && (row.nmLocalVotacao || row.local) && (row.qtEleitorSecao > 0 || (row.eleitores && row.eleitores > 0)));
 
         if (parsedRows.length === 0) {
-          setErrorMsg("Nenhum dado válido encontrado. Verifique se as colunas estão exatamente no modelo.");
+          setErrorMsg("Nenhum dado válido encontrado. Verifique se as colunas estão no modelo oficial do TSE (Tabela_Variaveis_TSE).");
           return;
         }
 
         saveVotingLocations(parsedRows);
-        setSuccessMsg(`Sucesso! ${parsedRows.length} locais de votação oficiais do TRE carregados.`);
+        setSuccessMsg(`Sucesso! ${parsedRows.length} seções eleitorais do TSE carregadas no novo modelo.`);
         setTimeout(() => setSuccessMsg(null), 6000);
       } catch (err) {
         console.error(err);
@@ -1574,90 +1654,108 @@ export default function EleitoralDashboard({
 
             {/* Dynamic Table */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-zinc-100 dark:bg-zinc-850 text-zinc-500 uppercase font-black text-[9px] border-b border-zinc-200 dark:border-zinc-800 tracking-wider">
-                    <th className="py-3 px-4">Município</th>
-                    <th className="py-3 px-4">ZE / Bairro</th>
-                    <th 
-                      className="py-3 px-4 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
-                      onClick={() => toggleSort('local')}
-                    >
-                      <div className="flex items-center gap-1">
-                        <span>Local de Votação</span>
-                        <ArrowUpDown className="w-3 h-3 text-zinc-400" />
-                      </div>
-                    </th>
-                    <th className="py-3 px-4">Endereço / Seções</th>
-                    <th 
-                      className="py-3 px-4 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors text-right"
-                      onClick={() => toggleSort('eleitores')}
-                    >
-                      <div className="flex items-center justify-end gap-1">
-                        <span>Eleitores Aptos</span>
-                        <ArrowUpDown className="w-3 h-3 text-zinc-400" />
-                      </div>
-                    </th>
-                    <th className="py-3 px-4 text-right">% do Município</th>
-                    <th className="py-3 px-4 text-right">% do Estado</th>
+                    {TSE_COLUMNS.map((col) => (
+                      <TseHeaderCell 
+                        key={col.key}
+                        variable={col.variable}
+                        description={col.description}
+                        align={col.key === 'qtEleitorSecao' || col.key === 'cdTipoSecaoAgregada' || col.key === 'nrSecaoPrincipal' || col.key === 'nrLocalVotacao' ? 'center' : 'left'}
+                        isSortable={col.key === 'nmLocalVotacao' || col.key === 'qtEleitorSecao'}
+                        onSort={() => {
+                          if (col.key === 'nmLocalVotacao') toggleSort('local');
+                          if (col.key === 'qtEleitorSecao') toggleSort('eleitores');
+                        }}
+                      />
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800 font-medium">
                   {processedTableData.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-zinc-400">
-                        Nenhum local correspondente aos filtros selecionados.
+                      <td colSpan={TSE_COLUMNS.length} className="py-12 text-center text-zinc-400">
+                        Nenhum registro correspondente aos filtros selecionados.
                       </td>
                     </tr>
                   ) : (
                     paginatedTableData.map((row, index) => (
                       <tr 
-                        key={`${row.municipio}-${row.local}-${index}`}
-                        className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                        key={`${row.nmMunicipio || row.municipio}-${row.nrSecao || row.secoes}-${index}`}
+                        className="hover:bg-blue-50/30 dark:hover:bg-zinc-800/60 transition-colors text-[11px]"
                       >
-                        {/* Município */}
-                        <td className="py-3 px-4 font-bold text-zinc-900 dark:text-white uppercase text-[10px]">
-                          {row.municipio}
-                        </td>
-                        
-                        {/* ZE / Bairro */}
-                        <td className="py-3 px-4 text-zinc-500 dark:text-zinc-400">
-                          <div className="font-semibold text-[10px]">{row.zona}</div>
-                          <div className="text-[9px] mt-0.5 uppercase tracking-wide opacity-80">{row.bairro}</div>
+                        {/* 1. NM MUNICIPIO */}
+                        <td className="py-3 px-3 font-bold text-zinc-900 dark:text-white uppercase whitespace-nowrap">
+                          {row.nmMunicipio || row.municipio}
                         </td>
 
-                        {/* Local de Votação */}
-                        <td className="py-3 px-4 text-zinc-900 dark:text-zinc-100 font-bold max-w-[200px] truncate" title={row.local}>
-                          {row.local}
+                        {/* 2. NR ZONA */}
+                        <td className="py-3 px-3 text-zinc-700 dark:text-zinc-300 font-semibold whitespace-nowrap">
+                          {row.nrZona || row.zona}
                         </td>
 
-                        {/* Endereço / Seções */}
-                        <td className="py-3 px-4 text-zinc-500 dark:text-zinc-400 max-w-[180px]">
-                          <div className="truncate text-[10px]" title={row.endereco}>{row.endereco}</div>
-                          <div className="text-[9px] font-mono mt-0.5 text-zinc-400">
-                            {row.secoesCount} seções {row.secoes ? `(${row.secoes.length > 20 ? row.secoes.substring(0, 18) + '...' : row.secoes})` : ''}
-                          </div>
+                        {/* 3. NR SECAO */}
+                        <td className="py-3 px-3 font-mono text-blue-600 dark:text-blue-400 font-bold whitespace-nowrap">
+                          {row.nrSecao || row.secoes}
                         </td>
 
-                        {/* Eleitores Aptos */}
-                        <td className="py-3 px-4 text-right text-zinc-900 dark:text-white font-black">
-                          {row.eleitores.toLocaleString()}
+                        {/* 4. CD TIPO SECAO AGREGADA */}
+                        <td className="py-3 px-3 text-center text-zinc-500 font-mono">
+                          {row.cdTipoSecaoAgregada ?? -1}
                         </td>
 
-                        {/* % do Município */}
-                        <td className="py-3 px-4 text-right">
-                          <div className="text-amber-600 dark:text-amber-400 font-black">
-                            {row.percentMuni.toFixed(2)}%
-                          </div>
-                          <div className="text-[7px] text-zinc-400 uppercase tracking-widest leading-none">Concentração</div>
+                        {/* 5. DS_TIPO_SECAO_AGREGADA */}
+                        <td className="py-3 px-3 text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                            row.dsTipoSecaoAgregada === 'Agregada' 
+                              ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400' 
+                              : row.dsTipoSecaoAgregada === 'Principal'
+                              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400'
+                              : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'
+                          }`}>
+                            {row.dsTipoSecaoAgregada || '#NULO'}
+                          </span>
                         </td>
 
-                        {/* % do Estado */}
-                        <td className="py-3 px-4 text-right">
-                          <div className="text-blue-600 dark:text-blue-600 font-black">
-                            {row.percentTotal.toFixed(2)}%
-                          </div>
-                          <div className="text-[7px] text-zinc-400 uppercase tracking-widest leading-none">Representatividade</div>
+                        {/* 6. NR SECAO PRINCIPAL */}
+                        <td className="py-3 px-3 text-center text-zinc-500 font-mono">
+                          {row.nrSecaoPrincipal ?? -1}
+                        </td>
+
+                        {/* 7. NR LOCAL VOTACAO */}
+                        <td className="py-3 px-3 text-center font-mono font-semibold text-zinc-700 dark:text-zinc-300">
+                          {row.nrLocalVotacao || '---'}
+                        </td>
+
+                        {/* 8. NM LOCAL VOTACAO */}
+                        <td className="py-3 px-3 font-bold text-zinc-900 dark:text-zinc-100 max-w-[220px] truncate" title={row.nmLocalVotacao || row.local}>
+                          {row.nmLocalVotacao || row.local}
+                        </td>
+
+                        {/* 9. DS ENDERECO */}
+                        <td className="py-3 px-3 text-zinc-500 dark:text-zinc-400 max-w-[200px] truncate" title={row.dsEndereco || row.endereco}>
+                          {row.dsEndereco || row.endereco || '---'}
+                        </td>
+
+                        {/* 10. NM BAIRRO */}
+                        <td className="py-3 px-3 text-zinc-700 dark:text-zinc-300 font-semibold uppercase whitespace-nowrap">
+                          {row.nmBairro || row.bairro || '---'}
+                        </td>
+
+                        {/* 11. QT_ELEITOR_SECAO */}
+                        <td className="py-3 px-3 text-center font-black text-blue-600 dark:text-blue-400 text-xs whitespace-nowrap">
+                          {(row.qtEleitorSecao || row.eleitores || 0).toLocaleString()}
+                        </td>
+
+                        {/* 12. NM LOCAL VOTACAO ORIGINAL */}
+                        <td className="py-3 px-3 text-zinc-500 dark:text-zinc-400 max-w-[180px] truncate" title={row.nmLocalVotacaoOriginal || row.nmLocalVotacao || row.local}>
+                          {row.nmLocalVotacaoOriginal || row.nmLocalVotacao || row.local || '---'}
+                        </td>
+
+                        {/* 13. DS ENDERECO_LOCVT_ORIGINAL */}
+                        <td className="py-3 px-3 text-zinc-500 dark:text-zinc-400 max-w-[180px] truncate" title={row.dsEnderecoLocvtOriginal || row.dsEndereco || row.endereco}>
+                          {row.dsEnderecoLocvtOriginal || row.dsEndereco || row.endereco || '---'}
                         </td>
                       </tr>
                     ))
