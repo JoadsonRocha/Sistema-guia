@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { getAllTreLocations } from '../lib/treDataService';
 import { 
   motion, 
@@ -214,81 +214,17 @@ const ZONE_INFO: Record<string, { zone: string; color: string; hoverColor: strin
   }
 };
 
-export function resolveTeamMunicipality(location: string | null | undefined): string {
-  if (!location) return "Boa Vista";
+export function resolveTeamMunicipality(location?: string | null, availableMunicipalities: string[] = []): string {
+  if (!location) return availableMunicipalities[0] || "Sede";
   const locLower = location.trim().toLowerCase();
 
-  // Handle specific bases / codes first
-  if (
-    locLower === "bv" || 
-    locLower.startsWith("bv-") || 
-    locLower.includes("boa vista") || 
-    locLower.includes("boavista") ||
-    locLower.includes("capital")
-  ) {
-    return "Boa Vista";
-  }
-
-  if (locLower.includes("amajari")) return "Amajari";
-  if (locLower.includes("alto alegre")) return "Alto Alegre";
-  if (locLower.includes("bonfim")) return "Bonfim";
-  if (locLower.includes("cantá") || locLower.includes("canta")) return "Cantá";
-  
-  if (locLower.includes("caracaraí") || locLower.includes("caracarai") || locLower.startsWith("carac")) {
-    return "Caracaraí";
-  }
-  
-  if (locLower.includes("caroebe")) return "Caroebe";
-  if (locLower.includes("iracema")) return "Iracema";
-  if (locLower.includes("mucajaí") || locLower.includes("mucajai")) return "Mucajaí";
-  if (locLower.includes("normandia")) return "Normandia";
-  if (locLower.includes("pacaraima")) return "Pacaraima";
-  
-  if (
-    locLower.includes("rorainópolis") || 
-    locLower.includes("rorainopolis") || 
-    locLower.startsWith("rorain") || 
-    locLower.startsWith("rr-")
-  ) {
-    return "Rorainópolis";
-  }
-  
-  if (locLower.includes("joão") || locLower.includes("joao") || locLower.includes("baliza")) {
-    return "São João da Baliza";
-  }
-  
-  if (
-    locLower.includes("luiz") || 
-    locLower.includes("luis") || 
-    locLower.includes("são luiz") || 
-    locLower.includes("sao luiz") ||
-    locLower.includes("sao luis") ||
-    locLower.includes("são luis")
-  ) {
-    return "São Luiz";
-  }
-  
-  if (locLower.includes("uiramutã") || locLower.includes("uiramuta")) return "Uiramutã";
-
-  // Check if any municipality name is contained within the string
-  for (const mun of MUNICIPALITIES) {
-    if (locLower.includes(mun.toLowerCase())) {
+  for (const mun of availableMunicipalities) {
+    if (locLower === mun.toLowerCase() || locLower.includes(mun.toLowerCase()) || mun.toLowerCase().includes(locLower)) {
       return mun;
     }
   }
 
-  // Double check basic startsWith
-  if (locLower.startsWith("bv")) return "Boa Vista";
-  if (locLower.startsWith("am")) return "Amajari";
-  if (locLower.startsWith("al")) return "Alto Alegre";
-  if (locLower.startsWith("bo")) return "Bonfim";
-  if (locLower.startsWith("ca")) {
-    if (locLower.includes("nt")) return "Cantá";
-    if (locLower.includes("ra")) return "Caracaraí";
-    if (locLower.includes("ro")) return "Caroebe";
-  }
-
-  return "Boa Vista"; // Default fallback
+  return location.trim() || availableMunicipalities[0] || "Sede";
 }
 
 export default function RoraimaMapComponent({ teams = [], allVoters = [], theme, coordinatorId }: RoraimaMapComponentProps) {
@@ -320,6 +256,62 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
 
     return Array.from(munSet).sort((a, b) => a.localeCompare(b, 'pt-BR'));
   }, [treLocations, teams, allVoters]);
+
+  // Map each municipality to its corresponding zone from uploaded TRE data
+  const municipalityToZoneMap = useMemo(() => {
+    const map = new Map<string, string>();
+    treLocations.forEach(loc => {
+      if (loc.municipio && loc.zona) {
+        const mKey = loc.municipio.trim().toLowerCase();
+        if (!map.has(mKey)) {
+          map.set(mKey, loc.zona);
+        }
+      }
+    });
+    return map;
+  }, [treLocations]);
+
+  const getZoneLabel = useCallback((mun: string) => {
+    const found = municipalityToZoneMap.get(mun.toLowerCase());
+    if (found) return found;
+    return ZONE_INFO[mun]?.zone || "Zona Eleitoral";
+  }, [municipalityToZoneMap]);
+
+  const getZoneColor = useCallback((key: string) => {
+    if (ZONE_INFO[key]?.color) return ZONE_INFO[key].color;
+    const colors = ["#2563eb", "#059669", "#d97706", "#7c3aed", "#e11d48", "#0284c7", "#0d9488", "#ca8a04"];
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+  }, []);
+
+  const dynamicZonesGroups = useMemo(() => {
+    const groupsMap = new Map<string, string[]>();
+
+    dynamicMunicipalities.forEach(mun => {
+      const zLabel = getZoneLabel(mun);
+      if (!groupsMap.has(zLabel)) {
+        groupsMap.set(zLabel, []);
+      }
+      groupsMap.get(zLabel)!.push(mun);
+    });
+
+    const result: { name: string; region: string; municipalities: string[] }[] = [];
+    groupsMap.forEach((muns, zName) => {
+      result.push({
+        name: zName,
+        region: `${muns.length} ${muns.length === 1 ? 'Município' : 'Municípios'}`,
+        municipalities: muns.sort((a, b) => a.localeCompare(b, 'pt-BR'))
+      });
+    });
+
+    return result.sort((a, b) => {
+      const numA = parseInt(a.name.replace(/\D/g, ''), 10) || 999;
+      const numB = parseInt(b.name.replace(/\D/g, ''), 10) || 999;
+      if (numA !== numB) return numA - numB;
+      return a.name.localeCompare(b.name, 'pt-BR');
+    });
+  }, [dynamicMunicipalities, getZoneLabel]);
 
   // If no TRE file has been uploaded and no teams/voters have location data for this coordinator
   if (dynamicMunicipalities.length === 0) {
@@ -366,7 +358,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
     // Cache map of team name/leader to municipality location for fast lookup
     const teamNameToLocation = new Map<string, string>();
     teams.forEach(t => {
-      const resolved = resolveTeamMunicipality(t.location);
+      const resolved = resolveTeamMunicipality(t.location, dynamicMunicipalities);
       if (t.name) {
         teamNameToLocation.set(t.name.trim().toLowerCase(), resolved);
       }
@@ -381,17 +373,10 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
       // 1. Check if the voter's address has an explicit mention of any municipality
       if (voter.address) {
         const addrLower = voter.address.toLowerCase();
-        for (const mun of MUNICIPALITIES) {
+        for (const mun of dynamicMunicipalities) {
           if (addrLower.includes(mun.toLowerCase())) {
             location = mun;
             break;
-          }
-        }
-        if (!location) {
-          if (addrLower.includes("baliza") || addrLower.includes("são joão") || addrLower.includes("sao joao")) {
-            location = "São João da Baliza";
-          } else if (addrLower.includes("sao luiz") || addrLower.includes("luiz do anau") || addrLower.includes("são luiz")) {
-            location = "São Luiz";
           }
         }
       }
@@ -399,17 +384,10 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
       // 2. Check if voter's localVotacao (polling place) mentions any municipality
       if (!location && voter.localVotacao) {
         const lvLower = voter.localVotacao.toLowerCase();
-        for (const mun of MUNICIPALITIES) {
+        for (const mun of dynamicMunicipalities) {
           if (lvLower.includes(mun.toLowerCase())) {
             location = mun;
             break;
-          }
-        }
-        if (!location) {
-          if (lvLower.includes("baliza") || lvLower.includes("são joão") || lvLower.includes("sao joao")) {
-            location = "São João da Baliza";
-          } else if (lvLower.includes("sao luiz") || lvLower.includes("luiz do anau") || lvLower.includes("são luiz")) {
-            location = "São Luiz";
           }
         }
       }
@@ -456,7 +434,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
             location = teamNameToLocation.get(articulator.teamName.trim().toLowerCase())!;
           } else if (articulator.address) {
             const artAddr = articulator.address.toLowerCase();
-            for (const mun of MUNICIPALITIES) {
+            for (const mun of dynamicMunicipalities) {
               if (artAddr.includes(mun.toLowerCase())) {
                 location = mun;
                 break;
@@ -513,7 +491,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
 
       // 8. Fallback
       if (!location) {
-        location = "Boa Vista";
+        location = dynamicMunicipalities[0] || "Sede";
       }
 
       return {
@@ -521,12 +499,12 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
         resolvedMunicipality: location
       };
     });
-  }, [allVoters, teams]);
+  }, [allVoters, teams, dynamicMunicipalities]);
 
   // Aggregate stats per municipality for overall dashboard
   const munStats = useMemo(() => {
     const stats: Record<string, { voters: number; teams: number; leaders: string[]; supporters: number }> = {};
-    MUNICIPALITIES.forEach(m => {
+    dynamicMunicipalities.forEach(m => {
       stats[m] = { voters: 0, teams: 0, leaders: [], supporters: 0 };
     });
 
@@ -539,7 +517,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
     });
 
     teams.forEach(t => {
-      const m = resolveTeamMunicipality(t.location);
+      const m = resolveTeamMunicipality(t.location, dynamicMunicipalities);
       if (stats[m]) {
         stats[m].teams++;
         if (t.leader && !stats[m].leaders.includes(t.leader)) {
@@ -549,12 +527,12 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
     });
 
     return stats;
-  }, [mappedVoters, teams]);
+  }, [dynamicMunicipalities, mappedVoters, teams]);
 
   // Filter current active municipality data
   const municipalTeams = useMemo(() => {
-    return teams.filter(t => resolveTeamMunicipality(t.location).toLowerCase() === selectedMun.toLowerCase());
-  }, [teams, selectedMun]);
+    return teams.filter(t => resolveTeamMunicipality(t.location, dynamicMunicipalities).toLowerCase() === selectedMun.toLowerCase());
+  }, [teams, selectedMun, dynamicMunicipalities]);
 
   const municipalVoters = useMemo(() => {
     return mappedVoters.filter(v => v.resolvedMunicipality?.toLowerCase() === selectedMun.toLowerCase());
@@ -686,22 +664,22 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
   };
 
   const filteredZonesGroups = useMemo(() => {
-    return ZONES_GROUPS.map(group => {
+    return dynamicZonesGroups.map(group => {
       if (selectedZoneFilter !== "all" && group.name !== selectedZoneFilter) {
         return null;
       }
       const filteredMuns = group.municipalities.filter(mun => 
         !sidebarSearch ||
         mun.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
-        (ZONE_INFO[mun]?.zone || "").toLowerCase().includes(sidebarSearch.toLowerCase())
+        getZoneLabel(mun).toLowerCase().includes(sidebarSearch.toLowerCase())
       );
       if (filteredMuns.length === 0) return null;
       return {
         ...group,
         municipalities: filteredMuns
       };
-    }).filter(Boolean) as typeof ZONES_GROUPS;
-  }, [sidebarSearch, selectedZoneFilter]);
+    }).filter(Boolean) as typeof dynamicZonesGroups;
+  }, [dynamicZonesGroups, sidebarSearch, selectedZoneFilter]);
 
   return (
     <div className="space-y-6">
@@ -713,7 +691,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
           </div>
           <div>
             <h2 className="text-xl font-black uppercase text-zinc-950 dark:text-white tracking-tighter leading-none">Mapa Regional Eleitoral</h2>
-            <p className="text-zinc-500 dark:text-zinc-400 text-[10px] font-bold uppercase tracking-widest mt-1.5">Visão Territorial, Divisão por Zonas do TRE-RR e Gestão de Lideranças Locais</p>
+            <p className="text-zinc-500 dark:text-zinc-400 text-[10px] font-bold uppercase tracking-widest mt-1.5">Visão Territorial, Divisão por Zonas do TRE e Gestão de Lideranças Locais</p>
           </div>
         </div>
 
@@ -725,8 +703,8 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
             onChange={(e) => setSelectedMun(e.target.value)}
             className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white px-3 py-2 rounded-sm font-black text-[10px] uppercase outline-none focus:border-blue-600 shadow-sm"
           >
-            {MUNICIPALITIES.map(mun => (
-              <option key={mun} value={mun}>{mun} ({ZONE_INFO[mun]?.zone || "ZE"})</option>
+            {dynamicMunicipalities.map(mun => (
+              <option key={mun} value={mun}>{mun} ({getZoneLabel(mun)})</option>
             ))}
           </select>
         </div>
@@ -742,7 +720,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
             {/* Sidebar Title & Toggles */}
             <div className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-900 pb-3 mb-3">
               <div>
-                <h3 className="text-[11px] font-black uppercase tracking-wider text-zinc-900 dark:text-white">Divisão de Roraima</h3>
+                <h3 className="text-[11px] font-black uppercase tracking-wider text-zinc-900 dark:text-white">Divisão Territorial da Campanha</h3>
                 <p className="text-[8px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wide leading-none mt-1">Selecione o Município</p>
               </div>
               
@@ -784,7 +762,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
                     className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm py-1.5 px-2 font-bold text-[9px] text-zinc-900 dark:text-white outline-none focus:border-blue-600"
                   >
                     <option value="all">Todas as Zonas Eleitorais</option>
-                    {ZONES_GROUPS.map(g => (
+                    {dynamicZonesGroups.map(g => (
                       <option key={g.name} value={g.name}>{g.name}</option>
                     ))}
                   </select>
@@ -836,14 +814,14 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-2 h-2 rounded-full shrink-0" 
-                                  style={{ backgroundColor: ZONE_INFO[mun]?.color || "#0578d3" }}
+                                  style={{ backgroundColor: getZoneColor(mun) }}
                                 />
                                 <div>
                                   <h5 className="text-xs font-bold uppercase leading-none">
                                     {mun}
                                   </h5>
                                   <p className="text-[9px] text-zinc-500 dark:text-zinc-400 font-medium uppercase mt-0.5 leading-none">
-                                    {ZONE_INFO[mun]?.zone}
+                                    {getZoneLabel(mun)}
                                   </p>
                                 </div>
                               </div>

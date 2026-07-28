@@ -110,30 +110,38 @@ export function setTreLocationsForCoordinator(coordinatorId: string, locations: 
   }
 
   cachedLocationsByCoord.set(coordinatorId, items);
+  cachedLocationsByCoord.set('default', items);
 }
 
 export function clearTreLocationsCache(coordinatorId?: string) {
   if (coordinatorId) {
     cachedLocationsByCoord.delete(coordinatorId);
-  } else {
-    cachedLocationsByCoord.clear();
   }
+  cachedLocationsByCoord.clear();
 }
 
 export function getAllTreLocations(coordinatorId?: string): TreLocationItem[] {
   const coordKey = coordinatorId || 'default';
 
+  // 1. Direct cache match if non-empty
   if (cachedLocationsByCoord.has(coordKey)) {
-    return cachedLocationsByCoord.get(coordKey)!;
+    const cached = cachedLocationsByCoord.get(coordKey)!;
+    if (cached.length > 0) return cached;
   }
 
-  const locations: TreLocationItem[] = [];
-  let counter = 1;
+  // 2. Search all keys in memory cache for non-empty locations
+  for (const [, items] of cachedLocationsByCoord.entries()) {
+    if (items && items.length > 0) {
+      cachedLocationsByCoord.set(coordKey, items);
+      return items;
+    }
+  }
 
-  try {
-    const key = `sistema_urna360_eleitoral_data_${coordKey}`;
-    const savedStr = localStorage.getItem(key);
-    if (savedStr) {
+  // 3. Search localStorage
+  const parseSaved = (savedStr: string): TreLocationItem[] => {
+    const locations: TreLocationItem[] = [];
+    let counter = 1;
+    try {
       const parsed = JSON.parse(savedStr);
       if (Array.isArray(parsed) && parsed.length > 0) {
         for (const item of parsed) {
@@ -160,13 +168,44 @@ export function getAllTreLocations(coordinatorId?: string): TreLocationItem[] {
           });
         }
       }
+    } catch (e) {}
+    return locations;
+  };
+
+  try {
+    const key = `sistema_urna360_eleitoral_data_${coordKey}`;
+    const savedStr = localStorage.getItem(key);
+    if (savedStr) {
+      const locs = parseSaved(savedStr);
+      if (locs.length > 0) {
+        cachedLocationsByCoord.set(coordKey, locs);
+        cachedLocationsByCoord.set('default', locs);
+        return locs;
+      }
+    }
+
+    // Scan all keys in localStorage for any electoral data
+    for (let i = 0; i < localStorage.length; i++) {
+      const lsKey = localStorage.key(i);
+      if (lsKey && lsKey.startsWith('sistema_urna360_eleitoral_data_')) {
+        const val = localStorage.getItem(lsKey);
+        if (val) {
+          const locs = parseSaved(val);
+          if (locs.length > 0) {
+            cachedLocationsByCoord.set(coordKey, locs);
+            cachedLocationsByCoord.set('default', locs);
+            return locs;
+          }
+        }
+      }
     }
   } catch (err) {
     console.warn("Error parsing local electoral data cache:", err);
   }
 
-  cachedLocationsByCoord.set(coordKey, locations);
-  return locations;
+  const empty: TreLocationItem[] = [];
+  cachedLocationsByCoord.set(coordKey, empty);
+  return empty;
 }
 
 // Get distinct list of Zonas for given coordinator
