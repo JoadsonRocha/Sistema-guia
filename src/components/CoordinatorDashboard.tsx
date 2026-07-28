@@ -200,9 +200,12 @@ export default function CoordinatorDashboard({
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
   const [selectedLinkTeam, setSelectedLinkTeam] = useState('');
 
-  // Redirect away from Coordenador Geral tabs if user is not Coordenador Geral
+  // Redirect away from Coordenador Geral / Regional restricted tabs
   useEffect(() => {
     if (!isGeral && (activeTab === 'metas' || activeTab === 'regional_coords')) {
+      setActiveTab('overview');
+    }
+    if (isGeral && (activeTab === 'teams' || activeTab === 'voters')) {
       setActiveTab('overview');
     }
   }, [isGeral, activeTab]);
@@ -1907,7 +1910,7 @@ export default function CoordinatorDashboard({
       sub: 'Gestão de Líderes', 
       color: 'text-[var(--text-primary)]',
       iconColor: 'bg-zinc-100 dark:bg-zinc-800',
-      action: () => setActiveTab('teams')
+      action: () => isGeral ? setActiveTab('regional_coords') : setActiveTab('teams')
     },
     { 
       label: 'Contatos Base', 
@@ -1915,7 +1918,7 @@ export default function CoordinatorDashboard({
       sub: 'Monitoramento Real', 
       color: 'text-emerald-600 dark:text-emerald-500',
       iconColor: 'bg-emerald-50 dark:bg-emerald-500/10',
-      action: () => setActiveTab('voters')
+      action: () => isGeral ? setActiveTab('reports') : setActiveTab('voters')
     },
     { 
       label: 'Agenda Pendente', 
@@ -1931,7 +1934,7 @@ export default function CoordinatorDashboard({
       sub: `${((votedVotersCount / ((totalVotersCount || allVoters.length) || 1)) * 100).toFixed(1)}% de Metas`, 
       color: 'text-emerald-700 dark:text-emerald-400',
       iconColor: 'bg-emerald-100 dark:bg-emerald-500/20',
-      action: () => setActiveTab('voters')
+      action: () => isGeral ? setActiveTab('reports') : setActiveTab('voters')
     },
   ];
 
@@ -2334,8 +2337,8 @@ export default function CoordinatorDashboard({
             { id: 'overview', label: 'Dashboard Geral', icon: <LayoutDashboard className="w-4 h-4" /> },
             ...(isGeral ? [{ id: 'metas', label: 'Metas Eleitorais', icon: <Target className="w-4 h-4" /> }] : []),
             ...(isGeral ? [{ id: 'regional_coords', label: 'Coord. Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
-            { id: 'teams', label: 'Equipes & Líderes', icon: <Users className="w-4 h-4" /> },
-            { id: 'voters', label: 'Eleitores Geral', icon: <UserPlus className="w-4 h-4" /> },
+            ...(!isGeral ? [{ id: 'teams', label: 'Equipes & Líderes', icon: <Users className="w-4 h-4" /> }] : []),
+            ...(!isGeral ? [{ id: 'voters', label: 'Eleitores Geral', icon: <UserPlus className="w-4 h-4" /> }] : []),
             { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
             { id: 'mapa', label: 'Mapa Regional', icon: <MapIcon className="w-4 h-4" /> },
             { id: 'analise_eleitoral', label: 'Análise Eleitoral', icon: <TrendingUp className="w-4 h-4" /> },
@@ -6722,8 +6725,8 @@ export default function CoordinatorDashboard({
           { id: 'overview', label: 'Dash', icon: <LayoutDashboard className="w-4 h-4" /> },
           ...(isGeral ? [{ id: 'metas', label: 'Metas', icon: <Target className="w-4 h-4" /> }] : []),
           ...(isGeral ? [{ id: 'regional_coords', label: 'Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
-          { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
-          { id: 'voters', label: 'Eleitores', icon: <UserPlus className="w-4 h-4" /> },
+          ...(!isGeral ? [{ id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> }] : []),
+          ...(!isGeral ? [{ id: 'voters', label: 'Eleitores', icon: <UserPlus className="w-4 h-4" /> }] : []),
           { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
           { id: 'analise_eleitoral', label: 'Análise', icon: <TrendingUp className="w-4 h-4" /> },
           { id: 'materials', label: 'Materiais', icon: <Package className="w-4 h-4" /> },
