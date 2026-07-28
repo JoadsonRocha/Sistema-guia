@@ -940,14 +940,28 @@ export default function EleitoralDashboard({
         </div>
 
         {isCoordinator && canEditTreData && (
-          <button
-            onClick={() => setIsImportModalOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-1.5 my-1 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
-            title="Importar ou gerenciar planilha de dados oficiais do TRE"
-          >
-            <UploadCloud className="w-4 h-4 text-blue-400" />
-            <span>Importar / Gerenciar Planilha TRE</span>
-          </button>
+          <div className="flex items-center gap-2 flex-wrap my-1">
+            <a
+              href="https://drive.google.com/drive/folders/1D3mvu08C-fxvk9CQrAynEmeol7mMr32s?usp=sharing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer uppercase tracking-tight"
+              title="Acessar pasta no Google Drive com as planilhas oficiais preenchidas por Estado"
+            >
+              <Download className="w-4 h-4 text-blue-100" />
+              <span>BAIXE A PLANILHA PREENCHIDA DO SEU ESTADO</span>
+              <ExternalLink className="w-3 h-3 text-blue-200 ml-0.5" />
+            </a>
+
+            <button
+              onClick={() => setIsImportModalOpen(true)}
+              className="flex items-center gap-2 px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
+              title="Importar ou gerenciar planilha de dados oficiais do TRE"
+            >
+              <UploadCloud className="w-4 h-4 text-blue-400" />
+              <span>Importar / Gerenciar Planilha TRE</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -1045,7 +1059,7 @@ export default function EleitoralDashboard({
                 </div>
 
                 <a 
-                  href="https://drive.google.com" 
+                  href="https://drive.google.com/drive/folders/1D3mvu08C-fxvk9CQrAynEmeol7mMr32s?usp=sharing" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5 shadow-sm"
