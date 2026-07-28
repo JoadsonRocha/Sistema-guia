@@ -48,7 +48,8 @@ import {
   ChevronsLeft,
   ChevronsRight,
   HelpCircle,
-  Info
+  Info,
+  ExternalLink
 } from 'lucide-react';
 import { VotingLocation, TSE_COLUMNS, TseColumnDef } from '../data/eleitoralData';
 import * as XLSX from 'xlsx';
@@ -1027,6 +1028,33 @@ export default function EleitoralDashboard({
                 </div>
               </div>
 
+              {/* Drive Folder Link Option */}
+              <div className="p-3 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-blue-600 text-white rounded-md shrink-0">
+                    <Database className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-zinc-900 dark:text-white uppercase tracking-wider">
+                      Repositório Oficial TSE no Google Drive
+                    </h4>
+                    <p className="text-[11px] text-zinc-600 dark:text-zinc-400">
+                      Acesse as tabelas oficiais por estado prontas no Google Drive ou cole o link do seu estado.
+                    </p>
+                  </div>
+                </div>
+
+                <a 
+                  href="https://drive.google.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5 shadow-sm"
+                >
+                  <span>Acessar Pasta no Drive</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+
               {/* Dropzone */}
               <div 
                 onDragEnter={handleDrag}
@@ -1059,10 +1087,10 @@ export default function EleitoralDashboard({
                 >
                   <UploadCloud className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-1" />
                   <span className="text-sm font-bold text-zinc-800 dark:text-zinc-100">
-                    Arraste a planilha do TRE aqui ou clique para selecionar
+                    Arraste a planilha do TSE aqui ou clique para selecionar
                   </span>
                   <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Suporta arquivos .xlsx, .xls e .csv com colunas de Município, Zona, Bairro, Local e Eleitores
+                    Suporta arquivos .xlsx, .xls e .csv baixados do Drive ou do site oficial do TSE
                   </span>
                 </label>
               </div>
