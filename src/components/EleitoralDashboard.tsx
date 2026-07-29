@@ -968,6 +968,23 @@ export default function EleitoralDashboard({
     setTimeout(() => setSuccessMsg(null), 5000);
   };
 
+  const normalizeHeaderKey = (str: any): string => {
+    return String(str || '')
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // removes accents (e.g. Í -> I, Ç -> C)
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, ''); // removes spaces, underscores, punctuation
+  };
+
+  const parseEleitoresCount = (val: any): number => {
+    if (val === undefined || val === null || val === '') return 0;
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    const str = String(val).trim();
+    const cleanStr = str.replace(/\./g, '').replace(/,/g, '.').replace(/[^0-9.]/g, '');
+    const num = parseFloat(cleanStr);
+    return isNaN(num) ? 0 : Math.round(num);
+  };
+
   const processFile = (file: File) => {
     setSuccessMsg(null);
     setErrorMsg(null);
@@ -981,61 +998,108 @@ export default function EleitoralDashboard({
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
         
-        const jsonData = XLSX.utils.sheet_to_json<any>(worksheet);
-        
-        // Build single header mapping dictionary for ultra-fast O(1) row processing
-        const colKeyMap: Record<string, string> = {};
-        if (jsonData.length > 0) {
-          const sampleKeys = Object.keys(jsonData[0]);
-          for (let k = 0; k < sampleKeys.length; k++) {
-            const rawK = sampleKeys[k];
-            const normK = String(rawK).trim().toLowerCase().replace(/_/g, ' ');
-            colKeyMap[normK] = rawK;
+        // Convert sheet to 2D matrix to find actual header row dynamically
+        const matrix = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1 });
+        if (!matrix || matrix.length === 0) {
+          setErrorMsg("A planilha carregada está totalmente vazia.");
+          return;
+        }
+
+        const headerKeywords = [
+          "municipio", "cidade", "nmmunicipio", "cdmunicipio",
+          "local", "escola", "nmlocalvotacao", "localvotacao", "colegio",
+          "zona", "nrzona", "ze",
+          "secao", "nrsecao", "secoes",
+          "bairro", "nmbairro",
+          "endereco", "dsendereco", "logradouro",
+          "eleitor", "eleitores", "aptos", "qteleitorsecao", "qteleitor"
+        ];
+
+        let bestHeaderRowIndex = 0;
+        let maxMatches = -1;
+
+        // Search top 25 rows for the best header row
+        const scanLimit = Math.min(25, matrix.length);
+        for (let r = 0; r < scanLimit; r++) {
+          const row = matrix[r];
+          if (!Array.isArray(row)) continue;
+          let matches = 0;
+          for (let c = 0; c < row.length; c++) {
+            const normCell = normalizeHeaderKey(row[c]);
+            if (normCell && headerKeywords.some(kw => normCell.includes(kw))) {
+              matches++;
+            }
+          }
+          if (matches > maxMatches) {
+            maxMatches = matches;
+            bestHeaderRowIndex = r;
           }
         }
 
-        const getColVal = (row: any, targetKeys: string[]) => {
-          for (let i = 0; i < targetKeys.length; i++) {
-            const normTarget = targetKeys[i].trim().toLowerCase().replace(/_/g, ' ');
-            const actualKey = colKeyMap[normTarget];
-            if (actualKey && row[actualKey] !== undefined && row[actualKey] !== null) {
-              return row[actualKey];
+        const headerRow = matrix[bestHeaderRowIndex] || [];
+        const detectedHeadersRaw = headerRow.map(cell => String(cell || '').trim());
+        const normHeaders = detectedHeadersRaw.map(cell => normalizeHeaderKey(cell));
+
+        const findColIdx = (targets: string[]): number => {
+          for (let i = 0; i < normHeaders.length; i++) {
+            const h = normHeaders[i];
+            if (!h) continue;
+            for (const target of targets) {
+              const normTarget = normalizeHeaderKey(target);
+              if (h === normTarget || h.includes(normTarget)) {
+                return i;
+              }
             }
           }
-          return undefined;
+          return -1;
         };
 
-        const parsedRows: VotingLocation[] = jsonData.map((row: any) => {
-          const nmMunicipio = String(getColVal(row, ["NM MUNICIPIO", "NM_MUNICIPIO", "MUNICÍPIO", "MUNICIPIO", "CIDADE"]) || "").trim();
-          const nrZona = String(getColVal(row, ["NR ZONA", "NR_ZONA", "ZONA", "ZE", "ZONA ELEITORAL"]) || "").trim();
-          const nrSecao = String(getColVal(row, ["NR SECAO", "NR_SECAO", "SEÇÃO", "SECAO", "SECOES"]) || "").trim();
-          const cdTipoSecaoAgregada = getColVal(row, ["CD TIPO SECAO AGREGADA", "CD_TIPO_SECAO_AGREGADA", "CD TIPO SECAO"]) ?? -1;
-          const dsTipoSecaoAgregada = String(getColVal(row, ["DS_TIPO_SECAO_AGREGADA", "DS TIPO SECAO AGREGADA", "DS TIPO SECAO"]) || "#NULO").trim();
-          const nrSecaoPrincipal = getColVal(row, ["NR SECAO PRINCIPAL", "NR_SECAO_PRINCIPAL"]) ?? -1;
-          const nrLocalVotacao = getColVal(row, ["NR LOCAL VOTACAO", "NR_LOCAL_VOTACAO", "NR LOCAL"]) ?? "";
-          const nmLocalVotacao = String(getColVal(row, ["NM LOCAL VOTACAO", "NM_LOCAL_VOTACAO", "LOCAL DE VOTAÇÃO", "LOCAL DE VOTACAO", "LOCAL", "ESCOLA"]) || "").trim();
-          const dsEndereco = String(getColVal(row, ["DS ENDERECO", "DS_ENDERECO", "ENDEREÇO", "ENDERECO", "LOGRADOURO"]) || "").trim();
-          const nmBairro = String(getColVal(row, ["NM BAIRRO", "NM_BAIRRO", "BAIRRO", "REGIÃO"]) || "").trim();
-          const qtEleitorSecao = Number(getColVal(row, ["QT_ELEITOR_SECAO", "QT ELEITOR SECAO", "ELEITORES", "QUANTIDADE DE ELEITORES APTOS", "APTOS"])) || 0;
-          const nmLocalVotacaoOriginal = String(getColVal(row, ["NM LOCAL VOTACAO ORIGINAL", "NM_LOCAL_VOTACAO_ORIGINAL"]) || nmLocalVotacao).trim();
-          const dsEnderecoLocvtOriginal = String(getColVal(row, ["DS ENDERECO_LOCVT_ORIGINAL", "DS_ENDERECO_LOCVT_ORIGINAL"]) || dsEndereco).trim();
+        const colMun = findColIdx(["nmmunicipio", "municipio", "cidade", "nomemunicipio", "cdmunicipio"]);
+        const colZona = findColIdx(["nrzona", "zona", "ze", "zonaeleitoral", "numzona"]);
+        const colSecao = findColIdx(["nrsecao", "secao", "secoes", "numsecao"]);
+        const colLocal = findColIdx(["nmlocalvotacao", "localdevotacao", "localvotacao", "local", "escola", "nomelocal", "colegio", "locdevotacao", "nrlocalvotacao"]);
+        const colEndereco = findColIdx(["dsendereco", "endereco", "logradouro", "rua", "locvtendereco"]);
+        const colBairro = findColIdx(["nmbairro", "bairro", "regiao", "distrito"]);
+        const colEleitores = findColIdx(["qteleitorsecao", "qteleitoressecao", "qteleitor", "eleitores", "aptos", "quantidadedeeleitoresaptos", "quantidadedeeleitores", "totaleleitores", "qteleitores", "numeleitores"]);
+        const colTipoAgregada = findColIdx(["cdtiposecaoagregada", "dstiposecaoagregada", "cdtiposecao"]);
+        const colSecaoPrincipal = findColIdx(["nrsecaoprincipal"]);
+
+        const dataRows = matrix.slice(bestHeaderRowIndex + 1);
+        const parsedRows: VotingLocation[] = [];
+
+        for (let i = 0; i < dataRows.length; i++) {
+          const row = dataRows[i];
+          if (!Array.isArray(row) || row.length === 0) continue;
+
+          const nmMunicipio = colMun !== -1 && row[colMun] !== undefined && row[colMun] !== null ? String(row[colMun]).trim() : '';
+          const nmLocalVotacao = colLocal !== -1 && row[colLocal] !== undefined && row[colLocal] !== null ? String(row[colLocal]).trim() : '';
+
+          if (!nmMunicipio || !nmLocalVotacao) continue;
+
+          const nrZona = colZona !== -1 && row[colZona] !== undefined && row[colZona] !== null ? String(row[colZona]).trim() : '';
+          const nrSecao = colSecao !== -1 && row[colSecao] !== undefined && row[colSecao] !== null ? String(row[colSecao]).trim() : '';
+          const dsEndereco = colEndereco !== -1 && row[colEndereco] !== undefined && row[colEndereco] !== null ? String(row[colEndereco]).trim() : '';
+          const nmBairro = colBairro !== -1 && row[colBairro] !== undefined && row[colBairro] !== null ? String(row[colBairro]).trim() : '';
+          const qtEleitorSecao = colEleitores !== -1 ? parseEleitoresCount(row[colEleitores]) : 0;
+          const cdTipoSecaoAgregada = colTipoAgregada !== -1 ? Number(row[colTipoAgregada]) || -1 : -1;
+          const nrSecaoPrincipal = colSecaoPrincipal !== -1 ? Number(row[colSecaoPrincipal]) || -1 : -1;
 
           const zonaFormatted = nrZona ? (nrZona.toLowerCase().includes('ze') ? nrZona : `${nrZona}ª ZE`) : '';
 
-          return {
+          parsedRows.push({
             nmMunicipio,
             nrZona,
             nrSecao,
             cdTipoSecaoAgregada,
-            dsTipoSecaoAgregada,
+            dsTipoSecaoAgregada: '#NULO',
             nrSecaoPrincipal,
-            nrLocalVotacao,
+            nrLocalVotacao: '',
             nmLocalVotacao,
             dsEndereco,
             nmBairro,
             qtEleitorSecao,
-            nmLocalVotacaoOriginal,
-            dsEnderecoLocvtOriginal,
+            nmLocalVotacaoOriginal: nmLocalVotacao,
+            dsEnderecoLocvtOriginal: dsEndereco,
 
             // Compatibility computed fields
             municipio: nmMunicipio,
@@ -1046,21 +1110,19 @@ export default function EleitoralDashboard({
             endereco: dsEndereco,
             bairro: nmBairro,
             eleitores: qtEleitorSecao
-          };
-        }).filter(row => (row.nmMunicipio || row.municipio) && (row.nmLocalVotacao || row.local) && (row.qtEleitorSecao > 0 || (row.eleitores && row.eleitores > 0)));
+          });
+        }
 
         if (parsedRows.length === 0) {
-          setErrorMsg("Nenhum dado válido encontrado. Verifique se as colunas estão no modelo oficial do TSE (Tabela_Variaveis_TSE).");
+          const detectedStr = detectedHeadersRaw.filter(Boolean).join(", ");
+          setErrorMsg(`Não foi possível identificar as colunas de "Município" e "Local de Votação". Colunas detectadas na sua planilha: [${detectedStr || "Nenhuma coluna identificada"}].`);
           return;
         }
 
         saveVotingLocations(parsedRows);
-        setSuccessMsg(`✅ Sucesso! Planilha do TRE processada e sincronizada no seu banco de dados com máxima performance.`);
-        setTimeout(() => setSuccessMsg(null), 6000);
-        setTimeout(() => setSuccessMsg(null), 6000);
       } catch (err) {
-        console.error(err);
-        setErrorMsg("Erro ao processar o arquivo de planilha. Certifique-se de carregar um arquivo Excel (.xlsx) válido.");
+        console.error("Erro ao ler planilha:", err);
+        setErrorMsg("Erro ao processar o arquivo de planilha. Certifique-se de carregar um arquivo Excel (.xlsx, .xls) ou CSV válido.");
       }
     };
     reader.readAsArrayBuffer(file);
