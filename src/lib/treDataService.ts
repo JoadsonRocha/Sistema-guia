@@ -1,4 +1,5 @@
 import { normalizeLoc } from '../data/roraimaTreData';
+import { eleitoralStorage } from './eleitoralStorage';
 
 export interface TreLocationItem {
   id: string;
@@ -110,11 +111,15 @@ export function setTreLocationsForCoordinator(coordinatorId: string, locations: 
   }
 
   cachedLocationsByCoord.set(coordinatorId, items);
+  if (items.length > 0) {
+    eleitoralStorage.saveLocations(coordinatorId, locations);
+  }
 }
 
 export function clearTreLocationsCache(coordinatorId?: string) {
   if (coordinatorId) {
     cachedLocationsByCoord.set(coordinatorId, []);
+    eleitoralStorage.clearLocations(coordinatorId);
   } else {
     cachedLocationsByCoord.clear();
   }

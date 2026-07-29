@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { doc, onSnapshot, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../lib/FirebaseProvider';
-import { setTreLocationsForCoordinator, clearTreLocationsCache } from '../lib/treDataService';
+import { setTreLocationsForCoordinator, clearTreLocationsCache, getAllTreLocations } from '../lib/treDataService';
+import { eleitoralStorage } from '../lib/eleitoralStorage';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   BarChart, 
@@ -142,22 +143,25 @@ export default function EleitoralDashboard({
 
   const [subTab, setSubTab] = useState<'tre_oficial' | 'cruzamento'>('tre_oficial');
 
-  // Load data from localStorage for instant initial render
+  // Load data from memory cache or IndexedDB
   const [votingLocations, setVotingLocations] = useState<VotingLocation[]>(() => {
     if (activeCoordId) {
-      const key = `sistema_urna360_eleitoral_data_${activeCoordId}`;
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        try {
+      const cached = getAllTreLocations(activeCoordId);
+      if (cached && cached.length > 0) {
+        return cached as any;
+      }
+      try {
+        const key = `sistema_urna360_eleitoral_data_${activeCoordId}`;
+        const saved = localStorage.getItem(key);
+        if (saved) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) {
             setTreLocationsForCoordinator(activeCoordId, parsed);
             return parsed;
           }
-        } catch (e) {}
-      }
+        }
+      } catch (e) {}
     }
-    setTreLocationsForCoordinator(activeCoordId, []);
     return [];
   });
 
@@ -176,6 +180,40 @@ export default function EleitoralDashboard({
 
   const isSavingRef = React.useRef(false);
 
+  // Helper to format/clean items for compact Firestore storage
+  const cleanLocationForFirestore = (loc: VotingLocation): any => {
+    const nmMuni = String(loc.nmMunicipio || loc.municipio || '').trim();
+    const nrZ = String(loc.nrZona || loc.zona || '').trim();
+    const nrS = String(loc.nrSecao || loc.secoes || '').trim();
+    const nmLoc = String(loc.nmLocalVotacao || loc.local || '').trim();
+    const dsEnd = String(loc.dsEndereco || loc.endereco || '').trim();
+    const nmB = String(loc.nmBairro || loc.bairro || '').trim();
+    const qtEleit = Number(loc.qtEleitorSecao ?? loc.eleitores) || 0;
+
+    return {
+      nmMunicipio: nmMuni,
+      nrZona: nrZ,
+      nrSecao: nrS,
+      nmLocalVotacao: nmLoc,
+      dsEndereco: dsEnd,
+      nmBairro: nmB,
+      qtEleitorSecao: qtEleit,
+      cdTipoSecaoAgregada: loc.cdTipoSecaoAgregada ?? -1,
+      dsTipoSecaoAgregada: loc.dsTipoSecaoAgregada || '#NULO',
+      nrSecaoPrincipal: loc.nrSecaoPrincipal ?? -1,
+      nrLocalVotacao: loc.nrLocalVotacao ?? '',
+
+      // Compatibility fields
+      municipio: nmMuni,
+      zona: nrZ,
+      secoes: nrS,
+      local: nmLoc,
+      endereco: dsEnd,
+      bairro: nmB,
+      eleitores: qtEleit
+    };
+  };
+
   // Save parsed data locally and to Firestore database for cross-browser synchronization
   const saveVotingLocations = async (newData: VotingLocation[]) => {
     isSavingRef.current = true;
@@ -184,9 +222,7 @@ export default function EleitoralDashboard({
 
     if (!newData || newData.length === 0) {
       clearTreLocationsCache(activeCoordId);
-      try {
-        localStorage.setItem(`sistema_urna360_eleitoral_data_${activeCoordId}`, '[]');
-      } catch (e) {}
+      await eleitoralStorage.clearLocations(activeCoordId);
       try {
         const docId = `coord_${activeCoordId}`;
         await setDoc(doc(db, 'eleitoral_data', docId), {
@@ -197,7 +233,7 @@ export default function EleitoralDashboard({
           chunksCount: 0,
           isChunked: false
         });
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < 30; i++) {
           try {
             await deleteDoc(doc(db, 'eleitoral_data', `${docId}_${i}`));
           } catch (e) {}
@@ -210,18 +246,20 @@ export default function EleitoralDashboard({
       return;
     }
 
-    try {
-      localStorage.setItem(`sistema_urna360_eleitoral_data_${activeCoordId}`, JSON.stringify(newData));
-    } catch (e) {
-      console.warn("Erro ao salvar cache no localStorage:", e);
-    }
+    // Save to high-capacity IndexedDB locally
+    await eleitoralStorage.saveLocations(activeCoordId, newData);
 
     try {
       const docId = `coord_${activeCoordId}`;
-      const jsonStr = JSON.stringify(newData);
-      if (jsonStr.length < 800000) {
+      const cleanData = newData.map(cleanLocationForFirestore);
+
+      // Safe chunk size of 400 items (~80 KB per chunk) to stay far below Firestore's 1 MB limit
+      const chunkSize = 400;
+      const chunksCount = Math.ceil(cleanData.length / chunkSize);
+
+      if (chunksCount <= 1 && cleanData.length <= 400) {
         await setDoc(doc(db, 'eleitoral_data', docId), {
-          locations: newData,
+          locations: cleanData,
           cleared: false,
           updatedAt: Date.now(),
           coordinatorId: activeCoordId,
@@ -229,12 +267,9 @@ export default function EleitoralDashboard({
           isChunked: false
         });
       } else {
-        const chunkSize = 1500;
-        const chunksCount = Math.ceil(newData.length / chunkSize);
-
-        // 1. Write chunk sub-documents FIRST
+        // 1. Save all chunk sub-documents
         for (let i = 0; i < chunksCount; i++) {
-          const chunk = newData.slice(i * chunkSize, (i + 1) * chunkSize);
+          const chunk = cleanData.slice(i * chunkSize, (i + 1) * chunkSize);
           await setDoc(doc(db, 'eleitoral_data', `${docId}_${i}`), {
             locations: chunk,
             updatedAt: Date.now(),
@@ -244,18 +279,27 @@ export default function EleitoralDashboard({
           });
         }
 
-        // 2. Write main header document LAST so onSnapshot listener finds all chunks ready
+        // Delete any obsolete extra chunks if dataset shrank
+        for (let i = chunksCount; i < chunksCount + 10; i++) {
+          try {
+            await deleteDoc(doc(db, 'eleitoral_data', `${docId}_${i}`));
+          } catch (e) {}
+        }
+
+        // 2. Save main document header LAST
         await setDoc(doc(db, 'eleitoral_data', docId), {
           chunksCount,
           cleared: false,
           updatedAt: Date.now(),
           coordinatorId: activeCoordId,
           isChunked: true,
-          locationsCount: newData.length
+          locationsCount: cleanData.length
         });
       }
-    } catch (err) {
+      setSuccessMsg(`✅ ${newData.length} locais de votação salvos com sucesso e sincronizados no seu banco de dados!`);
+    } catch (err: any) {
       console.error("Erro ao gravar dados eleitorais no Firestore:", err);
+      setErrorMsg("Aviso ao salvar no banco online: " + (err.message || "Verifique sua conexão."));
     } finally {
       isSavingRef.current = false;
     }
@@ -264,6 +308,14 @@ export default function EleitoralDashboard({
   // Real-time synchronization with Firestore across all browsers/devices
   useEffect(() => {
     if (!activeCoordId || activeCoordId === 'default') return;
+
+    // Restore from IndexedDB asynchronously if state is empty
+    eleitoralStorage.loadLocations(activeCoordId).then((cached) => {
+      if (cached && Array.isArray(cached) && cached.length > 0) {
+        setVotingLocations(cached);
+        setTreLocationsForCoordinator(activeCoordId, cached);
+      }
+    });
 
     const docId = `coord_${activeCoordId}`;
     const unsub = onSnapshot(doc(db, 'eleitoral_data', docId), async (snap) => {
@@ -276,33 +328,35 @@ export default function EleitoralDashboard({
           setVotingLocations([]);
           setTreLocationsForCoordinator(activeCoordId, []);
           clearTreLocationsCache(activeCoordId);
-          try {
-            localStorage.setItem(`sistema_urna360_eleitoral_data_${activeCoordId}`, '[]');
-          } catch (e) {}
+          eleitoralStorage.clearLocations(activeCoordId);
           return;
         }
 
         if (data.isChunked && data.chunksCount > 0) {
-          let allLocs: VotingLocation[] = [];
+          const promises = [];
           for (let i = 0; i < data.chunksCount; i++) {
-            const chunkSnap = await getDoc(doc(db, 'eleitoral_data', `${docId}_${i}`));
-            if (chunkSnap.exists()) {
-              allLocs = allLocs.concat(chunkSnap.data().locations || []);
-            }
+            promises.push(getDoc(doc(db, 'eleitoral_data', `${docId}_${i}`)));
           }
-          if (allLocs.length > 0) {
-            setVotingLocations(allLocs);
-            setTreLocationsForCoordinator(activeCoordId, allLocs);
-            try {
-              localStorage.setItem(`sistema_urna360_eleitoral_data_${activeCoordId}`, JSON.stringify(allLocs));
-            } catch (e) {}
+          try {
+            const chunkSnaps = await Promise.all(promises);
+            let allLocs: VotingLocation[] = [];
+            for (const cs of chunkSnaps) {
+              if (cs.exists()) {
+                allLocs = allLocs.concat(cs.data().locations || []);
+              }
+            }
+            if (allLocs.length > 0) {
+              setVotingLocations(allLocs);
+              setTreLocationsForCoordinator(activeCoordId, allLocs);
+              eleitoralStorage.saveLocations(activeCoordId, allLocs);
+            }
+          } catch (e) {
+            console.warn("Erro ao carregar chunks do TRE:", e);
           }
         } else if (Array.isArray(data.locations) && data.locations.length > 0) {
           setVotingLocations(data.locations);
           setTreLocationsForCoordinator(activeCoordId, data.locations);
-          try {
-            localStorage.setItem(`sistema_urna360_eleitoral_data_${activeCoordId}`, JSON.stringify(data.locations));
-          } catch (e) {}
+          eleitoralStorage.saveLocations(activeCoordId, data.locations);
         }
       }
     }, (err) => {
