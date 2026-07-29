@@ -281,12 +281,17 @@ export default function EleitoralDashboard({
     isSavingRef.current = true;
     const newData = aggregateLocationsIfSections(rawNewData);
 
+    // 1. Update React state, memory cache, localStorage, and IndexedDB immediately
     setVotingLocations(newData);
     setTreLocationsForCoordinator(activeCoordId, newData);
 
     if (!newData || newData.length === 0) {
       clearTreLocationsCache(activeCoordId);
       await eleitoralStorage.clearLocations(activeCoordId);
+      try {
+        localStorage.removeItem(`sistema_urna360_eleitoral_data_${activeCoordId}`);
+      } catch (e) {}
+
       try {
         const docId = `coord_${activeCoordId}`;
         await setDoc(doc(db, 'eleitoral_data', docId), {
@@ -309,6 +314,10 @@ export default function EleitoralDashboard({
       }
       return;
     }
+
+    try {
+      localStorage.setItem(`sistema_urna360_eleitoral_data_${activeCoordId}`, JSON.stringify(newData));
+    } catch (e) {}
 
     // Save to high-capacity IndexedDB locally
     await eleitoralStorage.saveLocations(activeCoordId, newData);
@@ -360,10 +369,10 @@ export default function EleitoralDashboard({
           locationsCount: cleanData.length
         });
       }
-      setSuccessMsg(`✅ ${newData.length} locais de votação de alta capacidade salvos e sincronizados com sucesso!`);
+      setSuccessMsg(`✅ ${newData.length} locais de votação salvos e sincronizados no seu banco de dados com sucesso!`);
     } catch (err: any) {
-      console.error("Erro ao gravar dados eleitorais no Firestore:", err);
-      setErrorMsg("Aviso ao salvar no banco online: " + (err.message || "Verifique sua conexão."));
+      console.error("Aviso ao salvar no Firestore (mantido localmente):", err);
+      setSuccessMsg(`✅ ${newData.length} locais de votação salvos no seu navegador com sucesso!`);
     } finally {
       isSavingRef.current = false;
     }
@@ -371,55 +380,85 @@ export default function EleitoralDashboard({
 
   // Real-time synchronization with Firestore across all browsers/devices
   useEffect(() => {
-    if (!activeCoordId || activeCoordId === 'default') return;
+    let isSubscribed = true;
 
-    // Restore from IndexedDB asynchronously if state is empty
-    eleitoralStorage.loadLocations(activeCoordId).then((cached) => {
-      if (cached && Array.isArray(cached) && cached.length > 0) {
-        const aggregated = aggregateLocationsIfSections(cached);
-        setVotingLocations(aggregated);
-        setTreLocationsForCoordinator(activeCoordId, aggregated);
+    // Load from IndexedDB / localStorage immediately as local fallback
+    const loadLocalData = async () => {
+      try {
+        const cached = await eleitoralStorage.loadLocations(activeCoordId);
+        if (isSubscribed && cached && Array.isArray(cached) && cached.length > 0) {
+          const aggregated = aggregateLocationsIfSections(cached);
+          setVotingLocations(prev => (prev.length === 0 ? aggregated : prev));
+          setTreLocationsForCoordinator(activeCoordId, aggregated);
+          return;
+        }
+
+        // Fallback to localStorage
+        const key = `sistema_urna360_eleitoral_data_${activeCoordId}`;
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (isSubscribed && Array.isArray(parsed) && parsed.length > 0) {
+            const aggregated = aggregateLocationsIfSections(parsed);
+            setVotingLocations(prev => (prev.length === 0 ? aggregated : prev));
+            setTreLocationsForCoordinator(activeCoordId, aggregated);
+          }
+        }
+      } catch (e) {
+        console.warn("Erro ao carregar dados locais do navegador:", e);
       }
-    });
+    };
+
+    loadLocalData();
+
+    if (!activeCoordId) return;
 
     const docId = `coord_${activeCoordId}`;
     const unsub = onSnapshot(doc(db, 'eleitoral_data', docId), async (snap) => {
       // Ignore incoming snapshots while local save/upload is in progress
       if (isSavingRef.current) return;
 
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data.cleared) {
-          setVotingLocations([]);
-          setTreLocationsForCoordinator(activeCoordId, []);
-          clearTreLocationsCache(activeCoordId);
-          eleitoralStorage.clearLocations(activeCoordId);
-          return;
-        }
+      if (!snap.exists()) {
+        // DO NOT wipe local state if document merely doesn't exist yet in Firestore!
+        return;
+      }
 
-        if (data.isChunked && data.chunksCount > 0) {
-          const promises = [];
-          for (let i = 0; i < data.chunksCount; i++) {
-            promises.push(getDoc(doc(db, 'eleitoral_data', `${docId}_${i}`)));
-          }
-          try {
-            const chunkSnaps = await Promise.all(promises);
-            let allLocs: VotingLocation[] = [];
-            for (const cs of chunkSnaps) {
-              if (cs.exists()) {
-                allLocs = allLocs.concat(cs.data().locations || []);
-              }
+      const data = snap.data();
+      if (data?.cleared) {
+        setVotingLocations([]);
+        setTreLocationsForCoordinator(activeCoordId, []);
+        clearTreLocationsCache(activeCoordId);
+        eleitoralStorage.clearLocations(activeCoordId);
+        try {
+          localStorage.removeItem(`sistema_urna360_eleitoral_data_${activeCoordId}`);
+        } catch (e) {}
+        return;
+      }
+
+      if (data?.isChunked && data.chunksCount > 0) {
+        const promises = [];
+        for (let i = 0; i < data.chunksCount; i++) {
+          promises.push(getDoc(doc(db, 'eleitoral_data', `${docId}_${i}`)));
+        }
+        try {
+          const chunkSnaps = await Promise.all(promises);
+          let allLocs: VotingLocation[] = [];
+          for (const cs of chunkSnaps) {
+            if (cs.exists()) {
+              allLocs = allLocs.concat(cs.data().locations || []);
             }
-            if (allLocs.length > 0) {
-              const aggregated = aggregateLocationsIfSections(allLocs);
-              setVotingLocations(aggregated);
-              setTreLocationsForCoordinator(activeCoordId, aggregated);
-              eleitoralStorage.saveLocations(activeCoordId, aggregated);
-            }
-          } catch (e) {
-            console.warn("Erro ao carregar chunks do TRE:", e);
           }
-        } else if (Array.isArray(data.locations) && data.locations.length > 0) {
+          if (allLocs.length > 0 && isSubscribed) {
+            const aggregated = aggregateLocationsIfSections(allLocs);
+            setVotingLocations(aggregated);
+            setTreLocationsForCoordinator(activeCoordId, aggregated);
+            eleitoralStorage.saveLocations(activeCoordId, aggregated);
+          }
+        } catch (e) {
+          console.warn("Erro ao carregar chunks do TRE:", e);
+        }
+      } else if (Array.isArray(data?.locations) && data.locations.length > 0) {
+        if (isSubscribed) {
           const aggregated = aggregateLocationsIfSections(data.locations);
           setVotingLocations(aggregated);
           setTreLocationsForCoordinator(activeCoordId, aggregated);
@@ -427,10 +466,13 @@ export default function EleitoralDashboard({
         }
       }
     }, (err) => {
-      console.warn("Erro ao sincronizar banco de dados eleitoral do TRE:", err);
+      console.warn("Aviso na sincronização Firestore (usando banco local):", err);
     });
 
-    return () => unsub();
+    return () => {
+      isSubscribed = false;
+      unsub();
+    };
   }, [activeCoordId]);
 
   // Drag-and-drop state & Modal
@@ -1040,77 +1082,161 @@ export default function EleitoralDashboard({
         const detectedHeadersRaw = headerRow.map(cell => String(cell || '').trim());
         const normHeaders = detectedHeadersRaw.map(cell => normalizeHeaderKey(cell));
 
-        const findColIdx = (targets: string[]): number => {
-          for (let i = 0; i < normHeaders.length; i++) {
-            const h = normHeaders[i];
-            if (!h) continue;
-            for (const target of targets) {
-              const normTarget = normalizeHeaderKey(target);
-              if (h === normTarget || h.includes(normTarget)) {
-                return i;
-              }
-            }
-          }
-          return -1;
-        };
+        const munTargets = ["nmmunicipio", "municipio", "cidade", "nomemunicipio", "cdmunicipio", "mun"];
+        const localTargets = ["nmlocalvotacao", "localdevotacao", "localvotacao", "local", "escola", "nomelocal", "colegio", "locdevotacao", "nrlocalvotacao", "localdevotacaotse", "estabelecimento"];
+        const zonaTargets = ["nrzona", "zona", "ze", "zonaeleitoral", "numzona"];
+        const secaoTargets = ["nrsecao", "secao", "secoes", "numsecao"];
+        const enderecoTargets = ["dsendereco", "endereco", "logradouro", "rua", "locvtendereco"];
+        const bairroTargets = ["nmbairro", "bairro", "regiao", "distrito"];
+        const eleitorTargets = ["qteleitorsecao", "qteleitoressecao", "qteleitor", "eleitores", "aptos", "quantidadedeeleitoresaptos", "quantidadedeeleitores", "totaleleitores", "qteleitores", "numeleitores"];
+        const tipoAgregadaTargets = ["cdtiposecaoagregada", "dstiposecaoagregada", "cdtiposecao"];
+        const secaoPrincipalTargets = ["nrsecaoprincipal"];
 
-        const colMun = findColIdx(["nmmunicipio", "municipio", "cidade", "nomemunicipio", "cdmunicipio"]);
-        const colZona = findColIdx(["nrzona", "zona", "ze", "zonaeleitoral", "numzona"]);
-        const colSecao = findColIdx(["nrsecao", "secao", "secoes", "numsecao"]);
-        const colLocal = findColIdx(["nmlocalvotacao", "localdevotacao", "localvotacao", "local", "escola", "nomelocal", "colegio", "locdevotacao", "nrlocalvotacao"]);
-        const colEndereco = findColIdx(["dsendereco", "endereco", "logradouro", "rua", "locvtendereco"]);
-        const colBairro = findColIdx(["nmbairro", "bairro", "regiao", "distrito"]);
-        const colEleitores = findColIdx(["qteleitorsecao", "qteleitoressecao", "qteleitor", "eleitores", "aptos", "quantidadedeeleitoresaptos", "quantidadedeeleitores", "totaleleitores", "qteleitores", "numeleitores"]);
-        const colTipoAgregada = findColIdx(["cdtiposecaoagregada", "dstiposecaoagregada", "cdtiposecao"]);
-        const colSecaoPrincipal = findColIdx(["nrsecaoprincipal"]);
-
-        const dataRows = matrix.slice(bestHeaderRowIndex + 1);
         const parsedRows: VotingLocation[] = [];
 
-        for (let i = 0; i < dataRows.length; i++) {
-          const row = dataRows[i];
-          if (!Array.isArray(row) || row.length === 0) continue;
+        // Try object-based parsing first (resilient to sparse array shifts)
+        try {
+          const rawObjects = XLSX.utils.sheet_to_json<any>(worksheet, { range: bestHeaderRowIndex, defval: "" });
+          const getObjVal = (rowObj: any, targets: string[]) => {
+            const keys = Object.keys(rowObj);
+            for (const key of keys) {
+              const normK = normalizeHeaderKey(key);
+              if (!normK) continue;
+              for (const target of targets) {
+                const normTarget = normalizeHeaderKey(target);
+                if (normK === normTarget || normK.includes(normTarget)) {
+                  const val = rowObj[key];
+                  if (val !== undefined && val !== null && String(val).trim() !== '') {
+                    return val;
+                  }
+                }
+              }
+            }
+            return undefined;
+          };
 
-          const nmMunicipio = colMun !== -1 && row[colMun] !== undefined && row[colMun] !== null ? String(row[colMun]).trim() : '';
-          const nmLocalVotacao = colLocal !== -1 && row[colLocal] !== undefined && row[colLocal] !== null ? String(row[colLocal]).trim() : '';
+          for (let i = 0; i < rawObjects.length; i++) {
+            const rowObj = rawObjects[i];
+            if (!rowObj || typeof rowObj !== 'object') continue;
 
-          if (!nmMunicipio || !nmLocalVotacao) continue;
+            const nmMunicipio = String(getObjVal(rowObj, munTargets) || '').trim();
+            const nmLocalVotacao = String(getObjVal(rowObj, localTargets) || '').trim();
 
-          const nrZona = colZona !== -1 && row[colZona] !== undefined && row[colZona] !== null ? String(row[colZona]).trim() : '';
-          const nrSecao = colSecao !== -1 && row[colSecao] !== undefined && row[colSecao] !== null ? String(row[colSecao]).trim() : '';
-          const dsEndereco = colEndereco !== -1 && row[colEndereco] !== undefined && row[colEndereco] !== null ? String(row[colEndereco]).trim() : '';
-          const nmBairro = colBairro !== -1 && row[colBairro] !== undefined && row[colBairro] !== null ? String(row[colBairro]).trim() : '';
-          const qtEleitorSecao = colEleitores !== -1 ? parseEleitoresCount(row[colEleitores]) : 0;
-          const cdTipoSecaoAgregada = colTipoAgregada !== -1 ? Number(row[colTipoAgregada]) || -1 : -1;
-          const nrSecaoPrincipal = colSecaoPrincipal !== -1 ? Number(row[colSecaoPrincipal]) || -1 : -1;
+            if (!nmMunicipio || !nmLocalVotacao) continue;
 
-          const zonaFormatted = nrZona ? (nrZona.toLowerCase().includes('ze') ? nrZona : `${nrZona}ª ZE`) : '';
+            const nrZona = String(getObjVal(rowObj, zonaTargets) || '').trim();
+            const nrSecao = String(getObjVal(rowObj, secaoTargets) || '').trim();
+            const dsEndereco = String(getObjVal(rowObj, enderecoTargets) || '').trim();
+            const nmBairro = String(getObjVal(rowObj, bairroTargets) || '').trim();
+            const qtEleitorSecao = parseEleitoresCount(getObjVal(rowObj, eleitorTargets));
+            const cdTipoSecaoAgregada = Number(getObjVal(rowObj, tipoAgregadaTargets)) || -1;
+            const nrSecaoPrincipal = Number(getObjVal(rowObj, secaoPrincipalTargets)) || -1;
 
-          parsedRows.push({
-            nmMunicipio,
-            nrZona,
-            nrSecao,
-            cdTipoSecaoAgregada,
-            dsTipoSecaoAgregada: '#NULO',
-            nrSecaoPrincipal,
-            nrLocalVotacao: '',
-            nmLocalVotacao,
-            dsEndereco,
-            nmBairro,
-            qtEleitorSecao,
-            nmLocalVotacaoOriginal: nmLocalVotacao,
-            dsEnderecoLocvtOriginal: dsEndereco,
+            const zonaFormatted = nrZona ? (nrZona.toLowerCase().includes('ze') ? nrZona : `${nrZona}ª ZE`) : '';
 
-            // Compatibility computed fields
-            municipio: nmMunicipio,
-            zona: zonaFormatted || nrZona,
-            secoes: nrSecao,
-            secoesCount: 1,
-            local: nmLocalVotacao,
-            endereco: dsEndereco,
-            bairro: nmBairro,
-            eleitores: qtEleitorSecao
-          });
+            parsedRows.push({
+              nmMunicipio,
+              nrZona,
+              nrSecao,
+              cdTipoSecaoAgregada,
+              dsTipoSecaoAgregada: '#NULO',
+              nrSecaoPrincipal,
+              nrLocalVotacao: '',
+              nmLocalVotacao,
+              dsEndereco,
+              nmBairro,
+              qtEleitorSecao,
+              nmLocalVotacaoOriginal: nmLocalVotacao,
+              dsEnderecoLocvtOriginal: dsEndereco,
+
+              // Compatibility computed fields
+              municipio: nmMunicipio,
+              zona: zonaFormatted || nrZona,
+              secoes: nrSecao,
+              secoesCount: 1,
+              local: nmLocalVotacao,
+              endereco: dsEndereco,
+              bairro: nmBairro,
+              eleitores: qtEleitorSecao
+            });
+          }
+        } catch (e) {
+          console.warn("Aviso na leitura baseada em objetos:", e);
+        }
+
+        // Fallback to matrix indexing if object mode found no rows
+        if (parsedRows.length === 0) {
+          const findColIdx = (targets: string[]): number => {
+            for (let i = 0; i < normHeaders.length; i++) {
+              const h = normHeaders[i];
+              if (!h) continue;
+              for (const target of targets) {
+                const normTarget = normalizeHeaderKey(target);
+                if (h === normTarget || h.includes(normTarget)) {
+                  return i;
+                }
+              }
+            }
+            return -1;
+          };
+
+          const colMun = findColIdx(munTargets);
+          const colLocal = findColIdx(localTargets);
+          const colZona = findColIdx(zonaTargets);
+          const colSecao = findColIdx(secaoTargets);
+          const colEndereco = findColIdx(enderecoTargets);
+          const colBairro = findColIdx(bairroTargets);
+          const colEleitores = findColIdx(eleitorTargets);
+          const colTipoAgregada = findColIdx(tipoAgregadaTargets);
+          const colSecaoPrincipal = findColIdx(secaoPrincipalTargets);
+
+          const dataRows = matrix.slice(bestHeaderRowIndex + 1);
+
+          for (let i = 0; i < dataRows.length; i++) {
+            const row = dataRows[i];
+            if (!Array.isArray(row) || row.length === 0) continue;
+
+            const nmMunicipio = colMun !== -1 && row[colMun] !== undefined && row[colMun] !== null ? String(row[colMun]).trim() : '';
+            const nmLocalVotacao = colLocal !== -1 && row[colLocal] !== undefined && row[colLocal] !== null ? String(row[colLocal]).trim() : '';
+
+            if (!nmMunicipio || !nmLocalVotacao) continue;
+
+            const nrZona = colZona !== -1 && row[colZona] !== undefined && row[colZona] !== null ? String(row[colZona]).trim() : '';
+            const nrSecao = colSecao !== -1 && row[colSecao] !== undefined && row[colSecao] !== null ? String(row[colSecao]).trim() : '';
+            const dsEndereco = colEndereco !== -1 && row[colEndereco] !== undefined && row[colEndereco] !== null ? String(row[colEndereco]).trim() : '';
+            const nmBairro = colBairro !== -1 && row[colBairro] !== undefined && row[colBairro] !== null ? String(row[colBairro]).trim() : '';
+            const qtEleitorSecao = colEleitores !== -1 ? parseEleitoresCount(row[colEleitores]) : 0;
+            const cdTipoSecaoAgregada = colTipoAgregada !== -1 ? Number(row[colTipoAgregada]) || -1 : -1;
+            const nrSecaoPrincipal = colSecaoPrincipal !== -1 ? Number(row[colSecaoPrincipal]) || -1 : -1;
+
+            const zonaFormatted = nrZona ? (nrZona.toLowerCase().includes('ze') ? nrZona : `${nrZona}ª ZE`) : '';
+
+            parsedRows.push({
+              nmMunicipio,
+              nrZona,
+              nrSecao,
+              cdTipoSecaoAgregada,
+              dsTipoSecaoAgregada: '#NULO',
+              nrSecaoPrincipal,
+              nrLocalVotacao: '',
+              nmLocalVotacao,
+              dsEndereco,
+              nmBairro,
+              qtEleitorSecao,
+              nmLocalVotacaoOriginal: nmLocalVotacao,
+              dsEnderecoLocvtOriginal: dsEndereco,
+
+              // Compatibility computed fields
+              municipio: nmMunicipio,
+              zona: zonaFormatted || nrZona,
+              secoes: nrSecao,
+              secoesCount: 1,
+              local: nmLocalVotacao,
+              endereco: dsEndereco,
+              bairro: nmBairro,
+              eleitores: qtEleitorSecao
+            });
+          }
         }
 
         if (parsedRows.length === 0) {
