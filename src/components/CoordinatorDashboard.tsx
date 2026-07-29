@@ -2152,6 +2152,7 @@ export default function CoordinatorDashboard({
         fuel: Number(newTeam.fuel) || 0,
         tempPassword: isEditMode ? ((newTeam as any).tempPassword || defaultPassword) : defaultPassword, // Manter ou criar senha
         coordinatorId: coordinatorId || user?.uid || '',
+        regionalCoordId: newTeam.regionalCoordId || (isRegional ? (user?.uid || '') : ''),
         updatedAt: Date.now(),
         createdAt: isEditMode ? ((newTeam as any).createdAt || Date.now()) : Date.now()
       });
@@ -2169,6 +2170,7 @@ export default function CoordinatorDashboard({
           tempPassword: defaultPassword,
           role: 'lider',
           coordinatorId: coordinatorId || user?.uid || '',
+          regionalCoordId: newTeam.regionalCoordId || (isRegional ? (user?.uid || '') : ''),
           createdAt: Date.now()
         });
         

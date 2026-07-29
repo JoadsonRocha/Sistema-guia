@@ -848,7 +848,7 @@ export default function CaboDashboard({
     await firestoreService.addDocument('material_requests', {
       leaderId: user.uid,
       leaderName: profileData.name || user?.displayName || 'Líder',
-      teamId: teamData?.id || '',
+      teamId: teamData?.id || profileData.teamId || '',
       team: profileData.zone || teamData?.name || 'Base',
       materialId,
       materialName: mat?.name || 'Material Desconhecido',
@@ -857,6 +857,8 @@ export default function CaboDashboard({
       returnDate,
       status: 'pendente',
       coordinatorId: resolvedCoordinatorId || coordinatorId || teamData?.coordinatorId || '',
+      regionalCoordId: profileData.regionalCoordId || teamData?.regionalCoordId || '',
+      createdBy: user.uid,
       createdAt: Date.now()
     });
     e.target.reset();
