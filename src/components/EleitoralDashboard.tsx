@@ -1119,10 +1119,37 @@ export default function EleitoralDashboard({
             const rowObj = rawObjects[i];
             if (!rowObj || typeof rowObj !== 'object') continue;
 
-            const nmMunicipio = String(getObjVal(rowObj, munTargets) || '').trim();
-            const nmLocalVotacao = String(getObjVal(rowObj, localTargets) || '').trim();
+            let nmLocalVotacao = String(getObjVal(rowObj, localTargets) || '').trim();
+            let nmMunicipio = String(getObjVal(rowObj, munTargets) || '').trim();
 
-            if (!nmMunicipio || !nmLocalVotacao) continue;
+            // Fallback for missing local: search any property containing school keywords or text > 4 chars
+            if (!nmLocalVotacao) {
+              for (const k of Object.keys(rowObj)) {
+                const val = String(rowObj[k] || '').trim();
+                if (val.length > 4 && (
+                  val.toUpperCase().includes("ESCOLA") || 
+                  val.toUpperCase().includes("COL") || 
+                  val.toUpperCase().includes("CENTRO") || 
+                  val.toUpperCase().includes("FACULDADE") || 
+                  val.toUpperCase().includes("EMEF") || 
+                  val.toUpperCase().includes("CRECHE") ||
+                  val.toUpperCase().includes("E.E") ||
+                  val.toUpperCase().includes("E.M") ||
+                  val.toUpperCase().includes("GINASIO") ||
+                  val.toUpperCase().includes("UNIDADE")
+                )) {
+                  nmLocalVotacao = val;
+                  break;
+                }
+              }
+            }
+
+            if (!nmLocalVotacao) continue; // Skip only if no local name could be found anywhere in the row
+
+            // If municipality is missing in this row or sheet, default gracefully instead of discarding!
+            if (!nmMunicipio) {
+              nmMunicipio = "MUNICÍPIO ÚNICO";
+            }
 
             const nrZona = String(getObjVal(rowObj, zonaTargets) || '').trim();
             const nrSecao = String(getObjVal(rowObj, secaoTargets) || '').trim();
@@ -1196,10 +1223,35 @@ export default function EleitoralDashboard({
             const row = dataRows[i];
             if (!Array.isArray(row) || row.length === 0) continue;
 
-            const nmMunicipio = colMun !== -1 && row[colMun] !== undefined && row[colMun] !== null ? String(row[colMun]).trim() : '';
-            const nmLocalVotacao = colLocal !== -1 && row[colLocal] !== undefined && row[colLocal] !== null ? String(row[colLocal]).trim() : '';
+            let nmMunicipio = colMun !== -1 && row[colMun] !== undefined && row[colMun] !== null ? String(row[colMun]).trim() : '';
+            let nmLocalVotacao = colLocal !== -1 && row[colLocal] !== undefined && row[colLocal] !== null ? String(row[colLocal]).trim() : '';
 
-            if (!nmMunicipio || !nmLocalVotacao) continue;
+            if (!nmLocalVotacao) {
+              for (let c = 0; c < row.length; c++) {
+                const cellVal = String(row[c] || '').trim();
+                if (cellVal.length > 4 && (
+                  cellVal.toUpperCase().includes("ESCOLA") || 
+                  cellVal.toUpperCase().includes("COL") || 
+                  cellVal.toUpperCase().includes("CENTRO") || 
+                  cellVal.toUpperCase().includes("FACULDADE") || 
+                  cellVal.toUpperCase().includes("EMEF") || 
+                  cellVal.toUpperCase().includes("CRECHE") ||
+                  cellVal.toUpperCase().includes("E.E") ||
+                  cellVal.toUpperCase().includes("E.M") ||
+                  cellVal.toUpperCase().includes("GINASIO") ||
+                  cellVal.toUpperCase().includes("UNIDADE")
+                )) {
+                  nmLocalVotacao = cellVal;
+                  break;
+                }
+              }
+            }
+
+            if (!nmLocalVotacao) continue;
+
+            if (!nmMunicipio) {
+              nmMunicipio = "MUNICÍPIO ÚNICO";
+            }
 
             const nrZona = colZona !== -1 && row[colZona] !== undefined && row[colZona] !== null ? String(row[colZona]).trim() : '';
             const nrSecao = colSecao !== -1 && row[colSecao] !== undefined && row[colSecao] !== null ? String(row[colSecao]).trim() : '';
