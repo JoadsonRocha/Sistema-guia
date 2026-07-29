@@ -222,15 +222,18 @@ export default function EleitoralDashboard({
 
     for (let i = 0; i < rows.length; i++) {
       const item = rows[i];
-      const nmMuni = String(item.nmMunicipio || item.municipio || '').trim();
+      let nmMuni = String(item.nmMunicipio || item.municipio || '').trim();
+      let nmLoc = String(item.nmLocalVotacao || item.local || '').trim();
       const nrZ = String(item.nrZona || item.zona || '').trim();
-      const nmLoc = String(item.nmLocalVotacao || item.local || '').trim();
       const dsEnd = String(item.dsEndereco || item.endereco || '').trim();
       const nmB = String(item.nmBairro || item.bairro || '').trim();
       const qtEleit = Number(item.qtEleitorSecao ?? item.eleitores) || 0;
       const nrS = String(item.nrSecao || item.secoes || '').trim();
 
-      if (!nmMuni || !nmLoc) continue;
+      if (!nmMuni) nmMuni = "MUNICÍPIO / BASE LOCAL";
+      if (!nmLoc) {
+        nmLoc = dsEnd || (nmB ? `Local (${nmB})` : `Local de Votação ${i + 1}`);
+      }
 
       const groupKey = `${nmMuni.toLowerCase()}|${nrZ.toLowerCase()}|${nmLoc.toLowerCase()}`;
 
@@ -1291,9 +1294,71 @@ export default function EleitoralDashboard({
           }
         }
 
+        if (parsedRows.length === 0 && matrix.length > 1) {
+          // Universal Generic Column Auto-Extraction
+          const dataRows = matrix.slice(bestHeaderRowIndex + 1);
+          for (let i = 0; i < dataRows.length; i++) {
+            const row = dataRows[i];
+            if (!Array.isArray(row) || row.length === 0) continue;
+
+            let bestLocal = "";
+            let bestMuni = "MUNICÍPIO / BASE LOCAL";
+            let bestZona = "";
+            let bestSecao = "";
+            let maxEleit = 0;
+
+            for (let c = 0; c < row.length; c++) {
+              const val = row[c];
+              if (val === undefined || val === null || val === "") continue;
+              const strVal = String(val).trim();
+              const numVal = parseEleitoresCount(val);
+
+              if (numVal > maxEleit && numVal < 1000000) {
+                maxEleit = numVal;
+              } else if (strVal.length > 3) {
+                if (!bestLocal) {
+                  bestLocal = strVal;
+                } else if (!bestMuni || bestMuni === "MUNICÍPIO / BASE LOCAL") {
+                  bestMuni = strVal;
+                }
+              }
+            }
+
+            if (!bestLocal && maxEleit === 0) continue;
+            if (!bestLocal) bestLocal = `Local de Votação ${i + 1}`;
+
+            const zonaFormatted = bestZona ? (bestZona.toLowerCase().includes('ze') ? bestZona : `${bestZona}ª ZE`) : '';
+
+            parsedRows.push({
+              nmMunicipio: bestMuni,
+              nrZona: bestZona,
+              nrSecao: bestSecao,
+              cdTipoSecaoAgregada: -1,
+              dsTipoSecaoAgregada: '#NULO',
+              nrSecaoPrincipal: -1,
+              nrLocalVotacao: '',
+              nmLocalVotacao: bestLocal,
+              dsEndereco: '',
+              nmBairro: '',
+              qtEleitorSecao: maxEleit,
+              nmLocalVotacaoOriginal: bestLocal,
+              dsEnderecoLocvtOriginal: '',
+
+              municipio: bestMuni,
+              zona: zonaFormatted || bestZona,
+              secoes: bestSecao,
+              secoesCount: 1,
+              local: bestLocal,
+              endereco: '',
+              bairro: '',
+              eleitores: maxEleit
+            });
+          }
+        }
+
         if (parsedRows.length === 0) {
           const detectedStr = detectedHeadersRaw.filter(Boolean).join(", ");
-          setErrorMsg(`Não foi possível identificar as colunas de "Município" e "Local de Votação". Colunas detectadas na sua planilha: [${detectedStr || "Nenhuma coluna identificada"}].`);
+          setErrorMsg(`Não foi possível extrair linhas válidas da sua planilha. Colunas detectadas: [${detectedStr || "Nenhuma"}].`);
           return;
         }
 
