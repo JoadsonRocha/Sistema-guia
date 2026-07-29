@@ -775,7 +775,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
                     <h5 className="font-bold text-white text-xs uppercase tracking-wider text-zinc-400">Como Solicitar o Reembolso:</h5>
                     <ol className="list-decimal list-inside space-y-2 text-zinc-300">
                       <li>
-                        Entre em contato com o suporte comercial no WhatsApp: <strong className="text-emerald-400">+{COMMERCIAL_WHATSAPP_NUMBER}</strong> ou pelo e-mail oficial de atendimento informado na confirmação de assinatura.
+                        Entre em contato com o suporte no WhatsApp: <strong className="text-emerald-400">+{COMMERCIAL_WHATSAPP_NUMBER}</strong> ou pelo e-mail oficial de suporte e sugestões: <strong className="text-emerald-400">inicialinovacoestecnologicas@gmail.com</strong>.
                       </li>
                       <li>
                         Informe o nome completo do contratante, CPF/CNPJ e e-mail cadastrado na plataforma.

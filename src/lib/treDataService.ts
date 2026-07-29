@@ -110,40 +110,31 @@ export function setTreLocationsForCoordinator(coordinatorId: string, locations: 
   }
 
   cachedLocationsByCoord.set(coordinatorId, items);
-  cachedLocationsByCoord.set('default', items);
 }
 
 export function clearTreLocationsCache(coordinatorId?: string) {
   if (coordinatorId) {
-    cachedLocationsByCoord.delete(coordinatorId);
+    cachedLocationsByCoord.set(coordinatorId, []);
+  } else {
+    cachedLocationsByCoord.clear();
   }
-  cachedLocationsByCoord.clear();
 }
 
 export function getAllTreLocations(coordinatorId?: string): TreLocationItem[] {
   const coordKey = coordinatorId || 'default';
 
-  // 1. Direct cache match if non-empty
+  // 1. Return exact cache if present for this coordinator (including empty [])
   if (cachedLocationsByCoord.has(coordKey)) {
-    const cached = cachedLocationsByCoord.get(coordKey)!;
-    if (cached.length > 0) return cached;
+    return cachedLocationsByCoord.get(coordKey)!;
   }
 
-  // 2. Search all keys in memory cache for non-empty locations
-  for (const [, items] of cachedLocationsByCoord.entries()) {
-    if (items && items.length > 0) {
-      cachedLocationsByCoord.set(coordKey, items);
-      return items;
-    }
-  }
-
-  // 3. Search localStorage
+  // Helper to parse stored JSON
   const parseSaved = (savedStr: string): TreLocationItem[] => {
     const locations: TreLocationItem[] = [];
     let counter = 1;
     try {
       const parsed = JSON.parse(savedStr);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         for (const item of parsed) {
           if (!item) continue;
           const localName = item.nmLocalVotacao || item.local;
@@ -172,37 +163,20 @@ export function getAllTreLocations(coordinatorId?: string): TreLocationItem[] {
     return locations;
   };
 
+  // 2. Try loading specific key for this coordinator from localStorage
   try {
     const key = `sistema_urna360_eleitoral_data_${coordKey}`;
     const savedStr = localStorage.getItem(key);
-    if (savedStr) {
+    if (savedStr !== null) {
       const locs = parseSaved(savedStr);
-      if (locs.length > 0) {
-        cachedLocationsByCoord.set(coordKey, locs);
-        cachedLocationsByCoord.set('default', locs);
-        return locs;
-      }
-    }
-
-    // Scan all keys in localStorage for any electoral data
-    for (let i = 0; i < localStorage.length; i++) {
-      const lsKey = localStorage.key(i);
-      if (lsKey && lsKey.startsWith('sistema_urna360_eleitoral_data_')) {
-        const val = localStorage.getItem(lsKey);
-        if (val) {
-          const locs = parseSaved(val);
-          if (locs.length > 0) {
-            cachedLocationsByCoord.set(coordKey, locs);
-            cachedLocationsByCoord.set('default', locs);
-            return locs;
-          }
-        }
-      }
+      cachedLocationsByCoord.set(coordKey, locs);
+      return locs;
     }
   } catch (err) {
     console.warn("Error parsing local electoral data cache:", err);
   }
 
+  // 3. Default to empty if no specific data exists
   const empty: TreLocationItem[] = [];
   cachedLocationsByCoord.set(coordKey, empty);
   return empty;

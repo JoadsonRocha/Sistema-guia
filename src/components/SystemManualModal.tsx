@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, BookOpen, Crown, MapPin, Users, Send, CheckCircle2, Award, Calendar, Package, Fuel, FileText, ChevronRight, HelpCircle, Layers, Target, ShieldCheck, Download } from 'lucide-react';
+import { X, BookOpen, Crown, MapPin, Users, Send, CheckCircle2, Award, Calendar, Package, Fuel, FileText, ChevronRight, HelpCircle, Layers, Target, ShieldCheck, Download, Mail, Copy } from 'lucide-react';
 import { downloadSystemManualDocx } from '../utils/generateDocxManual';
 
 interface SystemManualModalProps {
@@ -8,7 +8,7 @@ interface SystemManualModalProps {
 }
 
 export const SystemManualModal: React.FC<SystemManualModalProps> = ({ isOpen, onClose }) => {
-  const [activeSection, setActiveSection] = useState<'hierarquia' | 'funcoes' | 'passoapasso' | 'disparos' | 'dicas'>('hierarquia');
+  const [activeSection, setActiveSection] = useState<'hierarquia' | 'funcoes' | 'passoapasso' | 'disparos' | 'dicas' | 'suporte'>('hierarquia');
 
   if (!isOpen) return null;
 
@@ -57,6 +57,7 @@ export const SystemManualModal: React.FC<SystemManualModalProps> = ({ isOpen, on
             { id: 'passoapasso', label: '3. Como Fazer na Prática', icon: CheckCircle2 },
             { id: 'disparos', label: '4. WhatsApp Gratuito (wa.me)', icon: Send },
             { id: 'dicas', label: '5. Segredos para Vencer', icon: Target },
+            { id: 'suporte', label: '6. Suporte & Sugestões', icon: Mail },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeSection === tab.id;
@@ -350,12 +351,78 @@ export const SystemManualModal: React.FC<SystemManualModalProps> = ({ isOpen, on
             </div>
           )}
 
+          {/* SEÇÃO 6: SUPORTE & SUGESTÕES */}
+          {activeSection === 'suporte' && (
+            <div className="space-y-6">
+              <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-start gap-3">
+                <Mail className="w-6 h-6 text-emerald-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h4 className="font-bold text-emerald-300 text-sm">Canal Oficial de Suporte & Sugestões de Melhorias</h4>
+                  <p className="text-zinc-300">
+                    Estamos constantemente aprimorando o sistema Nexus Política para servir sua campanha com máxima eficiência, estabilidade e segurança.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-zinc-900/90 border border-zinc-800 p-5 rounded-xl space-y-4">
+                <div>
+                  <h5 className="font-black text-xs uppercase tracking-wider text-zinc-400 mb-1">E-mail Direto de Atendimento:</h5>
+                  <div className="p-3 bg-zinc-950 border border-emerald-500/30 rounded-lg flex flex-wrap items-center justify-between gap-3">
+                    <span className="font-mono text-sm font-bold text-emerald-400 select-all">
+                      inicialinovacoestecnologicas@gmail.com
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText("inicialinovacoestecnologicas@gmail.com");
+                          alert("E-mail de suporte copiado!");
+                        }}
+                        className="px-3 py-1.5 text-xs font-bold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Copy className="w-3.5 h-3.5" /> Copiar E-mail
+                      </button>
+                      <a
+                        href="mailto:inicialinovacoestecnologicas@gmail.com?subject=Suporte%20e%20Sugest%C3%B5es%20-%20Nexus%20Pol%C3%ADtica"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3.5 py-1.5 text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-emerald-600/20"
+                      >
+                        <Mail className="w-3.5 h-3.5" /> Enviar E-mail
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                  <div className="p-3 bg-zinc-950/60 border border-zinc-800 rounded-lg space-y-1">
+                    <strong className="text-blue-400 text-xs flex items-center gap-1.5">
+                      🛠️ Suporte Técnico & Dúvidas
+                    </strong>
+                    <p className="text-zinc-400 text-[11px]">
+                      Tem alguma dúvida sobre cadastro, disparo de WhatsApp ou organização de equipes? Envie-nos um e-mail com detalhes para resposta rápida.
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-zinc-950/60 border border-zinc-800 rounded-lg space-y-1">
+                    <strong className="text-amber-400 text-xs flex items-center gap-1.5">
+                      💡 Sugestões de Novas Funcionalidades
+                    </strong>
+                    <p className="text-zinc-400 text-[11px]">
+                      Tem ideias de novos relatórios, filtros ou relatórios táticos? Escreva para a equipe de tecnologia para avaliarmos a implementação.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
 
         {/* Modal Footer */}
         <div className="px-6 py-3.5 bg-zinc-900 border-t border-zinc-800 flex items-center justify-between gap-3">
           <div className="text-xs text-zinc-400 hidden sm:block">
-            Nexus Política &bull; Sistema Tático de Gestão Eleitoral
+            Suporte & Sugestões: <span className="font-mono text-emerald-400 font-bold select-all">inicialinovacoestecnologicas@gmail.com</span>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <button

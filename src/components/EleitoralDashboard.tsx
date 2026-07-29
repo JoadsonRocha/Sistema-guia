@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../lib/FirebaseProvider';
-import { setTreLocationsForCoordinator } from '../lib/treDataService';
+import { setTreLocationsForCoordinator, clearTreLocationsCache } from '../lib/treDataService';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   BarChart, 
@@ -144,7 +144,6 @@ export default function EleitoralDashboard({
 
   // Load data from localStorage for instant initial render
   const [votingLocations, setVotingLocations] = useState<VotingLocation[]>(() => {
-    // 1. Try activeCoordId key
     if (activeCoordId) {
       const key = `sistema_urna360_eleitoral_data_${activeCoordId}`;
       const saved = localStorage.getItem(key);
@@ -158,24 +157,6 @@ export default function EleitoralDashboard({
         } catch (e) {}
       }
     }
-
-    // 2. Scan all localStorage keys as fallback
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const lsKey = localStorage.key(i);
-        if (lsKey && lsKey.startsWith('sistema_urna360_eleitoral_data_')) {
-          const val = localStorage.getItem(lsKey);
-          if (val) {
-            const parsed = JSON.parse(val);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setTreLocationsForCoordinator(activeCoordId, parsed);
-              return parsed;
-            }
-          }
-        }
-      }
-    } catch (e) {}
-
     setTreLocationsForCoordinator(activeCoordId, []);
     return [];
   });
@@ -199,16 +180,25 @@ export default function EleitoralDashboard({
     setTreLocationsForCoordinator(activeCoordId, newData);
 
     if (!newData || newData.length === 0) {
+      clearTreLocationsCache(activeCoordId);
       try {
-        localStorage.removeItem(`sistema_urna360_eleitoral_data_${activeCoordId}`);
+        localStorage.setItem(`sistema_urna360_eleitoral_data_${activeCoordId}`, '[]');
       } catch (e) {}
       try {
-        await setDoc(doc(db, 'eleitoral_data', `coord_${activeCoordId}`), {
+        const docId = `coord_${activeCoordId}`;
+        await setDoc(doc(db, 'eleitoral_data', docId), {
           locations: [],
           cleared: true,
           updatedAt: Date.now(),
-          coordinatorId: activeCoordId
+          coordinatorId: activeCoordId,
+          chunksCount: 0,
+          isChunked: false
         });
+        for (let i = 0; i < 20; i++) {
+          try {
+            await deleteDoc(doc(db, 'eleitoral_data', `${docId}_${i}`));
+          } catch (e) {}
+        }
       } catch (err) {
         console.error("Erro ao zerar dados no Firestore:", err);
       }
@@ -270,8 +260,9 @@ export default function EleitoralDashboard({
         if (data.cleared) {
           setVotingLocations([]);
           setTreLocationsForCoordinator(activeCoordId, []);
+          clearTreLocationsCache(activeCoordId);
           try {
-            localStorage.removeItem(`sistema_urna360_eleitoral_data_${activeCoordId}`);
+            localStorage.setItem(`sistema_urna360_eleitoral_data_${activeCoordId}`, '[]');
           } catch (e) {}
           return;
         }
@@ -284,25 +275,20 @@ export default function EleitoralDashboard({
               allLocs = allLocs.concat(chunkSnap.data().locations || []);
             }
           }
-          if (allLocs.length > 0) {
-            setVotingLocations(allLocs);
-            setTreLocationsForCoordinator(activeCoordId, allLocs);
-            try {
-              localStorage.setItem(`sistema_urna360_eleitoral_data_${activeCoordId}`, JSON.stringify(allLocs));
-            } catch (e) {}
-          }
-        } else if (Array.isArray(data.locations) && data.locations.length > 0) {
+          setVotingLocations(allLocs);
+          setTreLocationsForCoordinator(activeCoordId, allLocs);
+          try {
+            localStorage.setItem(`sistema_urna360_eleitoral_data_${activeCoordId}`, JSON.stringify(allLocs));
+          } catch (e) {}
+        } else if (Array.isArray(data.locations)) {
           setVotingLocations(data.locations);
           setTreLocationsForCoordinator(activeCoordId, data.locations);
+          if (data.locations.length === 0) {
+            clearTreLocationsCache(activeCoordId);
+          }
           try {
             localStorage.setItem(`sistema_urna360_eleitoral_data_${activeCoordId}`, JSON.stringify(data.locations));
           } catch (e) {}
-        }
-      } else {
-        // DO NOT wipe out existing votingLocations if snapshot does not exist yet!
-        // Instead, if local state has votingLocations, push them to Firestore so Firestore creates the record.
-        if (votingLocations && votingLocations.length > 0) {
-          saveVotingLocations(votingLocations);
         }
       }
     }, (err) => {
@@ -1014,6 +1000,17 @@ export default function EleitoralDashboard({
               <UploadCloud className="w-4 h-4 text-blue-400" />
               <span>Importar / Gerenciar Planilha TRE</span>
             </button>
+
+            {votingLocations.length > 0 && (
+              <button
+                onClick={clearData}
+                className="flex items-center gap-2 px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer uppercase tracking-tight"
+                title="Zerar e apagar permanentemente os dados desatualizados do TRE"
+              >
+                <Trash2 className="w-4 h-4 text-white" />
+                <span>ZERAR DADOS TRE</span>
+              </button>
+            )}
           </div>
         )}
       </div>

@@ -61,6 +61,7 @@ import {
   Sun,
   Moon,
   Loader2,
+  Mail,
   Map as MapIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -93,6 +94,7 @@ import { validarSugestaoAgenda, AgendaItem } from '../lib/agendaLogic';
 import * as XLSX from 'xlsx';
 import { safeLocalStorage } from '../utils/safeStorage';
 import { isLocationMatchingGoal } from '../data/roraimaTreData';
+import { clearTreLocationsCache } from '../lib/treDataService';
 
 const AVAILABLE_COLUMNS_BY_TYPE: Record<string, { header: string; dataKey: string }[]> = {
   teams: [
@@ -807,9 +809,19 @@ export default function CoordinatorDashboard({
         ];
 
         for (const coll of collectionsToWipe) {
-          const docs = await firestoreService.getCollectionFiltered<any>(coll, activeCoordId);
-          for (const d of docs) {
-            await firestoreService.deleteDocument(coll, d.id);
+          try {
+            const allDocs = await firestoreService.getCollection<any>(coll);
+            const myDocs = allDocs.filter(d => 
+              !d.coordinatorId || 
+              d.coordinatorId === activeCoordId || 
+              d.createdBy === activeCoordId ||
+              d.userId === activeCoordId
+            );
+            for (const d of myDocs) {
+              await firestoreService.deleteDocument(coll, d.id);
+            }
+          } catch (e) {
+            console.warn(`Aviso ao limpar coleção ${coll}:`, e);
           }
         }
 
@@ -835,13 +847,27 @@ export default function CoordinatorDashboard({
         }
 
         try {
-          await firestoreService.deleteDocument('eleitoral_data', `coord_${activeCoordId}`);
+          await firestoreService.setDocument('eleitoral_data', `coord_${activeCoordId}`, {
+            locations: [],
+            cleared: true,
+            updatedAt: Date.now(),
+            coordinatorId: activeCoordId,
+            chunksCount: 0,
+            isChunked: false
+          });
+          for (let i = 0; i < 20; i++) {
+            try {
+              await firestoreService.deleteDocument('eleitoral_data', `coord_${activeCoordId}_${i}`);
+            } catch (e) {}
+          }
         } catch (e) {
           console.warn("Aviso ao deletar dados eleitorais:", e);
         }
 
+        clearTreLocationsCache(activeCoordId);
         safeLocalStorage.removeItem(`urna360_voters_cache_${activeCoordId}`);
         safeLocalStorage.removeItem(`sistema_urna360_eleitoral_data_${activeCoordId}`);
+        safeLocalStorage.setItem(`sistema_urna360_eleitoral_data_${activeCoordId}`, '[]');
 
         alert("✅ Banco de dados da sua campanha foi zerado com sucesso! Seus dados foram limpos com isolamento total.");
         window.location.reload();
@@ -5694,6 +5720,54 @@ export default function CoordinatorDashboard({
                     </div>
                     <span className="text-[10px] bg-blue-600 text-white font-black px-2.5 py-1 rounded uppercase tracking-wider group-hover:scale-105 transition-transform shadow-sm">Abrir Manual</span>
                   </button>
+
+                  {/* Suporte Técnico & Sugestões de Melhorias */}
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-sm space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded bg-emerald-600 text-white flex items-center justify-center shrink-0 font-black shadow-sm">
+                          <Mail className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="font-black uppercase tracking-tight text-xs text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                            Suporte & Sugestões de Melhorias
+                          </p>
+                          <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
+                            E-mail oficial para dúvidas, assistência e envio de ideias
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-zinc-900 p-2.5 rounded border border-emerald-500/20 flex flex-wrap items-center justify-between gap-2 mt-1">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <span className="text-[11px] font-mono font-bold text-emerald-700 dark:text-emerald-400 break-all select-all">
+                          inicialinovacoestecnologicas@gmail.com
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText("inicialinovacoestecnologicas@gmail.com");
+                            alert("E-mail de suporte copiado para a área de transferência!");
+                          }}
+                          className="px-2.5 py-1 text-[10px] font-bold bg-zinc-200 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-300 rounded transition-all flex items-center gap-1 cursor-pointer"
+                          title="Copiar E-mail"
+                        >
+                          <Copy className="w-3 h-3" /> Copiar
+                        </button>
+                        <a
+                          href="mailto:inicialinovacoestecnologicas@gmail.com?subject=Suporte%20e%20Sugest%C3%B5es%20-%20Nexus%20Pol%C3%ADtica"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2.5 py-1 text-[10px] font-black bg-emerald-600 hover:bg-emerald-500 text-white rounded transition-all flex items-center gap-1 cursor-pointer shadow-xs"
+                        >
+                          <Mail className="w-3 h-3" /> Enviar E-mail
+                        </a>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Cole a URL ou use o botão de upload acima</label>
