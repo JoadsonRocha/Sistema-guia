@@ -214,9 +214,73 @@ export default function EleitoralDashboard({
     };
   };
 
+  // Helper to aggregate individual section rows into unique Voting Locations for extreme speed & lightweight memory footprint
+  const aggregateLocationsIfSections = (rows: VotingLocation[]): VotingLocation[] => {
+    if (!rows || rows.length === 0) return [];
+
+    const map = new Map<string, VotingLocation>();
+
+    for (let i = 0; i < rows.length; i++) {
+      const item = rows[i];
+      const nmMuni = String(item.nmMunicipio || item.municipio || '').trim();
+      const nrZ = String(item.nrZona || item.zona || '').trim();
+      const nmLoc = String(item.nmLocalVotacao || item.local || '').trim();
+      const dsEnd = String(item.dsEndereco || item.endereco || '').trim();
+      const nmB = String(item.nmBairro || item.bairro || '').trim();
+      const qtEleit = Number(item.qtEleitorSecao ?? item.eleitores) || 0;
+      const nrS = String(item.nrSecao || item.secoes || '').trim();
+
+      if (!nmMuni || !nmLoc) continue;
+
+      const groupKey = `${nmMuni.toLowerCase()}|${nrZ.toLowerCase()}|${nmLoc.toLowerCase()}`;
+
+      if (!map.has(groupKey)) {
+        const zonaFormatted = nrZ ? (nrZ.toLowerCase().includes('ze') ? nrZ : `${nrZ}ª ZE`) : '';
+        map.set(groupKey, {
+          nmMunicipio: nmMuni,
+          nrZona: nrZ,
+          nrSecao: nrS,
+          cdTipoSecaoAgregada: item.cdTipoSecaoAgregada ?? -1,
+          dsTipoSecaoAgregada: item.dsTipoSecaoAgregada || 'Principal',
+          nrSecaoPrincipal: item.nrSecaoPrincipal ?? -1,
+          nrLocalVotacao: item.nrLocalVotacao ?? '',
+          nmLocalVotacao: nmLoc,
+          dsEndereco: dsEnd,
+          nmBairro: nmB,
+          qtEleitorSecao: qtEleit,
+          nmLocalVotacaoOriginal: item.nmLocalVotacaoOriginal || nmLoc,
+          dsEnderecoLocvtOriginal: item.dsEnderecoLocvtOriginal || dsEnd,
+
+          // Compatibility fields
+          municipio: nmMuni,
+          zona: zonaFormatted || nrZ,
+          secoes: nrS,
+          secoesCount: item.secoesCount || 1,
+          local: nmLoc,
+          endereco: dsEnd,
+          bairro: nmB,
+          eleitores: qtEleit
+        });
+      } else {
+        const existing = map.get(groupKey)!;
+        existing.qtEleitorSecao += qtEleit;
+        existing.eleitores += qtEleit;
+        existing.secoesCount = (existing.secoesCount || 1) + (item.secoesCount || 1);
+        if (nrS && !existing.secoes.includes(nrS)) {
+          existing.secoes = existing.secoes ? `${existing.secoes}, ${nrS}` : nrS;
+          existing.nrSecao = existing.secoes;
+        }
+      }
+    }
+
+    return Array.from(map.values());
+  };
+
   // Save parsed data locally and to Firestore database for cross-browser synchronization
-  const saveVotingLocations = async (newData: VotingLocation[]) => {
+  const saveVotingLocations = async (rawNewData: VotingLocation[]) => {
     isSavingRef.current = true;
+    const newData = aggregateLocationsIfSections(rawNewData);
+
     setVotingLocations(newData);
     setTreLocationsForCoordinator(activeCoordId, newData);
 
@@ -296,7 +360,7 @@ export default function EleitoralDashboard({
           locationsCount: cleanData.length
         });
       }
-      setSuccessMsg(`✅ ${newData.length} locais de votação salvos com sucesso e sincronizados no seu banco de dados!`);
+      setSuccessMsg(`✅ ${newData.length} locais de votação de alta capacidade salvos e sincronizados com sucesso!`);
     } catch (err: any) {
       console.error("Erro ao gravar dados eleitorais no Firestore:", err);
       setErrorMsg("Aviso ao salvar no banco online: " + (err.message || "Verifique sua conexão."));
@@ -312,8 +376,9 @@ export default function EleitoralDashboard({
     // Restore from IndexedDB asynchronously if state is empty
     eleitoralStorage.loadLocations(activeCoordId).then((cached) => {
       if (cached && Array.isArray(cached) && cached.length > 0) {
-        setVotingLocations(cached);
-        setTreLocationsForCoordinator(activeCoordId, cached);
+        const aggregated = aggregateLocationsIfSections(cached);
+        setVotingLocations(aggregated);
+        setTreLocationsForCoordinator(activeCoordId, aggregated);
       }
     });
 
@@ -346,17 +411,19 @@ export default function EleitoralDashboard({
               }
             }
             if (allLocs.length > 0) {
-              setVotingLocations(allLocs);
-              setTreLocationsForCoordinator(activeCoordId, allLocs);
-              eleitoralStorage.saveLocations(activeCoordId, allLocs);
+              const aggregated = aggregateLocationsIfSections(allLocs);
+              setVotingLocations(aggregated);
+              setTreLocationsForCoordinator(activeCoordId, aggregated);
+              eleitoralStorage.saveLocations(activeCoordId, aggregated);
             }
           } catch (e) {
             console.warn("Erro ao carregar chunks do TRE:", e);
           }
         } else if (Array.isArray(data.locations) && data.locations.length > 0) {
-          setVotingLocations(data.locations);
-          setTreLocationsForCoordinator(activeCoordId, data.locations);
-          eleitoralStorage.saveLocations(activeCoordId, data.locations);
+          const aggregated = aggregateLocationsIfSections(data.locations);
+          setVotingLocations(aggregated);
+          setTreLocationsForCoordinator(activeCoordId, aggregated);
+          eleitoralStorage.saveLocations(activeCoordId, aggregated);
         }
       }
     }, (err) => {
@@ -608,40 +675,49 @@ export default function EleitoralDashboard({
 
   // Cascading lists for filters based on selected Municipio
   const municipiosList = useMemo(() => {
-    return ['Todos', ...Array.from(new Set(votingLocations.map(item => item.municipio))).sort()];
+    const set = new Set<string>();
+    for (let i = 0; i < votingLocations.length; i++) {
+      if (votingLocations[i].municipio) set.add(votingLocations[i].municipio);
+    }
+    return ['Todos', ...Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))];
   }, [votingLocations]);
 
   const zonasList = useMemo(() => {
-    let filtered = votingLocations;
-    if (selectedMunicipio !== 'Todos') {
-      filtered = filtered.filter(item => item.municipio === selectedMunicipio);
+    const set = new Set<string>();
+    for (let i = 0; i < votingLocations.length; i++) {
+      const item = votingLocations[i];
+      if (selectedMunicipio === 'Todos' || item.municipio === selectedMunicipio) {
+        if (item.zona) set.add(item.zona);
+      }
     }
-    return ['Todos', ...Array.from(new Set(filtered.map(item => item.zona))).sort()];
+    return ['Todos', ...Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))];
   }, [selectedMunicipio, votingLocations]);
 
   const bairrosList = useMemo(() => {
-    let filtered = votingLocations;
-    if (selectedMunicipio !== 'Todos') {
-      filtered = filtered.filter(item => item.municipio === selectedMunicipio);
+    const set = new Set<string>();
+    for (let i = 0; i < votingLocations.length; i++) {
+      const item = votingLocations[i];
+      const matchMun = selectedMunicipio === 'Todos' || item.municipio === selectedMunicipio;
+      const matchZona = selectedZona === 'Todos' || item.zona === selectedZona;
+      if (matchMun && matchZona) {
+        if (item.bairro) set.add(item.bairro);
+      }
     }
-    if (selectedZona !== 'Todos') {
-      filtered = filtered.filter(item => item.zona === selectedZona);
-    }
-    return ['Todos', ...Array.from(new Set(filtered.map(item => item.bairro))).sort()];
+    return ['Todos', ...Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))];
   }, [selectedMunicipio, selectedZona, votingLocations]);
 
   const locaisList = useMemo(() => {
-    let filtered = votingLocations;
-    if (selectedMunicipio !== 'Todos') {
-      filtered = filtered.filter(item => item.municipio === selectedMunicipio);
+    const set = new Set<string>();
+    for (let i = 0; i < votingLocations.length; i++) {
+      const item = votingLocations[i];
+      const matchMun = selectedMunicipio === 'Todos' || item.municipio === selectedMunicipio;
+      const matchZona = selectedZona === 'Todos' || item.zona === selectedZona;
+      const matchBairro = selectedBairro === 'Todos' || item.bairro === selectedBairro;
+      if (matchMun && matchZona && matchBairro) {
+        if (item.local) set.add(item.local);
+      }
     }
-    if (selectedZona !== 'Todos') {
-      filtered = filtered.filter(item => item.zona === selectedZona);
-    }
-    if (selectedBairro !== 'Todos') {
-      filtered = filtered.filter(item => item.bairro === selectedBairro);
-    }
-    return ['Todos', ...Array.from(new Set(filtered.map(item => item.local))).sort()];
+    return ['Todos', ...Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))];
   }, [selectedMunicipio, selectedZona, selectedBairro, votingLocations]);
 
   // Handle cascading reset on parent filter change
@@ -672,6 +748,9 @@ export default function EleitoralDashboard({
 
   // Filtered dataset for computations and UI display
   const filteredData = useMemo(() => {
+    if (selectedMunicipio === 'Todos' && selectedZona === 'Todos' && selectedBairro === 'Todos' && selectedLocal === 'Todos') {
+      return votingLocations;
+    }
     return votingLocations.filter(item => {
       const matchMun = selectedMunicipio === 'Todos' || item.municipio === selectedMunicipio;
       const matchZona = selectedZona === 'Todos' || item.zona === selectedZona;
@@ -683,16 +762,22 @@ export default function EleitoralDashboard({
 
   // Current scope totals
   const totalScopeEleitores = useMemo(() => {
-    return filteredData.reduce((sum, item) => sum + item.eleitores, 0);
+    let sum = 0;
+    for (let i = 0; i < filteredData.length; i++) sum += filteredData[i].eleitores;
+    return sum;
   }, [filteredData]);
 
   const totalScopeMunicipios = useMemo(() => {
-    return new Set(filteredData.map(item => item.municipio)).size;
+    const set = new Set<string>();
+    for (let i = 0; i < filteredData.length; i++) set.add(filteredData[i].municipio);
+    return set.size;
   }, [filteredData]);
 
   const totalScopeLocais = filteredData.length;
   const totalScopeSecoes = useMemo(() => {
-    return filteredData.reduce((sum, item) => sum + item.secoesCount, 0);
+    let sum = 0;
+    for (let i = 0; i < filteredData.length; i++) sum += (filteredData[i].secoesCount || 1);
+    return sum;
   }, [filteredData]);
 
   // Calculation of KPIs
@@ -765,9 +850,12 @@ export default function EleitoralDashboard({
   // Chart 3 data: Ranking of Municipalities by Voter Count (Statewide context)
   const muniRankingChartData = useMemo(() => {
     const grouped: Record<string, number> = {};
-    votingLocations.forEach(item => {
-      grouped[item.municipio] = (grouped[item.municipio] || 0) + item.eleitores;
-    });
+    for (let i = 0; i < votingLocations.length; i++) {
+      const item = votingLocations[i];
+      if (item.municipio) {
+        grouped[item.municipio] = (grouped[item.municipio] || 0) + item.eleitores;
+      }
+    }
     return Object.entries(grouped)
       .map(([name, val]) => ({ name, eleitores: val }))
       .sort((a, b) => b.eleitores - a.eleitores);
@@ -777,10 +865,18 @@ export default function EleitoralDashboard({
   const municipioPanelData = useMemo(() => {
     if (selectedMunicipio === 'Todos') return null;
 
-    const muniRows = votingLocations.filter(item => item.municipio === selectedMunicipio);
-    const muniTotalEleitores = muniRows.reduce((sum, item) => sum + item.eleitores, 0);
-    const muniLocaisCount = muniRows.length;
-    const muniSecoesCount = muniRows.reduce((sum, item) => sum + item.secoesCount, 0);
+    let muniTotalEleitores = 0;
+    let muniLocaisCount = 0;
+    let muniSecoesCount = 0;
+
+    for (let i = 0; i < votingLocations.length; i++) {
+      const item = votingLocations[i];
+      if (item.municipio === selectedMunicipio) {
+        muniTotalEleitores += item.eleitores;
+        muniLocaisCount++;
+        muniSecoesCount += (item.secoesCount || 1);
+      }
+    }
     const representativeness = totalStateEleitores > 0 ? (muniTotalEleitores / totalStateEleitores) * 100 : 0;
 
     return {
@@ -792,12 +888,20 @@ export default function EleitoralDashboard({
     };
   }, [selectedMunicipio, totalStateEleitores, votingLocations]);
 
-  // Compute detailed voting locations sorted for the dyn table
+  // Pre-calculate totals per municipality in O(N)
+  const muniTotalsMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (let i = 0; i < votingLocations.length; i++) {
+      const m = votingLocations[i].municipio;
+      if (m) map[m] = (map[m] || 0) + (votingLocations[i].eleitores || 0);
+    }
+    return map;
+  }, [votingLocations]);
+
+  // Compute detailed voting locations sorted for the dyn table in O(N)
   const processedTableData = useMemo(() => {
     return filteredData.map(item => {
-      // Find total electors of this location's municipality to calculate % of municipality
-      const muniRows = votingLocations.filter(r => r.municipio === item.municipio);
-      const muniTotal = muniRows.reduce((sum, r) => sum + r.eleitores, 0);
+      const muniTotal = muniTotalsMap[item.municipio] || 0;
       const percentMuni = muniTotal > 0 ? (item.eleitores / muniTotal) * 100 : 0;
       const percentTotal = totalStateEleitores > 0 ? (item.eleitores / totalStateEleitores) * 100 : 0;
 
@@ -815,7 +919,7 @@ export default function EleitoralDashboard({
           : a.local.localeCompare(b.local);
       }
     });
-  }, [filteredData, sortField, sortOrder, totalStateEleitores, votingLocations]);
+  }, [filteredData, sortField, sortOrder, totalStateEleitores, muniTotalsMap]);
 
   const totalPages = Math.max(1, Math.ceil(processedTableData.length / ITEMS_PER_PAGE));
 
@@ -879,32 +983,42 @@ export default function EleitoralDashboard({
         
         const jsonData = XLSX.utils.sheet_to_json<any>(worksheet);
         
-        const parsedRows: VotingLocation[] = jsonData.map((row: any) => {
-          const findValue = (keys: string[]) => {
-            for (const key of keys) {
-              const foundKey = Object.keys(row).find(k => {
-                const normK = String(k).trim().toLowerCase().replace(/_/g, ' ');
-                const normTarget = key.trim().toLowerCase().replace(/_/g, ' ');
-                return normK === normTarget;
-              });
-              if (foundKey && row[foundKey] !== undefined && row[foundKey] !== null) return row[foundKey];
-            }
-            return undefined;
-          };
+        // Build single header mapping dictionary for ultra-fast O(1) row processing
+        const colKeyMap: Record<string, string> = {};
+        if (jsonData.length > 0) {
+          const sampleKeys = Object.keys(jsonData[0]);
+          for (let k = 0; k < sampleKeys.length; k++) {
+            const rawK = sampleKeys[k];
+            const normK = String(rawK).trim().toLowerCase().replace(/_/g, ' ');
+            colKeyMap[normK] = rawK;
+          }
+        }
 
-          const nmMunicipio = String(findValue(["NM MUNICIPIO", "NM_MUNICIPIO", "MUNICÍPIO", "MUNICIPIO", "CIDADE"]) || "").trim();
-          const nrZona = String(findValue(["NR ZONA", "NR_ZONA", "ZONA", "ZE", "ZONA ELEITORAL"]) || "").trim();
-          const nrSecao = String(findValue(["NR SECAO", "NR_SECAO", "SEÇÃO", "SECAO", "SECOES"]) || "").trim();
-          const cdTipoSecaoAgregada = findValue(["CD TIPO SECAO AGREGADA", "CD_TIPO_SECAO_AGREGADA", "CD TIPO SECAO"]) ?? -1;
-          const dsTipoSecaoAgregada = String(findValue(["DS_TIPO_SECAO_AGREGADA", "DS TIPO SECAO AGREGADA", "DS TIPO SECAO"]) || "#NULO").trim();
-          const nrSecaoPrincipal = findValue(["NR SECAO PRINCIPAL", "NR_SECAO_PRINCIPAL"]) ?? -1;
-          const nrLocalVotacao = findValue(["NR LOCAL VOTACAO", "NR_LOCAL_VOTACAO", "NR LOCAL"]) ?? "";
-          const nmLocalVotacao = String(findValue(["NM LOCAL VOTACAO", "NM_LOCAL_VOTACAO", "LOCAL DE VOTAÇÃO", "LOCAL DE VOTACAO", "LOCAL", "ESCOLA"]) || "").trim();
-          const dsEndereco = String(findValue(["DS ENDERECO", "DS_ENDERECO", "ENDEREÇO", "ENDERECO", "LOGRADOURO"]) || "").trim();
-          const nmBairro = String(findValue(["NM BAIRRO", "NM_BAIRRO", "BAIRRO", "REGIÃO"]) || "").trim();
-          const qtEleitorSecao = Number(findValue(["QT_ELEITOR_SECAO", "QT ELEITOR SECAO", "ELEITORES", "QUANTIDADE DE ELEITORES APTOS", "APTOS"])) || 0;
-          const nmLocalVotacaoOriginal = String(findValue(["NM LOCAL VOTACAO ORIGINAL", "NM_LOCAL_VOTACAO_ORIGINAL"]) || nmLocalVotacao).trim();
-          const dsEnderecoLocvtOriginal = String(findValue(["DS ENDERECO_LOCVT_ORIGINAL", "DS_ENDERECO_LOCVT_ORIGINAL"]) || dsEndereco).trim();
+        const getColVal = (row: any, targetKeys: string[]) => {
+          for (let i = 0; i < targetKeys.length; i++) {
+            const normTarget = targetKeys[i].trim().toLowerCase().replace(/_/g, ' ');
+            const actualKey = colKeyMap[normTarget];
+            if (actualKey && row[actualKey] !== undefined && row[actualKey] !== null) {
+              return row[actualKey];
+            }
+          }
+          return undefined;
+        };
+
+        const parsedRows: VotingLocation[] = jsonData.map((row: any) => {
+          const nmMunicipio = String(getColVal(row, ["NM MUNICIPIO", "NM_MUNICIPIO", "MUNICÍPIO", "MUNICIPIO", "CIDADE"]) || "").trim();
+          const nrZona = String(getColVal(row, ["NR ZONA", "NR_ZONA", "ZONA", "ZE", "ZONA ELEITORAL"]) || "").trim();
+          const nrSecao = String(getColVal(row, ["NR SECAO", "NR_SECAO", "SEÇÃO", "SECAO", "SECOES"]) || "").trim();
+          const cdTipoSecaoAgregada = getColVal(row, ["CD TIPO SECAO AGREGADA", "CD_TIPO_SECAO_AGREGADA", "CD TIPO SECAO"]) ?? -1;
+          const dsTipoSecaoAgregada = String(getColVal(row, ["DS_TIPO_SECAO_AGREGADA", "DS TIPO SECAO AGREGADA", "DS TIPO SECAO"]) || "#NULO").trim();
+          const nrSecaoPrincipal = getColVal(row, ["NR SECAO PRINCIPAL", "NR_SECAO_PRINCIPAL"]) ?? -1;
+          const nrLocalVotacao = getColVal(row, ["NR LOCAL VOTACAO", "NR_LOCAL_VOTACAO", "NR LOCAL"]) ?? "";
+          const nmLocalVotacao = String(getColVal(row, ["NM LOCAL VOTACAO", "NM_LOCAL_VOTACAO", "LOCAL DE VOTAÇÃO", "LOCAL DE VOTACAO", "LOCAL", "ESCOLA"]) || "").trim();
+          const dsEndereco = String(getColVal(row, ["DS ENDERECO", "DS_ENDERECO", "ENDEREÇO", "ENDERECO", "LOGRADOURO"]) || "").trim();
+          const nmBairro = String(getColVal(row, ["NM BAIRRO", "NM_BAIRRO", "BAIRRO", "REGIÃO"]) || "").trim();
+          const qtEleitorSecao = Number(getColVal(row, ["QT_ELEITOR_SECAO", "QT ELEITOR SECAO", "ELEITORES", "QUANTIDADE DE ELEITORES APTOS", "APTOS"])) || 0;
+          const nmLocalVotacaoOriginal = String(getColVal(row, ["NM LOCAL VOTACAO ORIGINAL", "NM_LOCAL_VOTACAO_ORIGINAL"]) || nmLocalVotacao).trim();
+          const dsEnderecoLocvtOriginal = String(getColVal(row, ["DS ENDERECO_LOCVT_ORIGINAL", "DS_ENDERECO_LOCVT_ORIGINAL"]) || dsEndereco).trim();
 
           const zonaFormatted = nrZona ? (nrZona.toLowerCase().includes('ze') ? nrZona : `${nrZona}ª ZE`) : '';
 
@@ -941,7 +1055,8 @@ export default function EleitoralDashboard({
         }
 
         saveVotingLocations(parsedRows);
-        setSuccessMsg(`Sucesso! ${parsedRows.length} seções eleitorais do TSE carregadas no novo modelo.`);
+        setSuccessMsg(`✅ Sucesso! Planilha do TRE processada e sincronizada no seu banco de dados com máxima performance.`);
+        setTimeout(() => setSuccessMsg(null), 6000);
         setTimeout(() => setSuccessMsg(null), 6000);
       } catch (err) {
         console.error(err);
