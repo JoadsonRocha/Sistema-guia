@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { doc, onSnapshot, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../lib/FirebaseProvider';
@@ -501,11 +501,20 @@ export default function EleitoralDashboard({
   }, [activeCoordId]);
 
   // Drag-and-drop state & Modal
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isLoadingFile, setIsLoadingFile] = useState<boolean>(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState<boolean>(false);
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const triggerFilePicker = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    }
+  };
 
   // Filters State
   const [selectedMunicipio, setSelectedMunicipio] = useState<string>('Todos');
@@ -1056,38 +1065,87 @@ export default function EleitoralDashboard({
   const processFile = (file: File) => {
     setSuccessMsg(null);
     setErrorMsg(null);
+    setIsLoadingFile(true);
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
-        const data = new Uint8Array(event.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        
-        // Convert sheet to 2D matrix to find actual header row dynamically
-        const matrix = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1 });
-        if (!matrix || matrix.length === 0) {
-          setErrorMsg("A planilha carregada está totalmente vazia.");
+        const buffer = event.target?.result as ArrayBuffer;
+        if (!buffer) {
+          setErrorMsg("Não foi possível ler os dados do arquivo selecionado.");
+          setIsLoadingFile(false);
           return;
         }
 
+        const data = new Uint8Array(buffer);
+        let workbook: XLSX.WorkBook;
+
+        const fileName = file.name.toLowerCase();
+
+        // Handle CSV/TXT files with encoding and delimiter detection (TSE files are often ISO-8859-1 semicolon CSVs)
+        if (fileName.endsWith('.csv') || fileName.endsWith('.txt')) {
+          let text = new TextDecoder('utf-8').decode(data);
+          if (text.includes('')) {
+            text = new TextDecoder('iso-8859-1').decode(data);
+          }
+
+          const sampleLine = text.split('\n').find(l => l.trim().length > 0) || '';
+          const semicolonCount = (sampleLine.match(/;/g) || []).length;
+          const commaCount = (sampleLine.match(/,/g) || []).length;
+          const tabCount = (sampleLine.match(/\t/g) || []).length;
+
+          if (semicolonCount > commaCount && semicolonCount > tabCount) {
+            workbook = XLSX.read(text, { type: 'string', FS: ';' });
+          } else if (tabCount > commaCount && tabCount > semicolonCount) {
+            workbook = XLSX.read(text, { type: 'string', FS: '\t' });
+          } else {
+            workbook = XLSX.read(text, { type: 'string' });
+          }
+        } else {
+          workbook = XLSX.read(data, { type: 'array' });
+        }
+
+        if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
+          setErrorMsg("A planilha selecionada está vazia ou corrompida.");
+          setIsLoadingFile(false);
+          return;
+        }
+
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+
+        let matrix = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1 });
+        if (!matrix || matrix.length === 0) {
+          setErrorMsg("Nenhum dado encontrado na primeira aba da planilha.");
+          setIsLoadingFile(false);
+          return;
+        }
+
+        // Check if rows are array with 1 single semicolon-separated string (un-split CSV fallback)
+        const needsSemicolonSplit = matrix.some(r => Array.isArray(r) && r.length === 1 && typeof r[0] === 'string' && r[0].includes(';'));
+        if (needsSemicolonSplit) {
+          matrix = matrix.map(r => {
+            if (Array.isArray(r) && r.length === 1 && typeof r[0] === 'string') {
+              return r[0].split(';');
+            }
+            return r;
+          });
+        }
+
         const headerKeywords = [
-          "municipio", "cidade", "nmmunicipio", "cdmunicipio",
-          "local", "escola", "nmlocalvotacao", "localvotacao", "colegio",
-          "zona", "nrzona", "ze",
-          "secao", "nrsecao", "secoes",
-          "bairro", "nmbairro",
-          "endereco", "dsendereco", "logradouro",
-          "eleitor", "eleitores", "aptos", "qteleitorsecao", "qteleitor"
+          "municipio", "cidade", "nmmunicipio", "cdmunicipio", "nomemunicipio", "mun", "ds_municipio", "nm_municipio",
+          "local", "escola", "nmlocalvotacao", "localvotacao", "colegio", "estabelecimento", "nm_local_votacao", "ds_local_votacao", "nm_estabelecimento",
+          "zona", "nrzona", "ze", "nr_zona", "zonaeleitoral",
+          "secao", "nrsecao", "secoes", "nr_secao", "numsecao",
+          "bairro", "nmbairro", "nm_bairro",
+          "endereco", "dsendereco", "logradouro", "ds_endereco",
+          "eleitor", "eleitores", "aptos", "qteleitorsecao", "qteleitor", "qt_aptos", "qt_eleitores"
         ];
 
         let bestHeaderRowIndex = 0;
         let maxMatches = -1;
 
-        // Search top 25 rows for the best header row
-        const scanLimit = Math.min(25, matrix.length);
+        const scanLimit = Math.min(30, matrix.length);
         for (let r = 0; r < scanLimit; r++) {
           const row = matrix[r];
           if (!Array.isArray(row)) continue;
@@ -1108,19 +1166,32 @@ export default function EleitoralDashboard({
         const detectedHeadersRaw = headerRow.map(cell => String(cell || '').trim());
         const normHeaders = detectedHeadersRaw.map(cell => normalizeHeaderKey(cell));
 
-        const munTargets = ["nmmunicipio", "municipio", "cidade", "nomemunicipio", "cdmunicipio", "mun"];
-        const localTargets = ["nmlocalvotacao", "localdevotacao", "localvotacao", "local", "escola", "nomelocal", "colegio", "locdevotacao", "nrlocalvotacao", "localdevotacaotse", "estabelecimento"];
-        const zonaTargets = ["nrzona", "zona", "ze", "zonaeleitoral", "numzona"];
-        const secaoTargets = ["nrsecao", "secao", "secoes", "numsecao"];
-        const enderecoTargets = ["dsendereco", "endereco", "logradouro", "rua", "locvtendereco"];
-        const bairroTargets = ["nmbairro", "bairro", "regiao", "distrito"];
-        const eleitorTargets = ["qteleitorsecao", "qteleitoressecao", "qteleitor", "eleitores", "aptos", "quantidadedeeleitoresaptos", "quantidadedeeleitores", "totaleleitores", "qteleitores", "numeleitores"];
-        const tipoAgregadaTargets = ["cdtiposecaoagregada", "dstiposecaoagregada", "cdtiposecao"];
-        const secaoPrincipalTargets = ["nrsecaoprincipal"];
+        const munTargets = [
+          "nmmunicipio", "municipio", "cidade", "nomemunicipio", "cdmunicipio", "mun", 
+          "dsmunici", "dsmunicipio", "nmmunicipio", "cdmunicipio", "nm_municipio", "cd_municipio", "ds_municipio"
+        ];
+        const localTargets = [
+          "nmlocalvotacao", "localdevotacao", "localvotacao", "local", "escola", "nomelocal", 
+          "colegio", "locdevotacao", "nrlocalvotacao", "localdevotacaotse", "estabelecimento", 
+          "nmestabelecimento", "nmlocal", "nm_local_votacao", "nm_estabelecimento", "ds_local_votacao", 
+          "ds_estabelecimento", "local_votacao", "localvotacao"
+        ];
+        const zonaTargets = ["nrzona", "zona", "ze", "zonaeleitoral", "numzona", "nr_zona", "cd_zona"];
+        const secaoTargets = ["nrsecao", "secao", "secoes", "numsecao", "nr_secao", "cd_secao"];
+        const enderecoTargets = ["dsendereco", "endereco", "logradouro", "rua", "locvtendereco", "ds_endereco"];
+        const bairroTargets = ["nmbairro", "bairro", "regiao", "distrito", "nm_bairro"];
+        const eleitorTargets = [
+          "qteleitorsecao", "qteleitoressecao", "qteleitor", "eleitores", "aptos", 
+          "quantidadedeeleitoresaptos", "quantidadedeeleitores", "totaleleitores", "qteleitores", 
+          "numeleitores", "qtaptos", "qteleitoresperfil", "qt_aptos", "qt_eleitores", "qt_eleitor", 
+          "qt_eleitor_secao", "totaleleitor"
+        ];
+        const tipoAgregadaTargets = ["cdtiposecaoagregada", "dstiposecaoagregada", "cdtiposecao", "cd_tipo_secao"];
+        const secaoPrincipalTargets = ["nrsecaoprincipal", "nr_secao_principal"];
 
         const parsedRows: VotingLocation[] = [];
 
-        // Try object-based parsing first (resilient to sparse array shifts)
+        // Try object-based extraction first
         try {
           const rawObjects = XLSX.utils.sheet_to_json<any>(worksheet, { range: bestHeaderRowIndex, defval: "" });
           const getObjVal = (rowObj: any, targets: string[]) => {
@@ -1148,7 +1219,6 @@ export default function EleitoralDashboard({
             let nmLocalVotacao = String(getObjVal(rowObj, localTargets) || '').trim();
             let nmMunicipio = String(getObjVal(rowObj, munTargets) || '').trim();
 
-            // Fallback for missing local: search any property containing school keywords or text > 4 chars
             if (!nmLocalVotacao) {
               for (const k of Object.keys(rowObj)) {
                 const val = String(rowObj[k] || '').trim();
@@ -1162,7 +1232,8 @@ export default function EleitoralDashboard({
                   val.toUpperCase().includes("E.E") ||
                   val.toUpperCase().includes("E.M") ||
                   val.toUpperCase().includes("GINASIO") ||
-                  val.toUpperCase().includes("UNIDADE")
+                  val.toUpperCase().includes("UNIDADE") ||
+                  val.toUpperCase().includes("INSTITUTO")
                 )) {
                   nmLocalVotacao = val;
                   break;
@@ -1170,9 +1241,8 @@ export default function EleitoralDashboard({
               }
             }
 
-            if (!nmLocalVotacao) continue; // Skip only if no local name could be found anywhere in the row
+            if (!nmLocalVotacao) continue;
 
-            // If municipality is missing in this row or sheet, default gracefully instead of discarding!
             if (!nmMunicipio) {
               nmMunicipio = "MUNICÍPIO ÚNICO";
             }
@@ -1202,7 +1272,6 @@ export default function EleitoralDashboard({
               nmLocalVotacaoOriginal: nmLocalVotacao,
               dsEnderecoLocvtOriginal: dsEndereco,
 
-              // Compatibility computed fields
               municipio: nmMunicipio,
               zona: zonaFormatted || nrZona,
               secoes: nrSecao,
@@ -1214,10 +1283,10 @@ export default function EleitoralDashboard({
             });
           }
         } catch (e) {
-          console.warn("Aviso na leitura baseada em objetos:", e);
+          console.warn("Aviso na leitura por objetos:", e);
         }
 
-        // Fallback to matrix indexing if object mode found no rows
+        // Matrix fallback if object mode found no rows
         if (parsedRows.length === 0) {
           const findColIdx = (targets: string[]): number => {
             for (let i = 0; i < normHeaders.length; i++) {
@@ -1304,7 +1373,6 @@ export default function EleitoralDashboard({
               nmLocalVotacaoOriginal: nmLocalVotacao,
               dsEnderecoLocvtOriginal: dsEndereco,
 
-              // Compatibility computed fields
               municipio: nmMunicipio,
               zona: zonaFormatted || nrZona,
               secoes: nrSecao,
@@ -1317,15 +1385,15 @@ export default function EleitoralDashboard({
           }
         }
 
+        // Universal Generic Fallback if 0 rows found: scan row values for text & numbers
         if (parsedRows.length === 0 && matrix.length > 1) {
-          // Universal Generic Column Auto-Extraction
           const dataRows = matrix.slice(bestHeaderRowIndex + 1);
           for (let i = 0; i < dataRows.length; i++) {
             const row = dataRows[i];
             if (!Array.isArray(row) || row.length === 0) continue;
 
             let bestLocal = "";
-            let bestMuni = "MUNICÍPIO / BASE LOCAL";
+            let bestMuni = "MUNICÍPIO ÚNICO";
             let bestZona = "";
             let bestSecao = "";
             let maxEleit = 0;
@@ -1341,7 +1409,7 @@ export default function EleitoralDashboard({
               } else if (strVal.length > 3) {
                 if (!bestLocal) {
                   bestLocal = strVal;
-                } else if (!bestMuni || bestMuni === "MUNICÍPIO / BASE LOCAL") {
+                } else if (!bestMuni || bestMuni === "MUNICÍPIO ÚNICO") {
                   bestMuni = strVal;
                 }
               }
@@ -1380,15 +1448,23 @@ export default function EleitoralDashboard({
         }
 
         if (parsedRows.length === 0) {
-          const detectedStr = detectedHeadersRaw.filter(Boolean).join(", ");
-          setErrorMsg(`Não foi possível extrair linhas válidas da sua planilha. Colunas detectadas: [${detectedStr || "Nenhuma"}].`);
+          setErrorMsg("Não foi possível reconhecer as colunas de locais de votação nesta planilha. Utilize o botão 'Baixar Modelo Excel' para consultar o formato esperado.");
+          setIsLoadingFile(false);
           return;
         }
 
-        saveVotingLocations(parsedRows);
+        await saveVotingLocations(parsedRows);
+
+        const totalEleitoresCalc = parsedRows.reduce((acc, r) => acc + (r.eleitores || 0), 0);
+        const uniqueLocsCount = new Set(parsedRows.map(r => r.local)).size;
+
+        setSuccessMsg(`✅ Sucesso! Foram importados e salvos no banco de dados ${uniqueLocsCount} locais de votação com um total de ${totalEleitoresCalc.toLocaleString('pt-BR')} eleitores.`);
+        setTimeout(() => setSuccessMsg(null), 8000);
       } catch (err) {
         console.error("Erro ao ler planilha:", err);
-        setErrorMsg("Erro ao processar o arquivo de planilha. Certifique-se de carregar um arquivo Excel (.xlsx, .xls) ou CSV válido.");
+        setErrorMsg("Erro ao processar o arquivo. Certifique-se de carregar um arquivo Excel (.xlsx, .xls) ou CSV válido.");
+      } finally {
+        setIsLoadingFile(false);
       }
     };
     reader.readAsArrayBuffer(file);
@@ -1438,17 +1514,28 @@ export default function EleitoralDashboard({
   return (
     <div id="eleitoral_bi_dashboard" className="w-full bg-zinc-50 dark:bg-zinc-950 text-zinc-800 dark:text-zinc-100 p-4 md:p-6 space-y-6">
       
-      {/* ALWAYS ACCESSIBLE HIDDEN FILE INPUT FOR TRE EXCEL UPLOAD */}
+      {/* SINGLE RELIABLE HIDDEN FILE INPUT */}
       <input 
+        ref={fileInputRef}
         type="file" 
         id="excel-file-upload-input"
         className="hidden" 
-        accept=".xlsx, .xls, .csv" 
-        onChange={(e) => {
-          handleFileUpload(e);
-          setIsImportModalOpen(false);
-        }} 
+        accept=".xlsx, .xls, .csv, .txt" 
+        onChange={handleFileUpload} 
       />
+
+      {/* LOADING OVERLAY WHEN PROCESSING PLANILHA */}
+      {isLoadingFile && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 max-w-sm w-full text-center space-y-4 shadow-2xl animate-in fade-in zoom-in duration-150">
+            <RefreshCw className="w-12 h-12 text-blue-500 animate-spin mx-auto" />
+            <div>
+              <h3 className="text-base font-black text-white uppercase tracking-wider">Processando Planilha TRE</h3>
+              <p className="text-xs text-zinc-400 mt-1">Lendo linhas, agregando locais de votação e sincronizando banco de dados...</p>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
@@ -1516,14 +1603,27 @@ export default function EleitoralDashboard({
               <ExternalLink className="w-3 h-3 text-blue-200 ml-0.5" />
             </a>
 
-            <button
-              onClick={() => setIsImportModalOpen(true)}
-              className="flex items-center gap-2 px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
-              title="Importar ou gerenciar planilha de dados oficiais do TRE"
-            >
-              <UploadCloud className="w-4 h-4 text-blue-400" />
-              <span>Importar / Gerenciar Planilha TRE</span>
-            </button>
+            {votingLocations.length > 0 && (
+              <>
+                <button
+                  onClick={triggerFilePicker}
+                  className="flex items-center gap-2 px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
+                  title="Substituir ou importar nova planilha de dados oficiais do TRE"
+                >
+                  <UploadCloud className="w-4 h-4 text-blue-400" />
+                  <span>Substituir Planilha TRE</span>
+                </button>
+
+                <button
+                  onClick={clearData}
+                  className="flex items-center gap-2 px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer uppercase tracking-tight"
+                  title="Zerar e apagar permanentemente os dados desatualizados do TRE"
+                >
+                  <Trash2 className="w-4 h-4 text-white" />
+                  <span>ZERAR DADOS TRE</span>
+                </button>
+              </>
+            )}
 
             {!isSupabaseConfigured() && (
               <button
@@ -1533,17 +1633,6 @@ export default function EleitoralDashboard({
               >
                 <Database className="w-4 h-4 text-emerald-200" />
                 <span>Conectar Supabase (Admin)</span>
-              </button>
-            )}
-
-            {votingLocations.length > 0 && (
-              <button
-                onClick={clearData}
-                className="flex items-center gap-2 px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer uppercase tracking-tight"
-                title="Zerar e apagar permanentemente os dados desatualizados do TRE"
-              >
-                <Trash2 className="w-4 h-4 text-white" />
-                <span>ZERAR DADOS TRE</span>
               </button>
             )}
           </div>
@@ -1602,18 +1691,6 @@ export default function EleitoralDashboard({
                 </button>
 
                 <div className="flex items-center gap-2">
-                  {votingLocations.length === 0 && (
-                    <button
-                      onClick={() => {
-                        loadDemoData();
-                        setIsImportModalOpen(false);
-                      }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded text-xs font-medium transition-colors"
-                    >
-                      <span>Carregar Massa de Teste</span>
-                    </button>
-                  )}
-
                   <button
                     onClick={() => {
                       clearData();
@@ -1663,16 +1740,14 @@ export default function EleitoralDashboard({
                   handleDrop(e);
                   setIsImportModalOpen(false);
                 }}
-                className={`border-2 border-dashed rounded-lg p-6 text-center transition-all ${
+                onClick={triggerFilePicker}
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer ${
                   dragActive 
                     ? "border-blue-500 bg-blue-50/50 dark:bg-blue-950/30" 
                     : "border-zinc-300 dark:border-zinc-700 hover:border-blue-500 bg-zinc-50 dark:bg-zinc-800/50"
                 }`}
               >
-                <label 
-                  htmlFor="excel-file-upload-input"
-                  className="cursor-pointer flex flex-col items-center justify-center gap-2"
-                >
+                <div className="flex flex-col items-center justify-center gap-2">
                   <UploadCloud className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-1" />
                   <span className="text-sm font-bold text-zinc-800 dark:text-zinc-100">
                     Arraste a planilha do TSE aqui ou clique para selecionar
@@ -1680,7 +1755,7 @@ export default function EleitoralDashboard({
                   <span className="text-xs text-zinc-500 dark:text-zinc-400">
                     Suporta arquivos .xlsx, .xls e .csv baixados do Drive ou do site oficial do TSE
                   </span>
-                </label>
+                </div>
               </div>
             </div>
 
@@ -1712,25 +1787,23 @@ export default function EleitoralDashboard({
               <p className="text-[11px] font-black text-blue-600 dark:text-blue-600 uppercase tracking-widest">
                 Você possui privilégios de Coordenador Geral para enviar dados do TRE.
               </p>
-              <div className="flex items-center justify-center gap-3">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button
+                  onClick={triggerFilePicker}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white hover:bg-blue-500 font-black text-xs uppercase tracking-wider rounded transition-all shadow-md hover:shadow-lg active:scale-95 cursor-pointer w-full sm:w-auto"
+                >
+                  <UploadCloud className="w-5 h-5 text-white" />
+                  <span>Carregar Planilha Oficial (.xlsx / .csv)</span>
+                </button>
+
                 <button
                   onClick={downloadTemplate}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-zinc-900 text-white hover:bg-zinc-850 font-black text-xs uppercase tracking-wider rounded-sm transition-all shadow-sm border border-zinc-800"
+                  className="flex items-center justify-center gap-2 px-5 py-3 bg-zinc-900 text-white hover:bg-zinc-800 font-black text-xs uppercase tracking-wider rounded transition-all shadow-sm border border-zinc-800 w-full sm:w-auto"
                 >
-                  <Download className="w-4 h-4 text-blue-600" />
+                  <Download className="w-4 h-4 text-blue-400" />
                   <span>Baixar Modelo Excel</span>
                 </button>
-                
-                <label
-                  htmlFor="excel-file-upload-input"
-                  className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white hover:bg-blue-500 font-black text-xs uppercase tracking-wider rounded-sm cursor-pointer transition-all shadow-sm active:scale-95"
-                >
-                  <UploadCloud className="w-4 h-4 text-white" />
-                  <span>Carregar Planilha Oficial</span>
-                </label>
               </div>
-              
-
             </div>
           ) : (
             <div className="mt-6 p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm space-y-1">
