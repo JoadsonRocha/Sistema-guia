@@ -57,6 +57,15 @@ import {
 } from 'lucide-react';
 import { VotingLocation, TSE_COLUMNS, TseColumnDef } from '../data/eleitoralData';
 import * as XLSX from 'xlsx';
+import * as cptables from 'xlsx/dist/cpexcel.full.mjs';
+
+if (typeof (XLSX as any).set_cptable === 'function') {
+  try {
+    (XLSX as any).set_cptable(cptables);
+  } catch (e) {
+    console.warn("Aviso ao registrar cptable em XLSX:", e);
+  }
+}
 
 // Constants for theme colors (Navy & Royal Blue)
 const COLORS = [
@@ -1133,9 +1142,24 @@ export default function EleitoralDashboard({
         const isOleMagic = data.length >= 8 && data[0] === 0xD0 && data[1] === 0xCF && data[2] === 0x11 && data[3] === 0xE0;
         const isBinaryExcel = isZipMagic || isOleMagic;
 
-        if (isBinaryExcel) {
+        // 1. Try reading as CSV text if not a binary zip/ole file
+        if (!isBinaryExcel) {
+          let text = '';
           try {
-            const workbook = XLSX.read(data, { type: 'array' });
+            text = new TextDecoder('utf-8', { fatal: false }).decode(data);
+            if (text.includes('\uFFFD')) {
+              text = new TextDecoder('iso-8859-1').decode(data);
+            }
+          } catch {
+            text = new TextDecoder('iso-8859-1').decode(data);
+          }
+          matrix = parseCSVText(text);
+        }
+
+        // 2. If it is a binary excel or text decoding produced no valid matrix, use XLSX.read
+        if (matrix.length === 0) {
+          try {
+            const workbook = XLSX.read(data, { type: 'array', raw: true });
             if (workbook && workbook.SheetNames && workbook.SheetNames.length > 0) {
               const firstSheetName = workbook.SheetNames[0];
               const worksheet = workbook.Sheets[firstSheetName];
@@ -1149,15 +1173,13 @@ export default function EleitoralDashboard({
           }
         }
 
+        // 3. Fallback text parsing if XLSX failed or wasn't used
         if (!matrix || matrix.length === 0) {
           let text = '';
           try {
-            text = new TextDecoder('utf-8', { fatal: false }).decode(data);
-            if (text.includes('\uFFFD')) {
-              text = new TextDecoder('iso-8859-1').decode(data);
-            }
-          } catch {
             text = new TextDecoder('iso-8859-1').decode(data);
+          } catch {
+            text = new TextDecoder('utf-8').decode(data);
           }
           matrix = parseCSVText(text);
         }
