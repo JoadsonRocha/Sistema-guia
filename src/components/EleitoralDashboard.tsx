@@ -24,7 +24,7 @@ import {
 import { 
   LayoutDashboard, 
   Building2, 
-  Map, 
+  Map as MapIcon, 
   Hash, 
   TrendingUp, 
   Filter, 
@@ -1884,7 +1884,7 @@ export default function EleitoralDashboard({
               {/* Total Locais */}
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm p-4 shadow-sm flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-zinc-300 dark:border-t-zinc-700">
                 <div className="absolute right-2 top-2 text-zinc-100 dark:text-zinc-800 group-hover:scale-110 transition-transform">
-                  <Map className="w-14 h-14" />
+                  <MapIcon className="w-14 h-14" />
                 </div>
                 <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400">
                   Locais de Votação
