@@ -4,6 +4,9 @@ import { db } from '../lib/firebase';
 import { useAuth } from '../lib/FirebaseProvider';
 import { setTreLocationsForCoordinator, clearTreLocationsCache, getAllTreLocations } from '../lib/treDataService';
 import { eleitoralStorage } from '../lib/eleitoralStorage';
+import { SupabaseConfigModal } from './SupabaseConfigModal';
+import { supabaseService } from '../lib/supabaseService';
+import { isSupabaseConfigured } from '../lib/supabase';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   BarChart, 
@@ -325,6 +328,15 @@ export default function EleitoralDashboard({
     // Save to high-capacity IndexedDB locally
     await eleitoralStorage.saveLocations(activeCoordId, newData);
 
+    // Save to Supabase Cloud Database if configured
+    if (isSupabaseConfigured()) {
+      try {
+        await supabaseService.saveTreLocations(activeCoordId, newData as any);
+      } catch (err) {
+        console.warn("Supabase save warning:", err);
+      }
+    }
+
     try {
       const docId = `coord_${activeCoordId}`;
       const cleanData = newData.map(cleanLocationForFirestore);
@@ -385,9 +397,19 @@ export default function EleitoralDashboard({
   useEffect(() => {
     let isSubscribed = true;
 
-    // Load from IndexedDB / localStorage immediately as local fallback
+    // Load from Supabase / IndexedDB / localStorage
     const loadLocalData = async () => {
       try {
+        if (isSupabaseConfigured()) {
+          const supData = await supabaseService.loadTreLocations(activeCoordId);
+          if (isSubscribed && supData && Array.isArray(supData) && supData.length > 0) {
+            const aggregated = aggregateLocationsIfSections(supData as any);
+            setVotingLocations(aggregated);
+            setTreLocationsForCoordinator(activeCoordId, aggregated);
+            return;
+          }
+        }
+
         const cached = await eleitoralStorage.loadLocations(activeCoordId);
         if (isSubscribed && cached && Array.isArray(cached) && cached.length > 0) {
           const aggregated = aggregateLocationsIfSections(cached);
@@ -480,6 +502,7 @@ export default function EleitoralDashboard({
 
   // Drag-and-drop state & Modal
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
+  const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState<boolean>(false);
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -1488,6 +1511,17 @@ export default function EleitoralDashboard({
               <UploadCloud className="w-4 h-4 text-blue-400" />
               <span>Importar / Gerenciar Planilha TRE</span>
             </button>
+
+            {!isSupabaseConfigured() && (
+              <button
+                onClick={() => setIsSupabaseModalOpen(true)}
+                className="flex items-center gap-2 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
+                title="Configurar banco relacional Supabase PostgreSQL (Apenas Administrador)"
+              >
+                <Database className="w-4 h-4 text-emerald-200" />
+                <span>Conectar Supabase (Admin)</span>
+              </button>
+            )}
 
             {votingLocations.length > 0 && (
               <button
@@ -2811,6 +2845,12 @@ export default function EleitoralDashboard({
           )}
         </>
       )}
+
+      {/* SUPABASE DATABASE CONFIGURATION MODAL */}
+      <SupabaseConfigModal
+        isOpen={isSupabaseModalOpen}
+        onClose={() => setIsSupabaseModalOpen(false)}
+      />
 
     </div>
   );
