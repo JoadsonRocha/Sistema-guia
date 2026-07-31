@@ -66,15 +66,6 @@ import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, get
 import { db, auth } from '../lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from '../lib/agendaLogic';
 import * as XLSX from 'xlsx';
-import * as cptables from 'xlsx/dist/cpexcel.full.mjs';
-
-if (typeof (XLSX as any).set_cptable === 'function') {
-  try {
-    (XLSX as any).set_cptable(cptables);
-  } catch (e) {
-    console.warn("Aviso ao registrar cptable em CaboDashboard:", e);
-  }
-}
 import { maskCurrency, parseCurrencyToNumber } from '../utils/currency';
 import { safeLocalStorage } from '../utils/safeStorage';
 import { validateVoterRegistration, triggerUpgradeRedirect } from '../lib/planService';

@@ -57,15 +57,6 @@ import {
 } from 'lucide-react';
 import { VotingLocation, TSE_COLUMNS, TseColumnDef } from '../data/eleitoralData';
 import * as XLSX from 'xlsx';
-import * as cptables from 'xlsx/dist/cpexcel.full.mjs';
-
-if (typeof (XLSX as any).set_cptable === 'function') {
-  try {
-    (XLSX as any).set_cptable(cptables);
-  } catch (e) {
-    console.warn("Aviso ao registrar cptable em XLSX:", e);
-  }
-}
 
 // Constants for theme colors (Navy & Royal Blue)
 const COLORS = [
