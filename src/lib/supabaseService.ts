@@ -1,5 +1,5 @@
 import { getSupabaseClient, isSupabaseConfigured } from './supabase';
-import { TreLocationItem } from './treDataService';
+import { TreLocationItem, parseSecoes, extractZonaNum } from './treDataService';
 
 export interface CampaignRecord {
   id?: string;
@@ -19,9 +19,8 @@ export const supabaseService = {
     try {
       const { data, error } = await client.from('tre_locations').select('count', { count: 'exact', head: true });
       if (error && error.code !== 'PGRST116' && !error.message.includes('relation "tre_locations" does not exist')) {
-        // Table might not exist yet, but credentials are valid
         if (error.code === '42P01') {
-          return { success: true, message: 'Conectado com sucesso! (Crie a tabela tre_locations com o script SQL fornecido)' };
+          return { success: true, message: 'Conectado com sucesso! (A tabela tre_locations ainda não foi criada no SQL Editor)' };
         }
         return { success: false, message: `Erro ao conectar: ${error.message}` };
       }
@@ -32,27 +31,55 @@ export const supabaseService = {
   },
 
   // Save TRE locations to Supabase in batches for high speed
-  async saveTreLocations(coordinatorId: string, locations: TreLocationItem[]): Promise<{ success: boolean; count: number; error?: string }> {
+  async saveTreLocations(coordinatorId: string, locations: any[]): Promise<{ success: boolean; count: number; error?: string }> {
     const client = getSupabaseClient();
     if (!client) return { success: false, count: 0, error: 'Supabase não configurado' };
 
     try {
-      // First, delete previous records for this coordinator or append
+      // First, delete previous records for this coordinator
       await client.from('tre_locations').delete().eq('coordinator_id', coordinatorId);
 
-      // Prepare records
-      const rows = locations.map(loc => ({
-        coordinator_id: coordinatorId,
-        zona: loc.zona,
-        zona_clean: loc.zonaClean,
-        secoes: loc.secoes,
-        secoes_str: loc.secoesStr,
-        local: loc.local,
-        bairro: loc.bairro || '',
-        municipio: loc.municipio || '',
-        eleitores: loc.eleitores || 0,
-        raw_data: loc
-      }));
+      if (!locations || locations.length === 0) {
+        return { success: true, count: 0 };
+      }
+
+      // Prepare records supporting both VotingLocation and TreLocationItem structures
+      const rows = locations.map(loc => {
+        const nmMuni = String(loc.nmMunicipio || loc.municipio || '').trim();
+        const nmLoc = String(loc.nmLocalVotacao || loc.local || '').trim();
+        const zRaw = String(loc.nrZona || loc.zona || '').trim();
+        const zClean = loc.zonaClean || extractZonaNum(zRaw) || '1';
+        const zLabel = loc.zona || (zRaw ? `${zRaw}ª ZE` : '1ª ZE');
+
+        let secoesArr: string[] = [];
+        let secoesStr = '';
+
+        if (Array.isArray(loc.secoes)) {
+          secoesArr = loc.secoes;
+          secoesStr = loc.secoes.join(', ');
+        } else if (typeof loc.secoes === 'string') {
+          secoesStr = loc.secoes;
+          secoesArr = parseSecoes(loc.secoes);
+        } else if (loc.nrSecao) {
+          secoesStr = String(loc.nrSecao);
+          secoesArr = parseSecoes(String(loc.nrSecao));
+        }
+
+        const eleit = Number(loc.qtEleitorSecao ?? loc.eleitores) || 0;
+
+        return {
+          coordinator_id: coordinatorId,
+          zona: zLabel,
+          zona_clean: zClean,
+          secoes: secoesArr,
+          secoes_str: secoesStr,
+          local: nmLoc,
+          bairro: loc.nmBairro || loc.bairro || '',
+          municipio: nmMuni || 'MUNICÍPIO ÚNICO',
+          eleitores: eleit,
+          raw_data: loc
+        };
+      });
 
       // Insert in chunks of 500 to prevent payload overflow
       const chunkSize = 500;
@@ -75,7 +102,7 @@ export const supabaseService = {
   },
 
   // Load TRE locations for a coordinator from Supabase
-  async loadTreLocations(coordinatorId: string): Promise<TreLocationItem[] | null> {
+  async loadTreLocations(coordinatorId: string): Promise<any[] | null> {
     const client = getSupabaseClient();
     if (!client) return null;
 
@@ -85,19 +112,38 @@ export const supabaseService = {
         .select('*')
         .eq('coordinator_id', coordinatorId);
 
-      if (error || !data) return null;
+      if (error || !data || data.length === 0) return null;
 
-      return data.map(item => ({
-        id: item.id || `sup_${item.zona_clean}_${item.local}`,
-        zona: item.zona,
-        zonaClean: item.zona_clean,
-        secoes: item.secoes || [],
-        secoesStr: item.secoes_str,
-        local: item.local,
-        bairro: item.bairro,
-        municipio: item.municipio,
-        eleitores: item.eleitores
-      }));
+      return data.map(item => {
+        const raw = item.raw_data || {};
+        const secoesArr = Array.isArray(item.secoes) ? item.secoes : [];
+        const secoesStr = item.secoes_str || secoesArr.join(', ') || '';
+        const secoesCount = secoesArr.length > 0 ? secoesArr.length : (raw.secoesCount || 1);
+
+        return {
+          nmMunicipio: item.municipio || raw.nmMunicipio || 'MUNICÍPIO ÚNICO',
+          municipio: item.municipio || raw.municipio || 'MUNICÍPIO ÚNICO',
+          nmLocalVotacao: item.local || raw.nmLocalVotacao || '',
+          nmLocalVotacaoOriginal: item.local || raw.nmLocalVotacaoOriginal || '',
+          local: item.local || raw.local || '',
+          nrZona: item.zona_clean || raw.nrZona || '',
+          zona: item.zona || raw.zona || '',
+          nrSecao: secoesStr,
+          secoes: secoesStr,
+          secoesCount: secoesCount,
+          nmBairro: item.bairro || raw.nmBairro || '',
+          bairro: item.bairro || raw.bairro || '',
+          qtEleitorSecao: item.eleitores || raw.qtEleitorSecao || 0,
+          eleitores: item.eleitores || raw.eleitores || 0,
+          cdTipoSecaoAgregada: raw.cdTipoSecaoAgregada ?? -1,
+          dsTipoSecaoAgregada: raw.dsTipoSecaoAgregada || 'Principal',
+          nrSecaoPrincipal: raw.nrSecaoPrincipal ?? -1,
+          nrLocalVotacao: raw.nrLocalVotacao ?? '',
+          dsEndereco: raw.dsEndereco || raw.endereco || '',
+          endereco: raw.endereco || raw.dsEndereco || '',
+          dsEnderecoLocvtOriginal: raw.dsEnderecoLocvtOriginal || ''
+        };
+      });
     } catch (err) {
       console.error('Failed to load TRE locations from Supabase:', err);
       return null;
