@@ -1078,55 +1078,78 @@ export default function EleitoralDashboard({
         }
 
         const data = new Uint8Array(buffer);
-        let workbook: XLSX.WorkBook;
-
         const fileName = file.name.toLowerCase();
 
-        // Handle CSV/TXT files with encoding and delimiter detection (TSE files are often ISO-8859-1 semicolon CSVs)
-        if (fileName.endsWith('.csv') || fileName.endsWith('.txt')) {
-          let text = new TextDecoder('utf-8').decode(data);
-          if (text.includes('')) {
+        let matrix: any[][] = [];
+        let text = '';
+        let isTextFile = false;
+
+        const sampleChunk = data.subarray(0, Math.min(2000, data.length));
+        const sampleUtf8 = new TextDecoder('utf-8').decode(sampleChunk);
+
+        if (fileName.endsWith('.csv') || fileName.endsWith('.txt') || sampleUtf8.includes(';') || sampleUtf8.includes('\n')) {
+          isTextFile = true;
+          if (sampleUtf8.includes('\uFFFD')) {
             text = new TextDecoder('iso-8859-1').decode(data);
-          }
-
-          const sampleLine = text.split('\n').find(l => l.trim().length > 0) || '';
-          const semicolonCount = (sampleLine.match(/;/g) || []).length;
-          const commaCount = (sampleLine.match(/,/g) || []).length;
-          const tabCount = (sampleLine.match(/\t/g) || []).length;
-
-          if (semicolonCount > commaCount && semicolonCount > tabCount) {
-            workbook = XLSX.read(text, { type: 'string', FS: ';' });
-          } else if (tabCount > commaCount && tabCount > semicolonCount) {
-            workbook = XLSX.read(text, { type: 'string', FS: '\t' });
           } else {
-            workbook = XLSX.read(text, { type: 'string' });
+            text = new TextDecoder('utf-8').decode(data);
           }
-        } else {
-          workbook = XLSX.read(data, { type: 'array' });
         }
 
-        if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
-          setErrorMsg("A planilha selecionada está vazia ou corrompida.");
-          setIsLoadingFile(false);
-          return;
+        if (isTextFile && text) {
+          const rawLines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+          if (rawLines.length > 0) {
+            const sampleLine = rawLines[0];
+            const semicolonCount = (sampleLine.match(/;/g) || []).length;
+            const tabCount = (sampleLine.match(/\t/g) || []).length;
+            const commaCount = (sampleLine.match(/,/g) || []).length;
+
+            let delimiter = ',';
+            if (semicolonCount >= commaCount && semicolonCount >= tabCount) {
+              delimiter = ';';
+            } else if (tabCount >= commaCount && tabCount >= semicolonCount) {
+              delimiter = '\t';
+            }
+
+            matrix = rawLines.map(line => line.split(delimiter).map(cell => cell.replace(/^["']|["']$/g, '').trim()));
+          }
         }
 
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-
-        let matrix = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1 });
         if (!matrix || matrix.length === 0) {
-          setErrorMsg("Nenhum dado encontrado na primeira aba da planilha.");
+          try {
+            const workbook = XLSX.read(data, { type: 'array' });
+            if (workbook && workbook.SheetNames && workbook.SheetNames.length > 0) {
+              const firstSheetName = workbook.SheetNames[0];
+              const worksheet = workbook.Sheets[firstSheetName];
+              matrix = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1 });
+            }
+          } catch (xlsxErr) {
+            console.warn("Aviso na leitura XLSX:", xlsxErr);
+            if (!text) {
+              text = new TextDecoder('iso-8859-1').decode(data);
+            }
+            const rawLines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+            if (rawLines.length > 0) {
+              const sampleLine = rawLines[0];
+              const delimiter = sampleLine.includes(';') ? ';' : (sampleLine.includes('\t') ? '\t' : ',');
+              matrix = rawLines.map(line => line.split(delimiter).map(cell => cell.replace(/^["']|["']$/g, '').trim()));
+            }
+          }
+        }
+
+        if (!matrix || matrix.length === 0) {
+          setErrorMsg("A planilha selecionada está vazia ou não pôde ser lida.");
           setIsLoadingFile(false);
           return;
         }
 
-        // Check if rows are array with 1 single semicolon-separated string (un-split CSV fallback)
-        const needsSemicolonSplit = matrix.some(r => Array.isArray(r) && r.length === 1 && typeof r[0] === 'string' && r[0].includes(';'));
-        if (needsSemicolonSplit) {
+        const needsDelimiterSplit = matrix.some(r => Array.isArray(r) && r.length === 1 && typeof r[0] === 'string' && (r[0].includes(';') || r[0].includes(',') || r[0].includes('\t')));
+        if (needsDelimiterSplit) {
           matrix = matrix.map(r => {
             if (Array.isArray(r) && r.length === 1 && typeof r[0] === 'string') {
-              return r[0].split(';');
+              const line = r[0];
+              const delim = line.includes(';') ? ';' : (line.includes('\t') ? '\t' : ',');
+              return line.split(delim).map(cell => cell.replace(/^["']|["']$/g, '').trim());
             }
             return r;
           });
@@ -1191,9 +1214,20 @@ export default function EleitoralDashboard({
 
         const parsedRows: VotingLocation[] = [];
 
+        // Build object array directly from matrix and headers
+        const rawObjects = matrix.slice(bestHeaderRowIndex + 1).map(row => {
+          const obj: Record<string, any> = {};
+          if (Array.isArray(row)) {
+            for (let c = 0; c < normHeaders.length; c++) {
+              const originalHeader = detectedHeadersRaw[c] || `col_${c}`;
+              obj[originalHeader] = row[c] !== undefined && row[c] !== null ? row[c] : "";
+            }
+          }
+          return obj;
+        });
+
         // Try object-based extraction first
         try {
-          const rawObjects = XLSX.utils.sheet_to_json<any>(worksheet, { range: bestHeaderRowIndex, defval: "" });
           const getObjVal = (rowObj: any, targets: string[]) => {
             const keys = Object.keys(rowObj);
             for (const key of keys) {
