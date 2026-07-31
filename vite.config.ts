@@ -17,9 +17,10 @@ export default defineConfig(({mode}) => {
       'process.env': {},
     },
     resolve: {
-      alias: {
-        '@': resolve(__dirname, '.'),
-      },
+      alias: [
+        { find: '@', replacement: resolve(__dirname, '.') },
+        { find: /^xlsx$/, replacement: resolve(__dirname, 'node_modules/xlsx/dist/xlsx.full.min.js') }
+      ],
     },
     build: {
       rollupOptions: {

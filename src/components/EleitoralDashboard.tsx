@@ -1129,31 +1129,16 @@ export default function EleitoralDashboard({
 
         let matrix: any[][] = [];
 
-        const isZipMagic = data.length >= 4 && data[0] === 0x50 && data[1] === 0x4B && data[2] === 0x03 && data[3] === 0x04;
+        const isZipMagic = data.length >= 4 && data[0] === 0x50 && data[1] === 0x4B;
         const isOleMagic = data.length >= 8 && data[0] === 0xD0 && data[1] === 0xCF && data[2] === 0x11 && data[3] === 0xE0;
-        const isBinaryExcel = isZipMagic || isOleMagic;
+        const isExcelExt = fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.ods') || fileName.endsWith('.xlsb');
+        const isBinaryExcel = isZipMagic || isOleMagic || isExcelExt;
 
-        // 1. Try reading as CSV text if not a binary zip/ole file
-        if (!isBinaryExcel) {
-          let text = '';
+        if (isBinaryExcel) {
           try {
-            text = new TextDecoder('utf-8', { fatal: false }).decode(data);
-            if (text.includes('\uFFFD')) {
-              text = new TextDecoder('iso-8859-1').decode(data);
-            }
-          } catch {
-            text = new TextDecoder('iso-8859-1').decode(data);
-          }
-          matrix = parseCSVText(text);
-        }
-
-        // 2. If it is a binary excel or text decoding produced no valid matrix, use XLSX.read
-        if (matrix.length === 0) {
-          try {
-            const workbook = XLSX.read(data, { type: 'array', raw: true });
+            const workbook = XLSX.read(data, { type: 'array' });
             if (workbook && workbook.SheetNames && workbook.SheetNames.length > 0) {
-              const firstSheetName = workbook.SheetNames[0];
-              const worksheet = workbook.Sheets[firstSheetName];
+              const worksheet = workbook.Sheets[workbook.SheetNames[0]];
               if (worksheet) {
                 matrix = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1, defval: "" });
               }
@@ -1164,13 +1149,15 @@ export default function EleitoralDashboard({
           }
         }
 
-        // 3. Fallback text parsing if XLSX failed or wasn't used
         if (!matrix || matrix.length === 0) {
           let text = '';
           try {
-            text = new TextDecoder('iso-8859-1').decode(data);
+            text = new TextDecoder('utf-8', { fatal: false }).decode(data);
+            if (text.includes('\uFFFD')) {
+              text = new TextDecoder('iso-8859-1').decode(data);
+            }
           } catch {
-            text = new TextDecoder('utf-8').decode(data);
+            text = new TextDecoder('iso-8859-1').decode(data);
           }
           matrix = parseCSVText(text);
         }
