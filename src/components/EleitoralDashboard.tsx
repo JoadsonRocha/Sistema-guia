@@ -1062,6 +1062,53 @@ export default function EleitoralDashboard({
     return isNaN(num) ? 0 : Math.round(num);
   };
 
+  const parseCSVText = (text: string): string[][] => {
+    const cleanText = text.replace(/^\uFEFF/, '');
+    const rawLines = cleanText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+    if (rawLines.length === 0) return [];
+
+    const sampleLines = rawLines.slice(0, Math.min(10, rawLines.length));
+    let countSemicolon = 0;
+    let countTab = 0;
+    let countComma = 0;
+
+    for (const line of sampleLines) {
+      countSemicolon += (line.match(/;/g) || []).length;
+      countTab += (line.match(/\t/g) || []).length;
+      countComma += (line.match(/,/g) || []).length;
+    }
+
+    let delimiter = ';';
+    if (countTab > countSemicolon && countTab > countComma) {
+      delimiter = '\t';
+    } else if (countComma > countSemicolon && countComma > countTab) {
+      delimiter = ',';
+    }
+
+    return rawLines.map(line => {
+      if (line.includes('"')) {
+        const cells: string[] = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === delimiter && !inQuotes) {
+            cells.push(current.trim().replace(/^["']|["']$/g, ''));
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        cells.push(current.trim().replace(/^["']|["']$/g, ''));
+        return cells;
+      } else {
+        return line.split(delimiter).map(cell => cell.trim());
+      }
+    });
+  };
+
   const processFile = (file: File) => {
     setSuccessMsg(null);
     setErrorMsg(null);
@@ -1081,78 +1128,65 @@ export default function EleitoralDashboard({
         const fileName = file.name.toLowerCase();
 
         let matrix: any[][] = [];
-        let text = '';
-        let isTextFile = false;
 
-        const sampleChunk = data.subarray(0, Math.min(2000, data.length));
-        const sampleUtf8 = new TextDecoder('utf-8').decode(sampleChunk);
+        const isExcelExt = fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.ods') || fileName.endsWith('.xlsb');
+        const isZipMagic = data.length >= 4 && data[0] === 0x50 && data[1] === 0x4B;
+        const isOleMagic = data.length >= 4 && data[0] === 0xD0 && data[1] === 0xCF;
+        const isBinaryExcel = isExcelExt || isZipMagic || isOleMagic;
 
-        if (fileName.endsWith('.csv') || fileName.endsWith('.txt') || sampleUtf8.includes(';') || sampleUtf8.includes('\n')) {
-          isTextFile = true;
-          if (sampleUtf8.includes('\uFFFD')) {
-            text = new TextDecoder('iso-8859-1').decode(data);
-          } else {
-            text = new TextDecoder('utf-8').decode(data);
-          }
-        }
-
-        if (isTextFile && text) {
-          const rawLines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-          if (rawLines.length > 0) {
-            const sampleLine = rawLines[0];
-            const semicolonCount = (sampleLine.match(/;/g) || []).length;
-            const tabCount = (sampleLine.match(/\t/g) || []).length;
-            const commaCount = (sampleLine.match(/,/g) || []).length;
-
-            let delimiter = ',';
-            if (semicolonCount >= commaCount && semicolonCount >= tabCount) {
-              delimiter = ';';
-            } else if (tabCount >= commaCount && tabCount >= semicolonCount) {
-              delimiter = '\t';
-            }
-
-            matrix = rawLines.map(line => line.split(delimiter).map(cell => cell.replace(/^["']|["']$/g, '').trim()));
-          }
-        }
-
-        if (!matrix || matrix.length === 0) {
+        if (isBinaryExcel) {
           try {
             const workbook = XLSX.read(data, { type: 'array' });
             if (workbook && workbook.SheetNames && workbook.SheetNames.length > 0) {
               const firstSheetName = workbook.SheetNames[0];
               const worksheet = workbook.Sheets[firstSheetName];
-              matrix = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1 });
+              matrix = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1, defval: "" });
             }
           } catch (xlsxErr) {
-            console.warn("Aviso na leitura XLSX:", xlsxErr);
-            if (!text) {
-              text = new TextDecoder('iso-8859-1').decode(data);
-            }
-            const rawLines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-            if (rawLines.length > 0) {
-              const sampleLine = rawLines[0];
-              const delimiter = sampleLine.includes(';') ? ';' : (sampleLine.includes('\t') ? '\t' : ',');
-              matrix = rawLines.map(line => line.split(delimiter).map(cell => cell.replace(/^["']|["']$/g, '').trim()));
-            }
+            console.warn("Aviso ao ler como arquivo Excel binário, tentando modo texto/CSV:", xlsxErr);
           }
         }
 
         if (!matrix || matrix.length === 0) {
-          setErrorMsg("A planilha selecionada está vazia ou não pôde ser lida.");
+          let text = new TextDecoder('utf-8').decode(data);
+          if (text.includes('\uFFFD')) {
+            text = new TextDecoder('iso-8859-1').decode(data);
+          }
+          matrix = parseCSVText(text);
+        }
+
+        if (!matrix || matrix.length === 0) {
+          try {
+            let text = new TextDecoder('iso-8859-1').decode(data);
+            const workbook = XLSX.read(text, { type: 'string' });
+            if (workbook && workbook.SheetNames && workbook.SheetNames.length > 0) {
+              const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+              matrix = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1, defval: "" });
+            }
+          } catch (e) {
+            console.warn("XLSX string fallback warning:", e);
+          }
+        }
+
+        if (!matrix || matrix.length === 0) {
+          setErrorMsg("A planilha selecionada está vazia ou não pôde ser lida. Certifique-se de carregar um arquivo .xlsx, .xls ou .csv válido.");
           setIsLoadingFile(false);
           return;
         }
 
-        const needsDelimiterSplit = matrix.some(r => Array.isArray(r) && r.length === 1 && typeof r[0] === 'string' && (r[0].includes(';') || r[0].includes(',') || r[0].includes('\t')));
-        if (needsDelimiterSplit) {
-          matrix = matrix.map(r => {
-            if (Array.isArray(r) && r.length === 1 && typeof r[0] === 'string') {
-              const line = r[0];
-              const delim = line.includes(';') ? ';' : (line.includes('\t') ? '\t' : ',');
-              return line.split(delim).map(cell => cell.replace(/^["']|["']$/g, '').trim());
-            }
-            return r;
-          });
+        matrix = matrix.map(row => {
+          if (Array.isArray(row) && row.length === 1 && typeof row[0] === 'string') {
+            const line = row[0];
+            const delim = line.includes(';') ? ';' : (line.includes('\t') ? '\t' : ',');
+            return line.split(delim).map(cell => String(cell || '').replace(/^["']|["']$/g, '').trim());
+          }
+          return Array.isArray(row) ? row.map(cell => String(cell ?? '').trim()) : [];
+        }).filter(r => r.length > 0 && r.some(cell => cell.length > 0));
+
+        if (matrix.length === 0) {
+          setErrorMsg("Nenhum dado encontrado no arquivo.");
+          setIsLoadingFile(false);
+          return;
         }
 
         const headerKeywords = [
@@ -1191,13 +1225,13 @@ export default function EleitoralDashboard({
 
         const munTargets = [
           "nmmunicipio", "municipio", "cidade", "nomemunicipio", "cdmunicipio", "mun", 
-          "dsmunici", "dsmunicipio", "nmmunicipio", "cdmunicipio", "nm_municipio", "cd_municipio", "ds_municipio"
+          "dsmunici", "dsmunicipio", "cdmunicipio", "nm_municipio", "cd_municipio", "ds_municipio"
         ];
         const localTargets = [
           "nmlocalvotacao", "localdevotacao", "localvotacao", "local", "escola", "nomelocal", 
           "colegio", "locdevotacao", "nrlocalvotacao", "localdevotacaotse", "estabelecimento", 
           "nmestabelecimento", "nmlocal", "nm_local_votacao", "nm_estabelecimento", "ds_local_votacao", 
-          "ds_estabelecimento", "local_votacao", "localvotacao"
+          "ds_estabelecimento", "local_votacao"
         ];
         const zonaTargets = ["nrzona", "zona", "ze", "zonaeleitoral", "numzona", "nr_zona", "cd_zona"];
         const secaoTargets = ["nrsecao", "secao", "secoes", "numsecao", "nr_secao", "cd_secao"];
@@ -1212,216 +1246,130 @@ export default function EleitoralDashboard({
         const tipoAgregadaTargets = ["cdtiposecaoagregada", "dstiposecaoagregada", "cdtiposecao", "cd_tipo_secao"];
         const secaoPrincipalTargets = ["nrsecaoprincipal", "nr_secao_principal"];
 
+        const findColIdx = (targets: string[]): number => {
+          for (let i = 0; i < normHeaders.length; i++) {
+            const h = normHeaders[i];
+            if (!h) continue;
+            for (const target of targets) {
+              const normTarget = normalizeHeaderKey(target);
+              if (h === normTarget || h.includes(normTarget) || normTarget.includes(h)) {
+                return i;
+              }
+            }
+          }
+          return -1;
+        };
+
+        const colMun = findColIdx(munTargets);
+        const colLocal = findColIdx(localTargets);
+        const colZona = findColIdx(zonaTargets);
+        const colSecao = findColIdx(secaoTargets);
+        const colEndereco = findColIdx(enderecoTargets);
+        const colBairro = findColIdx(bairroTargets);
+        const colEleitores = findColIdx(eleitorTargets);
+        const colTipoAgregada = findColIdx(tipoAgregadaTargets);
+        const colSecaoPrincipal = findColIdx(secaoPrincipalTargets);
+
+        const dataRows = matrix.slice(bestHeaderRowIndex + 1);
         const parsedRows: VotingLocation[] = [];
 
-        // Build object array directly from matrix and headers
-        const rawObjects = matrix.slice(bestHeaderRowIndex + 1).map(row => {
-          const obj: Record<string, any> = {};
-          if (Array.isArray(row)) {
-            for (let c = 0; c < normHeaders.length; c++) {
-              const originalHeader = detectedHeadersRaw[c] || `col_${c}`;
-              obj[originalHeader] = row[c] !== undefined && row[c] !== null ? row[c] : "";
-            }
-          }
-          return obj;
-        });
+        for (let i = 0; i < dataRows.length; i++) {
+          const row = dataRows[i];
+          if (!Array.isArray(row) || row.length === 0) continue;
 
-        // Try object-based extraction first
-        try {
-          const getObjVal = (rowObj: any, targets: string[]) => {
-            const keys = Object.keys(rowObj);
-            for (const key of keys) {
-              const normK = normalizeHeaderKey(key);
-              if (!normK) continue;
-              for (const target of targets) {
-                const normTarget = normalizeHeaderKey(target);
-                if (normK === normTarget || normK.includes(normTarget)) {
-                  const val = rowObj[key];
-                  if (val !== undefined && val !== null && String(val).trim() !== '') {
-                    return val;
-                  }
-                }
+          let nmMunicipio = colMun !== -1 && row[colMun] !== undefined && row[colMun] !== null ? String(row[colMun]).trim() : '';
+          let nmLocalVotacao = colLocal !== -1 && row[colLocal] !== undefined && row[colLocal] !== null ? String(row[colLocal]).trim() : '';
+
+          if (!nmLocalVotacao) {
+            for (let c = 0; c < row.length; c++) {
+              const cellVal = String(row[c] || '').trim();
+              if (cellVal.length > 3 && (
+                cellVal.toUpperCase().includes("ESCOLA") || 
+                cellVal.toUpperCase().includes("COL") || 
+                cellVal.toUpperCase().includes("CENTRO") || 
+                cellVal.toUpperCase().includes("FACULDADE") || 
+                cellVal.toUpperCase().includes("EMEF") || 
+                cellVal.toUpperCase().includes("CRECHE") ||
+                cellVal.toUpperCase().includes("E.E") ||
+                cellVal.toUpperCase().includes("E.M") ||
+                cellVal.toUpperCase().includes("GINASIO") ||
+                cellVal.toUpperCase().includes("UNIDADE") ||
+                cellVal.toUpperCase().includes("INSTITUTO") ||
+                cellVal.toUpperCase().includes("POSTO") ||
+                cellVal.toUpperCase().includes("CAMARA") ||
+                cellVal.toUpperCase().includes("PREFEITURA") ||
+                cellVal.toUpperCase().includes("SECRETARIA") ||
+                cellVal.toUpperCase().includes("ASSOCIACAO") ||
+                cellVal.toUpperCase().includes("TRIBUNAL") ||
+                cellVal.toUpperCase().includes("IFAC") ||
+                cellVal.toUpperCase().includes("UFAC") ||
+                cellVal.toUpperCase().includes("SESC") ||
+                cellVal.toUpperCase().includes("SENAI") ||
+                cellVal.toUpperCase().includes("SENAC") ||
+                cellVal.toUpperCase().includes("INCRA") ||
+                cellVal.toUpperCase().includes("IDAF") ||
+                cellVal.toUpperCase().includes("CRAS")
+              )) {
+                nmLocalVotacao = cellVal;
+                break;
               }
             }
-            return undefined;
-          };
+          }
 
-          for (let i = 0; i < rawObjects.length; i++) {
-            const rowObj = rawObjects[i];
-            if (!rowObj || typeof rowObj !== 'object') continue;
-
-            let nmLocalVotacao = String(getObjVal(rowObj, localTargets) || '').trim();
-            let nmMunicipio = String(getObjVal(rowObj, munTargets) || '').trim();
-
-            if (!nmLocalVotacao) {
-              for (const k of Object.keys(rowObj)) {
-                const val = String(rowObj[k] || '').trim();
-                if (val.length > 4 && (
-                  val.toUpperCase().includes("ESCOLA") || 
-                  val.toUpperCase().includes("COL") || 
-                  val.toUpperCase().includes("CENTRO") || 
-                  val.toUpperCase().includes("FACULDADE") || 
-                  val.toUpperCase().includes("EMEF") || 
-                  val.toUpperCase().includes("CRECHE") ||
-                  val.toUpperCase().includes("E.E") ||
-                  val.toUpperCase().includes("E.M") ||
-                  val.toUpperCase().includes("GINASIO") ||
-                  val.toUpperCase().includes("UNIDADE") ||
-                  val.toUpperCase().includes("INSTITUTO")
-                )) {
-                  nmLocalVotacao = val;
-                  break;
-                }
+          if (!nmLocalVotacao && row.some(cell => String(cell || '').trim().length > 0)) {
+            for (let c = 0; c < row.length; c++) {
+              if (c === colMun || c === colZona || c === colSecao || c === colEleitores) continue;
+              const val = String(row[c] || '').trim();
+              if (val.length > 3 && isNaN(Number(val))) {
+                nmLocalVotacao = val;
+                break;
               }
             }
-
-            if (!nmLocalVotacao) continue;
-
-            if (!nmMunicipio) {
-              nmMunicipio = "MUNICÍPIO ÚNICO";
-            }
-
-            const nrZona = String(getObjVal(rowObj, zonaTargets) || '').trim();
-            const nrSecao = String(getObjVal(rowObj, secaoTargets) || '').trim();
-            const dsEndereco = String(getObjVal(rowObj, enderecoTargets) || '').trim();
-            const nmBairro = String(getObjVal(rowObj, bairroTargets) || '').trim();
-            const qtEleitorSecao = parseEleitoresCount(getObjVal(rowObj, eleitorTargets));
-            const cdTipoSecaoAgregada = Number(getObjVal(rowObj, tipoAgregadaTargets)) || -1;
-            const nrSecaoPrincipal = Number(getObjVal(rowObj, secaoPrincipalTargets)) || -1;
-
-            const zonaFormatted = nrZona ? (nrZona.toLowerCase().includes('ze') ? nrZona : `${nrZona}ª ZE`) : '';
-
-            parsedRows.push({
-              nmMunicipio,
-              nrZona,
-              nrSecao,
-              cdTipoSecaoAgregada,
-              dsTipoSecaoAgregada: '#NULO',
-              nrSecaoPrincipal,
-              nrLocalVotacao: '',
-              nmLocalVotacao,
-              dsEndereco,
-              nmBairro,
-              qtEleitorSecao,
-              nmLocalVotacaoOriginal: nmLocalVotacao,
-              dsEnderecoLocvtOriginal: dsEndereco,
-
-              municipio: nmMunicipio,
-              zona: zonaFormatted || nrZona,
-              secoes: nrSecao,
-              secoesCount: 1,
-              local: nmLocalVotacao,
-              endereco: dsEndereco,
-              bairro: nmBairro,
-              eleitores: qtEleitorSecao
-            });
           }
-        } catch (e) {
-          console.warn("Aviso na leitura por objetos:", e);
+
+          if (!nmLocalVotacao) continue;
+
+          if (!nmMunicipio) {
+            nmMunicipio = "MUNICÍPIO ÚNICO";
+          }
+
+          const nrZona = colZona !== -1 && row[colZona] !== undefined && row[colZona] !== null ? String(row[colZona]).trim() : '';
+          const nrSecao = colSecao !== -1 && row[colSecao] !== undefined && row[colSecao] !== null ? String(row[colSecao]).trim() : '';
+          const dsEndereco = colEndereco !== -1 && row[colEndereco] !== undefined && row[colEndereco] !== null ? String(row[colEndereco]).trim() : '';
+          const nmBairro = colBairro !== -1 && row[colBairro] !== undefined && row[colBairro] !== null ? String(row[colBairro]).trim() : '';
+          const qtEleitorSecao = colEleitores !== -1 ? parseEleitoresCount(row[colEleitores]) : 0;
+          const cdTipoSecaoAgregada = colTipoAgregada !== -1 ? Number(row[colTipoAgregada]) || -1 : -1;
+          const nrSecaoPrincipal = colSecaoPrincipal !== -1 ? Number(row[colSecaoPrincipal]) || -1 : -1;
+
+          const zonaFormatted = nrZona ? (nrZona.toLowerCase().includes('ze') ? nrZona : `${nrZona}ª ZE`) : '';
+
+          parsedRows.push({
+            nmMunicipio,
+            nrZona,
+            nrSecao,
+            cdTipoSecaoAgregada,
+            dsTipoSecaoAgregada: '#NULO',
+            nrSecaoPrincipal,
+            nrLocalVotacao: '',
+            nmLocalVotacao,
+            dsEndereco,
+            nmBairro,
+            qtEleitorSecao,
+            nmLocalVotacaoOriginal: nmLocalVotacao,
+            dsEnderecoLocvtOriginal: dsEndereco,
+
+            municipio: nmMunicipio,
+            zona: zonaFormatted || nrZona,
+            secoes: nrSecao,
+            secoesCount: 1,
+            local: nmLocalVotacao,
+            endereco: dsEndereco,
+            bairro: nmBairro,
+            eleitores: qtEleitorSecao
+          });
         }
 
-        // Matrix fallback if object mode found no rows
-        if (parsedRows.length === 0) {
-          const findColIdx = (targets: string[]): number => {
-            for (let i = 0; i < normHeaders.length; i++) {
-              const h = normHeaders[i];
-              if (!h) continue;
-              for (const target of targets) {
-                const normTarget = normalizeHeaderKey(target);
-                if (h === normTarget || h.includes(normTarget)) {
-                  return i;
-                }
-              }
-            }
-            return -1;
-          };
-
-          const colMun = findColIdx(munTargets);
-          const colLocal = findColIdx(localTargets);
-          const colZona = findColIdx(zonaTargets);
-          const colSecao = findColIdx(secaoTargets);
-          const colEndereco = findColIdx(enderecoTargets);
-          const colBairro = findColIdx(bairroTargets);
-          const colEleitores = findColIdx(eleitorTargets);
-          const colTipoAgregada = findColIdx(tipoAgregadaTargets);
-          const colSecaoPrincipal = findColIdx(secaoPrincipalTargets);
-
-          const dataRows = matrix.slice(bestHeaderRowIndex + 1);
-
-          for (let i = 0; i < dataRows.length; i++) {
-            const row = dataRows[i];
-            if (!Array.isArray(row) || row.length === 0) continue;
-
-            let nmMunicipio = colMun !== -1 && row[colMun] !== undefined && row[colMun] !== null ? String(row[colMun]).trim() : '';
-            let nmLocalVotacao = colLocal !== -1 && row[colLocal] !== undefined && row[colLocal] !== null ? String(row[colLocal]).trim() : '';
-
-            if (!nmLocalVotacao) {
-              for (let c = 0; c < row.length; c++) {
-                const cellVal = String(row[c] || '').trim();
-                if (cellVal.length > 4 && (
-                  cellVal.toUpperCase().includes("ESCOLA") || 
-                  cellVal.toUpperCase().includes("COL") || 
-                  cellVal.toUpperCase().includes("CENTRO") || 
-                  cellVal.toUpperCase().includes("FACULDADE") || 
-                  cellVal.toUpperCase().includes("EMEF") || 
-                  cellVal.toUpperCase().includes("CRECHE") ||
-                  cellVal.toUpperCase().includes("E.E") ||
-                  cellVal.toUpperCase().includes("E.M") ||
-                  cellVal.toUpperCase().includes("GINASIO") ||
-                  cellVal.toUpperCase().includes("UNIDADE")
-                )) {
-                  nmLocalVotacao = cellVal;
-                  break;
-                }
-              }
-            }
-
-            if (!nmLocalVotacao) continue;
-
-            if (!nmMunicipio) {
-              nmMunicipio = "MUNICÍPIO ÚNICO";
-            }
-
-            const nrZona = colZona !== -1 && row[colZona] !== undefined && row[colZona] !== null ? String(row[colZona]).trim() : '';
-            const nrSecao = colSecao !== -1 && row[colSecao] !== undefined && row[colSecao] !== null ? String(row[colSecao]).trim() : '';
-            const dsEndereco = colEndereco !== -1 && row[colEndereco] !== undefined && row[colEndereco] !== null ? String(row[colEndereco]).trim() : '';
-            const nmBairro = colBairro !== -1 && row[colBairro] !== undefined && row[colBairro] !== null ? String(row[colBairro]).trim() : '';
-            const qtEleitorSecao = colEleitores !== -1 ? parseEleitoresCount(row[colEleitores]) : 0;
-            const cdTipoSecaoAgregada = colTipoAgregada !== -1 ? Number(row[colTipoAgregada]) || -1 : -1;
-            const nrSecaoPrincipal = colSecaoPrincipal !== -1 ? Number(row[colSecaoPrincipal]) || -1 : -1;
-
-            const zonaFormatted = nrZona ? (nrZona.toLowerCase().includes('ze') ? nrZona : `${nrZona}ª ZE`) : '';
-
-            parsedRows.push({
-              nmMunicipio,
-              nrZona,
-              nrSecao,
-              cdTipoSecaoAgregada,
-              dsTipoSecaoAgregada: '#NULO',
-              nrSecaoPrincipal,
-              nrLocalVotacao: '',
-              nmLocalVotacao,
-              dsEndereco,
-              nmBairro,
-              qtEleitorSecao,
-              nmLocalVotacaoOriginal: nmLocalVotacao,
-              dsEnderecoLocvtOriginal: dsEndereco,
-
-              municipio: nmMunicipio,
-              zona: zonaFormatted || nrZona,
-              secoes: nrSecao,
-              secoesCount: 1,
-              local: nmLocalVotacao,
-              endereco: dsEndereco,
-              bairro: nmBairro,
-              eleitores: qtEleitorSecao
-            });
-          }
-        }
-
-        // Universal Generic Fallback if 0 rows found: scan row values for text & numbers
-        if (parsedRows.length === 0 && matrix.length > 1) {
-          const dataRows = matrix.slice(bestHeaderRowIndex + 1);
+        if (parsedRows.length === 0 && dataRows.length > 0) {
           for (let i = 0; i < dataRows.length; i++) {
             const row = dataRows[i];
             if (!Array.isArray(row) || row.length === 0) continue;
@@ -1440,10 +1388,10 @@ export default function EleitoralDashboard({
 
               if (numVal > maxEleit && numVal < 1000000) {
                 maxEleit = numVal;
-              } else if (strVal.length > 3) {
+              } else if (strVal.length > 3 && isNaN(Number(strVal))) {
                 if (!bestLocal) {
                   bestLocal = strVal;
-                } else if (!bestMuni || bestMuni === "MUNICÍPIO ÚNICO") {
+                } else if (bestMuni === "MUNICÍPIO ÚNICO") {
                   bestMuni = strVal;
                 }
               }
@@ -1451,8 +1399,6 @@ export default function EleitoralDashboard({
 
             if (!bestLocal && maxEleit === 0) continue;
             if (!bestLocal) bestLocal = `Local de Votação ${i + 1}`;
-
-            const zonaFormatted = bestZona ? (bestZona.toLowerCase().includes('ze') ? bestZona : `${bestZona}ª ZE`) : '';
 
             parsedRows.push({
               nmMunicipio: bestMuni,
@@ -1470,7 +1416,7 @@ export default function EleitoralDashboard({
               dsEnderecoLocvtOriginal: '',
 
               municipio: bestMuni,
-              zona: zonaFormatted || bestZona,
+              zona: bestZona,
               secoes: bestSecao,
               secoesCount: 1,
               local: bestLocal,
@@ -1482,7 +1428,7 @@ export default function EleitoralDashboard({
         }
 
         if (parsedRows.length === 0) {
-          setErrorMsg("Não foi possível reconhecer as colunas de locais de votação nesta planilha. Utilize o botão 'Baixar Modelo Excel' para consultar o formato esperado.");
+          setErrorMsg("Não foi possível reconhecer as colunas de locais de votação nesta planilha. Verifique se o arquivo possui colunas com nomes de município, local de votação e eleitores.");
           setIsLoadingFile(false);
           return;
         }
@@ -1494,9 +1440,9 @@ export default function EleitoralDashboard({
 
         setSuccessMsg(`✅ Sucesso! Foram importados e salvos no banco de dados ${uniqueLocsCount} locais de votação com um total de ${totalEleitoresCalc.toLocaleString('pt-BR')} eleitores.`);
         setTimeout(() => setSuccessMsg(null), 8000);
-      } catch (err) {
-        console.error("Erro ao ler planilha:", err);
-        setErrorMsg("Erro ao processar o arquivo. Certifique-se de carregar um arquivo Excel (.xlsx, .xls) ou CSV válido.");
+      } catch (err: any) {
+        console.error("Erro detalhado ao ler planilha:", err);
+        setErrorMsg(`Erro ao processar o arquivo (${err?.message || 'formato ou dados inválidos'}). Certifique-se de carregar uma planilha Excel ou CSV válida.`);
       } finally {
         setIsLoadingFile(false);
       }
