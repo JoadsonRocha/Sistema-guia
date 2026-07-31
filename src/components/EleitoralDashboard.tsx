@@ -57,6 +57,7 @@ import {
 } from 'lucide-react';
 import { VotingLocation, TSE_COLUMNS, TseColumnDef } from '../data/eleitoralData';
 import * as XLSX from 'xlsx';
+import { parseExcelOrCSVBuffer } from '../lib/excelParser';
 
 // Constants for theme colors (Navy & Royal Blue)
 const COLORS = [
@@ -1127,40 +1128,7 @@ export default function EleitoralDashboard({
         const data = new Uint8Array(buffer);
         const fileName = file.name.toLowerCase();
 
-        let matrix: any[][] = [];
-
-        const isZipMagic = data.length >= 4 && data[0] === 0x50 && data[1] === 0x4B;
-        const isOleMagic = data.length >= 8 && data[0] === 0xD0 && data[1] === 0xCF && data[2] === 0x11 && data[3] === 0xE0;
-        const isExcelExt = fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.ods') || fileName.endsWith('.xlsb');
-        const isBinaryExcel = isZipMagic || isOleMagic || isExcelExt;
-
-        if (isBinaryExcel) {
-          try {
-            const workbook = XLSX.read(data, { type: 'array' });
-            if (workbook && workbook.SheetNames && workbook.SheetNames.length > 0) {
-              const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-              if (worksheet) {
-                matrix = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1, defval: "" });
-              }
-            }
-          } catch (xlsxErr) {
-            console.warn("Aviso ao ler como arquivo Excel binário, tentando modo texto/CSV:", xlsxErr);
-            matrix = [];
-          }
-        }
-
-        if (!matrix || matrix.length === 0) {
-          let text = '';
-          try {
-            text = new TextDecoder('utf-8', { fatal: false }).decode(data);
-            if (text.includes('\uFFFD')) {
-              text = new TextDecoder('iso-8859-1').decode(data);
-            }
-          } catch {
-            text = new TextDecoder('iso-8859-1').decode(data);
-          }
-          matrix = parseCSVText(text);
-        }
+        let matrix: any[][] = parseExcelOrCSVBuffer(buffer, file.name);
 
         if (!matrix || matrix.length === 0) {
           setErrorMsg("A planilha selecionada está vazia ou não pôde ser lida. Certifique-se de carregar um arquivo .xlsx, .xls ou .csv válido.");

@@ -66,6 +66,7 @@ import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, get
 import { db, auth } from '../lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from '../lib/agendaLogic';
 import * as XLSX from 'xlsx';
+import { parseExcelOrCSVBuffer } from '../lib/excelParser';
 import { maskCurrency, parseCurrencyToNumber } from '../utils/currency';
 import { safeLocalStorage } from '../utils/safeStorage';
 import { validateVoterRegistration, triggerUpgradeRedirect } from '../lib/planService';
@@ -1024,11 +1025,13 @@ export default function CaboDashboard({
     const reader = new FileReader();
     reader.onload = async (evt) => {
       try {
-        const bstr = evt.target?.result;
-        const wb = XLSX.read(bstr, { type: 'binary' });
-        const wsname = wb.SheetNames[0];
-        const ws = wb.Sheets[wsname];
-        const data = XLSX.utils.sheet_to_json(ws, { header: 1 }) as any[];
+        const buffer = evt.target?.result as ArrayBuffer;
+        if (!buffer) {
+          setBulkFileError("Não foi possível ler os dados do arquivo selecionado.");
+          return;
+        }
+
+        const data = parseExcelOrCSVBuffer(buffer, file.name);
         
         if (data.length <= 1) {
           setBulkFileError("A planilha selecionada parece estar vazia ou conter apenas o cabeçalho.");
@@ -1104,7 +1107,7 @@ export default function CaboDashboard({
         setBulkFileError("Erro ao processar arquivo: " + err.message);
       }
     };
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
   };
 
   const handleBulkSubmit = async (e: React.FormEvent) => {
