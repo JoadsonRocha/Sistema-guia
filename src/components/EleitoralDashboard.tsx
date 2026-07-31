@@ -1129,10 +1129,9 @@ export default function EleitoralDashboard({
 
         let matrix: any[][] = [];
 
-        const isExcelExt = fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.ods') || fileName.endsWith('.xlsb');
-        const isZipMagic = data.length >= 4 && data[0] === 0x50 && data[1] === 0x4B;
-        const isOleMagic = data.length >= 4 && data[0] === 0xD0 && data[1] === 0xCF;
-        const isBinaryExcel = isExcelExt || isZipMagic || isOleMagic;
+        const isZipMagic = data.length >= 4 && data[0] === 0x50 && data[1] === 0x4B && data[2] === 0x03 && data[3] === 0x04;
+        const isOleMagic = data.length >= 8 && data[0] === 0xD0 && data[1] === 0xCF && data[2] === 0x11 && data[3] === 0xE0;
+        const isBinaryExcel = isZipMagic || isOleMagic;
 
         if (isBinaryExcel) {
           try {
@@ -1140,32 +1139,27 @@ export default function EleitoralDashboard({
             if (workbook && workbook.SheetNames && workbook.SheetNames.length > 0) {
               const firstSheetName = workbook.SheetNames[0];
               const worksheet = workbook.Sheets[firstSheetName];
-              matrix = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1, defval: "" });
+              if (worksheet) {
+                matrix = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1, defval: "" });
+              }
             }
           } catch (xlsxErr) {
             console.warn("Aviso ao ler como arquivo Excel binário, tentando modo texto/CSV:", xlsxErr);
+            matrix = [];
           }
         }
 
         if (!matrix || matrix.length === 0) {
-          let text = new TextDecoder('utf-8').decode(data);
-          if (text.includes('\uFFFD')) {
+          let text = '';
+          try {
+            text = new TextDecoder('utf-8', { fatal: false }).decode(data);
+            if (text.includes('\uFFFD')) {
+              text = new TextDecoder('iso-8859-1').decode(data);
+            }
+          } catch {
             text = new TextDecoder('iso-8859-1').decode(data);
           }
           matrix = parseCSVText(text);
-        }
-
-        if (!matrix || matrix.length === 0) {
-          try {
-            let text = new TextDecoder('iso-8859-1').decode(data);
-            const workbook = XLSX.read(text, { type: 'string' });
-            if (workbook && workbook.SheetNames && workbook.SheetNames.length > 0) {
-              const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-              matrix = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1, defval: "" });
-            }
-          } catch (e) {
-            console.warn("XLSX string fallback warning:", e);
-          }
         }
 
         if (!matrix || matrix.length === 0) {
