@@ -3207,15 +3207,15 @@ export default function CoordinatorDashboard({
 
             {activeTab === 'teams' && (
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 md:space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2.5 border-b border-[var(--border-color)] pb-3 md:pb-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2.5 border-b border-[var(--border-color)] pb-3">
                   <div>
-                    <h2 className="text-lg sm:text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Gestão de Equipes</h2>
-                    <p className="text-[var(--text-secondary)] text-[8px] md:text-[10px] font-bold uppercase tracking-widest mt-1 md:mt-2">Controle tático de recursos e unidades</p>
+                    <h2 className="text-lg sm:text-xl font-bold uppercase text-[var(--text-primary)] tracking-tight leading-none">Gestão de Equipes</h2>
+                    <p className="text-[var(--text-secondary)] text-[9px] font-semibold uppercase tracking-wider mt-1">Controle tático de recursos e unidades</p>
                   </div>
                   <div className="flex items-center gap-2 w-full md:w-auto mt-1 md:mt-0">
                     <button
                       onClick={() => setIsWaModalOpen(true)}
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded font-bold text-[10px] md:text-[11px] uppercase flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/10 active:scale-95 transition-all flex-1 md:flex-initial whitespace-nowrap"
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-md font-semibold text-xs uppercase flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all flex-1 md:flex-initial whitespace-nowrap"
                     >
                       <MessageSquare className="w-3.5 h-3.5" /> Disparar WhatsApp Líderes
                     </button>
@@ -3240,7 +3240,7 @@ export default function CoordinatorDashboard({
                           spent: 0
                         });
                       }}
-                      className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded font-bold text-[10px] md:text-[11px] uppercase flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/10 hover:scale-[1.01] active:scale-95 transition-all flex-1 md:flex-initial whitespace-nowrap"
+                      className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-md font-semibold text-xs uppercase flex items-center justify-center gap-1.5 shadow-sm hover:scale-[1.01] active:scale-95 transition-all flex-1 md:flex-initial whitespace-nowrap"
                     >
                       <Plus className="w-3.5 h-3.5 text-white" /> Cadastrar Nova Unidade
                     </button>
@@ -3248,18 +3248,18 @@ export default function CoordinatorDashboard({
                 </div>
 
                 {/* Gerador de Link de Autocadastro de Eleitor para Equipes */}
-                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-3.5 sm:p-5 md:p-6 space-y-3 sm:space-y-4 shadow-xl">
-                  <div className="flex items-center gap-2 border-b border-[var(--border-color)] pb-2.5">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-md p-3.5 space-y-3 shadow-sm">
+                  <div className="flex items-center gap-2 border-b border-[var(--border-color)] pb-2">
                     <UserPlus className="w-3.5 h-3.5 text-blue-600" />
-                    <h3 className="text-xs font-black uppercase text-[var(--text-primary)] tracking-wider">Gerador de Link de Autocadastro</h3>
+                    <h3 className="text-xs font-bold uppercase text-[var(--text-primary)] tracking-wider">Gerador de Link de Autocadastro</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                     <div className="space-y-1 col-span-1">
-                      <label className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Selecione a Equipe</label>
+                      <label className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">Selecione a Equipe</label>
                       <select
                         value={selectedLinkTeam}
                         onChange={(e) => setSelectedLinkTeam(e.target.value)}
-                        className="w-full bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-sm p-2.5 font-bold text-xs outline-none focus:border-blue-600 transition-all"
+                        className="w-full bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-md p-2 font-medium text-xs outline-none focus:border-blue-600 transition-all"
                       >
                         <option value="">-- Escolha uma equipe --</option>
                         {teams.map((t) => (
@@ -3270,13 +3270,13 @@ export default function CoordinatorDashboard({
                       </select>
                     </div>
                     <div className="space-y-1 col-span-2">
-                      <label className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Link Gerado</label>
+                      <label className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">Link Gerado</label>
                       <div className="flex flex-col sm:flex-row gap-2">
                         <input
                           readOnly
                           type="text"
                           value={selectedLinkTeam ? `${window.location.origin}/?teamId=${selectedLinkTeam}&coordinatorId=${coordinatorId || user?.uid || ''}` : 'Por favor, selecione uma equipe acima...'}
-                          className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-secondary)] rounded-sm p-2.5 font-mono text-[11px] sm:text-xs outline-none select-all"
+                          className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-secondary)] rounded-md px-3 py-2 font-mono text-xs outline-none select-all"
                         />
                         <button
                           type="button"
@@ -3286,9 +3286,9 @@ export default function CoordinatorDashboard({
                             navigator.clipboard.writeText(`${window.location.origin}/?teamId=${selectedLinkTeam}&coordinatorId=${coordinatorId || user?.uid || ''}`);
                             alert("✅ Link copiado para a área de transferência!");
                           }}
-                          className={`px-4 py-2.5 rounded-sm font-black text-[9px] md:text-[10px] uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                          className={`px-3 py-2 rounded-md font-semibold text-xs uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap ${
                             selectedLinkTeam
-                              ? 'bg-blue-600 hover:bg-blue-600 text-white'
+                              ? 'bg-blue-600 hover:bg-blue-500 text-white'
                               : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border border-[var(--border-color)] cursor-not-allowed'
                           }`}
                         >
@@ -3299,45 +3299,45 @@ export default function CoordinatorDashboard({
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 gap-3 md:gap-4">
+                <div className="grid grid-cols-1 gap-3">
                   {teams.length > 0 ? teams.map((team) => (
                     <motion.div 
                       key={team.id || team.name} 
                       layout
-                      className={`bg-[var(--bg-secondary)] border ${team.fraudAlert ? 'border-red-600 shadow-[var(--shadow-md)] animate-pulse' : 'border-[var(--border-color)]'} rounded-sm p-3.5 sm:p-5 md:p-6 lg:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 sm:gap-5 md:gap-6 hover:shadow-[var(--shadow-md)] hover:border-blue-600/30 transition-all group relative overflow-hidden`}
+                      className={`bg-[var(--bg-secondary)] border ${team.fraudAlert ? 'border-red-600 shadow-md animate-pulse' : 'border-[var(--border-color)]'} rounded-md p-3.5 sm:p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 hover:shadow-md hover:border-blue-500/30 transition-all group relative overflow-hidden`}
                     >
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl -mr-16 -mt-16 group-hover:bg-blue-600/10 transition-colors pointer-events-none opacity-0 dark:opacity-100" />
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/5 blur-2xl -mr-12 -mt-12 pointer-events-none opacity-0 dark:opacity-100" />
                       
                       {team.fraudAlert && (
-                        <div className="absolute top-0 right-8 bg-red-600 text-white text-[8px] font-black px-4 py-1 rounded-sm uppercase flex items-center gap-1.5 shadow-lg z-10">
+                        <div className="absolute top-0 right-6 bg-red-600 text-white text-[8px] font-bold px-3 py-0.5 rounded-b-md uppercase flex items-center gap-1 shadow z-10">
                           <AlertTriangle className="w-3 h-3" /> Alerta Crítico
                         </div>
                       )}
                       
-                      <div className="flex items-center gap-3 sm:gap-4 md:gap-5 min-w-[180px] sm:min-w-[200px] md:min-w-[240px] relative z-10">
-                        <div className={`w-9 h-9 sm:w-11 sm:h-11 md:w-14 md:h-14 rounded-sm flex items-center justify-center transition-transform group-hover:rotate-3 shadow-inner shrink-0 ${
-                          team.status === 'OK' ? 'bg-emerald-500/10 text-emerald-500' : 
+                      <div className="flex items-center gap-3 min-w-[200px] sm:min-w-[220px] relative z-10">
+                        <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-md flex items-center justify-center transition-transform group-hover:scale-105 shrink-0 ${
+                          team.status === 'OK' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 
                           team.status === 'ALERTA' ? 'bg-blue-600/10 text-blue-600' : 'bg-red-500/10 text-red-500'
                         }`}>
-                          <Users className="w-4 h-4 sm:w-5 sm:h-5 md:w-7 md:h-7" />
+                          <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                         </div>
-                        <div className="space-y-0.5 sm:space-y-1 min-w-0">
-                          <h3 className="font-black text-[var(--text-primary)] text-sm sm:text-base md:text-xl uppercase tracking-tight leading-snug truncate">{team.name}</h3>
-                          <div className="flex flex-col gap-0.5 sm:gap-1 pt-0.5 opacity-70">
-                            <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-1.5 tracking-widest leading-none truncate">
-                              <User className="w-2 md:w-2.5 h-2 md:h-2.5 text-blue-600 shrink-0" /> Líder: {team.leader}
+                        <div className="space-y-0.5 min-w-0">
+                          <h3 className="font-bold text-[var(--text-primary)] text-sm sm:text-base uppercase tracking-tight truncate">{team.name}</h3>
+                          <div className="flex flex-col gap-0.5 opacity-80">
+                            <p className="text-[9px] font-medium text-[var(--text-secondary)] uppercase flex items-center gap-1 truncate">
+                              <User className="w-2.5 h-2.5 text-blue-600 shrink-0" /> Líder: <span className="font-semibold text-[var(--text-primary)]">{team.leader}</span>
                             </p>
-                            <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase flex items-center gap-1.5 tracking-widest leading-none truncate">
-                              <MapPin className="w-2 md:w-2.5 h-2 md:h-2.5 text-blue-600 shrink-0" /> Base: {team.location}
+                            <p className="text-[9px] font-medium text-[var(--text-secondary)] uppercase flex items-center gap-1 truncate">
+                              <MapPin className="w-2.5 h-2.5 text-blue-600 shrink-0" /> Base: <span className="font-semibold text-[var(--text-primary)]">{team.location}</span>
                             </p>
                           </div>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6 flex-1 text-left relative z-10 py-1 sm:py-0 border-y sm:border-y-0 border-[var(--border-color)]/50">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1 text-left relative z-10 py-1.5 lg:py-0 border-y lg:border-y-0 border-[var(--border-color)]/50">
                         <div>
-                          <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-0.5 sm:mb-1 leading-none opacity-60">Eleitores</p>
-                          <p className="text-sm sm:text-base md:text-2xl font-black text-[var(--text-primary)] tracking-tighter">
+                          <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-0.5 opacity-70">Eleitores</p>
+                          <p className="text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-tight">
                             {(() => {
                               const matched = allVoters.filter(v => isVoterInTeam(v, team)).length;
                               const count = teamVotersCountMap[team.name] !== undefined 
@@ -3348,8 +3348,8 @@ export default function CoordinatorDashboard({
                           </p>
                         </div>
                         <div>
-                          <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-0.5 sm:mb-1 leading-none opacity-60">Engajamento</p>
-                          <p className="text-sm sm:text-base md:text-2xl font-black text-emerald-600 dark:text-emerald-500 tracking-tighter leading-none">
+                          <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-0.5 opacity-70">Engajamento</p>
+                          <p className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">
                             {(() => {
                               const matched = allVoters.filter(v => isVoterInTeam(v, team)).length;
                               const count = teamVotersCountMap[team.name] !== undefined 
@@ -3360,56 +3360,56 @@ export default function CoordinatorDashboard({
                           </p>
                         </div>
                         <div>
-                          <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-0.5 sm:mb-1 leading-none opacity-60">Demandas</p>
-                          <p className={`text-sm sm:text-base md:text-2xl font-black tracking-tighter leading-none ${urgencies.filter(u => u.team === team.name).length > 0 ? 'text-red-600' : 'text-[var(--bg-tertiary)] opacity-30 dark:opacity-10'}`}>
+                          <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-0.5 opacity-70">Demandas</p>
+                          <p className={`text-base sm:text-lg font-bold tracking-tight ${urgencies.filter(u => u.team === team.name).length > 0 ? 'text-red-600' : 'text-[var(--text-secondary)] opacity-40'}`}>
                             {urgencies.filter(u => u.team === team.name).length}
                           </p>
                         </div>
                         <div>
-                           <p className="text-[7px] md:text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1 sm:mb-1.5 md:mb-2 leading-none opacity-60">Status de Rede</p>
-                           <span className={`inline-flex items-center gap-1 text-[7px] md:text-[8px] font-black px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 md:py-1.5 rounded-sm uppercase tracking-widest border transition-colors leading-none ${
-                            team.status === 'OK' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border-emerald-500/20' : 
-                            team.status === 'ALERTA' ? 'bg-blue-600/10 text-blue-700 dark:text-blue-600 border-blue-600/20' : 'bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20'
+                           <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1 opacity-70">Status de Rede</p>
+                           <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border leading-none ${
+                            team.status === 'OK' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 
+                            team.status === 'ALERTA' ? 'bg-blue-600/10 text-blue-700 dark:text-blue-400 border-blue-600/20' : 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
                           }`}>
-                            <div className={`w-1 md:w-1.5 h-1 md:h-1.5 rounded-full animate-pulse ${team.status === 'OK' ? 'bg-emerald-500' : team.status === 'ALERTA' ? 'bg-blue-600' : 'bg-red-500'}`} />
+                            <div className={`w-1.5 h-1.5 rounded-full ${team.status === 'OK' ? 'bg-emerald-500' : team.status === 'ALERTA' ? 'bg-blue-600' : 'bg-red-500'}`} />
                             {team.status}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex flex-col sm:flex-row lg:flex-col gap-2 justify-end relative z-10 w-full lg:w-auto">
-                        <div className="flex gap-1.5 sm:gap-2 w-full lg:w-auto">
+                      <div className="flex flex-row items-center gap-2 justify-end relative z-10 w-full lg:w-auto">
+                        <div className="flex gap-1 items-center">
                            <button 
                              onClick={() => {
                                const tId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
                                navigator.clipboard.writeText(`${window.location.origin}/?teamId=${tId}&coordinatorId=${coordinatorId || user?.uid || ''}`);
                                alert(`✅ Link de autocadastro da equipe "${team.name}" copiado com sucesso!`);
                              }}
-                             className="flex-1 lg:flex-none p-2 sm:p-2.5 md:p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)] flex items-center justify-center"
-                             title="Copiar Link de Autocadastro de Eleitores"
+                             className="p-1.5 sm:p-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-md hover:bg-zinc-900 hover:text-white transition-all border border-[var(--border-color)] flex items-center justify-center"
+                             title="Copiar Link de Autocadastro"
                            >
-                             <UserPlus className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                             <UserPlus className="w-3.5 h-3.5" />
                            </button>
                            <button 
                              onClick={() => handleCopyAccessLink(team)}
-                             className="flex-1 lg:flex-none p-2 sm:p-2.5 md:p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)] flex items-center justify-center"
-                             title="Copiar Credenciais"
+                             className="p-1.5 sm:p-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-md hover:bg-zinc-900 hover:text-white transition-all border border-[var(--border-color)] flex items-center justify-center"
+                             title="Copiar Credenciais de Acesso"
                            >
-                             <LogIn className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                             <LogIn className="w-3.5 h-3.5" />
                            </button>
                            <button 
                              onClick={() => handleEditTeam(team)}
-                             className="flex-1 lg:flex-none p-2 sm:p-2.5 md:p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)] flex items-center justify-center"
+                             className="p-1.5 sm:p-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-md hover:bg-zinc-900 hover:text-white transition-all border border-[var(--border-color)] flex items-center justify-center"
                              title="Editar Unidade"
                            >
-                             <Edit3 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                             <Edit3 className="w-3.5 h-3.5" />
                            </button>
                            <button 
                              onClick={() => handleDeleteTeam(team.id || team.name.replace(/\s/g, '_').toLowerCase(), team.name)}
-                             className="flex-1 lg:flex-none p-2 sm:p-2.5 md:p-3 bg-red-600 text-white rounded-sm hover:bg-red-700 transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-red-600/20 flex items-center justify-center"
+                             className="p-1.5 sm:p-2 bg-red-50 dark:bg-red-950/30 text-red-600 hover:bg-red-600 hover:text-white rounded-md transition-all border border-red-200 dark:border-red-900/50 flex items-center justify-center"
                              title="Excluir"
                            >
-                             <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                             <Trash2 className="w-3.5 h-3.5" />
                            </button>
                         </div>
                         <button 
@@ -3417,8 +3417,8 @@ export default function CoordinatorDashboard({
                             setSelectedManagingTeam(team);
                             setIsTeamManagementOpen(true);
                           }}
-                          className={`w-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 rounded-sm font-black text-[9px] md:text-[10px] uppercase shadow-lg transition-all active:translate-y-0.5 whitespace-nowrap hover:scale-[1.02] ${
-                            urgencies.filter(u => u.team === team.name).length > 0 ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-zinc-950 text-white hover:bg-zinc-800'
+                          className={`px-3 py-2 rounded-md font-bold text-xs uppercase tracking-wide transition-all active:scale-95 whitespace-nowrap shadow-sm ${
+                            urgencies.filter(u => u.team === team.name).length > 0 ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200'
                           }`}
                         >
                           Gerenciar Equipe
