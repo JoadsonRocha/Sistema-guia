@@ -181,6 +181,7 @@ export default function CaboDashboard({
   });
 
   const [teamData, setTeamData] = useState<any>(null);
+  const activeCoordId = resolvedCoordinatorId || coordinatorId || teamData?.coordinatorId || user?.coordinatorId || '';
   const [voters, setVoters] = useState<any[]>([]);
   const [voterPage, setVoterPage] = useState(1);
   const [voterPageSize, setVoterPageSize] = useState(15);
@@ -1602,36 +1603,36 @@ export default function CaboDashboard({
                   </section>
                 )}
 
-                <section className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
+                <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   {[
-                    { id: 'eleitor', label: 'Cadastrar Eleitor', sub: 'EXPANSÃO DE BASE', icon: <UserPlus className="w-8 h-8 lg:w-10 lg:h-10" />, color: 'blue' },
-                    { id: 'agenda', label: 'Sugerir Agenda', sub: 'MISSÕES LOCAIS', icon: <Calendar className="w-8 h-8 lg:w-10 lg:h-10" />, color: 'emerald' },
-                    { id: 'combustivel', label: 'Suporte / Fuel', sub: 'RECURSOS', icon: <Fuel className="w-8 h-8 lg:w-10 lg:h-10" />, color: 'orange' },
-                    { id: 'demanda', label: 'Ouvidoria / Feed', sub: 'PROBLEMAS', icon: <StickyNote className="w-8 h-8 lg:w-10 lg:h-10" />, color: 'purple' }
+                    { id: 'eleitor', label: 'Cadastrar Eleitor', sub: 'Expansão de Base', icon: <UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'blue' },
+                    { id: 'agenda', label: 'Sugerir Agenda', sub: 'Missões Locais', icon: <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'emerald' },
+                    { id: 'combustivel', label: 'Suporte / Recursos', sub: 'Combustível & Apoio', icon: <Fuel className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'orange' },
+                    { id: 'demanda', label: 'Ouvidoria / Feed', sub: 'Ocorrências e Notas', icon: <StickyNote className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'purple' }
                   ].map(action => (
                     <motion.button 
                       key={action.id}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.97 }}
                       onClick={() => processAction(action.id as any)}
-                      className={`aspect-square bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-sm p-6 lg:p-8 flex flex-col items-center justify-center gap-6 shadow-[var(--shadow-md)] border border-[var(--border-color)] hover:border-blue-600/30 transition-all group relative overflow-hidden`}
+                      className="bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-md p-3.5 sm:p-4 flex flex-col justify-between gap-3 shadow-xs border border-[var(--border-color)] hover:border-blue-500/40 hover:shadow-sm transition-all text-left group relative overflow-hidden min-h-[105px]"
                     >
-                      <div className={`absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity`}>
-                        {action.icon}
+                      <div className="flex items-center justify-between w-full">
+                        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-md flex items-center justify-center transition-all ${
+                          action.color === 'blue' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white' :
+                          action.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white' :
+                          action.color === 'orange' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-500 group-hover:text-white' :
+                          'bg-purple-500/10 text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white'
+                        }`}>
+                          {action.icon}
+                        </div>
+                        <Plus className="w-3.5 h-3.5 text-[var(--text-secondary)] opacity-40 group-hover:opacity-100 group-hover:text-blue-500 transition-all" />
                       </div>
-                      <div className={`p-5 rounded-sm transition-all shadow-inner ${
-                        action.color === 'blue' ? 'bg-blue-600/10 text-blue-600 group-hover:bg-blue-600 group-hover:text-white' :
-                        action.color === 'blue' ? 'bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white' :
-                        action.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white' :
-                        action.color === 'orange' ? 'bg-orange-500/10 text-orange-500 group-hover:bg-orange-500 group-hover:text-white' :
-                        'bg-purple-500/10 text-purple-500 group-hover:bg-purple-500 group-hover:text-white'
-                      }`}>
-                        {action.icon}
-                      </div>
-                      <div className="text-center group-hover:scale-110 transition-transform">
-                        <span className="font-black text-xs lg:text-sm uppercase tracking-widest leading-none block">
+                      <div>
+                        <span className="font-bold text-xs sm:text-sm uppercase tracking-tight block text-[var(--text-primary)]">
                           {action.label}
                         </span>
-                        <span className="text-[8px] font-black text-[var(--text-secondary)] mt-2.5 block tracking-[0.2em] uppercase opacity-60">
+                        <span className="text-[9px] font-medium text-[var(--text-secondary)] block tracking-wider uppercase mt-0.5 opacity-70">
                           {action.sub}
                         </span>
                       </div>
@@ -1639,38 +1640,38 @@ export default function CaboDashboard({
                   ))}
                 </section>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                   {myRequests.length > 0 && (
-                    <section className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-10 shadow-[var(--shadow-sm)] overflow-hidden flex flex-col h-full group">
-                      <div className="flex justify-between items-center mb-8">
-                        <h3 className="text-[var(--text-primary)] font-black text-lg uppercase tracking-tighter flex items-center gap-3">
-                          <div className="bg-[var(--bg-tertiary)] p-2.5 rounded-sm group-hover:bg-zinc-950 group-hover:text-white transition-all shadow-inner border border-[var(--border-color)]"><RefreshCcw className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-blue-600" /></div>
+                    <section className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-md p-5 shadow-xs overflow-hidden flex flex-col h-full group">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-[var(--text-primary)] font-bold text-sm uppercase tracking-tight flex items-center gap-2">
+                          <div className="bg-[var(--bg-tertiary)] p-1.5 rounded-md border border-[var(--border-color)]"><RefreshCcw className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-blue-600" /></div>
                           Fluxo de Suporte
                         </h3>
-                        <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-60">Últimas 5</span>
+                        <span className="text-[9px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider opacity-60">Últimas 5</span>
                       </div>
-                      <div className="space-y-4 flex-1">
+                      <div className="space-y-2.5 flex-1">
                         {myRequests.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5).map(req => (
                           <motion.div 
                             key={req.id} 
                             initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                            className="p-5 bg-[var(--bg-tertiary)] rounded-sm border border-[var(--border-color)] flex items-center justify-between gap-6 hover:border-blue-600/30 transition-all group/item"
+                            className="p-3 bg-[var(--bg-tertiary)] rounded-md border border-[var(--border-color)] flex items-center justify-between gap-4 hover:border-blue-500/30 transition-all group/item"
                           >
-                            <div className="flex items-center gap-4">
-                              <div className={`p-4 rounded-sm shadow-inner ${
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded-md shadow-xs ${
                                 req.type === 'combustivel' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 
                                 req.type === 'demanda' ? 'bg-blue-600/10 text-blue-600' : 'bg-red-500/10 text-red-600'
                               }`}>
-                                {req.type === 'combustivel' ? <Fuel className="w-5 h-5" /> : <StickyNote className="w-5 h-5" />}
+                                {req.type === 'combustivel' ? <Fuel className="w-4 h-4" /> : <StickyNote className="w-4 h-4" />}
                               </div>
                               <div className="text-left">
-                                <p className="font-black text-[var(--text-primary)] text-xs uppercase leading-none mb-2 tracking-tight group-hover/item:text-blue-600 transition-colors uppercase">{req.title}</p>
-                                <p className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-widest opacity-60">{new Date(req.createdAt).toLocaleDateString()} • {new Date(req.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                <p className="font-bold text-[var(--text-primary)] text-xs uppercase leading-snug tracking-tight group-hover/item:text-blue-600 transition-colors">{req.title}</p>
+                                <p className="text-[9px] text-[var(--text-secondary)] font-medium uppercase tracking-wider opacity-60">{new Date(req.createdAt).toLocaleDateString()} • {new Date(req.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                               </div>
                             </div>
-                            <span className={`text-[9px] font-black px-4 py-2 rounded-sm uppercase tracking-widest shadow-sm border ${
-                              req.status === 'aprovado' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-500 border-emerald-500/20' : 
-                              req.status === 'negado' ? 'bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20' : 'bg-[var(--bg-primary)] text-[var(--text-secondary)] border-[var(--border-color)]'
+                            <span className={`text-[9px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${
+                              req.status === 'aprovado' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20' : 
+                              req.status === 'negado' ? 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20' : 'bg-[var(--bg-primary)] text-[var(--text-secondary)] border-[var(--border-color)]'
                             }`}>
                               {req.status}
                             </span>
@@ -1681,37 +1682,37 @@ export default function CaboDashboard({
                   )}
 
                   {myAgendas.length > 0 && (
-                    <section className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-10 shadow-[var(--shadow-sm)] overflow-hidden flex flex-col h-full group">
-                      <div className="flex justify-between items-center mb-8">
-                        <h3 className="text-[var(--text-primary)] font-black text-lg uppercase tracking-tighter flex items-center gap-3">
-                          <div className="bg-[var(--bg-tertiary)] p-2.5 rounded-sm group-hover:bg-zinc-950 group-hover:text-white transition-all shadow-inner border border-[var(--border-color)]"><Calendar className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-emerald-500" /></div>
+                    <section className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-md p-5 shadow-xs overflow-hidden flex flex-col h-full group">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-[var(--text-primary)] font-bold text-sm uppercase tracking-tight flex items-center gap-2">
+                          <div className="bg-[var(--bg-tertiary)] p-1.5 rounded-md border border-[var(--border-color)]"><Calendar className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-emerald-500" /></div>
                           Monitor de Agenda
                         </h3>
-                        <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-60">Ativas</span>
+                        <span className="text-[9px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider opacity-60">Ativas</span>
                       </div>
-                      <div className="space-y-4 flex-1">
+                      <div className="space-y-2.5 flex-1">
                         {myAgendas.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5).map(agenda => (
                           <motion.div 
                             key={agenda.id} 
                             initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                            className="p-5 bg-[var(--bg-tertiary)] rounded-sm border border-[var(--border-color)] flex items-center justify-between gap-6 hover:border-blue-600/30 transition-all group/item"
+                            className="p-3 bg-[var(--bg-tertiary)] rounded-md border border-[var(--border-color)] flex items-center justify-between gap-4 hover:border-blue-500/30 transition-all group/item"
                           >
-                            <div className="flex items-center gap-4">
-                              <div className={`p-4 rounded-sm shadow-inner ${
-                                agenda.status === 'confirmado' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500' : 
-                                agenda.status === 'negado' ? 'bg-red-500/10 text-red-600' : 'bg-orange-500/10 text-orange-600'
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded-md shadow-xs ${
+                                agenda.status === 'confirmado' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 
+                                agenda.status === 'negado' ? 'bg-red-500/10 text-red-600' : 'bg-amber-500/10 text-amber-600'
                               }`}>
-                                <Calendar className="w-5 h-5" />
+                                <Calendar className="w-4 h-4" />
                               </div>
                               <div className="text-left">
-                                <p className="font-black text-[var(--text-primary)] text-xs uppercase leading-none mb-2 tracking-tight uppercase">{agenda.municipio}</p>
-                                <p className="text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-widest opacity-60">{new Date(agenda.data).toLocaleDateString()} • {agenda.hora_inicio}</p>
+                                <p className="font-bold text-[var(--text-primary)] text-xs uppercase leading-snug tracking-tight">{agenda.municipio}</p>
+                                <p className="text-[9px] text-[var(--text-secondary)] font-medium uppercase tracking-wider opacity-60">{new Date(agenda.data).toLocaleDateString()} • {agenda.hora_inicio}</p>
                               </div>
                             </div>
-                            <div className="flex flex-col items-end gap-2">
-                              <span className={`text-[9px] font-black px-4 py-2 rounded-sm uppercase tracking-widest shadow-sm border ${
-                                agenda.status === 'confirmado' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-500 border-emerald-500/20' : 
-                                agenda.status === 'negado' ? 'bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20' : 'bg-[var(--bg-primary)] text-orange-600 border border-orange-500/20'
+                            <div className="flex flex-col items-end gap-1">
+                              <span className={`text-[9px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${
+                                agenda.status === 'confirmado' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20' : 
+                                agenda.status === 'negado' ? 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20' : 'bg-[var(--bg-primary)] text-amber-600 border border-amber-500/20'
                               }`}>
                                 {agenda.status === 'confirmado' ? 'APROVADA' : agenda.status === 'negado' ? 'NEGADA' : 'PENDENTE'}
                               </span>
@@ -1722,7 +1723,7 @@ export default function CaboDashboard({
                                       await firestoreService.deleteDocument('agenda', agenda.id);
                                     }
                                   }}
-                                  className="text-[9px] font-black text-red-500 hover:text-red-700 uppercase tracking-widest underline transition-colors"
+                                  className="text-[9px] font-semibold text-red-500 hover:text-red-700 uppercase tracking-wider underline transition-colors"
                                 >
                                   Cancelar
                                 </button>
@@ -1735,44 +1736,46 @@ export default function CaboDashboard({
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <section className="bg-zinc-950 text-white rounded-sm p-10 shadow-2xl relative overflow-hidden group border border-white/5">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent"></div>
-                    <div className="bg-zinc-900/50 p-4 rounded-sm relative mb-6 w-max mx-auto shadow-inner border border-white/5">
-                      <RefreshCcw className={`w-10 h-10 text-blue-600 ${queueCount > 0 ? 'animate-spin-slow' : ''}`} />
-                      {queueCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-black w-8 h-8 flex items-center justify-center rounded-sm border-4 border-zinc-950 shadow-2xl">
-                          {queueCount}
-                        </span>
-                      )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <section className="bg-zinc-950 text-white rounded-md p-5 sm:p-6 shadow-md relative overflow-hidden group border border-white/10 flex flex-col justify-between">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none"></div>
+                    <div className="flex items-center gap-4 relative z-10">
+                      <div className="bg-zinc-900/80 p-3 rounded-md relative shadow-inner border border-white/10 shrink-0">
+                        <RefreshCcw className={`w-6 h-6 text-blue-500 ${queueCount > 0 ? 'animate-spin-slow' : ''}`} />
+                        {queueCount > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-zinc-950 shadow-md">
+                            {queueCount}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-white font-bold text-base sm:text-lg tracking-tight uppercase leading-tight">{queueCount} Pacotes Offline</h3>
+                        <p className="text-zinc-400 text-[10px] font-medium mt-0.5 uppercase tracking-wider">
+                          {isOnline ? 'Conexão estável com o terminal central' : 'Armazenamento local criptografado (sem rede)'}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-center relative z-10">
-                      <h3 className="text-white font-black text-2xl tracking-tighter uppercase">{queueCount} Pacotes Offline</h3>
-                      <p className="text-zinc-500 text-[10px] font-black mt-3 uppercase tracking-[0.3em]">
-                        {isOnline ? 'Conexão estável com o terminal central' : 'Armazenamento local criptografado (sem rede)'}
-                      </p>
-                      {isOnline && queueCount > 0 && (
-                        <button 
-                          onClick={syncOfflineQueue}
-                          className="mt-10 w-full bg-blue-600 text-white py-5 rounded-sm font-black text-sm uppercase tracking-[0.2em] shadow-xl hover:bg-white transition-all active:scale-95"
-                        >
-                          Sincronizar Terminal
-                        </button>
-                      )}
-                    </div>
+                    {isOnline && queueCount > 0 && (
+                      <button 
+                        onClick={syncOfflineQueue}
+                        className="mt-4 w-full bg-blue-600 text-white py-2.5 rounded-md font-bold text-xs uppercase tracking-wider shadow-md hover:bg-blue-500 transition-all active:scale-95"
+                      >
+                        Sincronizar Terminal
+                      </button>
+                    )}
                   </section>
 
-                  <div className="bg-blue-600 p-10 rounded-sm flex flex-col justify-center relative overflow-hidden shadow-2xl group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-transparent opacity-20"></div>
-                    <ShieldCheck className="absolute -right-8 -bottom-8 w-48 h-48 text-white/10 rotate-12 group-hover:rotate-6 transition-all duration-500" />
-                    <p className="text-white font-black text-2xl lg:text-3xl uppercase leading-tight text-left relative z-10 tracking-tighter">
+                  <div className="bg-blue-600 p-5 sm:p-6 rounded-md flex flex-col justify-between relative overflow-hidden shadow-md group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-transparent pointer-events-none"></div>
+                    <ShieldCheck className="absolute -right-6 -bottom-6 w-32 h-32 text-white/10 rotate-12 group-hover:rotate-6 transition-all duration-500 pointer-events-none" />
+                    <p className="text-white font-bold text-base sm:text-lg uppercase leading-snug text-left relative z-10 tracking-tight">
                       "A vitória é o resultado do trabalho silencioso em cada bairro."
                     </p>
-                    <div className="mt-8 flex items-center gap-4 relative z-10">
-                       <div className="w-16 h-1 bg-white/30 rounded-sm overflow-hidden">
-                          <motion.div initial={{ x: -100 }} animate={{ x: 0 }} transition={{ duration: 2, repeat: Infinity }} className="w-full h-full bg-white"></motion.div>
-                       </div>
-                       <span className="text-blue-100 text-[10px] font-black uppercase tracking-[0.3em] opacity-80">Comando Estratégico</span>
+                    <div className="mt-4 flex items-center gap-3 relative z-10">
+                      <div className="w-12 h-1 bg-white/30 rounded-full overflow-hidden">
+                        <motion.div initial={{ x: -100 }} animate={{ x: 0 }} transition={{ duration: 2, repeat: Infinity }} className="w-full h-full bg-white"></motion.div>
+                      </div>
+                      <span className="text-blue-100 text-[9px] font-bold uppercase tracking-wider opacity-90">Comando Estratégico</span>
                     </div>
                   </div>
                 </div>
