@@ -203,6 +203,27 @@ export default function EleitoralDashboard({
     if (isNaN(nrSecPrin)) nrSecPrin = -1;
     let qtEleit = Number(item.qtEleitorSecao ?? item.eleitores) || 0;
 
+    // Detect if nmLoc contains address string (AV, RUA, TRAVESSA) and dsEnd contains school/place name
+    const isNmLocAddress = nmLoc.toUpperCase().startsWith("AV") || 
+                           nmLoc.toUpperCase().startsWith("RUA") || 
+                           nmLoc.toUpperCase().startsWith("TRAVESSA") || 
+                           nmLoc.toUpperCase().startsWith("RODOVIA") || 
+                           nmLoc.toUpperCase().startsWith("PRAÇA");
+    const isDsEndPlace = dsEnd.toUpperCase().includes("ESCOLA") || 
+                         dsEnd.toUpperCase().includes("COL") || 
+                         dsEnd.toUpperCase().includes("CENTRO") || 
+                         dsEnd.toUpperCase().includes("FACULDADE") || 
+                         dsEnd.toUpperCase().includes("EMEF") || 
+                         dsEnd.toUpperCase().includes("GINASIO") || 
+                         dsEnd.toUpperCase().includes("INSTITUTO") || 
+                         dsEnd.toUpperCase().includes("CRECHE");
+
+    if (isNmLocAddress && isDsEndPlace) {
+      const temp = nmLoc;
+      nmLoc = dsEnd;
+      dsEnd = temp;
+    }
+
     // Auto-fix if nmLoc was mistakenly set to a purely numeric local number like "1015"
     if (/^\d+$/.test(nmLoc) && nmLoc.length <= 6) {
       if (!nrLoc) {
@@ -210,12 +231,8 @@ export default function EleitoralDashboard({
       }
       if (nmLocOrig && !/^\d+$/.test(nmLocOrig)) {
         nmLoc = nmLocOrig;
-      } else if (dsEnd && !/^\d+$/.test(dsEnd)) {
-        nmLoc = `Local ${nrLoc} - ${dsEnd}`;
-      } else if (nmB) {
-        nmLoc = `Local ${nrLoc} (${nmB})`;
       } else {
-        nmLoc = `Local de Votação ${nrLoc}`;
+        nmLoc = nrLoc ? `Local de Votação ${nrLoc}` : `Local (${nmB || nmMuni})`;
       }
     }
 
@@ -1234,12 +1251,15 @@ export default function EleitoralDashboard({
         ];
         const localTargets = [
           "nmlocalvotacao", "nm_local_votacao", "localdevotacao", "local_de_votacao", "localvotacao", "local_votacao", 
-          "local", "escola", "nomelocal", "colegio", "locdevotacao", "estabelecimento", "nmestabelecimento", "nm_estabelecimento", 
-          "dslocalvotacao", "ds_local_votacao", "dsestabelecimento", "ds_estabelecimento", "nmlocal", "nm_local"
+          "nomelocal", "nome_local", "nmlocal", "nm_local", "escola", "colegio", "nmestabelecimento", "nm_estabelecimento", 
+          "estabelecimento", "locdevotacao", "local"
         ];
         const zonaTargets = ["nrzona", "nr_zona", "zona", "ze", "zonaeleitoral", "zona_eleitoral", "numzona", "cdzona", "cd_zona"];
         const secaoTargets = ["nrsecao", "nr_secao", "secao", "secoes", "numsecao", "cdsecao", "cd_secao"];
-        const enderecoTargets = ["dsendereco", "ds_endereco", "endereco", "logradouro", "rua", "locvtendereco", "ds_localizacao", "localizacao"];
+        const enderecoTargets = [
+          "dsendereco", "ds_endereco", "dslocalvotacao", "ds_local_votacao", "ds_local", "dslocal", 
+          "endereco", "logradouro", "rua", "locvtendereco", "ds_localizacao", "localizacao"
+        ];
         const bairroTargets = ["nmbairro", "nm_bairro", "bairro", "regiao", "distrito", "dsbairro", "ds_bairro"];
         const eleitorTargets = [
           "qteleitorsecao", "qt_eleitor_secao", "qteleitoressecao", "qt_eleitores_secao", "qteleitor", "qt_eleitor", 
@@ -1250,7 +1270,7 @@ export default function EleitoralDashboard({
         const dsTipoAgregadaTargets = ["dstiposecaoagregada", "ds_tipo_secao_agregada", "dstiposecao", "ds_tipo_secao", "descripcaotiposecao", "desc_tipo_secao"];
         const secaoPrincipalTargets = ["nrsecaoprincipal", "nr_secao_principal", "secaoprincipal", "secao_principal", "numsecaoprincipal"];
         const localOriginalTargets = ["nmlocalvotacaooriginal", "nm_local_votacao_original", "localoriginal", "local_original", "nm_local_original"];
-        const enderecoOriginalTargets = ["dsenderecolocvtoriginal", "ds_endereco_locvt_original", "enderecooriginal", "ds_endereco_original"];
+        const enderecoOriginalTargets = ["dsenderecolocvtoriginal", "ds_endereco_locvt_original", "dsenderecooriginal", "ds_endereco_original", "enderecooriginal"];
 
         const findColIdx = (targets: string[], excludeTargets: string[] = []): number => {
           const normExclude = excludeTargets.map(t => normalizeHeaderKey(t));
@@ -1282,14 +1302,18 @@ export default function EleitoralDashboard({
 
         const colMun = findColIdx(munTargets);
         const colNrLocal = findColIdx(nrLocalTargets, ["nmlocal", "nm_local", "ds_local", "localoriginal"]);
-        const colLocal = findColIdx(localTargets, ["nrlocal", "nr_local", "cdlocal", "cd_local"]);
+        const colLocal = findColIdx(localTargets, [
+          "nrlocal", "nr_local", "cdlocal", "cd_local", "numlocal", 
+          "dsendereco", "ds_endereco", "dslocal", "ds_local", "dslocalvotacao", "ds_local_votacao", 
+          "nmlocalvotacaooriginal", "nm_local_votacao_original", "localoriginal", "local_original"
+        ]);
         const colZona = findColIdx(zonaTargets);
-        const colSecao = findColIdx(secaoTargets);
-        const colEndereco = findColIdx(enderecoTargets);
+        const colSecao = findColIdx(secaoTargets, ["nrsecaoprincipal", "nr_secao_principal", "secaoprincipal"]);
+        const colEndereco = findColIdx(enderecoTargets, ["dsenderecolocvtoriginal", "ds_endereco_locvt_original", "enderecooriginal"]);
         const colBairro = findColIdx(bairroTargets);
         const colEleitores = findColIdx(eleitorTargets);
-        const colTipoAgregada = findColIdx(tipoAgregadaTargets);
-        const colDsTipoAgregada = findColIdx(dsTipoAgregadaTargets);
+        const colTipoAgregada = findColIdx(tipoAgregadaTargets, ["dstiposecaoagregada", "ds_tipo_secao_agregada"]);
+        const colDsTipoAgregada = findColIdx(dsTipoAgregadaTargets, ["cdtiposecaoagregada", "cd_tipo_secao_agregada"]);
         const colSecaoPrincipal = findColIdx(secaoPrincipalTargets);
         const colLocalOriginal = findColIdx(localOriginalTargets);
         const colEnderecoOriginal = findColIdx(enderecoOriginalTargets);

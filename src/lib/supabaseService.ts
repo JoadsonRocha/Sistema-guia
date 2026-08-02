@@ -121,27 +121,27 @@ export const supabaseService = {
         const secoesCount = secoesArr.length > 0 ? secoesArr.length : (raw.secoesCount || 1);
 
         return {
-          nmMunicipio: item.municipio || raw.nmMunicipio || 'MUNICÍPIO ÚNICO',
-          municipio: item.municipio || raw.municipio || 'MUNICÍPIO ÚNICO',
-          nmLocalVotacao: item.local || raw.nmLocalVotacao || '',
-          nmLocalVotacaoOriginal: item.local || raw.nmLocalVotacaoOriginal || '',
-          local: item.local || raw.local || '',
-          nrZona: item.zona_clean || raw.nrZona || '',
-          zona: item.zona || raw.zona || '',
+          nmMunicipio: raw.nmMunicipio || item.municipio || 'MUNICÍPIO ÚNICO',
+          municipio: raw.municipio || item.municipio || 'MUNICÍPIO ÚNICO',
+          nmLocalVotacao: raw.nmLocalVotacao || item.local || '',
+          nmLocalVotacaoOriginal: raw.nmLocalVotacaoOriginal || raw.nmLocalVotacao || item.local || '',
+          local: raw.nmLocalVotacao || item.local || '',
+          nrZona: raw.nrZona || item.zona_clean || '',
+          zona: raw.zona || item.zona || '',
           nrSecao: secoesStr,
           secoes: secoesStr,
           secoesCount: secoesCount,
-          nmBairro: item.bairro || raw.nmBairro || '',
-          bairro: item.bairro || raw.bairro || '',
-          qtEleitorSecao: item.eleitores || raw.qtEleitorSecao || 0,
-          eleitores: item.eleitores || raw.eleitores || 0,
+          nmBairro: raw.nmBairro || item.bairro || '',
+          bairro: raw.bairro || item.bairro || '',
+          qtEleitorSecao: raw.qtEleitorSecao ?? item.eleitores ?? 0,
+          eleitores: raw.qtEleitorSecao ?? item.eleitores ?? 0,
           cdTipoSecaoAgregada: raw.cdTipoSecaoAgregada ?? -1,
           dsTipoSecaoAgregada: raw.dsTipoSecaoAgregada || 'Principal',
           nrSecaoPrincipal: raw.nrSecaoPrincipal ?? -1,
           nrLocalVotacao: raw.nrLocalVotacao ?? '',
           dsEndereco: raw.dsEndereco || raw.endereco || '',
-          endereco: raw.endereco || raw.dsEndereco || '',
-          dsEnderecoLocvtOriginal: raw.dsEnderecoLocvtOriginal || ''
+          endereco: raw.dsEndereco || raw.endereco || '',
+          dsEnderecoLocvtOriginal: raw.dsEnderecoLocvtOriginal || raw.dsEndereco || ''
         };
       });
     } catch (err) {
