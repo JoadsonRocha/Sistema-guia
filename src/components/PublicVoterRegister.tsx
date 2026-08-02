@@ -79,6 +79,8 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
     // Busca inicial imediata
     candidateService.getCandidateInfo(activeCoordId).then((info) => {
       setCandidateInfo(info);
+    }).catch((err) => {
+      console.warn("Erro ao buscar candidate info:", err);
     });
 
     // Subscrição em tempo real

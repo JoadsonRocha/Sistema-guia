@@ -261,6 +261,8 @@ export default function CoordinatorDashboard({
     getSubscriptionInfo(coordinatorId).then(sub => {
       setSelectedPlan(sub.plan);
       setSelectedPlanStatus(sub.status === 'active' ? 'active' : 'none');
+    }).catch(err => {
+      console.warn("Erro ao buscar subscrição:", err);
     });
     return () => unsub();
   }, [coordinatorId]);
