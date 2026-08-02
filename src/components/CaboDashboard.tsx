@@ -2939,13 +2939,13 @@ export default function CaboDashboard({
                       <input 
                         readOnly 
                         type="text" 
-                        value={`${window.location.origin}/?leaderId=${user?.uid}`} 
+                        value={`${window.location.origin}/?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`} 
                         className="flex-1 bg-zinc-100 border border-zinc-200 rounded-sm p-4 font-mono text-[11px] text-zinc-700 outline-none select-all"
                       />
                       <button
                         type="button"
                         onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}/?leaderId=${user?.uid}`);
+                          navigator.clipboard.writeText(`${window.location.origin}/?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`);
                           alert("✅ Link copiado para a área de transferência!");
                         }}
                         className="px-5 bg-blue-600 hover:bg-blue-600 text-white font-black text-[10px] uppercase tracking-wider rounded-sm active:scale-95 transition-all"

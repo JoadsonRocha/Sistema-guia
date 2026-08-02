@@ -73,9 +73,12 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
 
   // Escutar dados do candidato padronizados do Firestore
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeCoordId = leaderInfo?.coordinatorId || urlParams.get('coordinatorId') || urlParams.get('leaderId') || undefined;
+
     const unsub = candidateService.subscribeCandidateInfo((info) => {
       setCandidateInfo(info);
-    }, leaderInfo?.coordinatorId);
+    }, activeCoordId);
     return () => unsub();
   }, [leaderInfo?.coordinatorId]);
 

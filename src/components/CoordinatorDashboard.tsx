@@ -3239,7 +3239,7 @@ export default function CoordinatorDashboard({
                         <input
                           readOnly
                           type="text"
-                          value={selectedLinkTeam ? `${window.location.origin}/?teamId=${selectedLinkTeam}` : 'Por favor, selecione uma equipe acima...'}
+                          value={selectedLinkTeam ? `${window.location.origin}/?teamId=${selectedLinkTeam}&coordinatorId=${coordinatorId || user?.uid || ''}` : 'Por favor, selecione uma equipe acima...'}
                           className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-secondary)] rounded-sm p-2.5 font-mono text-[11px] sm:text-xs outline-none select-all"
                         />
                         <button
@@ -3247,7 +3247,7 @@ export default function CoordinatorDashboard({
                           disabled={!selectedLinkTeam}
                           onClick={() => {
                             if (!selectedLinkTeam) return;
-                            navigator.clipboard.writeText(`${window.location.origin}/?teamId=${selectedLinkTeam}`);
+                            navigator.clipboard.writeText(`${window.location.origin}/?teamId=${selectedLinkTeam}&coordinatorId=${coordinatorId || user?.uid || ''}`);
                             alert("✅ Link copiado para a área de transferência!");
                           }}
                           className={`px-4 py-2.5 rounded-sm font-black text-[9px] md:text-[10px] uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap ${
@@ -3346,7 +3346,7 @@ export default function CoordinatorDashboard({
                            <button 
                              onClick={() => {
                                const tId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
-                               navigator.clipboard.writeText(`${window.location.origin}/?teamId=${tId}`);
+                               navigator.clipboard.writeText(`${window.location.origin}/?teamId=${tId}&coordinatorId=${coordinatorId || user?.uid || ''}`);
                                alert(`✅ Link de autocadastro da equipe "${team.name}" copiado com sucesso!`);
                              }}
                              className="flex-1 lg:flex-none p-2 sm:p-2.5 md:p-3 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-sm hover:bg-zinc-950 hover:text-white transition-all shadow-[var(--shadow-sm)] active:scale-95 border border-[var(--border-color)] flex items-center justify-center"
