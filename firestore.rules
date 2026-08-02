@@ -7,7 +7,14 @@ service cloud.firestore {
     
     // Users
     match /users/{userId} {
-      allow read, write: if isSignedIn();
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Settings (Candidate info, subscriptions, etc.)
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     // Pre-registrations (for leader setup)
@@ -18,7 +25,8 @@ service cloud.firestore {
 
     // Teams
     match /teams/{teamId} {
-      allow read, write: if isSignedIn();
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     // Voters

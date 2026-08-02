@@ -28,7 +28,7 @@ function getLocalCache(): CandidateInfo | null {
     const item = localStorage.getItem(CACHE_KEY);
     if (item) {
       const parsed = JSON.parse(item);
-      if (parsed && parsed.name && parsed.name !== DEFAULT_CANDIDATE_INFO.name) {
+      if (parsed && parsed.name) {
         return parsed;
       }
     }
@@ -59,14 +59,6 @@ function extractCandidateData(data: any): CandidateInfo {
   };
 }
 
-function isCustomData(info: CandidateInfo): boolean {
-  return (
-    (info.name && info.name !== DEFAULT_CANDIDATE_INFO.name) ||
-    (info.title && info.title !== DEFAULT_CANDIDATE_INFO.title) ||
-    (info.photoUrl && info.photoUrl !== DEFAULT_CANDIDATE_INFO.photoUrl)
-  );
-}
-
 export const candidateService = {
   async getCandidateInfo(coordinatorId?: string): Promise<CandidateInfo> {
     try {
@@ -74,20 +66,16 @@ export const candidateService = {
         const snapCoord = await getDoc(doc(db, 'settings', `candidate_${coordinatorId}`));
         if (snapCoord.exists()) {
           const info = extractCandidateData(snapCoord.data());
-          if (isCustomData(info)) {
-            setLocalCache(info);
-            return info;
-          }
+          setLocalCache(info);
+          return info;
         }
       }
 
       const snapGlobal = await getDoc(doc(db, 'settings', 'candidate'));
       if (snapGlobal.exists()) {
         const info = extractCandidateData(snapGlobal.data());
-        if (isCustomData(info)) {
-          setLocalCache(info);
-          return info;
-        }
+        setLocalCache(info);
+        return info;
       }
 
       const cached = getLocalCache();
@@ -131,21 +119,13 @@ export const candidateService = {
     let globalInfo: CandidateInfo | null = null;
 
     const emitCurrent = () => {
-      if (specificInfo && isCustomData(specificInfo)) {
+      if (specificInfo) {
         setLocalCache(specificInfo);
         callback(specificInfo);
         return;
       }
-      if (globalInfo && isCustomData(globalInfo)) {
-        setLocalCache(globalInfo);
-        callback(globalInfo);
-        return;
-      }
-      if (specificInfo) {
-        callback(specificInfo);
-        return;
-      }
       if (globalInfo) {
+        setLocalCache(globalInfo);
         callback(globalInfo);
         return;
       }

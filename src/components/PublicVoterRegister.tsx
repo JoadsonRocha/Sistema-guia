@@ -76,9 +76,16 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
     const urlParams = new URLSearchParams(window.location.search);
     const activeCoordId = leaderInfo?.coordinatorId || urlParams.get('coordinatorId') || urlParams.get('leaderId') || undefined;
 
+    // Busca inicial imediata
+    candidateService.getCandidateInfo(activeCoordId).then((info) => {
+      setCandidateInfo(info);
+    });
+
+    // Subscrição em tempo real
     const unsub = candidateService.subscribeCandidateInfo((info) => {
       setCandidateInfo(info);
     }, activeCoordId);
+
     return () => unsub();
   }, [leaderInfo?.coordinatorId]);
 
