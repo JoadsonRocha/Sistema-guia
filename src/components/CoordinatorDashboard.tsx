@@ -2758,9 +2758,17 @@ export default function CoordinatorDashboard({
 
                 {/* Macro Summary Cards */}
                 {(() => {
+                  const safeNum = (v: any, fallback = 0) => {
+                    if (v === null || v === undefined || v === '') return fallback;
+                    if (typeof v === 'number') return isNaN(v) ? fallback : v;
+                    const clean = String(v).replace(/\./g, '').replace(/,/g, '.').replace(/\s/g, '');
+                    const n = parseFloat(clean);
+                    return isNaN(n) ? fallback : n;
+                  };
+
                   const filteredGoals = goalsList.filter(g => g.category === goalCategory || (!g.category && goalCategory === 'municipio'));
-                  const totalMetaGeral = filteredGoals.reduce((sum, g) => sum + (Number(g.targetVoters) || 0), 0);
-                  const totalMetaDistribuidaRegionais = regionalCoordinators.reduce((sum, c) => sum + (Number(c.targetVoters) || 0), 0);
+                  const totalMetaGeral = filteredGoals.reduce((sum, g) => sum + safeNum(g.targetVoters), 0);
+                  const totalMetaDistribuidaRegionais = regionalCoordinators.reduce((sum, c) => sum + safeNum(c.targetVoters), 0);
                   const totalPendenteAlocacao = Math.max(0, totalMetaGeral - totalMetaDistribuidaRegionais);
                   const totalMapeados = allVoters.length;
 
@@ -2846,24 +2854,35 @@ export default function CoordinatorDashboard({
                 {/* Goals Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {goalsList.filter(g => g.category === goalCategory || (!g.category && goalCategory === 'municipio')).map(goal => {
+                    const safeNum = (v: any, fallback = 0) => {
+                      if (v === null || v === undefined || v === '') return fallback;
+                      if (typeof v === 'number') return isNaN(v) ? fallback : v;
+                      const clean = String(v).replace(/\./g, '').replace(/,/g, '.').replace(/\s/g, '');
+                      const n = parseFloat(clean);
+                      return isNaN(n) ? fallback : n;
+                    };
+
                     const matchedRegCoords = getMatchedRegCoordsForGoal(goal.locationName);
                     const matchedTeams = getMatchedTeamsForGoal(goal.locationName);
 
-                    const totalAllocatedToCoords = matchedRegCoords.reduce((acc, c) => acc + (Number(c.targetVoters) || 0), 0);
-                    const totalAllocatedToTeams = matchedTeams.reduce((acc, t) => acc + (Number(t.targetVoters || t.goal) || 0), 0);
+                    const totalAllocatedToCoords = matchedRegCoords.reduce((acc, c) => acc + safeNum(c.targetVoters), 0);
+                    const totalAllocatedToTeams = matchedTeams.reduce((acc, t) => acc + safeNum(t.targetVoters || t.goal), 0);
 
                     // Combine allocations (prefer Regional Coords if assigned, or sum standalone teams)
                     const totalAllocated = totalAllocatedToCoords > 0 ? totalAllocatedToCoords : totalAllocatedToTeams;
-                    const unallocatedFromMeta = Math.max(0, (Number(goal.targetVoters) || 0) - totalAllocated);
+                    const target = safeNum(goal.targetVoters, 1000);
+                    const unallocatedFromMeta = Math.max(0, target - totalAllocated);
 
                     const registeredCount = allVoters.filter(v => {
                       const loc = ((v.address || '') + ' ' + (v.neighborhood || '') + ' ' + (v.city || '') + ' ' + (v.municipality || '')).toLowerCase();
                       return isLocationMatchingGoal(goal.locationName, loc, loc);
                     }).length;
 
-                    const target = Number(goal.targetVoters) || 1000;
-                    const allocPct = target > 0 ? Math.min(100, Math.round((totalAllocated / target) * 100)) : 0;
-                    const reachPct = target > 0 ? Math.min(100, Math.round((registeredCount / target) * 100)) : 0;
+                    const rawAllocPct = target > 0 ? Math.round((totalAllocated / target) * 100) : 0;
+                    const allocPct = isNaN(rawAllocPct) ? 0 : Math.min(100, rawAllocPct);
+
+                    const rawReachPct = target > 0 ? Math.round((registeredCount / target) * 100) : 0;
+                    const reachPct = isNaN(rawReachPct) ? 0 : Math.min(100, rawReachPct);
 
                     return (
                       <div key={goal.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative flex flex-col justify-between hover:border-blue-500/50 transition-all shadow-sm">
@@ -2917,8 +2936,9 @@ export default function CoordinatorDashboard({
                             <div className="flex flex-col gap-1.5">
                               {/* Coordenadores Regionais */}
                               {matchedRegCoords.map(c => {
-                                const cVal = Number(c.targetVoters || 0);
-                                const pctOfMetaGeral = target > 0 ? ((cVal / target) * 100).toFixed(1).replace('.', ',') : '0';
+                                const cVal = safeNum(c.targetVoters);
+                                const ratio = target > 0 ? (cVal / target) * 100 : 0;
+                                const pctOfMetaGeral = (isNaN(ratio) ? 0 : ratio).toFixed(1).replace('.', ',');
                                 return (
                                   <div key={c.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1.5 rounded-sm text-[9px] font-bold text-emerald-700 dark:text-emerald-300 uppercase">
                                     <div className="flex items-center gap-1.5 min-w-0">
@@ -2939,8 +2959,9 @@ export default function CoordinatorDashboard({
 
                               {/* Equipes e Líderes */}
                               {matchedTeams.map(t => {
-                                const tVal = Number(t.targetVoters || t.goal || 0);
-                                const pctOfMetaGeral = target > 0 ? ((tVal / target) * 100).toFixed(1).replace('.', ',') : '0';
+                                const tVal = safeNum(t.targetVoters || t.goal);
+                                const ratio = target > 0 ? (tVal / target) * 100 : 0;
+                                const pctOfMetaGeral = (isNaN(ratio) ? 0 : ratio).toFixed(1).replace('.', ',');
                                 return (
                                   <div key={t.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1.5 rounded-sm text-[9px] font-bold text-blue-700 dark:text-blue-300 uppercase">
                                     <div className="flex items-center gap-1.5 min-w-0">
