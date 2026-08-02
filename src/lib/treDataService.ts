@@ -1,4 +1,4 @@
-import { normalizeLoc } from '../data/roraimaTreData';
+import { normalizeLoc, RORAIMA_MUNICIPALITIES } from '../data/roraimaTreData';
 import { eleitoralStorage } from './eleitoralStorage';
 import { db } from './firebase';
 import { doc, getDoc, collection, getDocs, query, limit } from 'firebase/firestore';
@@ -21,6 +21,34 @@ export interface TreZoneOption {
   zonaClean: string;
   municipioStr: string;
   locaisCount: number;
+}
+
+// Default fallback generator for Roraima official TRE data
+export function getDefaultRoraimaLocations(): TreLocationItem[] {
+  const items: TreLocationItem[] = [];
+  let counter = 1;
+  for (const mun of RORAIMA_MUNICIPALITIES) {
+    for (const loc of mun.locaisVotacao) {
+      const zRaw = String(loc.zona || '');
+      const zClean = extractZonaNum(zRaw);
+      const zLabel = normalizeZonaLabel(zRaw) || '1ª ZE';
+      const secaoVal = loc.secoes || '';
+      const parsedSec = parseSecoes(secaoVal);
+
+      items.push({
+        id: `rr_default_${counter++}`,
+        zona: zLabel,
+        zonaClean: zClean || '1',
+        secoes: parsedSec,
+        secoesStr: secaoVal,
+        local: loc.nome,
+        bairro: loc.bairro,
+        municipio: mun.name,
+        eleitores: loc.eleitoresAproximado || 0
+      });
+    }
+  }
+  return items;
 }
 
 // Expand section range string e.g. "001 a 012", "101, 102", "1-5"
@@ -147,12 +175,6 @@ export function clearTreLocationsCache(coordinatorId?: string) {
 export async function loadTreLocationsFromFirestore(coordinatorId?: string): Promise<TreLocationItem[]> {
   const cleanId = coordinatorId ? coordinatorId.replace(/^coord_/, '').trim() : '';
 
-  // 1. Return in-memory cache if populated
-  const existing = getAllTreLocations(cleanId || 'default');
-  if (existing.length > 0) {
-    return existing;
-  }
-
   // Helper to load and assemble chunked or single document locations
   const loadDocData = async (docSnap: any, docId: string): Promise<any[]> => {
     const data = docSnap.data();
@@ -179,7 +201,7 @@ export async function loadTreLocationsFromFirestore(coordinatorId?: string): Pro
     return locationsArr;
   };
 
-  // 2. Try IndexedDB / localStorage
+  // 1. Try IndexedDB / localStorage
   try {
     const saved = await eleitoralStorage.loadLocations(cleanId || 'default');
     if (saved && Array.isArray(saved) && saved.length > 0) {
@@ -190,7 +212,7 @@ export async function loadTreLocationsFromFirestore(coordinatorId?: string): Pro
     console.warn("Error reading local TRE locations:", e);
   }
 
-  // 3. Try specific Firestore document for coordinator if cleanId is provided
+  // 2. Try specific Firestore document for coordinator if cleanId is provided
   if (cleanId && cleanId !== 'geral' && cleanId !== 'default') {
     try {
       const docId = `coord_${cleanId}`;
@@ -207,7 +229,7 @@ export async function loadTreLocationsFromFirestore(coordinatorId?: string): Pro
     }
   }
 
-  // 4. Fallback: Query collection 'eleitoral_data' for ANY document with data!
+  // 3. Fallback: Query collection 'eleitoral_data' for ANY document with data!
   try {
     const q = query(collection(db, 'eleitoral_data'), limit(15));
     const querySnap = await getDocs(q);
@@ -232,7 +254,7 @@ export async function loadTreLocationsFromFirestore(coordinatorId?: string): Pro
     console.warn("Fallback query for eleitoral_data failed:", err);
   }
 
-  return [];
+  return getDefaultRoraimaLocations();
 }
 
 export function getAllTreLocations(coordinatorId?: string): TreLocationItem[] {
@@ -310,7 +332,8 @@ export function getAllTreLocations(coordinatorId?: string): TreLocationItem[] {
     }
   }
 
-  return [];
+  // 4. Default Fallback: Return built-in official TRE data so "0 Zonas" is never shown
+  return getDefaultRoraimaLocations();
 }
 
 // Get distinct list of Zonas for given coordinator
