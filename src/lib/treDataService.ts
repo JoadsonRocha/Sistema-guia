@@ -1,7 +1,7 @@
 import { normalizeLoc } from '../data/roraimaTreData';
 import { eleitoralStorage } from './eleitoralStorage';
 import { db } from './firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, limit } from 'firebase/firestore';
 
 export interface TreLocationItem {
   id: string;
@@ -87,7 +87,7 @@ export function extractZonaNum(zonaRaw: string): string {
 const cachedLocationsByCoord = new Map<string, TreLocationItem[]>();
 
 export function setTreLocationsForCoordinator(coordinatorId: string, locations: any[]) {
-  if (!coordinatorId) return;
+  if (!locations || !Array.isArray(locations)) return;
   const items: TreLocationItem[] = [];
   let counter = 1;
 
@@ -115,88 +115,142 @@ export function setTreLocationsForCoordinator(coordinatorId: string, locations: 
     });
   }
 
-  cachedLocationsByCoord.set(coordinatorId, items);
-  if (items.length > 0) {
-    eleitoralStorage.saveLocations(coordinatorId, locations);
-  }
+  const cleanId = coordinatorId ? coordinatorId.replace(/^coord_/, '').trim() : '';
+  const keys = new Set([
+    coordinatorId,
+    cleanId,
+    `coord_${cleanId}`,
+    'default',
+    'geral'
+  ].filter(Boolean));
+
+  keys.forEach(k => {
+    cachedLocationsByCoord.set(k, items);
+    if (items.length > 0) {
+      eleitoralStorage.saveLocations(k, locations);
+    }
+  });
 }
 
 export function clearTreLocationsCache(coordinatorId?: string) {
   if (coordinatorId) {
-    cachedLocationsByCoord.set(coordinatorId, []);
+    const cleanId = coordinatorId.replace(/^coord_/, '').trim();
+    cachedLocationsByCoord.delete(coordinatorId);
+    cachedLocationsByCoord.delete(cleanId);
+    cachedLocationsByCoord.delete(`coord_${cleanId}`);
     eleitoralStorage.clearLocations(coordinatorId);
   } else {
     cachedLocationsByCoord.clear();
   }
 }
 
-export async function loadTreLocationsFromFirestore(coordinatorId: string): Promise<TreLocationItem[]> {
-  if (!coordinatorId) return [];
+export async function loadTreLocationsFromFirestore(coordinatorId?: string): Promise<TreLocationItem[]> {
+  const cleanId = coordinatorId ? coordinatorId.replace(/^coord_/, '').trim() : '';
 
   // 1. Return in-memory cache if populated
-  const cached = cachedLocationsByCoord.get(coordinatorId);
-  if (cached && cached.length > 0) {
-    return cached;
+  const existing = getAllTreLocations(cleanId || 'default');
+  if (existing.length > 0) {
+    return existing;
   }
+
+  // Helper to load and assemble chunked or single document locations
+  const loadDocData = async (docSnap: any, docId: string): Promise<any[]> => {
+    const data = docSnap.data();
+    if (!data || data.cleared) return [];
+
+    let locationsArr: any[] = [];
+    if (data.isChunked && data.chunksCount > 0) {
+      const promises = [];
+      for (let i = 0; i < data.chunksCount; i++) {
+        promises.push(getDoc(doc(db, 'eleitoral_data', `${docId}_${i}`)));
+      }
+      const chunkSnaps = await Promise.all(promises);
+      for (const cs of chunkSnaps) {
+        if (cs.exists()) {
+          const cData = cs.data();
+          if (cData?.locations && Array.isArray(cData.locations)) {
+            locationsArr = locationsArr.concat(cData.locations);
+          }
+        }
+      }
+    } else if (Array.isArray(data.locations)) {
+      locationsArr = data.locations;
+    }
+    return locationsArr;
+  };
 
   // 2. Try IndexedDB / localStorage
   try {
-    const saved = await eleitoralStorage.loadLocations(coordinatorId);
+    const saved = await eleitoralStorage.loadLocations(cleanId || 'default');
     if (saved && Array.isArray(saved) && saved.length > 0) {
-      setTreLocationsForCoordinator(coordinatorId, saved);
-      return getAllTreLocations(coordinatorId);
+      setTreLocationsForCoordinator(cleanId || 'default', saved);
+      return getAllTreLocations(cleanId || 'default');
     }
   } catch (e) {
     console.warn("Error reading local TRE locations:", e);
   }
 
-  // 3. Fetch from Firestore
+  // 3. Try specific Firestore document for coordinator if cleanId is provided
+  if (cleanId && cleanId !== 'geral' && cleanId !== 'default') {
+    try {
+      const docId = `coord_${cleanId}`;
+      const snap = await getDoc(doc(db, 'eleitoral_data', docId));
+      if (snap.exists()) {
+        const locationsArr = await loadDocData(snap, docId);
+        if (locationsArr.length > 0) {
+          setTreLocationsForCoordinator(cleanId, locationsArr);
+          return getAllTreLocations(cleanId);
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to fetch TRE locations for cleanId:", cleanId, err);
+    }
+  }
+
+  // 4. Fallback: Query collection 'eleitoral_data' for ANY document with data!
   try {
-    const docId = `coord_${coordinatorId}`;
-    const snap = await getDoc(doc(db, 'eleitoral_data', docId));
+    const q = query(collection(db, 'eleitoral_data'), limit(15));
+    const querySnap = await getDocs(q);
+    for (const dSnap of querySnap.docs) {
+      // Skip chunk sub-documents (e.g. coord_xxx_0, coord_xxx_1)
+      if (dSnap.id.includes('_') && dSnap.id.split('_').length > 2) continue;
+      if (/\_\d+$/.test(dSnap.id)) continue;
 
-    if (snap.exists()) {
-      const data = snap.data();
-      if (data?.cleared) {
-        setTreLocationsForCoordinator(coordinatorId, []);
-        return [];
-      }
-
-      let locationsArr: any[] = [];
-      if (data?.isChunked && data.chunksCount > 0) {
-        const promises = [];
-        for (let i = 0; i < data.chunksCount; i++) {
-          promises.push(getDoc(doc(db, 'eleitoral_data', `${docId}_${i}`)));
+      const locs = await loadDocData(dSnap, dSnap.id);
+      if (locs.length > 0) {
+        const docCoordId = dSnap.data()?.coordinatorId || cleanId || 'default';
+        setTreLocationsForCoordinator(docCoordId, locs);
+        if (cleanId) {
+          setTreLocationsForCoordinator(cleanId, locs);
         }
-        const chunkSnaps = await Promise.all(promises);
-        for (const cs of chunkSnaps) {
-          if (cs.exists()) {
-            locationsArr = locationsArr.concat(cs.data().locations || []);
-          }
-        }
-      } else if (Array.isArray(data?.locations)) {
-        locationsArr = data.locations;
-      }
-
-      if (locationsArr.length > 0) {
-        setTreLocationsForCoordinator(coordinatorId, locationsArr);
-        await eleitoralStorage.saveLocations(coordinatorId, locationsArr);
-        return getAllTreLocations(coordinatorId);
+        setTreLocationsForCoordinator('default', locs);
+        setTreLocationsForCoordinator('geral', locs);
+        return getAllTreLocations(cleanId || 'default');
       }
     }
   } catch (err) {
-    console.warn("Failed to fetch TRE locations from Firestore for coordinator:", coordinatorId, err);
+    console.warn("Fallback query for eleitoral_data failed:", err);
   }
 
   return [];
 }
 
 export function getAllTreLocations(coordinatorId?: string): TreLocationItem[] {
-  const coordKey = coordinatorId || 'default';
+  const cleanId = coordinatorId ? coordinatorId.replace(/^coord_/, '').trim() : '';
+  const keysToTry = [
+    coordinatorId,
+    cleanId,
+    `coord_${cleanId}`,
+    'default',
+    'geral'
+  ].filter(Boolean) as string[];
 
-  // 1. Return exact cache if present for this coordinator
-  if (cachedLocationsByCoord.has(coordKey)) {
-    return cachedLocationsByCoord.get(coordKey)!;
+  // 1. Try in-memory cache for any matching key
+  for (const key of keysToTry) {
+    const cached = cachedLocationsByCoord.get(key);
+    if (cached && cached.length > 0) {
+      return cached;
+    }
   }
 
   // Helper to parse stored JSON
@@ -234,30 +288,29 @@ export function getAllTreLocations(coordinatorId?: string): TreLocationItem[] {
     return locations;
   };
 
-  // 2. Try loading specific key for this coordinator from localStorage
-  try {
-    const key = `sistema_urna360_eleitoral_data_${coordKey}`;
-    const savedStr = localStorage.getItem(key);
-    if (savedStr !== null) {
-      const locs = parseSaved(savedStr);
-      cachedLocationsByCoord.set(coordKey, locs);
-      return locs;
-    }
-  } catch (err) {
-    console.warn("Error parsing local electoral data cache:", err);
+  // 2. Try localStorage / parseSaved
+  for (const key of keysToTry) {
+    try {
+      const storageKey = `sistema_urna360_eleitoral_data_${key}`;
+      const savedStr = localStorage.getItem(storageKey);
+      if (savedStr !== null) {
+        const locs = parseSaved(savedStr);
+        if (locs.length > 0) {
+          keysToTry.forEach(k => cachedLocationsByCoord.set(k, locs));
+          return locs;
+        }
+      }
+    } catch (e) {}
   }
 
-  // 3. Fallback: check if any coordinator cache is available if coordKey was 'default'
-  if (coordKey === 'default') {
-    for (const [key, value] of cachedLocationsByCoord.entries()) {
-      if (value.length > 0) return value;
+  // 3. Fallback: return any non-empty array from cachedLocationsByCoord Map
+  for (const [, items] of cachedLocationsByCoord.entries()) {
+    if (items && items.length > 0) {
+      return items;
     }
   }
 
-  // 4. Default to empty
-  const empty: TreLocationItem[] = [];
-  cachedLocationsByCoord.set(coordKey, empty);
-  return empty;
+  return [];
 }
 
 // Get distinct list of Zonas for given coordinator

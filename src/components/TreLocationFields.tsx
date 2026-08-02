@@ -64,17 +64,15 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
   useEffect(() => {
     let isSubscribed = true;
     const fetchLocations = async () => {
-      if (coordinatorId) {
-        const existing = getAllTreLocations(coordinatorId);
-        if (existing.length === 0) {
-          setIsLoadingTre(true);
-          try {
-            await loadTreLocationsFromFirestore(coordinatorId);
-          } catch (err) {
-            console.warn("Aviso ao carregar dados do TRE:", err);
-          } finally {
-            if (isSubscribed) setIsLoadingTre(false);
-          }
+      const existing = getAllTreLocations(coordinatorId);
+      if (existing.length === 0) {
+        setIsLoadingTre(true);
+        try {
+          await loadTreLocationsFromFirestore(coordinatorId);
+        } catch (err) {
+          console.warn("Aviso ao carregar dados do TRE:", err);
+        } finally {
+          if (isSubscribed) setIsLoadingTre(false);
         }
       }
     };
@@ -83,7 +81,7 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
   }, [coordinatorId]);
 
   // When opening a submenu, clear search so user sees full list for that context
-  const handleOpenSubmenu = (menu: 'zona' | 'secao' | 'local') => {
+  const handleOpenSubmenu = async (menu: 'zona' | 'secao' | 'local') => {
     if (openSubmenu === menu) {
       setOpenSubmenu(null);
     } else {
@@ -91,6 +89,18 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
       if (menu === 'secao') setSearchSecao('');
       if (menu === 'local') setSearchLocal('');
       setOpenSubmenu(menu);
+
+      // On-demand fetch if current zones are empty
+      if (allZonas.length === 0 && !isLoadingTre) {
+        setIsLoadingTre(true);
+        try {
+          await loadTreLocationsFromFirestore(coordinatorId);
+        } catch (e) {
+          console.warn("Aviso ao carregar dados do TRE ao abrir menu:", e);
+        } finally {
+          setIsLoadingTre(false);
+        }
+      }
     }
   };
 
