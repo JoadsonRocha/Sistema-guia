@@ -211,6 +211,22 @@ export function isLocationMatchingGoal(
 
   if (!normGoal) return false;
 
+  // 0. State-Wide / General Goal Check (e.g. "Roraima", "Estado de Roraima", "Estado", "Geral", "Estadual", "Macro")
+  const isStateOrGeneralGoal =
+    normGoal === 'roraima' ||
+    normGoal === 'estado de roraima' ||
+    normGoal === 'estado' ||
+    normGoal === 'geral' ||
+    normGoal === 'estadual' ||
+    normGoal === 'todo o estado' ||
+    normGoal === 'roraima (geral)' ||
+    normGoal === 'roraima geral' ||
+    normGoal.startsWith('roraima');
+
+  if (isStateOrGeneralGoal) {
+    return true; // Any regional coordinator or team belongs to the state / general macro goal
+  }
+
   // 1. Exact Match Check
   if (normRegion === normGoal || normSubs === normGoal) return true;
 

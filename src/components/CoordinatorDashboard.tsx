@@ -2916,30 +2916,43 @@ export default function CoordinatorDashboard({
                             </p>
                             <div className="flex flex-col gap-1.5">
                               {/* Coordenadores Regionais */}
-                              {matchedRegCoords.map(c => (
-                                <div key={c.id} className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1.5 rounded-sm text-[9px] font-bold text-emerald-700 dark:text-emerald-300 uppercase">
-                                  <div className="flex items-center gap-1.5 min-w-0">
-                                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                                    <span className="font-black truncate">{c.name}</span>
+                              {matchedRegCoords.map(c => {
+                                const cVal = Number(c.targetVoters || 0);
+                                const pctOfMetaGeral = target > 0 ? ((cVal / target) * 100).toFixed(1).replace('.', ',') : '0';
+                                return (
+                                  <div key={c.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1.5 rounded-sm text-[9px] font-bold text-emerald-700 dark:text-emerald-300 uppercase">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                      <span className="font-black truncate">{c.name}</span>
+                                      {c.region && (
+                                        <span className="text-[8px] font-semibold text-emerald-600/80 dark:text-emerald-400/80 truncate">
+                                          ({c.region})
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="font-black bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded text-[9px] border border-emerald-500/30 shrink-0">
+                                      {cVal.toLocaleString('pt-BR')} Eleitores ({pctOfMetaGeral}% da Meta Geral)
+                                    </span>
                                   </div>
-                                  <span className="font-black bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded text-[9px] border border-emerald-500/30 shrink-0 ml-2">
-                                    {Number(c.targetVoters || 0).toLocaleString('pt-BR')} Eleitores Alocados
-                                  </span>
-                                </div>
-                              ))}
+                                );
+                              })}
 
                               {/* Equipes e Líderes */}
-                              {matchedTeams.map(t => (
-                                <div key={t.id} className="flex items-center justify-between bg-blue-500/10 border border-blue-500/20 px-2.5 py-1.5 rounded-sm text-[9px] font-bold text-blue-700 dark:text-blue-300 uppercase">
-                                  <div className="flex items-center gap-1.5 min-w-0">
-                                    <Users className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                                    <span className="font-black truncate">{t.name}</span>
+                              {matchedTeams.map(t => {
+                                const tVal = Number(t.targetVoters || t.goal || 0);
+                                const pctOfMetaGeral = target > 0 ? ((tVal / target) * 100).toFixed(1).replace('.', ',') : '0';
+                                return (
+                                  <div key={t.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1.5 rounded-sm text-[9px] font-bold text-blue-700 dark:text-blue-300 uppercase">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <Users className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                      <span className="font-black truncate">{t.name}</span>
+                                    </div>
+                                    <span className="font-black bg-blue-500/20 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded text-[9px] border border-blue-500/30 shrink-0">
+                                      {tVal.toLocaleString('pt-BR')} Eleitores ({pctOfMetaGeral}% da Meta Geral)
+                                    </span>
                                   </div>
-                                  <span className="font-black bg-blue-500/20 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded text-[9px] border border-blue-500/30 shrink-0 ml-2">
-                                    {Number(t.targetVoters || t.goal || 0).toLocaleString('pt-BR')} Eleitores Alocados
-                                  </span>
-                                </div>
-                              ))}
+                                );
+                              })}
 
                               {matchedRegCoords.length === 0 && matchedTeams.length === 0 && (
                                 <p className="text-[9px] font-bold text-amber-500 uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-sm">
