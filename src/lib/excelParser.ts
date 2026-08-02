@@ -1,17 +1,5 @@
 import * as XLSX from 'xlsx';
 
-// Ensure pure JS inflation is used instead of any broken zlib stubs injected by bundlers
-try {
-  if (typeof window !== 'undefined') {
-    // Disable zlib in SheetJS so it falls back to built-in pure JS inflation
-    if ((XLSX as any)?.CFB?.utils?.use_zlib) {
-      (XLSX as any).CFB.utils.use_zlib(null);
-    }
-  }
-} catch {
-  // Ignore
-}
-
 /**
  * Safely parses CSV text into a 2D array matrix handling multiple delimiters (; , \t)
  */
@@ -72,14 +60,6 @@ export function parseExcelOrCSVBuffer(buffer: ArrayBuffer, fileName: string = ''
 
   if (isBinaryExcel) {
     try {
-      try {
-        if ((XLSX as any)?.CFB?.utils?.use_zlib) {
-          (XLSX as any).CFB.utils.use_zlib(null);
-        }
-      } catch {
-        // Ignore zlib disable errors
-      }
-
       const workbook = XLSX.read(data, { type: 'array', cellDates: true, raw: false });
       if (workbook && workbook.SheetNames && workbook.SheetNames.length > 0) {
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];

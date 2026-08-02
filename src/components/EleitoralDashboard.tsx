@@ -184,37 +184,113 @@ export default function EleitoralDashboard({
 
   const isSavingRef = React.useRef(false);
 
-  // Helper to format/clean items for compact Firestore storage
-  const cleanLocationForFirestore = (loc: VotingLocation): any => {
-    const nmMuni = String(loc.nmMunicipio || loc.municipio || '').trim();
-    const nrZ = String(loc.nrZona || loc.zona || '').trim();
-    const nrS = String(loc.nrSecao || loc.secoes || '').trim();
-    const nmLoc = String(loc.nmLocalVotacao || loc.local || '').trim();
-    const dsEnd = String(loc.dsEndereco || loc.endereco || '').trim();
-    const nmB = String(loc.nmBairro || loc.bairro || '').trim();
-    const qtEleit = Number(loc.qtEleitorSecao ?? loc.eleitores) || 0;
+  // Helper to sanitize and fix swapped/misplaced fields in VotingLocation records
+  const sanitizeLocation = (item: VotingLocation): VotingLocation => {
+    if (!item) return item;
+    let nmMuni = String(item.nmMunicipio || item.municipio || '').trim();
+    let nmLoc = String(item.nmLocalVotacao || item.local || '').trim();
+    let nrLoc = String(item.nrLocalVotacao || '').trim();
+    let nmLocOrig = String(item.nmLocalVotacaoOriginal || '').trim();
+    let dsEnd = String(item.dsEndereco || item.endereco || '').trim();
+    let dsEndOrig = String(item.dsEnderecoLocvtOriginal || '').trim();
+    let nmB = String(item.nmBairro || item.bairro || '').trim();
+    let nrZ = String(item.nrZona || item.zona || '').trim();
+    let nrS = String(item.nrSecao || item.secoes || '').trim();
+    let cdTipo = item.cdTipoSecaoAgregada != null ? Number(item.cdTipoSecaoAgregada) : -1;
+    if (isNaN(cdTipo)) cdTipo = -1;
+    let dsTipo = String(item.dsTipoSecaoAgregada || '').trim();
+    let nrSecPrin = item.nrSecaoPrincipal != null ? Number(item.nrSecaoPrincipal) : -1;
+    if (isNaN(nrSecPrin)) nrSecPrin = -1;
+    let qtEleit = Number(item.qtEleitorSecao ?? item.eleitores) || 0;
+
+    // Auto-fix if nmLoc was mistakenly set to a purely numeric local number like "1015"
+    if (/^\d+$/.test(nmLoc) && nmLoc.length <= 6) {
+      if (!nrLoc) {
+        nrLoc = nmLoc;
+      }
+      if (nmLocOrig && !/^\d+$/.test(nmLocOrig)) {
+        nmLoc = nmLocOrig;
+      } else if (dsEnd && !/^\d+$/.test(dsEnd)) {
+        nmLoc = `Local ${nrLoc} - ${dsEnd}`;
+      } else if (nmB) {
+        nmLoc = `Local ${nrLoc} (${nmB})`;
+      } else {
+        nmLoc = `Local de Votação ${nrLoc}`;
+      }
+    }
+
+    // Auto-fix if nrLoc and nmLoc were swapped (e.g. nrLoc has "ESCOLA..." and nmLoc has "1015")
+    if (nrLoc && !/^\d+$/.test(nrLoc) && /^\d+$/.test(nmLoc)) {
+      const temp = nmLoc;
+      nmLoc = nrLoc;
+      nrLoc = temp;
+    }
+
+    // Fix DS_TIPO_SECAO_AGREGADA display if missing or #NULO
+    if (!dsTipo || dsTipo === '#NULO') {
+      if (cdTipo === 1) dsTipo = 'Principal';
+      else if (cdTipo === 2) dsTipo = 'Agregada';
+      else if (cdTipo === 3) dsTipo = 'Distribuída de ofício';
+      else if (cdTipo === -1) dsTipo = 'Principal';
+      else dsTipo = '#NULO';
+    }
+
+    const zonaFormatted = nrZ ? (nrZ.toLowerCase().includes('ze') ? nrZ : `${nrZ}ª ZE`) : '';
 
     return {
-      nmMunicipio: nmMuni,
+      ...item,
+      nmMunicipio: nmMuni || "MUNICÍPIO / BASE LOCAL",
       nrZona: nrZ,
       nrSecao: nrS,
+      cdTipoSecaoAgregada: cdTipo,
+      dsTipoSecaoAgregada: dsTipo,
+      nrSecaoPrincipal: nrSecPrin,
+      nrLocalVotacao: nrLoc,
       nmLocalVotacao: nmLoc,
       dsEndereco: dsEnd,
       nmBairro: nmB,
       qtEleitorSecao: qtEleit,
-      cdTipoSecaoAgregada: loc.cdTipoSecaoAgregada ?? -1,
-      dsTipoSecaoAgregada: loc.dsTipoSecaoAgregada || '#NULO',
-      nrSecaoPrincipal: loc.nrSecaoPrincipal ?? -1,
-      nrLocalVotacao: loc.nrLocalVotacao ?? '',
+      nmLocalVotacaoOriginal: nmLocOrig || nmLoc,
+      dsEnderecoLocvtOriginal: dsEndOrig || dsEnd,
 
       // Compatibility fields
-      municipio: nmMuni,
-      zona: nrZ,
+      municipio: nmMuni || "MUNICÍPIO / BASE LOCAL",
+      zona: zonaFormatted || nrZ,
       secoes: nrS,
+      secoesCount: item.secoesCount || 1,
       local: nmLoc,
       endereco: dsEnd,
       bairro: nmB,
       eleitores: qtEleit
+    };
+  };
+
+  // Helper to format/clean items for compact Firestore storage
+  const cleanLocationForFirestore = (loc: VotingLocation): any => {
+    const s = sanitizeLocation(loc);
+    return {
+      nmMunicipio: s.nmMunicipio,
+      nrZona: s.nrZona,
+      nrSecao: s.nrSecao,
+      nmLocalVotacao: s.nmLocalVotacao,
+      dsEndereco: s.dsEndereco,
+      nmBairro: s.nmBairro,
+      qtEleitorSecao: s.qtEleitorSecao,
+      cdTipoSecaoAgregada: s.cdTipoSecaoAgregada,
+      dsTipoSecaoAgregada: s.dsTipoSecaoAgregada,
+      nrSecaoPrincipal: s.nrSecaoPrincipal,
+      nrLocalVotacao: s.nrLocalVotacao,
+      nmLocalVotacaoOriginal: s.nmLocalVotacaoOriginal,
+      dsEnderecoLocvtOriginal: s.dsEnderecoLocvtOriginal,
+
+      // Compatibility fields
+      municipio: s.municipio,
+      zona: s.zona,
+      secoes: s.secoes,
+      local: s.local,
+      endereco: s.endereco,
+      bairro: s.bairro,
+      eleitores: s.eleitores
     };
   };
 
@@ -225,57 +301,22 @@ export default function EleitoralDashboard({
     const map = new Map<string, VotingLocation>();
 
     for (let i = 0; i < rows.length; i++) {
-      const item = rows[i];
-      let nmMuni = String(item.nmMunicipio || item.municipio || '').trim();
-      let nmLoc = String(item.nmLocalVotacao || item.local || '').trim();
-      const nrZ = String(item.nrZona || item.zona || '').trim();
-      const dsEnd = String(item.dsEndereco || item.endereco || '').trim();
-      const nmB = String(item.nmBairro || item.bairro || '').trim();
-      const qtEleit = Number(item.qtEleitorSecao ?? item.eleitores) || 0;
-      const nrS = String(item.nrSecao || item.secoes || '').trim();
-
-      if (!nmMuni) nmMuni = "MUNICÍPIO / BASE LOCAL";
-      if (!nmLoc) {
-        nmLoc = dsEnd || (nmB ? `Local (${nmB})` : `Local de Votação ${i + 1}`);
-      }
-
-      const groupKey = `${nmMuni.toLowerCase()}|${nrZ.toLowerCase()}|${nmLoc.toLowerCase()}`;
+      const sanitized = sanitizeLocation(rows[i]);
+      const groupKey = `${sanitized.nmMunicipio.toLowerCase()}|${sanitized.nrZona.toLowerCase()}|${sanitized.nmLocalVotacao.toLowerCase()}`;
 
       if (!map.has(groupKey)) {
-        const zonaFormatted = nrZ ? (nrZ.toLowerCase().includes('ze') ? nrZ : `${nrZ}ª ZE`) : '';
-        map.set(groupKey, {
-          nmMunicipio: nmMuni,
-          nrZona: nrZ,
-          nrSecao: nrS,
-          cdTipoSecaoAgregada: item.cdTipoSecaoAgregada ?? -1,
-          dsTipoSecaoAgregada: item.dsTipoSecaoAgregada || 'Principal',
-          nrSecaoPrincipal: item.nrSecaoPrincipal ?? -1,
-          nrLocalVotacao: item.nrLocalVotacao ?? '',
-          nmLocalVotacao: nmLoc,
-          dsEndereco: dsEnd,
-          nmBairro: nmB,
-          qtEleitorSecao: qtEleit,
-          nmLocalVotacaoOriginal: item.nmLocalVotacaoOriginal || nmLoc,
-          dsEnderecoLocvtOriginal: item.dsEnderecoLocvtOriginal || dsEnd,
-
-          // Compatibility fields
-          municipio: nmMuni,
-          zona: zonaFormatted || nrZ,
-          secoes: nrS,
-          secoesCount: item.secoesCount || 1,
-          local: nmLoc,
-          endereco: dsEnd,
-          bairro: nmB,
-          eleitores: qtEleit
-        });
+        map.set(groupKey, { ...sanitized });
       } else {
         const existing = map.get(groupKey)!;
-        existing.qtEleitorSecao += qtEleit;
-        existing.eleitores += qtEleit;
-        existing.secoesCount = (existing.secoesCount || 1) + (item.secoesCount || 1);
-        if (nrS && !existing.secoes.includes(nrS)) {
-          existing.secoes = existing.secoes ? `${existing.secoes}, ${nrS}` : nrS;
+        existing.qtEleitorSecao += sanitized.qtEleitorSecao;
+        existing.eleitores += sanitized.qtEleitorSecao;
+        existing.secoesCount = (existing.secoesCount || 1) + (sanitized.secoesCount || 1);
+        if (sanitized.nrSecao && !existing.secoes.includes(sanitized.nrSecao)) {
+          existing.secoes = existing.secoes ? `${existing.secoes}, ${sanitized.nrSecao}` : sanitized.nrSecao;
           existing.nrSecao = existing.secoes;
+        }
+        if (!existing.nrLocalVotacao && sanitized.nrLocalVotacao) {
+          existing.nrLocalVotacao = sanitized.nrLocalVotacao;
         }
       }
     }
@@ -1186,51 +1227,72 @@ export default function EleitoralDashboard({
         const normHeaders = detectedHeadersRaw.map(cell => normalizeHeaderKey(cell));
 
         const munTargets = [
-          "nmmunicipio", "municipio", "cidade", "nomemunicipio", "cdmunicipio", "mun", 
-          "dsmunici", "dsmunicipio", "cdmunicipio", "nm_municipio", "cd_municipio", "ds_municipio"
+          "nmmunicipio", "nm_municipio", "municipio", "cidade", "nomemunicipio", "cdmunicipio", "cd_municipio", "dsmunicipio", "ds_municipio", "mun"
+        ];
+        const nrLocalTargets = [
+          "nrlocalvotacao", "nr_local_votacao", "cdlocalvotacao", "cd_local_votacao", "numlocalvotacao", "num_local_votacao", "nrlocal", "nr_local", "cdlocal", "cd_local", "codlocal", "nr_locvt"
         ];
         const localTargets = [
-          "nmlocalvotacao", "localdevotacao", "localvotacao", "local", "escola", "nomelocal", 
-          "colegio", "locdevotacao", "nrlocalvotacao", "localdevotacaotse", "estabelecimento", 
-          "nmestabelecimento", "nmlocal", "nm_local_votacao", "nm_estabelecimento", "ds_local_votacao", 
-          "ds_estabelecimento", "local_votacao"
+          "nmlocalvotacao", "nm_local_votacao", "localdevotacao", "local_de_votacao", "localvotacao", "local_votacao", 
+          "local", "escola", "nomelocal", "colegio", "locdevotacao", "estabelecimento", "nmestabelecimento", "nm_estabelecimento", 
+          "dslocalvotacao", "ds_local_votacao", "dsestabelecimento", "ds_estabelecimento", "nmlocal", "nm_local"
         ];
-        const zonaTargets = ["nrzona", "zona", "ze", "zonaeleitoral", "numzona", "nr_zona", "cd_zona"];
-        const secaoTargets = ["nrsecao", "secao", "secoes", "numsecao", "nr_secao", "cd_secao"];
-        const enderecoTargets = ["dsendereco", "endereco", "logradouro", "rua", "locvtendereco", "ds_endereco"];
-        const bairroTargets = ["nmbairro", "bairro", "regiao", "distrito", "nm_bairro"];
+        const zonaTargets = ["nrzona", "nr_zona", "zona", "ze", "zonaeleitoral", "zona_eleitoral", "numzona", "cdzona", "cd_zona"];
+        const secaoTargets = ["nrsecao", "nr_secao", "secao", "secoes", "numsecao", "cdsecao", "cd_secao"];
+        const enderecoTargets = ["dsendereco", "ds_endereco", "endereco", "logradouro", "rua", "locvtendereco", "ds_localizacao", "localizacao"];
+        const bairroTargets = ["nmbairro", "nm_bairro", "bairro", "regiao", "distrito", "dsbairro", "ds_bairro"];
         const eleitorTargets = [
-          "qteleitorsecao", "qteleitoressecao", "qteleitor", "eleitores", "aptos", 
-          "quantidadedeeleitoresaptos", "quantidadedeeleitores", "totaleleitores", "qteleitores", 
-          "numeleitores", "qtaptos", "qteleitoresperfil", "qt_aptos", "qt_eleitores", "qt_eleitor", 
-          "qt_eleitor_secao", "totaleleitor"
+          "qteleitorsecao", "qt_eleitor_secao", "qteleitoressecao", "qt_eleitores_secao", "qteleitor", "qt_eleitor", 
+          "eleitores", "aptos", "quantidadedeeleitoresaptos", "quantidadedeeleitores", "totaleleitores", "qteleitores", 
+          "qt_eleitores", "numeleitores", "qtaptos", "qt_aptos", "qteleitoresperfil", "totaleleitor"
         ];
-        const tipoAgregadaTargets = ["cdtiposecaoagregada", "dstiposecaoagregada", "cdtiposecao", "cd_tipo_secao"];
-        const secaoPrincipalTargets = ["nrsecaoprincipal", "nr_secao_principal"];
+        const tipoAgregadaTargets = ["cdtiposecaoagregada", "cd_tipo_secao_agregada", "cdtiposecao", "cd_tipo_secao", "tiposecao", "tipo_secao"];
+        const dsTipoAgregadaTargets = ["dstiposecaoagregada", "ds_tipo_secao_agregada", "dstiposecao", "ds_tipo_secao", "descripcaotiposecao", "desc_tipo_secao"];
+        const secaoPrincipalTargets = ["nrsecaoprincipal", "nr_secao_principal", "secaoprincipal", "secao_principal", "numsecaoprincipal"];
+        const localOriginalTargets = ["nmlocalvotacaooriginal", "nm_local_votacao_original", "localoriginal", "local_original", "nm_local_original"];
+        const enderecoOriginalTargets = ["dsenderecolocvtoriginal", "ds_endereco_locvt_original", "enderecooriginal", "ds_endereco_original"];
 
-        const findColIdx = (targets: string[]): number => {
-          for (let i = 0; i < normHeaders.length; i++) {
-            const h = normHeaders[i];
-            if (!h) continue;
-            for (const target of targets) {
-              const normTarget = normalizeHeaderKey(target);
-              if (h === normTarget || h.includes(normTarget) || normTarget.includes(h)) {
-                return i;
-              }
+        const findColIdx = (targets: string[], excludeTargets: string[] = []): number => {
+          const normExclude = excludeTargets.map(t => normalizeHeaderKey(t));
+
+          // 1. Priority pass: Exact match
+          for (const target of targets) {
+            const normTarget = normalizeHeaderKey(target);
+            for (let i = 0; i < normHeaders.length; i++) {
+              const h = normHeaders[i];
+              if (!h) continue;
+              if (normExclude.some(ex => h === ex)) continue;
+              if (h === normTarget) return i;
             }
           }
+
+          // 2. Second pass: Substring/Includes match
+          for (const target of targets) {
+            const normTarget = normalizeHeaderKey(target);
+            for (let i = 0; i < normHeaders.length; i++) {
+              const h = normHeaders[i];
+              if (!h) continue;
+              if (normExclude.some(ex => h.includes(ex) || ex.includes(h))) continue;
+              if (h.includes(normTarget) || normTarget.includes(h)) return i;
+            }
+          }
+
           return -1;
         };
 
         const colMun = findColIdx(munTargets);
-        const colLocal = findColIdx(localTargets);
+        const colNrLocal = findColIdx(nrLocalTargets, ["nmlocal", "nm_local", "ds_local", "localoriginal"]);
+        const colLocal = findColIdx(localTargets, ["nrlocal", "nr_local", "cdlocal", "cd_local"]);
         const colZona = findColIdx(zonaTargets);
         const colSecao = findColIdx(secaoTargets);
         const colEndereco = findColIdx(enderecoTargets);
         const colBairro = findColIdx(bairroTargets);
         const colEleitores = findColIdx(eleitorTargets);
         const colTipoAgregada = findColIdx(tipoAgregadaTargets);
+        const colDsTipoAgregada = findColIdx(dsTipoAgregadaTargets);
         const colSecaoPrincipal = findColIdx(secaoPrincipalTargets);
+        const colLocalOriginal = findColIdx(localOriginalTargets);
+        const colEnderecoOriginal = findColIdx(enderecoOriginalTargets);
 
         const dataRows = matrix.slice(bestHeaderRowIndex + 1);
         const parsedRows: VotingLocation[] = [];
@@ -1240,10 +1302,33 @@ export default function EleitoralDashboard({
           if (!Array.isArray(row) || row.length === 0) continue;
 
           let nmMunicipio = colMun !== -1 && row[colMun] !== undefined && row[colMun] !== null ? String(row[colMun]).trim() : '';
+          let nrLocalVotacao = colNrLocal !== -1 && row[colNrLocal] !== undefined && row[colNrLocal] !== null ? String(row[colNrLocal]).trim() : '';
           let nmLocalVotacao = colLocal !== -1 && row[colLocal] !== undefined && row[colLocal] !== null ? String(row[colLocal]).trim() : '';
+          let nmLocalVotacaoOriginal = colLocalOriginal !== -1 && row[colLocalOriginal] !== undefined && row[colLocalOriginal] !== null ? String(row[colLocalOriginal]).trim() : '';
+          let dsEnderecoLocvtOriginal = colEnderecoOriginal !== -1 && row[colEnderecoOriginal] !== undefined && row[colEnderecoOriginal] !== null ? String(row[colEnderecoOriginal]).trim() : '';
+          let dsTipoSecaoAgregada = colDsTipoAgregada !== -1 && row[colDsTipoAgregada] !== undefined && row[colDsTipoAgregada] !== null ? String(row[colDsTipoAgregada]).trim() : '';
+
+          // Smart auto-correction if nrLocalVotacao and nmLocalVotacao were misplaced/swapped
+          if (/^\d+$/.test(nmLocalVotacao) && nmLocalVotacao.length <= 6) {
+            if (!nrLocalVotacao) {
+              nrLocalVotacao = nmLocalVotacao;
+            }
+            if (nmLocalVotacaoOriginal && !/^\d+$/.test(nmLocalVotacaoOriginal)) {
+              nmLocalVotacao = nmLocalVotacaoOriginal;
+            } else {
+              nmLocalVotacao = '';
+            }
+          }
+
+          if (!/^\d+$/.test(nrLocalVotacao) && /^\d+$/.test(nmLocalVotacao)) {
+            const temp = nmLocalVotacao;
+            nmLocalVotacao = nrLocalVotacao;
+            nrLocalVotacao = temp;
+          }
 
           if (!nmLocalVotacao) {
             for (let c = 0; c < row.length; c++) {
+              if (c === colMun || c === colZona || c === colSecao || c === colEleitores || c === colNrLocal) continue;
               const cellVal = String(row[c] || '').trim();
               if (cellVal.length > 3 && (
                 cellVal.toUpperCase().includes("ESCOLA") || 
@@ -1280,13 +1365,17 @@ export default function EleitoralDashboard({
 
           if (!nmLocalVotacao && row.some(cell => String(cell || '').trim().length > 0)) {
             for (let c = 0; c < row.length; c++) {
-              if (c === colMun || c === colZona || c === colSecao || c === colEleitores) continue;
+              if (c === colMun || c === colZona || c === colSecao || c === colEleitores || c === colNrLocal) continue;
               const val = String(row[c] || '').trim();
               if (val.length > 3 && isNaN(Number(val))) {
                 nmLocalVotacao = val;
                 break;
               }
             }
+          }
+
+          if (!nmLocalVotacao && nrLocalVotacao) {
+            nmLocalVotacao = `Local de Votação ${nrLocalVotacao}`;
           }
 
           if (!nmLocalVotacao) continue;
@@ -1303,6 +1392,14 @@ export default function EleitoralDashboard({
           const cdTipoSecaoAgregada = colTipoAgregada !== -1 ? Number(row[colTipoAgregada]) || -1 : -1;
           const nrSecaoPrincipal = colSecaoPrincipal !== -1 ? Number(row[colSecaoPrincipal]) || -1 : -1;
 
+          if (!dsTipoSecaoAgregada || dsTipoSecaoAgregada === '#NULO') {
+            if (cdTipoSecaoAgregada === 1) dsTipoSecaoAgregada = 'Principal';
+            else if (cdTipoSecaoAgregada === 2) dsTipoSecaoAgregada = 'Agregada';
+            else if (cdTipoSecaoAgregada === 3) dsTipoSecaoAgregada = 'Distribuída de ofício';
+            else if (cdTipoSecaoAgregada === -1) dsTipoSecaoAgregada = 'Principal';
+            else dsTipoSecaoAgregada = '#NULO';
+          }
+
           const zonaFormatted = nrZona ? (nrZona.toLowerCase().includes('ze') ? nrZona : `${nrZona}ª ZE`) : '';
 
           parsedRows.push({
@@ -1310,15 +1407,15 @@ export default function EleitoralDashboard({
             nrZona,
             nrSecao,
             cdTipoSecaoAgregada,
-            dsTipoSecaoAgregada: '#NULO',
+            dsTipoSecaoAgregada,
             nrSecaoPrincipal,
-            nrLocalVotacao: '',
+            nrLocalVotacao,
             nmLocalVotacao,
             dsEndereco,
             nmBairro,
             qtEleitorSecao,
-            nmLocalVotacaoOriginal: nmLocalVotacao,
-            dsEnderecoLocvtOriginal: dsEndereco,
+            nmLocalVotacaoOriginal: nmLocalVotacaoOriginal || nmLocalVotacao,
+            dsEnderecoLocvtOriginal: dsEnderecoLocvtOriginal || dsEndereco,
 
             municipio: nmMunicipio,
             zona: zonaFormatted || nrZona,
