@@ -53,11 +53,13 @@ import {
   Activity,
   Sun,
   Moon,
+  Copy,
   Map as MapIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { processarCaos, gerarBriefingCandidato, processarNotaAudio } from '../services/geminiService';
 import { useAuth } from '../lib/FirebaseProvider';
+import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO } from '../lib/candidateService';
 import { firestoreService } from '../lib/firestoreService';
 import NoteCard from './NoteCard';
 import RoraimaMapComponent from './RoraimaMapComponent';
@@ -107,6 +109,15 @@ export default function CaboDashboard({
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [dailyOrder, setDailyOrder] = useState<any>(null);
   const [resolvedCoordinatorId, setResolvedCoordinatorId] = useState<string | null>(null);
+  const [candidateInfo, setCandidateInfo] = useState<CandidateInfo>(DEFAULT_CANDIDATE_INFO);
+
+  useEffect(() => {
+    const activeCoordId = user?.coordinatorId || coordinatorId || resolvedCoordinatorId || undefined;
+    const unsub = candidateService.subscribeCandidateInfo((info) => {
+      setCandidateInfo(info);
+    }, activeCoordId);
+    return () => unsub();
+  }, [user?.coordinatorId, coordinatorId, resolvedCoordinatorId]);
   
   // Notas State
   const [notes, setNotes] = useState<any[]>([]);
@@ -2934,24 +2945,60 @@ export default function CaboDashboard({
                     </p>
                   </div>
 
-                  <div className="space-y-2">
+                  {/* Preview do Candidato */}
+                  <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg flex items-center gap-3">
+                    <img 
+                      src={candidateInfo.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
+                      alt="Candidato" 
+                      className="w-12 h-12 rounded-full object-cover border-2 border-blue-600 shadow-sm shrink-0 bg-zinc-200"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+                    />
+                    <div className="overflow-hidden flex-1">
+                      <span className="bg-blue-600 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider inline-block mb-0.5">
+                        FAÇA PARTE DO NOSSO TIME!
+                      </span>
+                      <p className="text-xs font-black text-zinc-900 truncate">{candidateInfo.name || 'Candidato Padronizado'}</p>
+                      <p className="text-[9px] font-bold text-zinc-500 truncate">{candidateInfo.title || 'Campanha Eleitoral'}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Seu Link de Cadastro</label>
                     <div className="flex gap-2">
                       <input 
                         readOnly 
                         type="text" 
                         value={`${window.location.origin}/?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`} 
-                        className="flex-1 bg-zinc-100 border border-zinc-200 rounded-sm p-4 font-mono text-[11px] text-zinc-700 outline-none select-all"
+                        className="flex-1 bg-zinc-100 border border-zinc-200 rounded-sm p-3 font-mono text-[11px] text-zinc-700 outline-none select-all"
                       />
-                      <button
+                    </div>
+
+                    <div className="space-y-2 pt-1">
+                      <button 
                         type="button"
                         onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}/?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`);
-                          alert("✅ Link copiado para a área de transferência!");
+                          const caboUrl = `${window.location.origin}/?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`;
+                          const candName = candidateInfo.name || 'nosso candidato';
+                          const messageText = `*FAÇA PARTE DO NOSSO TIME!* 🗳️\n\nOlá! Gostaria de convidar você para fazer parte da nossa caminhada e apoiar a campanha de *${candName}*.\n\nRealize seu cadastro de forma simples e rápida no link abaixo:\n${caboUrl}`;
+                          window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`, '_blank');
                         }}
-                        className="px-5 bg-blue-600 hover:bg-blue-600 text-white font-black text-[10px] uppercase tracking-wider rounded-sm active:scale-95 transition-all"
+                        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-sm font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer"
                       >
-                        Copiar
+                        <Send className="w-4 h-4" /> Enviar Directo no WhatsApp
+                      </button>
+
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const caboUrl = `${window.location.origin}/?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`;
+                          const candName = candidateInfo.name || 'nosso candidato';
+                          const messageText = `*FAÇA PARTE DO NOSSO TIME!* 🗳️\n\nOlá! Gostaria de convidar você para fazer parte da nossa caminhada e apoiar a campanha de *${candName}*.\n\nRealize seu cadastro de forma simples e rápida no link abaixo:\n${caboUrl}`;
+                          navigator.clipboard.writeText(messageText);
+                          alert("✅ Mensagem com 'FAÇA PARTE DO NOSSO TIME' e o link foram copiados para a área de transferência!");
+                        }}
+                        className="w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-300 py-2.5 rounded-sm font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
+                      >
+                        <Copy className="w-4 h-4" /> Copiar Mensagem com "FAÇA PARTE DO NOSSO TIME"
                       </button>
                     </div>
                   </div>

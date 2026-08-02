@@ -6309,6 +6309,23 @@ export default function CoordinatorDashboard({
               </div>
 
               <div className="p-6 space-y-4 text-left">
+                {/* Visual Preview do Candidato no Link */}
+                <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg flex items-center gap-3">
+                  <img 
+                    src={candidateForm.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
+                    alt="Candidato" 
+                    className="w-12 h-12 rounded-full object-cover border-2 border-blue-500 shadow-sm shrink-0 bg-zinc-800"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+                  />
+                  <div className="overflow-hidden flex-1">
+                    <span className="bg-blue-600 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider inline-block mb-0.5">
+                      FAÇA PARTE DO NOSSO TIME!
+                    </span>
+                    <p className="text-xs font-black text-[var(--text-primary)] truncate">{candidateForm.name || 'Candidato Padronizado'}</p>
+                    <p className="text-[9px] font-bold text-[var(--text-secondary)] truncate">{candidateForm.title || 'Campanha 2026'}</p>
+                  </div>
+                </div>
+
                 <div>
                   <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Selecione a Equipe / Líder Vinculado</label>
                   <select 
@@ -6330,16 +6347,32 @@ export default function CoordinatorDashboard({
                   </p>
                 </div>
 
-                <button 
-                  onClick={() => {
-                    const finalUrl = `${window.location.origin}/?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`;
-                    navigator.clipboard.writeText(finalUrl);
-                    alert("Link de cadastro copiado para a área de transferência!");
-                  }}
-                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-sm font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer"
-                >
-                  <Copy className="w-4 h-4" /> Copiar Link para WhatsApp
-                </button>
+                <div className="space-y-2">
+                  <button 
+                    onClick={() => {
+                      const finalUrl = `${window.location.origin}/?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`;
+                      const candName = candidateForm.name || 'nosso candidato';
+                      const messageText = `*FAÇA PARTE DO NOSSO TIME!* 🗳️\n\nOlá! Gostaria de convidar você para fazer parte da nossa caminhada e apoiar a campanha de *${candName}*.\n\nRealize seu cadastro de forma simples e rápida no link abaixo:\n${finalUrl}`;
+                      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`, '_blank');
+                    }}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-sm font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <Send className="w-4 h-4" /> Enviar Directo no WhatsApp
+                  </button>
+
+                  <button 
+                    onClick={() => {
+                      const finalUrl = `${window.location.origin}/?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`;
+                      const candName = candidateForm.name || 'nosso candidato';
+                      const messageText = `*FAÇA PARTE DO NOSSO TIME!* 🗳️\n\nOlá! Gostaria de convidar você para fazer parte da nossa caminhada e apoiar a campanha de *${candName}*.\n\nRealize seu cadastro de forma simples e rápida no link abaixo:\n${finalUrl}`;
+                      navigator.clipboard.writeText(messageText);
+                      alert("✅ Mensagem completa com 'FAÇA PARTE DO NOSSO TIME' e o link foram copiados para a área de transferência!");
+                    }}
+                    className="w-full bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border-color)] py-2.5 rounded-sm font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <Copy className="w-4 h-4" /> Copiar Mensagem com "FAÇA PARTE DO NOSSO TIME"
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

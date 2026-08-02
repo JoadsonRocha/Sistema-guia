@@ -89,6 +89,36 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
     return () => unsub();
   }, [leaderInfo?.coordinatorId]);
 
+  // Atualizar dinamicamente meta tags do Open Graph e título da página com a foto e dados do candidato
+  useEffect(() => {
+    if (candidateInfo) {
+      const cName = candidateInfo.name || 'Nosso Candidato';
+      const pageTitle = `FAÇA PARTE DO NOSSO TIME! | Campanha ${cName}`;
+      document.title = pageTitle;
+
+      const updateMetaTag = (property: string, content: string) => {
+        let meta = document.querySelector(`meta[property="${property}"]`) || document.querySelector(`meta[name="${property}"]`);
+        if (!meta) {
+          meta = document.createElement('meta');
+          if (property.startsWith('og:')) {
+            meta.setAttribute('property', property);
+          } else {
+            meta.setAttribute('name', property);
+          }
+          document.head.appendChild(meta);
+        }
+        meta.setAttribute('content', content);
+      };
+
+      updateMetaTag('og:title', `FAÇA PARTE DO NOSSO TIME! 🗳️ - ${cName}`);
+      updateMetaTag('og:description', `Faça parte do nosso time! Cadastre-se e apoie a campanha de ${cName} (${candidateInfo.title || 'Eleições 2026'}).`);
+      if (candidateInfo.photoUrl) {
+        updateMetaTag('og:image', candidateInfo.photoUrl);
+      }
+      updateMetaTag('description', `Faça parte do nosso time! Cadastre-se na campanha do candidato ${cName}.`);
+    }
+  }, [candidateInfo]);
+
   useEffect(() => {
     const fetchInfo = async () => {
       setLoading(true);
