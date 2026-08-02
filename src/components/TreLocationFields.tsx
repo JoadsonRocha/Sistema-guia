@@ -3,11 +3,12 @@ import {
   getTreZonas, 
   getTreSecoes, 
   getTreLocaisVotacao, 
-  findTreMatch, 
+  loadTreLocationsFromFirestore,
+  getAllTreLocations,
   TreZoneOption, 
   TreLocationItem 
 } from '../lib/treDataService';
-import { MapPin, ChevronDown, Check, Building2, Layers, Search, Sparkles } from 'lucide-react';
+import { ChevronDown, Check, Building2, Layers, Sparkles, Loader2 } from 'lucide-react';
 
 interface TreLocationFieldsProps {
   zona: string;
@@ -42,6 +43,9 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
   const [searchSecao, setSearchSecao] = useState('');
   const [searchLocal, setSearchLocal] = useState('');
 
+  // Loading state
+  const [isLoadingTre, setIsLoadingTre] = useState(false);
+
   // Refs for click outside
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -56,32 +60,62 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Sync Search Filters with external props when submenu opens
+  // Fetch TRE locations from Firestore or local cache if empty
   useEffect(() => {
-    if (openSubmenu === 'zona') setSearchZona(zona || '');
-    if (openSubmenu === 'secao') setSearchSecao(secao || '');
-    if (openSubmenu === 'local') setSearchLocal(localVotacao || '');
-  }, [openSubmenu]);
+    let isSubscribed = true;
+    const fetchLocations = async () => {
+      if (coordinatorId) {
+        const existing = getAllTreLocations(coordinatorId);
+        if (existing.length === 0) {
+          setIsLoadingTre(true);
+          try {
+            await loadTreLocationsFromFirestore(coordinatorId);
+          } catch (err) {
+            console.warn("Aviso ao carregar dados do TRE:", err);
+          } finally {
+            if (isSubscribed) setIsLoadingTre(false);
+          }
+        }
+      }
+    };
+    fetchLocations();
+    return () => { isSubscribed = false; };
+  }, [coordinatorId]);
+
+  // When opening a submenu, clear search so user sees full list for that context
+  const handleOpenSubmenu = (menu: 'zona' | 'secao' | 'local') => {
+    if (openSubmenu === menu) {
+      setOpenSubmenu(null);
+    } else {
+      if (menu === 'zona') setSearchZona('');
+      if (menu === 'secao') setSearchSecao('');
+      if (menu === 'local') setSearchLocal('');
+      setOpenSubmenu(menu);
+    }
+  };
 
   // Derived Data Options
   const allZonas = getTreZonas(coordinatorId);
   const availableSecoes = getTreSecoes(zona, localVotacao, coordinatorId);
   const availableLocais = getTreLocaisVotacao(zona, secao, coordinatorId);
 
-  // Filtered Lists
+  // Filtered Lists for Submenus
   const filteredZonas = allZonas.filter(z => 
+    !searchZona || 
     z.label.toLowerCase().includes(searchZona.toLowerCase()) ||
     z.municipioStr.toLowerCase().includes(searchZona.toLowerCase()) ||
     z.zonaClean.includes(searchZona)
   );
 
   const filteredSecoes = availableSecoes.filter(s => 
+    !searchSecao ||
     s.secao.includes(searchSecao) ||
     s.local.toLowerCase().includes(searchSecao.toLowerCase()) ||
     (s.bairro && s.bairro.toLowerCase().includes(searchSecao.toLowerCase()))
   );
 
   const filteredLocais = availableLocais.filter(l => 
+    !searchLocal ||
     l.local.toLowerCase().includes(searchLocal.toLowerCase()) ||
     (l.bairro && l.bairro.toLowerCase().includes(searchLocal.toLowerCase())) ||
     l.zona.toLowerCase().includes(searchLocal.toLowerCase()) ||
@@ -91,14 +125,24 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
   // Selection Handlers
   const handleSelectZona = (selectedZona: TreZoneOption) => {
     const newZona = selectedZona.label;
-    onChange({ zona: newZona });
 
-    // Check if current local matches new zona
-    const match = findTreMatch(newZona, secao, localVotacao, coordinatorId);
-    if (match && match.local) {
-      onChange({ zona: newZona, localVotacao: match.local });
-    }
-    setOpenSubmenu('secao'); // Auto-advance to section submenu for fast flow!
+    // Check if current secao and local are valid for this new zona
+    const secInNewZona = getTreSecoes(newZona, undefined, coordinatorId);
+    const locInNewZona = getTreLocaisVotacao(newZona, undefined, coordinatorId);
+
+    const isSecValid = secInNewZona.some(s => s.secao === secao);
+    const isLocValid = locInNewZona.some(l => l.local === localVotacao);
+
+    const updates: { zona: string; secao?: string; localVotacao?: string } = {
+      zona: newZona
+    };
+
+    if (!isSecValid && secao) updates.secao = '';
+    if (!isLocValid && localVotacao) updates.localVotacao = '';
+
+    onChange(updates);
+    setSearchSecao('');
+    setOpenSubmenu('secao'); // Auto-advance to section dropdown
   };
 
   const handleSelectSecao = (selectedSec: { secao: string; local: string; zona: string }) => {
@@ -106,16 +150,16 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
       secao: selectedSec.secao
     };
 
-    // Auto-fill local and zona if known
     if (selectedSec.local) {
       updates.localVotacao = selectedSec.local;
     }
-    if (selectedSec.zona && (!zona || zona === 'TRE General')) {
+    if (selectedSec.zona && (!zona || zona === 'TRE Geral')) {
       updates.zona = selectedSec.zona;
     }
 
     onChange(updates);
-    setOpenSubmenu(null);
+    setSearchLocal('');
+    setOpenSubmenu('local'); // Auto-advance to local de votação
   };
 
   const handleSelectLocal = (selectedLocal: TreLocationItem) => {
@@ -123,16 +167,24 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
       localVotacao: selectedLocal.local
     };
 
-    // Auto-fill zona if not set
     if (selectedLocal.zona) {
       updates.zona = selectedLocal.zona;
     }
 
+    const isSecInSchool = selectedLocal.secoes.some(s => {
+      const sNum = s.trim().replace(/^0+/, '');
+      const secNum = (secao || '').trim().replace(/^0+/, '');
+      return sNum === secNum || s === secao;
+    });
+
+    if (!isSecInSchool && secao) {
+      updates.secao = '';
+    }
+
     onChange(updates);
 
-    // If section not selected or not in this school, auto-open section menu
-    const isSecInSchool = selectedLocal.secoes.some(s => s === secao || s.padStart(3, '0') === secao?.padStart(3, '0'));
     if (!secao || !isSecInSchool) {
+      setSearchSecao('');
       setOpenSubmenu('secao');
     } else {
       setOpenSubmenu(null);
@@ -146,7 +198,7 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
         {/* OPTIONAL TÍTULO FIELD */}
         {onTituloChange !== undefined && (
           <div className="space-y-1 col-span-1">
-            <label className={labelClassName}>TÍTULO</label>
+            <label className={labelClassName}>TÍTULO DE ELEITOR</label>
             <input 
               type="text" 
               value={titulo || ''} 
@@ -170,16 +222,20 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
                 setSearchZona(e.target.value);
                 onChange({ zona: e.target.value });
               }}
-              onFocus={() => setOpenSubmenu('zona')}
+              onFocus={() => handleOpenSubmenu('zona')}
               className={`${inputClassName} pr-8 cursor-pointer font-bold`} 
               placeholder="Ex: 1ª ZE..." 
             />
             <button 
               type="button" 
-              onClick={() => setOpenSubmenu(openSubmenu === 'zona' ? null : 'zona')}
+              onClick={() => handleOpenSubmenu('zona')}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-blue-600 transition-colors"
             >
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openSubmenu === 'zona' ? 'rotate-180 text-blue-600' : ''}`} />
+              {isLoadingTre ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
+              ) : (
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openSubmenu === 'zona' ? 'rotate-180 text-blue-600' : ''}`} />
+              )}
             </button>
           </div>
 
@@ -191,7 +247,7 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
                   <Sparkles className="w-3 h-3 text-blue-600" /> Selecione a Zona (Oficial TRE)
                 </span>
                 <span className="text-[8px] bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-bold px-1.5 py-0.5 rounded">
-                  {filteredZonas.length} Zonas
+                  {isLoadingTre ? 'Carregando...' : `${filteredZonas.length} Zonas`}
                 </span>
               </div>
 
@@ -228,6 +284,7 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
                     type="button"
                     onClick={() => {
                       onChange({ zona: searchZona });
+                      setSearchSecao('');
                       setOpenSubmenu('secao');
                     }}
                     className="w-full text-left p-2.5 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-800 dark:text-amber-300 font-bold text-[10px] flex items-center gap-2"
@@ -254,13 +311,13 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
                 setSearchSecao(e.target.value);
                 onChange({ secao: e.target.value });
               }}
-              onFocus={() => setOpenSubmenu('secao')}
+              onFocus={() => handleOpenSubmenu('secao')}
               className={`${inputClassName} pr-8 cursor-pointer font-bold`} 
               placeholder="Ex: 001..." 
             />
             <button 
               type="button" 
-              onClick={() => setOpenSubmenu(openSubmenu === 'secao' ? null : 'secao')}
+              onClick={() => handleOpenSubmenu('secao')}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-blue-600 transition-colors"
             >
               <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openSubmenu === 'secao' ? 'rotate-180 text-blue-600' : ''}`} />
@@ -313,7 +370,7 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
                   })
                 ) : (
                   <div className="p-3 text-center text-zinc-400 text-[10px]">
-                    Nenhuma seção pré-cadastrada encontrada para a busca.
+                    {!zona ? 'Selecione uma ZONA primeiro para filtrar as seções.' : 'Nenhuma seção encontrada para esta busca.'}
                   </div>
                 )}
 
@@ -323,7 +380,8 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
                     type="button"
                     onClick={() => {
                       onChange({ secao: searchSecao });
-                      setOpenSubmenu(null);
+                      setSearchLocal('');
+                      setOpenSubmenu('local');
                     }}
                     className="w-full text-left p-2.5 bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-800 dark:text-amber-300 font-bold text-[10px] flex items-center gap-2"
                   >
@@ -350,13 +408,13 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
               setSearchLocal(e.target.value);
               onChange({ localVotacao: e.target.value });
             }}
-            onFocus={() => setOpenSubmenu('local')}
+            onFocus={() => handleOpenSubmenu('local')}
             className={`${inputClassName} pr-8 cursor-pointer font-bold`} 
             placeholder="Selecione ou busque a Escola / Local de Votação TRE..." 
           />
           <button 
             type="button" 
-            onClick={() => setOpenSubmenu(openSubmenu === 'local' ? null : 'local')}
+            onClick={() => handleOpenSubmenu('local')}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-blue-600 transition-colors"
           >
             <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openSubmenu === 'local' ? 'rotate-180 text-blue-600' : ''}`} />
@@ -368,10 +426,10 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
           <div className="absolute left-0 top-full mt-1 w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-2xl z-50 overflow-hidden text-xs">
             <div className="p-2.5 bg-zinc-100 dark:bg-zinc-800/80 border-b border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
               <span className="font-black text-[9px] uppercase tracking-wider text-zinc-600 dark:text-zinc-300 flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-blue-600" /> Locais de Votação {zona ? `da ${zona}` : 'do TRE-RR'}
+                <Building2 className="w-3.5 h-3.5 text-blue-600" /> Locais {zona ? `da ${zona}` : ''} {secao ? `(Seção ${secao})` : ''}
               </span>
               <span className="text-[8px] bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-bold px-1.5 py-0.5 rounded">
-                {filteredLocais.length} Locais Cadastrados
+                {filteredLocais.length} Locais
               </span>
             </div>
 
@@ -411,7 +469,7 @@ export const TreLocationFields: React.FC<TreLocationFieldsProps> = ({
                 })
               ) : (
                 <div className="p-4 text-center text-zinc-400 text-[10px]">
-                  Nenhum local de votação oficial encontrado para esse filtro.
+                  Nenhum local de votação oficial encontrado para essa zona/seção.
                 </div>
               )}
 

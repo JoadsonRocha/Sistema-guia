@@ -5317,6 +5317,7 @@ export default function CoordinatorDashboard({
                 </div>
 
                 <TreLocationFields
+                  coordinatorId={activeCoordId || user?.uid}
                   titulo={voterEditForm.titulo || ''}
                   onTituloChange={val => setVoterEditForm(prev => ({ ...prev, titulo: val }))}
                   zona={voterEditForm.zona || ''}

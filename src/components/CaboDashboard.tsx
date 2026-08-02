@@ -2687,6 +2687,7 @@ export default function CaboDashboard({
                   </div>
 
                   <TreLocationFields
+                    coordinatorId={activeCoordId || user?.coordinatorId}
                     titulo={voterForm.titulo || ''}
                     onTituloChange={val => setVoterForm(prev => ({ ...prev, titulo: val }))}
                     zona={voterForm.zona || ''}

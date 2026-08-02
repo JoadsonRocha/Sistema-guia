@@ -1,5 +1,7 @@
 import { normalizeLoc } from '../data/roraimaTreData';
 import { eleitoralStorage } from './eleitoralStorage';
+import { db } from './firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 export interface TreLocationItem {
   id: string;
@@ -66,7 +68,7 @@ export function normalizeZonaLabel(zonaRaw: string): string {
   const trimmed = zonaRaw.trim();
   const numMatch = trimmed.match(/\d+/);
   if (numMatch) {
-    const num = numMatch[0];
+    const num = parseInt(numMatch[0], 10);
     return `${num}ª ZE`;
   }
   return trimmed;
@@ -75,7 +77,10 @@ export function normalizeZonaLabel(zonaRaw: string): string {
 export function extractZonaNum(zonaRaw: string): string {
   if (!zonaRaw) return '';
   const numMatch = zonaRaw.match(/\d+/);
-  return numMatch ? numMatch[0] : zonaRaw.toLowerCase().trim();
+  if (numMatch) {
+    return String(parseInt(numMatch[0], 10));
+  }
+  return zonaRaw.toLowerCase().trim();
 }
 
 // Cache locations per coordinator
@@ -125,10 +130,71 @@ export function clearTreLocationsCache(coordinatorId?: string) {
   }
 }
 
+export async function loadTreLocationsFromFirestore(coordinatorId: string): Promise<TreLocationItem[]> {
+  if (!coordinatorId) return [];
+
+  // 1. Return in-memory cache if populated
+  const cached = cachedLocationsByCoord.get(coordinatorId);
+  if (cached && cached.length > 0) {
+    return cached;
+  }
+
+  // 2. Try IndexedDB / localStorage
+  try {
+    const saved = await eleitoralStorage.loadLocations(coordinatorId);
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      setTreLocationsForCoordinator(coordinatorId, saved);
+      return getAllTreLocations(coordinatorId);
+    }
+  } catch (e) {
+    console.warn("Error reading local TRE locations:", e);
+  }
+
+  // 3. Fetch from Firestore
+  try {
+    const docId = `coord_${coordinatorId}`;
+    const snap = await getDoc(doc(db, 'eleitoral_data', docId));
+
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data?.cleared) {
+        setTreLocationsForCoordinator(coordinatorId, []);
+        return [];
+      }
+
+      let locationsArr: any[] = [];
+      if (data?.isChunked && data.chunksCount > 0) {
+        const promises = [];
+        for (let i = 0; i < data.chunksCount; i++) {
+          promises.push(getDoc(doc(db, 'eleitoral_data', `${docId}_${i}`)));
+        }
+        const chunkSnaps = await Promise.all(promises);
+        for (const cs of chunkSnaps) {
+          if (cs.exists()) {
+            locationsArr = locationsArr.concat(cs.data().locations || []);
+          }
+        }
+      } else if (Array.isArray(data?.locations)) {
+        locationsArr = data.locations;
+      }
+
+      if (locationsArr.length > 0) {
+        setTreLocationsForCoordinator(coordinatorId, locationsArr);
+        await eleitoralStorage.saveLocations(coordinatorId, locationsArr);
+        return getAllTreLocations(coordinatorId);
+      }
+    }
+  } catch (err) {
+    console.warn("Failed to fetch TRE locations from Firestore for coordinator:", coordinatorId, err);
+  }
+
+  return [];
+}
+
 export function getAllTreLocations(coordinatorId?: string): TreLocationItem[] {
   const coordKey = coordinatorId || 'default';
 
-  // 1. Return exact cache if present for this coordinator (including empty [])
+  // 1. Return exact cache if present for this coordinator
   if (cachedLocationsByCoord.has(coordKey)) {
     return cachedLocationsByCoord.get(coordKey)!;
   }
@@ -181,7 +247,14 @@ export function getAllTreLocations(coordinatorId?: string): TreLocationItem[] {
     console.warn("Error parsing local electoral data cache:", err);
   }
 
-  // 3. Default to empty if no specific data exists
+  // 3. Fallback: check if any coordinator cache is available if coordKey was 'default'
+  if (coordKey === 'default') {
+    for (const [key, value] of cachedLocationsByCoord.entries()) {
+      if (value.length > 0) return value;
+    }
+  }
+
+  // 4. Default to empty
   const empty: TreLocationItem[] = [];
   cachedLocationsByCoord.set(coordKey, empty);
   return empty;

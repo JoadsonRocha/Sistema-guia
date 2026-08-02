@@ -622,6 +622,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                       <div className="bg-zinc-50 border border-zinc-200 p-4 rounded-xl space-y-3">
                         <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Local de Votação / TRE (Opcional)</p>
                         <TreLocationFields
+                          coordinatorId={leaderInfo?.coordinatorId}
                           titulo={voterForm.titulo || ''}
                           onTituloChange={val => setVoterForm(prev => ({ ...prev, titulo: val }))}
                           zona={voterForm.zona || ''}
