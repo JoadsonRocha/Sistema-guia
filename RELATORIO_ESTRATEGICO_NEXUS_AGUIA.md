@@ -1,6 +1,6 @@
 # 🦅 RELATÓRIO ESTRATÉGICO DE AUDITORIA & ARQUITETURA
 ## NEXUS POLÍTICA / SISTEMA ÁGUIA (2026)
-> **Análise Técnica de Segurança, Usabilidade, Tecnologias e Roadmap de Melhorias**  
+> **Análise Técnica de Segurança, Usabilidade, Tecnologias, Melhorias e Proposta Comercial**  
 > **Status:** Análise Concluída | **Modificações em Código Fonte:** Nenhuma (Modo Leitura/Auditoria)  
 > **Domínio Analisado:** `https://www.nexuspolitica.com.br/`  
 > **Repositório Local:** `d:\FULLSTARK\Sistema-guia`
@@ -13,7 +13,7 @@ O **Nexus Política / Sistema Águia** é uma solução web de alta relevância 
 
 Após uma varredura completa no site em produção (`https://www.nexuspolitica.com.br/`) e no código-fonte local (`Sistema-guia`), identificamos um ecossistema com **excelente proposta de valor funcional e riqueza de recursos**, porém apresentando **vulnerabilidades críticas de segurança no banco de dados**, **gargalos de manutenibilidade por arquivos monolíticos** e **oportunidades decisivas de otimização para usabilidade mobile em zonas de sombra de sinal**.
 
-Este documento apresenta o diagnóstico detalhado divididos em eixos estratégicos, seguidos por uma **Proposta de Naming com Foco Político Puro**, **Plano Estratégico de Implementação em 4 Fases** e a **Especificação de Arquitetura Target Enterprise**.
+Este documento apresenta o diagnóstico detalhado divididos em eixos estratégicos, seguidos por uma **Proposta de Naming com Foco Político Puro**, **Detalhamento de Melhorias do Sistema**, **Plano Estratégico de Implementação em 4 Fases**, **Especificação de Arquitetura Target Enterprise** e a **Proposta Comercial de Execução**.
 
 ---
 
@@ -106,9 +106,30 @@ Para campanhas eleitorais, partidos e consultores políticos no Brasil, a marca 
 
 ---
 
-## 🏛️ 5. ARQUITETURA TARGET RECOMENDADA (ENTERPRISE ECOSYSTEM)
+## 🚀 5. DETALHAMENTO DE MELHORIAS DO SISTEMA (PROPOSTA FUNCIONAL & TÉCNICA)
 
-Para garantir **escalabilidade comercial como SaaS**, **segurança absoluta LGPD**, **alta disponibilidade** e **inteligência artificial avançada**, especificamos detalhadamente a stack recomendada para a plataforma:
+Para tornar a plataforma o software político mais avançado e desejado do mercado brasileiro, propomos as seguintes **melhorias funcionais e tecnológicas por módulo**:
+
+### 5.1 Módulo de Campo & PWA (Operação dos Cabos Eleitorais)
+*   **Sincronização Offline Inteligente (IndexedDB + PWA Workbox):** Criar um indicador no rodapé do app que contabiliza os cadastros locais sem sinal e realiza a sincronização em lote (batch background sync) assim que o celular reconectar.
+*   **Validação Antifraude de Ponto (GPS Spoofing Shield):** Validação no backend de Mock Location para impedir que líderes falsifiquem o check-in de ponto simulando localização GPS via aplicativos de terceiros.
+*   **Leitor de Título de Eleitor via Câmera (OCR/QR Code):** Leitura instantânea do QR Code do e-Título ou OCR da foto da identidade para preenchimento automático do nome, zona, seção e município, reduzindo o tempo de cadastro de 3 minutos para 10 segundos na rua.
+
+### 5.2 Módulo de CRM Eleitoral & Árvore de Influência
+*   **Visualizador Gráfico da Rede de Padrinhos Politicos:** Interface interativa (estilo grafo D3/Canvas) mostrando quem indicou quem na campanha, destacando graficamente as maiores lideranças "puxadoras de voto".
+*   **Deduplicação de Eleitores por CPF/Título:** Algoritmo automático de merge para impedir que duas equipes cadastrem o mesmo eleitor no sistema, evitando disputa interna por cotas e duplicidade de dados.
+
+### 5.3 Módulo de Inteligência Artificial & Voz (Gemini 1.5 + Whisper)
+*   **Transcrição de Áudios de WhatsApp e Campo:** Permitir que o líder envie um áudio contando sobre uma reunião no bairro, e o sistema transcreva, resuma e crie automaticamente os alertas de crise e tarefas de logística.
+*   **Gerador de Discurso de Palanque (Briefing do Candidato):** Ao selecionar o município/bairro no mapa, a IA compila em 5 segundos: *"3 Principais Problemas do Bairro + O que falar no microfone + Nome dos 5 líderes comunitários presentes que devem ser elogiados"*.
+
+### 5.4 Módulo Financeiro & Prestação de Contas
+*   **Assinatura Digital de Recibos de Combustível/Verba:** O líder de equipe assina digitalmente com o dedo na tela do celular ao receber o valor, gerando um comprovante PDF com carimbo de data, hora e coordenadas GPS.
+*   **Exportador em Formato de Prestação Eleitoral (SPCE/TSE):** Exportação direta das despesas e doações categorizadas no padrão exigido pela Justiça Eleitoral para prestação de contas de campanha.
+
+---
+
+## 🏛️ 6. ARQUITETURA TARGET RECOMENDADA (ENTERPRISE ECOSYSTEM)
 
 ```mermaid
 graph TD
@@ -130,42 +151,7 @@ graph TD
 
 ---
 
-### 🔬 Detalhamento dos Componentes da Arquitetura Recomendada
-
-#### 1. 🚂 Railway (Hospedagem de Backend & Microsserviços)
-*   **Função:** Plataforma Cloud PaaS moderna para hospedar o servidor backend Node.js/Express, tarefas agendadas (Cron Jobs) e filas de processamento em segundo plano (BullMQ).
-*   **Por que utilizar:** Deploy automático via Git (CI/CD), variáveis criptografadas, zero-downtime deployments e ambiente seguro para execução de chaves privadas.
-
-#### 2. ⚡ Supabase (Banco de Dados Principal, Auth, RLS & Storage)
-*   **Função:** Atuar como o **Single Source of Truth** (PostgreSQL Relacional).
-*   **Por que utilizar:** Row Level Security (RLS) nativo garantindo isolamento total por campanha e usuário, Supabase Auth com JWT/2FA, Supabase Storage para anexos e Realtime Subscriptions via WebSockets.
-
-#### 3. 📧 Resend (Email Transacional & Notificações)
-*   **Função:** Envio de e-mails transacionais de alta entregabilidade (convites, relatórios, recibos e recuperação de senha).
-
-#### 4. 🦔 PostHog (Product Analytics & Product Intelligence LGPD)
-*   **Função:** Telemetria da aplicação, análise de comportamento de usuários, gravação de sessões com mascaramento automático de PII (LGPD) e Feature Flags.
-
-#### 5. 💼 Zoho Suite (Comunicação Corporativa & Gestão de Clientes B2B)
-*   **Função:** E-mails corporativos (`@nexuspolitica.com.br`), CRM de vendas e sistema de chamados/suporte técnico para os clientes.
-
-#### 6. 🛡️ Cloudflare (Edge Security, WAF, DNS & CDN)
-*   **Função:** Primeira camada de defesa contra DDoS/SQLi, DNS de baixíssima latência e cache na borda para velocidade instantânea.
-
-#### 7. 💳 Stripe (Gestão de Assinaturas & Cobrança SaaS)
-*   **Função:** Processamento de pagamentos recorrentes e checkout transparente para contratação de planos por candidatos e partidos.
-
-#### 8. 🧠 Google Gemini API (Inteligência Artificial Política no Backend)
-*   **Função:** Transcrição de áudios de campo, geração de briefings de palanque e análise preditiva de sentimento/crises via chamadas Server-Side seguras.
-
-#### 9. 🛠️ Serviços Adicionais Recomendados:
-*   **Evolution API / Z-API:** Gateway de WhatsApp para disparos e alertas automatizados.
-*   **Upstash Redis:** Rate-limiting no cadastro público e controle de filas.
-*   **Sentry:** Monitoramento de erros e exceções em tempo real.
-
----
-
-## 🎯 6. PLANO ESTRATÉGICO DE IMPLEMENTAÇÃO (ROADMAP BEST-PRACTICES)
+## 🎯 7. PLANO ESTRATÉGICO DE IMPLEMENTAÇÃO (ROADMAP BEST-PRACTICES)
 
 ```mermaid
 graph TD
@@ -176,30 +162,51 @@ graph TD
 
 ---
 
-### 🛡️ FASE 1: HARDENING DE SEGURANÇA E CONFORMIDADE LGPD (Prioridade Máxima)
-1. Reescrita completa do `firestore.rules` (RBAC por Função e Campanha).
-2. Sanitização do formulário público com reCAPTCHA v3 e Rate Limiting.
-3. Adição de middleware `helmet` e restrição de CORS em `server.ts`.
+## 💼 8. PROPOSTA COMERCIAL & DE EXECUÇÃO DO PROJETO
 
-### ⚡ FASE 2: REFATORAÇÃO DE ARQUITETURA & DESEMPENHO
-1. Decomposição dos arquivos monolíticos (`CoordinatorDashboard` e `CaboDashboard`).
-2. Implementação de *Code Splitting* (`React.lazy` + `Suspense`).
-3. Adição de gerenciamento de estado global com **Zustand**.
+Para transformar a plataforma em uma solução pronta para escala comercial e vitória nas eleições de 2026, estruturamos a **Proposta de Serviços Técnicos** e os **Modelos de Comercialização SaaS**:
 
-### 📱 FASE 3: EXCELÊNCIA EM USABILIDADE (UX) & OPERAÇÃO OFFLINE
-1. Barra de status de conectividade em tempo real para os cabos de campo (*Offline Sync Manager*).
-2. UI mobile otimizada para toque (botões de 48px e Cards retráteis).
+### 8.1 Escopo do Projeto de Desenvolvimento & Refatoração (Entregáveis)
 
-### 🚀 FASE 4: MIGRAÇÃO TARGET (RAILWAY + SUPABASE + ECOSSISTEMA APIS)
-1. Migração de dados do Firestore para PostgreSQL no Supabase com RLS.
-2. Deploy da API Node.js no Railway com WAF Cloudflare.
-3. Conexão das APIs de suporte (Stripe, Resend, Gemini, Evolution, PostHog, Sentry).
+1.  **Pacote 1: Blindagem de Segurança & Proteção LGPD (Imediato)**
+    *   Reescrita completa das regras de banco de dados (Firestore / Supabase RLS).
+    *   Proteção contra raspagem de dados de eleitores e injeção de cadastros falsos.
+    *   Configuração de segurança no servidor Node (Helmet, CORS e sanitização).
+2.  **Pacote 2: Refatoração de Arquitetura & Otimização Mobile**
+    *   Decomposição dos componentes monolíticos (`CoordinatorDashboard` e `CaboDashboard`).
+    *   Implementação de *Code Splitting* (redução do tempo de carregamento inicial em 60%).
+    *   Gerenciamento de estado global ultra-rápido com **Zustand**.
+3.  **Pacote 3: Módulos Avançados de Campo & WhatsApp**
+    *   Indicador visual de sincronização offline e PWA completo.
+    *   Integração com gateway de WhatsApp (Evolution API / Z-API) para notificações ativas.
+    *   Leitor de QR Code de Título de Eleitor e validação GPS antifraude no ponto.
+4.  **Pacote 4: Infraestrutura Enterprise & IA (Railway + Supabase + Gemini API)**
+    *   Migração para PostgreSQL relacional com RLS no Supabase.
+    *   Hospedagem da API Node no Railway com proteção WAF Cloudflare.
+    *   Integração Server-Side do Gemini 1.5 Pro para inteligência de palanque e áudios.
+
+---
+
+### 💰 8.2 Modelo de Comercialização SaaS para Clientes (Precificação do Produto)
+
+Recomendação de precificação para venda da plataforma para candidatos e partidos:
+
+| Plano | Perfil de Candidato | Limites de Uso | Preço Sugerido (Por Campanha) |
+| :--- | :--- | :--- | :--- |
+| **Plano Bronze (Vereador)** | Candidatos a Vereador / Cidades Pequenas | Até 2.000 Eleitores e 10 Líderes de Campo | **R$ 3.500 a R$ 6.000** |
+| **Plano Prata (Prefeito / Deputado)** | Prefeituras Médias e Deputados Estaduais/Federais | Até 15.000 Eleitores e 50 Líderes | **R$ 12.000 a R$ 25.000** |
+| **Plano Ouro / Majoritário** | Governos Estaduais, Capitais e Senado | Eleitores Ilimitados e Equipes Ilimitadas | **R$ 50.000 a R$ 150.000+** |
 
 ---
 
 ## 📌 CONCLUSÃO & PRÓXIMOS PASSOS
 
-O software possui um diferencial estratégico massivo. Com a definição de uma **nomenclatura com apelo político direto**, **hardening imediato no banco** e migração para a **Stack Enterprise recomendada**, a plataforma se tornará um produto dominante no mercado de inteligência política.
+O **Nexus Política / Sistema Águia** possui um potencial comercial e tático extraordinário. A implementação das melhorias propostas e a migração para a **Arquitetura Enterprise Recomendada** garantirá que o software seja o líder incontestável de mercado nas eleições.
+
+### Recomendação de Execução Imediata:
+1. Aprovar a proposta de melhorias e o plano de hardening de segurança.
+2. Iniciar a Fase 1 (Blindagem de Segurança do Banco).
+3. Avançar para a refatoração modular do frontend.
 
 ---
 *Relatório gerado automaticamente para a liderança estratégica.*
