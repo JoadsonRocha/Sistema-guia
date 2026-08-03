@@ -8,66 +8,12 @@ const PORT = 3000;
 
 const DEFAULT_PHOTO = 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=600';
 
-function getFirebaseConfig(): { projectId?: string; firestoreDatabaseId?: string } {
-  try {
-    const configPath = path.resolve(process.cwd(), 'firebase-applet-config.json');
-    if (fs.existsSync(configPath)) {
-      const raw = fs.readFileSync(configPath, 'utf-8');
-      return JSON.parse(raw);
-    }
-  } catch (e) {
-    // fallback
-  }
-  return {};
-}
-
 async function fetchCandidateInfoServer(coordId?: string): Promise<{ name: string; title: string; photoUrl: string }> {
-  const result = {
+  return {
     name: 'Nosso Candidato',
     title: 'Campanha Eleitoral',
     photoUrl: DEFAULT_PHOTO
   };
-
-  try {
-    const firebaseConfig = getFirebaseConfig();
-    const projectId = firebaseConfig.projectId || 'sistema-aguia';
-    const dbId = firebaseConfig.firestoreDatabaseId || '(default)';
-
-    const tryFetchDoc = async (docName: string) => {
-      try {
-        const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/${dbId}/documents/settings/${docName}`;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000);
-        const res = await fetch(url, { signal: controller.signal });
-        clearTimeout(timeoutId);
-
-        if (res.ok) {
-          const json = await res.json();
-          const fields = json?.fields || {};
-          const name = fields.name?.stringValue;
-          const title = fields.title?.stringValue;
-          const photoUrl = fields.photoUrl?.stringValue;
-          if (name) result.name = name;
-          if (title) result.title = title;
-          if (photoUrl) result.photoUrl = photoUrl;
-          return true;
-        }
-      } catch (e) {
-        // ignore fetch error
-      }
-      return false;
-    };
-
-    if (coordId) {
-      const found = await tryFetchDoc(`candidate_${coordId.replace(/^coord_/, '')}`);
-      if (found) return result;
-    }
-
-    await tryFetchDoc('candidate');
-  } catch (e) {
-    // catch all
-  }
-  return result;
 }
 
 async function startServer() {
