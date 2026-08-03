@@ -64,8 +64,6 @@ import { firestoreService } from '../lib/firestoreService';
 import NoteCard from './NoteCard';
 import RoraimaMapComponent from './RoraimaMapComponent';
 import EleitoralDashboard from './EleitoralDashboard';
-import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, getDoc, addDoc, serverTimestamp, updateDoc, getCountFromServer } from 'firebase/firestore';
-import { db, auth } from '../lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from '../lib/agendaLogic';
 import * as XLSX from 'xlsx';
 import { parseExcelOrCSVBuffer } from '../lib/excelParser';
@@ -247,39 +245,21 @@ export default function CaboDashboard({
         if (!subscribedMaterials) {
           subscribedMaterials = true;
           if (unsubMaterials) unsubMaterials();
-          unsubMaterials = onSnapshot(
-            collection(db, 'materials'),
-            (snap) => {
-              const mats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-              setMaterials(mats);
-            },
-            (err) => {
-              console.warn("Materials Cabo sync error:", err.message);
-            }
-          );
+          unsubMaterials = firestoreService.subscribeToCollection<any>('materials', (data) => setMaterials(data));
         }
 
         if (demoCoordId !== currentSubscribedCoordId) {
           currentSubscribedCoordId = demoCoordId;
 
           if (unsubNotes) unsubNotes();
-          const notesQuery = query(
-            collection(db, 'notes'), 
-            where('type', '==', 'tactical'), 
-            orderBy('createdAt', 'desc')
-          );
-          unsubNotes = onSnapshot(notesQuery, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setNotes(data);
-          }, (err) => {
-            console.warn("Erro ao escutar notas demo:", err.message);
+          unsubNotes = firestoreService.subscribeToCollection<any>('notes', (data) => {
+            setNotes(data.filter(n => n.type === 'tactical').sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
           });
 
           if (unsubDailyOrder) unsubDailyOrder();
-          unsubDailyOrder = onSnapshot(doc(db, 'config', `dailyOrder_${demoCoordId}`), (snap) => {
-            if (snap.exists()) setDailyOrder(snap.data());
-          }, (err) => {
-            console.warn("DailyOrder Cabo sync error:", err.message);
+          unsubDailyOrder = firestoreService.subscribeToCollection<any>('config', (data) => {
+            const found = data.find(c => c.id === `dailyOrder_${demoCoordId}`);
+            if (found) setDailyOrder(found);
           });
 
           if (unsubMaterialRequests) unsubMaterialRequests();
@@ -288,9 +268,9 @@ export default function CaboDashboard({
           });
         }
       } else {
-        unsubProfile = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
+        unsubProfile = firestoreService.subscribeToCollection<any>('users', (users) => {
+          const data = users.find(u => u.id === user.uid);
+          if (data) {
             const teamName = data.teamName || data.zone || data.team || '';
             setProfileData({
               name: data.name || user.displayName || '',
@@ -300,32 +280,23 @@ export default function CaboDashboard({
             });
             
             if (!subscribedMaterials) {
-            subscribedMaterials = true;
-            if (unsubMaterials) unsubMaterials();
-            unsubMaterials = onSnapshot(
-              collection(db, 'materials'),
-              (snap) => {
-                const mats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                console.log(`🧠 [Materials Leader Sync] Loaded ${mats.length} total materials from Firestore`);
-                setMaterials(mats);
-              },
-              (err) => {
-                console.warn("Materials Cabo sync error:", err.message);
-              }
-            );
-          }
-          
-          // Synchronous fast-track resolution of coordinatorId
-          let resolvedCoordId = data.coordinatorId || coordinatorId || '';
+              subscribedMaterials = true;
+              if (unsubMaterials) unsubMaterials();
+              unsubMaterials = firestoreService.subscribeToCollection<any>('materials', (mats) => setMaterials(mats));
+            }
+            
+            let resolvedCoordId = data.coordinatorId || coordinatorId || '';
+            if (resolvedCoordId) {
+              setResolvedCoordinatorId(resolvedCoordId);
+            }
 
           // If we have a teamId, fetch team details in the background
           if (data.teamId && (!teamData || teamData.id !== data.teamId)) {
-            getDoc(doc(db, 'teams', data.teamId)).then((teamSnap) => {
-              if (teamSnap.exists()) {
-                const teamDataRaw = teamSnap.data();
-                setTeamData({ ...teamDataRaw, id: teamSnap.id });
+            firestoreService.getDocument<any>('teams', data.teamId).then((teamDataRaw) => {
+              if (teamDataRaw) {
+                setTeamData({ ...teamDataRaw, id: data.teamId });
                 if (!resolvedCoordId && teamDataRaw.coordinatorId) {
-                  updateDoc(doc(db, 'users', user.uid), {
+                  firestoreService.updateDocument('users', user.uid, {
                     coordinatorId: teamDataRaw.coordinatorId
                   }).catch(err => console.error("Error healing coordinatorId from team:", err));
                 }
@@ -335,35 +306,28 @@ export default function CaboDashboard({
 
           // If still no coordinatorId and we have user email, heal in the background
           if (!resolvedCoordId && user.email) {
-            const emailVariants = Array.from(new Set([
-              user.email.toLowerCase(),
-              user.email
-            ])).filter(Boolean);
-            const qTeams = query(collection(db, 'teams'), where('leaderEmail', 'in', emailVariants));
-            getDocs(qTeams).then((snapTeams) => {
-              if (!snapTeams.empty) {
-                const teamId = snapTeams.docs[0].id;
-                const teamDataRaw = snapTeams.docs[0].data();
-                setTeamData({ ...teamDataRaw, id: teamId });
-                const foundCoordId = teamDataRaw.coordinatorId || '';
+            const userEmailLower = user.email.toLowerCase();
+            firestoreService.getCollection<any>('teams').then((allTeams) => {
+              const matchedTeam = allTeams.find(t => t.leaderEmail && t.leaderEmail.toLowerCase() === userEmailLower);
+              if (matchedTeam) {
+                setTeamData(matchedTeam);
+                const foundCoordId = matchedTeam.coordinatorId || '';
                 if (foundCoordId) {
-                  updateDoc(doc(db, 'users', user.uid), {
-                    teamId: teamId,
-                    teamName: teamDataRaw.name || '',
+                  firestoreService.updateDocument('users', user.uid, {
+                    teamId: matchedTeam.id,
+                    teamName: matchedTeam.name || '',
                     coordinatorId: foundCoordId
                   }).catch(err => console.error("Error healing profile with matching team:", err));
                 }
               } else {
-                // Fallback: Query first coordinator by role
-                const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'), limit(1));
-                getDocs(qCoords).then((snapCoords) => {
-                  if (!snapCoords.empty) {
-                    const fallbackCoordId = snapCoords.docs[0].id;
-                    updateDoc(doc(db, 'users', user.uid), {
-                      coordinatorId: fallbackCoordId
+                firestoreService.getCollection<any>('users').then((allUsers) => {
+                  const coordUser = allUsers.find(u => u.role === 'coordenador');
+                  if (coordUser) {
+                    firestoreService.updateDocument('users', user.uid, {
+                      coordinatorId: coordUser.id
                     }).catch(err => console.error("Error healing fallback coordinatorId:", err));
                   }
-                }).catch(err => console.error("Error querying fallback coordinator:", err));
+                });
               }
             }).catch(err => console.warn("Erro ao buscar equipe por leaderEmail:", err));
           }
@@ -371,56 +335,36 @@ export default function CaboDashboard({
           if (resolvedCoordId) {
             setResolvedCoordinatorId(resolvedCoordId);
             
-            // Auto-heal: propagate resolved coordinatorId back to user document so security rules can approve reads
             if (data.coordinatorId !== resolvedCoordId) {
-              updateDoc(doc(db, 'users', user.uid), {
+              firestoreService.updateDocument('users', user.uid, {
                 coordinatorId: resolvedCoordId
               }).catch(err => console.error("Error writing coordinatorId to user profile:", err));
             }
             
-            // Auto-heal existing voters and material requests with empty/missing coordinatorId or team
             const healVotersAndRequests = async (rCoordId: string) => {
               try {
                 const targetTeamName = teamData?.name || profileData.zone || '';
-                // 1. Heal Voters
-                const qVoters = query(collection(db, 'voters'), where('leaderId', '==', user.uid));
-                const snapVoters = await getDocs(qVoters);
-                const voterPromises = snapVoters.docs
-                  .filter(vDoc => {
-                    const d = vDoc.data();
-                    const needsCoord = !d.coordinatorId || d.coordinatorId === '';
-                    const needsTeam = targetTeamName && (d.team !== targetTeamName || d.teamName !== targetTeamName);
-                    return needsCoord || needsTeam;
-                  })
-                  .map(vDoc => {
-                    const d = vDoc.data();
+                const allVoters = await firestoreService.getCollection<any>('voters');
+                const myVoters = allVoters.filter(v => v.leaderId === user.uid);
+                
+                for (const v of myVoters) {
+                  const needsCoord = !v.coordinatorId || v.coordinatorId === '';
+                  const needsTeam = targetTeamName && (v.team !== targetTeamName || v.teamName !== targetTeamName);
+                  if (needsCoord || needsTeam) {
                     const updates: any = {};
-                    if (!d.coordinatorId || d.coordinatorId === '') updates.coordinatorId = rCoordId;
+                    if (needsCoord) updates.coordinatorId = rCoordId;
                     if (targetTeamName) {
                       updates.team = targetTeamName;
                       updates.teamName = targetTeamName;
                     }
-                    return updateDoc(doc(db, 'voters', vDoc.id), updates);
-                  });
-                
-                // 2. Heal Material Requests
-                const qRequests = query(collection(db, 'material_requests'), where('leaderId', '==', user.uid));
-                const snapRequests = await getDocs(qRequests);
-                const requestPromises = snapRequests.docs
-                  .filter(doc => {
-                    const d = doc.data();
-                    return !d.coordinatorId || d.coordinatorId === '';
-                  })
-                  .map(rDoc => 
-                    updateDoc(doc(db, 'material_requests', rDoc.id), {
-                      coordinatorId: rCoordId
-                    })
-                  );
+                    await firestoreService.updateDocument('voters', v.id, updates);
+                  }
+                }
 
-                const totalPromises = [...voterPromises, ...requestPromises];
-                if (totalPromises.length > 0) {
-                  await Promise.all(totalPromises);
-                  console.log(`🧠 [Healer] Successfully healed ${totalPromises.length} records for leader ${user.uid} with coordinatorId: ${rCoordId}`);
+                const allRequests = await firestoreService.getCollection<any>('material_requests');
+                const myRequests = allRequests.filter(r => r.leaderId === user.uid && (!r.coordinatorId || r.coordinatorId === ''));
+                for (const r of myRequests) {
+                  await firestoreService.updateDocument('material_requests', r.id, { coordinatorId: rCoordId });
                 }
               } catch (err) {
                 console.error("Error healing records:", err);
@@ -432,16 +376,9 @@ export default function CaboDashboard({
           // Subscribe to transactions whenever team info is available
           if (teamName) {
             if (unsubTx) unsubTx();
-            const txQuery = query(
-              collection(db, 'transactions'), 
-              where('team', '==', teamName),
-              where('coordinatorId', '==', resolvedCoordId || coordinatorId)
-            );
-            unsubTx = onSnapshot(txQuery, (snapshot) => {
-              const txs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+            unsubTx = firestoreService.subscribeToCollectionFiltered<any>('transactions', resolvedCoordId || coordinatorId || '', (data) => {
+              const txs = data.filter(t => t.team === teamName);
               setTeamTransactions(txs.sort((a, b) => (b.date || 0) - (a.date || 0)));
-            }, (err) => {
-              console.error("Erro ao escutar transações da equipe:", err);
             });
           }
 
@@ -449,44 +386,25 @@ export default function CaboDashboard({
             currentSubscribedCoordId = resolvedCoordId;
 
             if (unsubNotes) unsubNotes();
-            const notesQuery = query(
-              collection(db, 'notes'), 
-              where('type', '==', 'tactical'), 
-              where('coordinatorId', '==', resolvedCoordId),
-              orderBy('createdAt', 'desc')
-            );
-            unsubNotes = onSnapshot(notesQuery, (snapshot) => {
-              const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-              setNotes(data);
-            }, (err) => {
-              console.error("Erro ao escutar notas:", err);
+            unsubNotes = firestoreService.subscribeToCollectionFiltered<any>('notes', resolvedCoordId, (data) => {
+              setNotes(data.filter(n => n.type === 'tactical').sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
             });
 
             if (unsubDailyOrder) unsubDailyOrder();
-            unsubDailyOrder = onSnapshot(doc(db, 'config', `dailyOrder_${resolvedCoordId}`), (snap) => {
-              if (snap.exists()) setDailyOrder(snap.data());
-            }, (err) => {
-              console.warn("DailyOrder Cabo sync error:", err.message);
+            unsubDailyOrder = firestoreService.subscribeToCollection<any>('config', (data) => {
+              const found = data.find(c => c.id === `dailyOrder_${resolvedCoordId}`);
+              if (found) setDailyOrder(found);
             });
 
             if (unsubPartners) unsubPartners();
-            unsubPartners = onSnapshot(
-              query(collection(db, 'partners'), where('coordinatorId', '==', resolvedCoordId)), 
-              (snap) => {
-                setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-              }, 
-              (err) => {
-                console.warn("Partners Cabo sync error:", err.message);
-              }
-            );
+            unsubPartners = firestoreService.subscribeToCollectionFiltered('partners', resolvedCoordId, (data) => {
+              setPartners(data);
+            });
 
             if (unsubMaterialRequests) unsubMaterialRequests();
             unsubMaterialRequests = firestoreService.subscribeToCollectionFiltered('material_requests', resolvedCoordId, (data) => {
               setMaterialRequests(data);
             });
-
-            if (unsubCampaignVoters) unsubCampaignVoters();
-            // campaignVoters is now lazy-loaded on demand only when the voter modal is open to save document reads.
 
             if (unsubUrgencies) unsubUrgencies();
             unsubUrgencies = firestoreService.subscribeToCollectionFiltered('urgencies', resolvedCoordId, (data) => {
@@ -494,19 +412,11 @@ export default function CaboDashboard({
             });
           }
         }
-      }, (error) => {
-        console.error("Erro ao escutar perfil:", error);
       });
     }
 
-       // We remove the full unsubVoters from here because it's replaced by the new paginated effect hook below
-
-       const agendasQuery = query(collection(db, 'agenda'), where('sugeridoPorId', '==', user.uid));
-       const unsubAgendas = onSnapshot(agendasQuery, (snapshot) => {
-         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-         setMyAgendas(data);
-       }, (err) => {
-         console.error("Erro ao escutar agendas do líder:", err);
+       const unsubAgendas = firestoreService.subscribeToCollection<any>('agenda', (data) => {
+         setMyAgendas(data.filter(a => a.sugeridoPorId === user.uid));
        });
 
        return () => {
@@ -523,17 +433,14 @@ export default function CaboDashboard({
      }
    }, [user, coordinatorId]);
 
-  // 1. Recarrega as estatísticas de contagem do líder diretamente do servidor sem puxar todos os documentos
+  // 1. Recarrega as estatísticas de contagem do líder
   const fetchServerCounts = async () => {
     if (!user?.uid) return;
     try {
-      const qTotal = query(collection(db, 'voters'), where('leaderId', '==', user.uid));
-      const snapTotal = await getCountFromServer(qTotal);
-      setTotalVotersCount(snapTotal.data().count);
-
-      const qVoted = query(collection(db, 'voters'), where('leaderId', '==', user.uid), where('voted', '==', true));
-      const snapVoted = await getCountFromServer(qVoted);
-      setVotedVotersCount(snapVoted.data().count);
+      const allVoters = await firestoreService.getCollection<any>('voters');
+      const myVoters = allVoters.filter(v => v.leaderId === user.uid);
+      setTotalVotersCount(myVoters.length);
+      setVotedVotersCount(myVoters.filter(v => v.voted).length);
     } catch (err) {
       console.warn("Erro ao buscar contagens agregadas do líder:", err);
     }
@@ -545,76 +452,41 @@ export default function CaboDashboard({
     }
   }, [user?.uid, activeTab]);
 
-  // 2. Sincronização reativa paginada para a listagem principal de eleitores do Líder (carregando de 50 em 50)
+  // 2. Sincronização de eleitores do Líder
   useEffect(() => {
     if (!user?.uid) return;
-
-    // Apenas escutamos se o tab for equipe ou analise_eleitoral
     if (activeTab !== 'equipe' && activeTab !== 'analise_eleitoral') return;
 
     setLoadingPaginatedVoters(true);
-    const isFullLoadTab = activeTab === 'analise_eleitoral';
-
-    let q = query(
-      collection(db, 'voters'),
-      where('leaderId', '==', user.uid)
-    );
-
-    if (!isFullLoadTab) {
-      // Usamos um limite dinâmico de 50 * voterPage para permitir rolagem e paginação reativa segura
-      const limitSize = 50 * voterPage;
-      q = query(q, limit(limitSize));
-    }
-
-    const unsub = onSnapshot(q, (snap) => {
-      const docs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const unsub = firestoreService.subscribeToCollection<any>('voters', (allVoters) => {
+      const docs = allVoters.filter(v => v.leaderId === user.uid);
       const sorted = docs.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
-      
-      // Manter retrocompatibilidade com o estado 'voters'
       setVoters(sorted);
       setPaginatedVotersList(sorted);
-      
-      if (!isFullLoadTab) {
-        const limitSize = 50 * voterPage;
-        setHasMoreVoters(snap.docs.length === limitSize);
-      } else {
-        setHasMoreVoters(false);
-      }
+      setHasMoreVoters(false);
       setLoadingPaginatedVoters(false);
-      
       safeLocalStorage.setItem(`urna360_voters_cache_${user.uid}`, JSON.stringify(sorted));
-    }, (err) => {
-      console.warn("Error listening to paginated leader voters:", err.message);
-      setLoadingPaginatedVoters(false);
     });
 
     return () => unsub();
   }, [user?.uid, activeTab, voterPage]);
 
-  // 3. Sincroniza campanha para autocomplete de forma sob demanda (apenas quando o modal de edição/criação de eleitor estiver aberto)
+  // 3. Sincroniza campanha para autocomplete de forma sob demanda
   useEffect(() => {
     if (!resolvedCoordinatorId || !isVoterModalOpen) {
       return;
     }
 
-    console.log("🧠 [Optimization] Lazy loading campaign voters for dropdown options since modal is open");
-    const unsub = onSnapshot(
-      query(collection(db, 'voters'), where('coordinatorId', '==', resolvedCoordinatorId)),
-      (snap) => {
-        const rawData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
-        const uniqueMap = new Map();
-        rawData.forEach((v: any) => {
-          const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, v);
-          }
-        });
-        setCampaignVoters(Array.from(uniqueMap.values()));
-      },
-      (err) => {
-        console.warn("Error syncing campaign voters for dropdown:", err.message);
-      }
-    );
+    const unsub = firestoreService.subscribeToCollectionFiltered<any>('voters', resolvedCoordinatorId, (rawData) => {
+      const uniqueMap = new Map();
+      rawData.forEach((v: any) => {
+        const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, v);
+        }
+      });
+      setCampaignVoters(Array.from(uniqueMap.values()));
+    });
 
     return () => unsub();
   }, [resolvedCoordinatorId, isVoterModalOpen]);
@@ -909,13 +781,9 @@ export default function CaboDashboard({
 
       // Verificar se já existe um eleitor com este telefone antes de criar um novo dentro da mesma campanha
       if (!isEditingVoter && voterForm.phone && voterForm.phone.length > 5) {
-        const q = query(
-          collection(db, 'voters'), 
-          where('phone', '==', voterForm.phone),
-          where('coordinatorId', '==', activeCoordId)
-        );
-        const checkSnap = await getDocs(q);
-        if (!checkSnap.empty) {
+        const voters = await firestoreService.getCollectionFiltered<any>('voters', activeCoordId);
+        const exists = voters.some(v => v.phone === voterForm.phone);
+        if (exists) {
           alert("🚨 ATENÇÃO: Este telefone já está cadastrado na base geral da campanha! Não é permitido duplicar eleitores.");
           return;
         }
@@ -1160,13 +1028,9 @@ export default function CaboDashboard({
         try {
           const activeCoordId = resolvedCoordinatorId || coordinatorId || teamData?.coordinatorId || '';
           if (voter.phone && voter.phone.length > 5) {
-            const q = query(
-              collection(db, 'voters'), 
-              where('phone', '==', voter.phone),
-              where('coordinatorId', '==', activeCoordId)
-            );
-            const checkSnap = await getDocs(q);
-            if (!checkSnap.empty) {
+            const allVoters = await firestoreService.getCollectionFiltered<any>('voters', activeCoordId);
+            const exists = allVoters.some(v => v.phone === voter.phone);
+            if (exists) {
               duplicateCount++;
               continue;
             }

@@ -84,11 +84,31 @@ async function startServer() {
     console.error('Failed to create Vite server in middlewareMode:', err);
   }
 
+  // API route to force download of the .doc document
+  app.get('/download/arquitetura-doc', (req, res) => {
+    const filePath = path.join(process.cwd(), 'public', 'ARQUITETURA_E_REQUISITOS_NEXUS_POLITICA.doc');
+    if (fs.existsSync(filePath)) {
+      res.setHeader('Content-Type', 'application/msword; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="ARQUITETURA_E_REQUISITOS_NEXUS_POLITICA.doc"');
+      return res.sendFile(filePath);
+    }
+    return res.status(404).send('Arquivo não encontrado');
+  });
+
   // HTML Intercept Middleware for Open Graph / WhatsApp Preview
   app.use((req, res, next) => {
     // Handle async logic cleanly to avoid unhandled rejections in Express
     (async () => {
       if (req.method !== 'GET') return next();
+
+      // Check if file exists in public directory or dist directory
+      if (req.path !== '/' && req.path !== '/index.html') {
+        const publicFile = path.join(process.cwd(), 'public', req.path);
+        if (fs.existsSync(publicFile) && fs.statSync(publicFile).isFile()) {
+          return next();
+        }
+      }
+
       const accept = req.headers.accept || '';
       if (!accept.includes('text/html') && req.path !== '/' && !req.path.endsWith('.html')) {
         return next();

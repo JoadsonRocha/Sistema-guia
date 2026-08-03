@@ -1,0 +1,403 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset='utf-8'>
+<title>Especificação de Arquitetura e Requisitos - Nexus Política</title>
+<style>
+  body {
+    font-family: 'Calibri', 'Arial', sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    color: #1A202C;
+    margin: 20px;
+  }
+  h1 {
+    font-size: 24pt;
+    color: #1E3A8A;
+    border-bottom: 3px solid #3B82F6;
+    padding-bottom: 8px;
+    margin-top: 20px;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+  }
+  h2 {
+    font-size: 16pt;
+    color: #1E40AF;
+    border-left: 4px solid #2563EB;
+    padding-left: 10px;
+    margin-top: 25px;
+    margin-bottom: 12px;
+  }
+  h3 {
+    font-size: 13pt;
+    color: #1D4ED8;
+    margin-top: 18px;
+    margin-bottom: 8px;
+  }
+  p {
+    margin-bottom: 10px;
+    text-align: justify;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    margin-bottom: 20px;
+  }
+  th {
+    background-color: #1E3A8A;
+    color: #FFFFFF;
+    font-weight: bold;
+    padding: 10px;
+    border: 1px solid #1E3A8A;
+    text-align: left;
+    font-size: 10pt;
+  }
+  td {
+    padding: 8px 10px;
+    border: 1px solid #CBD5E1;
+    font-size: 9.5pt;
+  }
+  tr:nth-child(even) {
+    background-color: #F8FAFC;
+  }
+  .header-box {
+    background-color: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 25px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    font-size: 8.5pt;
+    font-weight: bold;
+    border-radius: 4px;
+  }
+  .badge-primary { background-color: #DBEAFE; color: #1E40AF; }
+  .badge-success { background-color: #DCFCE7; color: #166534; }
+  .badge-warning { background-color: #FEF3C7; color: #92400E; }
+  .badge-danger { background-color: #FEE2E2; color: #991B1B; }
+  .callout {
+    background-color: #F1F5F9;
+    border-left: 4px solid #0F172A;
+    padding: 12px 16px;
+    margin: 15px 0;
+    font-style: italic;
+  }
+  .code-block {
+    background-color: #1E293B;
+    color: #F8FAFC;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 9pt;
+    padding: 12px;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    margin: 12px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-box">
+  <table style="border:none; background:transparent; margin:0;">
+    <tr style="background:transparent;">
+      <td style="border:none; width:70%;">
+        <h1 style="border:none; margin:0; padding:0; color:#1E3A8A;">NEXUS POLÍTICA</h1>
+        <p style="font-size:14pt; font-weight:bold; color:#3B82F6; margin:5px 0 0 0;">DOCUMENTO TÉCNICO DE ARQUITETURA E REQUISITOS DO SISTEMA</p>
+        <p style="margin:5px 0 0 0; color:#475569;">Sistema de Inteligência Eleitoral, Gestão Piramidal de Campo e Mobilização Territorial</p>
+      </td>
+      <td style="border:none; width:30%; text-align:right; vertical-align:top;">
+        <p style="margin:0; font-size:9pt; color:#64748B;"><b>Versão:</b> 2.4 Enterprise</p>
+        <p style="margin:2px 0; font-size:9pt; color:#64748B;"><b>Data:</b> Agosto / 2026</p>
+        <p style="margin:2px 0; font-size:9pt; color:#64748B;"><b>Status:</b> Produção Aprovado</p>
+        <p style="margin:2px 0; font-size:9pt; color:#64748B;"><b>Classificação:</b> Confidencial / Técnico</p>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<h2>1. SUMÁRIO EXECUTIVO E VISÃO GERAL</h2>
+<p>
+O <b>NEXUS POLÍTICA</b> é uma plataforma tecnológica de nível corporativo projetada para elevar o padrão de governança, estratégia e execução operacional de campanhas eleitorais de médio e grande porte. Desenvolvido para atender candidatos, coordenadores gerais, coordenadores regionais, lideranças comunitárias e cabos eleitorais de campo, o sistema unifica inteligência de dados, mapeamento territorial georreferenciado e engajamento direto com o eleitorado.
+</p>
+<p>
+Diferente de sistemas legados isolados, o Nexus Política foi estruturado sobre uma <b>Arquitetura Resiliente e Híbrida (Dual Database Engine)</b>, com capacidade de operação continuada em cenários de alta latência ou ausência total de conectividade à internet (Offline-First), essencial para ações de campo em zonas rurais e de difícil acesso.
+</p>
+
+<h3>Os 4 Pilares Estratégicos do Sistema:</h3>
+<ul>
+  <li><b>1. Governança Piramidal Rastreável:</b> Hierarquia em árvore que conecta o Candidato aos Coordenadores, Lideranças, Cabos Eleitorais e Eleitores, mantendo controle absoluto de metas de cadastramento e engajamento em tempo real.</li>
+  <li><b>2. Inteligência Territorial e Mapeamento TRE:</b> Visualização em mapas dinâmicos da distribuição geográfica de votos e validação das informações com a base de zonas e seções do Tribunal Regional Eleitoral (TRE).</li>
+  <li><b>3. Comunicação Direta via WhatsApp com Open Graph Personalizado:</b> Mecanismo automatizado de geração de links diretos de mensagem, segmentação por bairro/categoria e suporte a pré-visualização personalizada (foto e nome do candidato) em compartilhamentos de links.</li>
+  <li><b>4. Resiliência Operacional Dual (Supabase + Firebase):</b> Arquitetura desacoplada capaz de operar com Supabase (PostgreSQL relacional) como motor primário e Firebase (Firestore NoSQL) como barramento de contingência e sincronização em tempo real.</li>
+</ul>
+
+<hr style="border:none; border-top:1px solid #E2E8F0; margin:20px 0;" />
+
+<h2>2. REQUISITOS FUNCIONAIS (RF)</h2>
+<p>Abaixo estão descritos detalhadamente todos os requisitos funcionais implementados e homologados no ecossistema Nexus Política:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:10%;">ID</th>
+      <th style="width:20%;">Módulo / Funcionalidade</th>
+      <th style="width:40%;">Descrição Detalhada do Requisito</th>
+      <th style="width:15%;">Perfis de Acesso</th>
+      <th style="width:15%;">Critérios de Aceite</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>RF-01</b></td>
+      <td>Autenticação e Gestão de Perfis (RBAC)</td>
+      <td>O sistema deve permitir login seguro via e-mail/senha ou OAuth. Controle de acesso baseado em papéis: Candidato/Admin (acesso total), Coordenador (gestão de equipe regional), Cabo Eleitoral (cadastramento de eleitores) e Eleitor (link público).</td>
+      <td><span class="badge badge-primary">Todos</span></td>
+      <td>Sessão mantida com JWT/Auth token. Redirecionamento automático para o dashboard correspondente ao perfil do usuário logado.</td>
+    </tr>
+    <tr>
+      <td><b>RF-02</b></td>
+      <td>Hierarquia Piramidal de Lideranças</td>
+      <td>Mapeamento em árvore das indicações. Cada cabo eleitoral é vinculado a um coordenador responsável. O sistema calcula automaticamente o progresso individual e coletivo de metas de votos.</td>
+      <td><span class="badge badge-primary">Admin / Coordenador</span></td>
+      <td>Cálculo em tempo real de percentual de meta atingida por liderança. Visualização de lista de cabos subordinados e seus respectivos eleitores.</td>
+    </tr>
+    <tr>
+      <td><b>RF-03</b></td>
+      <td>Cadastramento e Mapeamento de Eleitores</td>
+      <td>Formulário completo de captura de eleitores contendo: Nome, CPF, WhatsApp, Bairro, Endereço, Zona Eleitoral, Seção Eleitoral, Local de Votação, Coordenadas GPS e Descrição de Demandas/Pedidos.</td>
+      <td><span class="badge badge-primary">Admin / Coord. / Cabo</span></td>
+      <td>Validação básica de campos obrigatórios, bloqueio de CPFs duplicados e armazenamento georreferenciado das coordenadas.</td>
+    </tr>
+    <tr>
+      <td><b>RF-04</b></td>
+      <td>Mapeamento Geográfico e Inteligência Territorial</td>
+      <td>Exibição de mapa interativo com marcadores coloridos agrupados por bairro e município, destacando densidade de eleitores cadastrados e áreas de cobertura das lideranças.</td>
+      <td><span class="badge badge-primary">Admin / Coordenador</span></td>
+      <td>Filtro dinâmico por coordenador, cabo eleitoral, zona eleitoral e status de atendimento de demanda diretamente no mapa.</td>
+    </tr>
+    <tr>
+      <td><b>RF-05</b></td>
+      <td>Consulta e Validação de Dados TRE</td>
+      <td>Módulo de apoio para identificação automática do Local de Votação (escola/colégio), Zona e Seção a partir do Título de Eleitor ou busca por bairro/município no banco do TRE.</td>
+      <td><span class="badge badge-primary">Admin / Coord. / Cabo</span></td>
+      <td>Preenchimento automático do nome da escola e endereço da seção eleitoral ao selecionar a zona e seção correspondentes.</td>
+    </tr>
+    <tr>
+      <td><b>RF-06</b></td>
+      <td>Disparo Direto e Segmentado via WhatsApp</td>
+      <td>Geração dinâmica de links <code>wa.me</code> pré-formatados com saudações personalizadas, permitindo contato direto com eleitores individualmente ou por grupos de bairro/seção.</td>
+      <td><span class="badge badge-primary">Admin / Coord. / Cabo</span></td>
+      <td>Abertura automática do aplicativo WhatsApp Desktop/Mobile com a mensagem e o número devidamente preenchidos ao clicar no botão de ação.</td>
+    </tr>
+    <tr>
+      <td><b>RF-07</b></td>
+      <td>Gestão de Demandas e Atendimentos Comunitários</td>
+      <td>Módulo de CRM social para registro e acompanhamento do ciclo de vida de solicitações feitas por eleitores (ex: infraestrutura, saúde, iluminação). Status: Pendente, Em Andamento, Atendido, Inviável.</td>
+      <td><span class="badge badge-primary">Admin / Coordenador</span></td>
+      <td>Histórico completo de alterações de status e notas internas associadas à demanda de cada eleitor.</td>
+    </tr>
+    <tr>
+      <td><b>RF-08</b></td>
+      <td>Links Públicos com Open Graph Dinâmico</td>
+      <td>Geração de links de convite e auto-cadastramento atrelados ao ID do Coordenador. Ao compartilhar o link no WhatsApp/redes sociais, o sistema injeta dinamicamente a foto e o nome do Candidato no card de pré-visualização.</td>
+      <td><span class="badge badge-primary">Todos</span></td>
+      <td>Leitura correta dos metadados Open Graph (og:title, og:image, og:description) pelas APIs do WhatsApp, Facebook e Telegram.</td>
+    </tr>
+    <tr>
+      <td><b>RF-09</b></td>
+      <td>Sincronização Continuada e Operação Offline-First</td>
+      <td>Capacidade de cadastrar eleitores sem conexão de internet (armazenamento temporário em fila local) e sincronização automática em lote assim que o dispositivo recuperar o sinal de rede.</td>
+      <td><span class="badge badge-primary">Cabo Eleitoral / Campo</span></td>
+      <td>Nenhuma perda de dado caso a rede caia durante o preenchimento de formulário de campo. Indicação visual de pendência de sincronização.</td>
+    </tr>
+    <tr>
+      <td><b>RF-10</b></td>
+      <td>Redefinição de Senha e Recuperação de Acesso</td>
+      <td>Envio automatizado de e-mail com link tokenizado para recuperação de senha caso o usuário esqueça suas credenciais, integrado nativamente aos provedores Supabase Auth / Firebase Auth.</td>
+      <td><span class="badge badge-primary">Todos</span></td>
+      <td>Envio de e-mail funcional com validade temporária para o token de redefinição de senha.</td>
+    </tr>
+    <tr>
+      <td><b>RF-11</b></td>
+      <td>Exportação de Dados e Relatórios Gerenciais</td>
+      <td>Módulo para geração de relatórios completos em formato XLS, CSV e PDF para análise da coordenação de campanha, com filtros avançados.</td>
+      <td><span class="badge badge-primary">Admin / Candidato</span></td>
+      <td>Download instantâneo de arquivos formatados respeitando os permissionamentos do usuário logado.</td>
+    </tr>
+    <tr>
+      <td><b>RF-12</b></td>
+      <td>Governança de Dados, Consentimento e LGPD</td>
+      <td>Mecanismo de aceite dos termos de privacidade durante o cadastro de eleitores, com campo para registro de consentimento explícito e facilidade para expurgo/anonimização sob demanda.</td>
+      <td><span class="badge badge-primary">Admin / Sistema</span></td>
+      <td>Armazenamento do carimbo de data/hora (timestamp) e IP do consentimento concedido pelo eleitor.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr style="border:none; border-top:1px solid #E2E8F0; margin:20px 0;" />
+
+<h2>3. REQUISITOS NÃO-FUNCIONAIS (RNF)</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:15%;">ID</th>
+      <th style="width:25%;">Atributo de Qualidade</th>
+      <th style="width:60%;">Especificação Técnica do Requisito Não-Funcional</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>RNF-01</b></td>
+      <td>Desempenho e Tempo de Resposta</td>
+      <td>A interface web deve renderizar elementos em menos de 100ms. Consultas de busca em base de eleitores devem responder em até 300ms para bases de até 100.000 registros.</td>
+    </tr>
+    <tr>
+      <td><b>RNF-02</b></td>
+      <td>Disponibilidade e Tolerância a Falhas</td>
+      <td>Garantia de índice de disponibilidade de 99.9% durante o período de campanha eleitoral, com suporte a failover automático entre a base Supabase e a base Firebase Firestore.</td>
+    </tr>
+    <tr>
+      <td><b>RNF-03</b></td>
+      <td>Segurança e Proteção de Dados</td>
+      <td>Toda a comunicação deve trafegar obrigatoriamente sobre protocolo HTTPS/TLS 1.3. As senhas devem ser armazenadas com hash salgado (Bcrypt/Argon2). Uso de Row Level Security (RLS) no PostgreSQL.</td>
+    </tr>
+    <tr>
+      <td><b>RNF-04</b></td>
+      <td>Escalabilidade Horizontal</td>
+      <td>A camada de backend servida via Cloud Run/Node.js deve suportar auto-scaling para atender picos imprevisíveis de acessos concorrentes no Dia "D" (Dia da Eleição).</td>
+    </tr>
+    <tr>
+      <td><b>RNF-05</b></td>
+      <td>Usabilidade e Responsividade (PWA)</td>
+      <td>Design System responsivo otimizado para navegação touch em telas de smartphones de qualquer resolução (a partir de 320px de largura), sem necessidade de instalação via loja de aplicativos.</td>
+    </tr>
+    <tr>
+      <td><b>RNF-06</b></td>
+      <td>Portabilidade e Interoperabilidade</td>
+      <td>O código fonte em TypeScript deve permitir o chaveamento transparente entre os motores de banco de dados Supabase e Firebase sem quebrar a camada de visualização do usuário.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr style="border:none; border-top:1px solid #E2E8F0; margin:20px 0;" />
+
+<h2>4. ARQUITETURA TÉCNICA E DIAGRAMA DE COMPONENTES</h2>
+
+<p>O Nexus Política adota uma arquitetura em camadas orientada a serviços desacoplados (Decoupled Full-Stack Architecture), separando estritamente as responsabilidades de visualização, regra de negócio e persistência:</p>
+
+<div class="code-block">
++-----------------------------------------------------------------------------------+
+|                                 CAMADA DE CLIENTE (BROWSER / PWA)                 |
+|  React 18 + TypeScript + Vite + Tailwind CSS + Lucide Icons + Recharts            |
+|  (Gestão de Estado Reativo, Cache Local, Fila de Sincronização Offline)           |
++-----------------------------------------------------------------------------------+
+                                          |
+                                          | Requisições HTTP / REST / WebSockets
+                                          v
++-----------------------------------------------------------------------------------+
+|                            CAMADA MIDDLEWARE / EXPRESS SERVER                     |
+|  Node.js + Express.js (server.ts)                                                 |
+|  - Injeção Dinâmica de Meta Tags Open Graph (WhatsApp / Redes Sociais)             |
+|  - Roteamento de Ativos Estáticos e Fallback SPA                                  |
+|  - Camada Proxy de Segurança e Validação de Chaves de API                         |
++-----------------------------------------------------------------------------------+
+                                          |
+                   +----------------------+----------------------+
+                   |                                             |
+                   v                                             v
++------------------------------------+        +------------------------------------+
+|    BANCO DE DADOS PRIMÁRIO         |        |    BANCO DE DADOS CONTINGÊNCIA      |
+|  SUPABASE (PostgreSQL 15+)         |        |  FIREBASE FIRESTORE (NoSQL)        |
+|  - PostgREST API                   |        |  - Realtime Document Listeners     |
+|  - Row Level Security (RLS)        |        |  - Firestore Security Rules        |
+|  - Supabase Auth (JWT)             |        |  - Firebase Authentication         |
++------------------------------------+        +------------------------------------+
+</div>
+
+<hr style="border:none; border-top:1px solid #E2E8F0; margin:20px 0;" />
+
+<h2>5. MODELO DE DADOS E ESQUEMA RELACIONAL (ERD)</h2>
+
+<h3>Tabela: <code>profiles</code> (Usuários e Lideranças)</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Campo</th>
+      <th>Tipo de Dado</th>
+      <th>Restrições</th>
+      <th>Descrição</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><b>id</b></td><td>UUID / String</td><td>PK, Not Null</td><td>Identificador único do usuário no Auth</td></tr>
+    <tr><td><b>email</b></td><td>Varchar(255)</td><td>Unique, Not Null</td><td>E-mail de acesso ao sistema</td></tr>
+    <tr><td><b>full_name</b></td><td>Varchar(255)</td><td>Not Null</td><td>Nome completo do usuário/liderança</td></tr>
+    <tr><td><b>role</b></td><td>Varchar(50)</td><td>Not Null</td><td>Papel: 'admin', 'coordinator', 'cabo', 'candidate'</td></tr>
+    <tr><td><b>coordinator_id</b></td><td>UUID / String</td><td>FK (profiles.id)</td><td>Vínculo com o coordenador superior na hierarquia</td></tr>
+    <tr><td><b>phone</b></td><td>Varchar(20)</td><td>Null</td><td>Número de WhatsApp para contato</td></tr>
+    <tr><td><b>region</b></td><td>Varchar(100)</td><td>Null</td><td>Bairro ou município de atuação principal</td></tr>
+  </tbody>
+</table>
+
+<h3>Tabela: <code>voters</code> (Eleitores Cadastrados)</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Campo</th>
+      <th>Tipo de Dado</th>
+      <th>Restrições</th>
+      <th>Descrição</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><b>id</b></td><td>UUID / String</td><td>PK, Not Null</td><td>Identificador único do eleitor</td></tr>
+    <tr><td><b>name</b></td><td>Varchar(255)</td><td>Not Null</td><td>Nome completo do eleitor</td></tr>
+    <tr><td><b>cpf</b></td><td>Varchar(14)</td><td>Null</td><td>CPF formatado para validação legal</td></tr>
+    <tr><td><b>phone</b></td><td>Varchar(20)</td><td>Not Null</td><td>Telefone / WhatsApp para comunicação</td></tr>
+    <tr><td><b>voter_title</b></td><td>Varchar(20)</td><td>Null</td><td>Número do Título de Eleitor</td></tr>
+    <tr><td><b>zone</b></td><td>Varchar(10)</td><td>Null</td><td>Zona Eleitoral (TRE)</td></tr>
+    <tr><td><b>section</b></td><td>Varchar(10)</td><td>Null</td><td>Seção Eleitoral (TRE)</td></tr>
+    <tr><td><b>voting_location</b></td><td>Varchar(255)</td><td>Null</td><td>Nome da Escola ou Prédio de Votação</td></tr>
+    <tr><td><b>neighborhood</b></td><td>Varchar(100)</td><td>Not Null</td><td>Bairro de residência do eleitor</td></tr>
+    <tr><td><b>city</b></td><td>Varchar(100)</td><td>Not Null</td><td>Município de residência</td></tr>
+    <tr><td><b>latitude</b></td><td>Float/Decimal</td><td>Null</td><td>Coordenada de latitude georreferenciada</td></tr>
+    <tr><td><b>longitude</b></td><td>Float/Decimal</td><td>Null</td><td>Coordenada de longitude georreferenciada</td></tr>
+    <tr><td><b>demand_description</b></td><td>Text</td><td>Null</td><td>Solicitação ou pedido formulado pelo eleitor</td></tr>
+    <tr><td><b>demand_status</b></td><td>Varchar(50)</td><td>Default 'Pendente'</td><td>Status: 'Pendente', 'Em Andamento', 'Atendido'</td></tr>
+    <tr><td><b>coordinator_id</b></td><td>UUID / String</td><td>FK (profiles.id)</td><td>Coordenador responsável pela captura</td></tr>
+    <tr><td><b>leader_id</b></td><td>UUID / String</td><td>FK (profiles.id)</td><td>Cabo eleitoral direto que cadastrou</td></tr>
+    <tr><td><b>created_at</b></td><td>Timestamp</td><td>Default NOW()</td><td>Data e hora de inserção do registro</td></tr>
+  </tbody>
+</table>
+
+<hr style="border:none; border-top:1px solid #E2E8F0; margin:20px 0;" />
+
+<h2>6. CONFORMIDADE COM A LGPD E PROTOCOLOS DE SEGURANÇA</h2>
+<p>
+O Nexus Política foi projetado em total conformidade com a <b>Lei Geral de Proteção de Dados Pessoais (Lei nº 13.709/2018)</b> e as resoluções vigentes do Tribunal Superior Eleitoral (TSE) relativas ao tratamento de dados pessoais em campanhas eleitorais:
+</p>
+<ul>
+  <li><b>Princípio da Finalidade e Consentimento:</b> Todo formulário público de cadastro de eleitores exibe obrigatoriamente a opção de aceite dos Termos de Privacidade, registrando a data, hora e endereço IP da autorização do eleitor.</li>
+  <li><b>Minimização de Dados:</b> Coleta-se estritamente o necessário para a mobilização e contato eleitoral, vedada a comercialização ou compartilhamento de dados com terceiros.</li>
+  <li><b>Direito ao Expurgo e Anonimização:</b> O sistema conta com funcionalidade para desativação e exclusão definitiva da base de dados ao término do pleito eleitoral, garantindo a conformidade legal do Candidato e de sua Coligação.</li>
+  <li><b>Políticas de Acesso Restrito (RLS):</b> Um cabo eleitoral tem acesso visual estritamente restrito aos eleitores por ele cadastrados, impedindo que bases de dados sejam copiadas ou desviadas por lideranças concorrentes.</li>
+</ul>
+
+<hr style="border:none; border-top:1px solid #E2E8F0; margin:20px 0;" />
+
+<h2>7. PARECER TÉCNICO E CONSIDERAÇÕES FINAIS</h2>
+<div class="callout">
+  "Com base em anos de acompanhamento de infraestruturas críticas e governança de dados em campanhas de alta complexidade, o Nexus Política representa a consolidação perfeita entre robustez tecnológica moderna e utilidade prática no chão de fábrica da eleição. A combinação de independência de banco de dados, operação offline e mapeamento territorial com inteligência TRE confere à campanha um diferencial competitivo decisivo."
+</div>
+
+<p style="text-align:center; margin-top:40px; font-size:10pt; color:#64748B;">
+  ____________________________________________________<br/>
+  <b>Comitê de Arquitetura de Software e Inteligência Eleitoral</b><br/>
+  NEXUS POLÍTICA 2026 - Todos os direitos reservados.
+</p>
+
+</body>
+</html>

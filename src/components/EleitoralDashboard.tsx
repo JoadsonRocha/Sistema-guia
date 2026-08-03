@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { doc, onSnapshot, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { firestoreService } from '../lib/firestoreService';
 import { useAuth } from '../lib/FirebaseProvider';
 import { setTreLocationsForCoordinator, clearTreLocationsCache, getAllTreLocations } from '../lib/treDataService';
 import { eleitoralStorage } from '../lib/eleitoralStorage';
@@ -359,21 +358,21 @@ export default function EleitoralDashboard({
 
       try {
         const docId = `coord_${activeCoordId}`;
-        await setDoc(doc(db, 'eleitoral_data', docId), {
+        await firestoreService.setDocument('eleitoral_data', docId, {
           locations: [],
           cleared: true,
           updatedAt: Date.now(),
           coordinatorId: activeCoordId,
           chunksCount: 0,
           isChunked: false
-        });
+        }, true);
         for (let i = 0; i < 30; i++) {
           try {
-            await deleteDoc(doc(db, 'eleitoral_data', `${docId}_${i}`));
+            await firestoreService.deleteDocument('eleitoral_data', `${docId}_${i}`);
           } catch (e) {}
         }
       } catch (err) {
-        console.error("Erro ao zerar dados no Firestore:", err);
+        console.error("Erro ao zerar dados no banco:", err);
       } finally {
         isSavingRef.current = false;
       }
@@ -400,52 +399,17 @@ export default function EleitoralDashboard({
       const docId = `coord_${activeCoordId}`;
       const cleanData = newData.map(cleanLocationForFirestore);
 
-      // Safe chunk size of 400 items (~80 KB per chunk) to stay far below Firestore's 1 MB limit
-      const chunkSize = 400;
-      const chunksCount = Math.ceil(cleanData.length / chunkSize);
-
-      if (chunksCount <= 1 && cleanData.length <= 400) {
-        await setDoc(doc(db, 'eleitoral_data', docId), {
-          locations: cleanData,
-          cleared: false,
-          updatedAt: Date.now(),
-          coordinatorId: activeCoordId,
-          chunksCount: 1,
-          isChunked: false
-        });
-      } else {
-        // 1. Save all chunk sub-documents
-        for (let i = 0; i < chunksCount; i++) {
-          const chunk = cleanData.slice(i * chunkSize, (i + 1) * chunkSize);
-          await setDoc(doc(db, 'eleitoral_data', `${docId}_${i}`), {
-            locations: chunk,
-            updatedAt: Date.now(),
-            coordinatorId: activeCoordId,
-            chunksCount,
-            chunkIndex: i
-          });
-        }
-
-        // Delete any obsolete extra chunks if dataset shrank
-        for (let i = chunksCount; i < chunksCount + 10; i++) {
-          try {
-            await deleteDoc(doc(db, 'eleitoral_data', `${docId}_${i}`));
-          } catch (e) {}
-        }
-
-        // 2. Save main document header LAST
-        await setDoc(doc(db, 'eleitoral_data', docId), {
-          chunksCount,
-          cleared: false,
-          updatedAt: Date.now(),
-          coordinatorId: activeCoordId,
-          isChunked: true,
-          locationsCount: cleanData.length
-        });
-      }
+      await firestoreService.setDocument('eleitoral_data', docId, {
+        locations: cleanData,
+        cleared: false,
+        updatedAt: Date.now(),
+        coordinatorId: activeCoordId,
+        chunksCount: 1,
+        isChunked: false
+      }, true);
       setSuccessMsg(`✅ ${newData.length} locais de votação salvos e sincronizados no seu banco de dados com sucesso!`);
     } catch (err: any) {
-      console.error("Aviso ao salvar no Firestore (mantido localmente):", err);
+      console.error("Aviso ao salvar no banco (mantido localmente):", err);
       setSuccessMsg(`✅ ${newData.length} locais de votação salvos no seu navegador com sucesso!`);
     } finally {
       isSavingRef.current = false;
@@ -497,17 +461,11 @@ export default function EleitoralDashboard({
 
     if (!activeCoordId) return;
 
-    const docId = `coord_${activeCoordId}`;
-    const unsub = onSnapshot(doc(db, 'eleitoral_data', docId), async (snap) => {
-      // Ignore incoming snapshots while local save/upload is in progress
+    const unsub = firestoreService.subscribeToCollectionFiltered<any>('eleitoral_data', activeCoordId, (dataList) => {
       if (isSavingRef.current) return;
+      const data = dataList.find(item => item.id === `coord_${activeCoordId}`);
+      if (!data) return;
 
-      if (!snap.exists()) {
-        // DO NOT wipe local state if document merely doesn't exist yet in Firestore!
-        return;
-      }
-
-      const data = snap.data();
       if (data?.cleared) {
         setVotingLocations([]);
         setTreLocationsForCoordinator(activeCoordId, []);
@@ -519,29 +477,7 @@ export default function EleitoralDashboard({
         return;
       }
 
-      if (data?.isChunked && data.chunksCount > 0) {
-        const promises = [];
-        for (let i = 0; i < data.chunksCount; i++) {
-          promises.push(getDoc(doc(db, 'eleitoral_data', `${docId}_${i}`)));
-        }
-        try {
-          const chunkSnaps = await Promise.all(promises);
-          let allLocs: VotingLocation[] = [];
-          for (const cs of chunkSnaps) {
-            if (cs.exists()) {
-              allLocs = allLocs.concat(cs.data().locations || []);
-            }
-          }
-          if (allLocs.length > 0 && isSubscribed) {
-            const aggregated = aggregateLocationsIfSections(allLocs);
-            setVotingLocations(aggregated);
-            setTreLocationsForCoordinator(activeCoordId, aggregated);
-            eleitoralStorage.saveLocations(activeCoordId, aggregated);
-          }
-        } catch (e) {
-          console.warn("Erro ao carregar chunks do TRE:", e);
-        }
-      } else if (Array.isArray(data?.locations) && data.locations.length > 0) {
+      if (Array.isArray(data?.locations) && data.locations.length > 0) {
         if (isSubscribed) {
           const aggregated = aggregateLocationsIfSections(data.locations);
           setVotingLocations(aggregated);
@@ -549,8 +485,6 @@ export default function EleitoralDashboard({
           eleitoralStorage.saveLocations(activeCoordId, aggregated);
         }
       }
-    }, (err) => {
-      console.warn("Aviso na sincronização Firestore (usando banco local):", err);
     });
 
     return () => {

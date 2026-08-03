@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import logoImg from '../assets/logo.png';
 import { TreLocationFields } from './TreLocationFields';
-import { db } from '../lib/firebase';
-import { collection, query, where, getDocs, doc, getDoc, limit } from 'firebase/firestore';
 import { firestoreService } from '../lib/firestoreService';
 import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO } from '../lib/candidateService';
 import { validateVoterRegistration, triggerUpgradeRedirect } from '../lib/planService';
@@ -140,9 +138,9 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
 
         if (activeLeaderId) {
           // 1. Tentar carregar de 'users'
-          const userDoc = await getDoc(doc(db, 'users', activeLeaderId));
-          if (userDoc.exists()) {
-            const uData = userDoc.data();
+          const userDoc = await firestoreService.getDocument<any>('users', activeLeaderId);
+          if (userDoc) {
+            const uData = userDoc;
             resolvedLeaderId = activeLeaderId;
             resolvedLeaderName = uData.name || uData.displayName || inviterParam || 'Líder';
             resolvedTeamName = uData.teamName || uData.zone || uData.team || 'Base';
@@ -150,25 +148,20 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
             resolvedTeamId = uData.teamId || '';
           } else {
             // Se não encontrou em users, tentar carregar como se fosse teamId da coleção 'teams'
-            const teamDoc = await getDoc(doc(db, 'teams', activeLeaderId));
-            if (teamDoc.exists()) {
-              const tData = teamDoc.data();
+            const teamDoc = await firestoreService.getDocument<any>('teams', activeLeaderId);
+            if (teamDoc) {
+              const tData = teamDoc;
               resolvedTeamId = activeLeaderId;
               resolvedLeaderName = tData.leaderName || tData.leader || inviterParam || 'Líder';
               resolvedTeamName = tData.name || 'Base';
               resolvedCoordinatorId = tData.coordinatorId || '';
               
-              const userQ = query(
-                collection(db, 'users'), 
-                where('teamId', '==', activeLeaderId), 
-                where('role', '==', 'lider')
-              );
-              const userSnap = await getDocs(userQ);
-              if (!userSnap.empty) {
-                resolvedLeaderId = userSnap.docs[0].id;
-                const u = userSnap.docs[0].data();
-                if (u.name || u.displayName) {
-                  resolvedLeaderName = u.name || u.displayName;
+              const users = await firestoreService.getCollection<any>('users');
+              const foundUser = users.find(u => u.teamId === activeLeaderId && u.role === 'lider');
+              if (foundUser) {
+                resolvedLeaderId = foundUser.id;
+                if (foundUser.name || foundUser.displayName) {
+                  resolvedLeaderName = foundUser.name || foundUser.displayName;
                 }
               } else {
                 resolvedLeaderId = activeLeaderId;
@@ -179,25 +172,20 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
           }
         } else if (activeTeamId) {
           // 2. Tentar carregar de 'teams'
-          const teamDoc = await getDoc(doc(db, 'teams', activeTeamId));
-          if (teamDoc.exists()) {
-            const tData = teamDoc.data();
+          const teamDoc = await firestoreService.getDocument<any>('teams', activeTeamId);
+          if (teamDoc) {
+            const tData = teamDoc;
             resolvedTeamId = activeTeamId;
             resolvedLeaderName = tData.leaderName || tData.leader || inviterParam || 'Líder';
             resolvedTeamName = tData.name || 'Base';
             resolvedCoordinatorId = tData.coordinatorId || '';
             
-            const userQ = query(
-              collection(db, 'users'), 
-              where('teamId', '==', activeTeamId), 
-              where('role', '==', 'lider')
-            );
-            const userSnap = await getDocs(userQ);
-            if (!userSnap.empty) {
-              resolvedLeaderId = userSnap.docs[0].id;
-              const u = userSnap.docs[0].data();
-              if (u.name || u.displayName) {
-                resolvedLeaderName = u.name || u.displayName;
+            const users = await firestoreService.getCollection<any>('users');
+            const foundUser = users.find(u => u.teamId === activeTeamId && u.role === 'lider');
+            if (foundUser) {
+              resolvedLeaderId = foundUser.id;
+              if (foundUser.name || foundUser.displayName) {
+                resolvedLeaderName = foundUser.name || foundUser.displayName;
               }
             } else {
               resolvedLeaderId = activeTeamId;
@@ -215,13 +203,12 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
         }
 
         if (!resolvedCoordinatorId) {
-          const qCoords = query(collection(db, 'users'), where('role', '==', 'coordenador'), limit(1));
-          const snapCoords = await getDocs(qCoords);
-          if (!snapCoords.empty) {
-            resolvedCoordinatorId = snapCoords.docs[0].id;
-            const cData = snapCoords.docs[0].data();
+          const users = await firestoreService.getCollection<any>('users');
+          const foundCoord = users.find(u => u.role === 'coordenador' || u.role === 'coordenador_geral');
+          if (foundCoord) {
+            resolvedCoordinatorId = foundCoord.id;
             if (!resolvedLeaderName || resolvedLeaderName === 'Coordenação Geral' || resolvedLeaderName === 'Líder') {
-              resolvedLeaderName = cData.name || cData.displayName || inviterParam || '';
+              resolvedLeaderName = foundCoord.name || foundCoord.displayName || inviterParam || '';
             }
           }
         }
@@ -229,11 +216,10 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
         // Buscar nome real do coordenador se o nome atual for genérico ou vago
         if ((!resolvedLeaderName || resolvedLeaderName === 'Coordenação Geral' || resolvedLeaderName === 'Líder' || resolvedLeaderName === 'geral') && resolvedCoordinatorId) {
           try {
-            const coordDoc = await getDoc(doc(db, 'users', resolvedCoordinatorId));
-            if (coordDoc.exists()) {
-              const cData = coordDoc.data();
-              if (cData.name || cData.displayName) {
-                resolvedLeaderName = cData.name || cData.displayName;
+            const coordDoc = await firestoreService.getDocument<any>('users', resolvedCoordinatorId);
+            if (coordDoc) {
+              if (coordDoc.name || coordDoc.displayName) {
+                resolvedLeaderName = coordDoc.name || coordDoc.displayName;
               }
             }
           } catch (e) {
@@ -282,13 +268,9 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
     setIsSubmitting(true);
     try {
       if (voterForm.phone && voterForm.phone.length > 5) {
-        const q = query(
-          collection(db, 'voters'), 
-          where('phone', '==', voterForm.phone),
-          where('coordinatorId', '==', leaderInfo.coordinatorId)
-        );
-        const checkSnap = await getDocs(q);
-        if (!checkSnap.empty) {
+        const voters = await firestoreService.getCollectionFiltered<any>('voters', leaderInfo.coordinatorId);
+        const existing = voters.find(v => v.phone === voterForm.phone);
+        if (existing) {
           alert("⚠️ Este número de telefone já está cadastrado nesta coordenação!");
           setIsSubmitting(false);
           return;

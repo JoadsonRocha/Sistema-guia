@@ -1,19 +1,4 @@
-import { 
-  collection, 
-  doc, 
-  getDocs, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  onSnapshot,
-  FirestoreError,
-  Timestamp,
-  addDoc
-} from 'firebase/firestore';
-import { db, auth } from './firebase';
+import { getSupabaseClient } from './supabase';
 
 export enum OperationType {
   CREATE = 'create',
@@ -24,141 +9,222 @@ export enum OperationType {
   WRITE = 'write',
 }
 
-interface FirestoreErrorInfo {
-  error: string;
-  operationType: OperationType;
-  path: string | null;
-  authInfo: {
-    userId?: string | null;
-    email?: string | null;
-    emailVerified?: boolean | null;
-    isAnonymous?: boolean | null;
-  }
+// Local storage key helper
+function getLocalKey(path: string, id?: string) {
+  return id ? `nexus_sb_${path}_${id}` : `nexus_sb_${path}_list`;
 }
 
-function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  let rawError = error instanceof FirestoreError ? `${error.code}: ${error.message}` : String(error);
-  let errorMessage = rawError;
-  
-  const authStatus = auth.currentUser ? `LOGGED_IN (${auth.currentUser.email})` : 'NOT_LOGGED_IN';
-  console.error(`🦅 [Firestore Error Status] User: ${authStatus}, Op: ${operationType}, Path: ${path}`);
+// Get cached local list
+function getLocalList<T>(path: string): T[] {
+  try {
+    const raw = localStorage.getItem(getLocalKey(path));
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [];
+}
 
-  // Tradução amigável
-  if (rawError.includes('permission-denied') || rawError.includes('insufficient permissions')) {
-    errorMessage = `Acesso Negado (Firebase: ${rawError}). Operação: ${operationType}, Path: ${path}.`;
-  }
-
-  const errInfo: FirestoreErrorInfo = {
-    error: rawError,
-    authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-    },
-    operationType,
-    path
-  }
-  console.error('Erro detalhado no Firestore: ', JSON.stringify(errInfo));
-  
-  // No caso de LIST (assinaturas) ou GET (leituras iniciais), não jogamos erro para não dar tela branca
-  if (operationType !== OperationType.WRITE && operationType !== OperationType.UPDATE && operationType !== OperationType.DELETE) {
-    console.warn("Falha silenciosa em leitura para evitar crash.");
-    return;
-  }
-
-  throw new Error(errorMessage);
+// Save cached local list
+function setLocalList(path: string, list: any[]) {
+  try {
+    localStorage.setItem(getLocalKey(path), JSON.stringify(list));
+  } catch (e) {}
 }
 
 export const firestoreService = {
   async getCollection<T>(path: string): Promise<T[]> {
-    try {
-      const snapshot = await getDocs(collection(db, path));
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.LIST, path);
-      return [];
+    const client = getSupabaseClient();
+    if (client) {
+      try {
+        const { data, error } = await client
+          .from('campaign_records')
+          .select('record_id, payload')
+          .eq('record_type', path);
+
+        if (!error && data) {
+          const items = data.map(row => ({
+            id: row.record_id,
+            ...(row.payload || {})
+          })) as T[];
+          setLocalList(path, items);
+          return items;
+        }
+      } catch (e) {
+        console.warn(`Supabase getCollection error for ${path}:`, e);
+      }
     }
+    return getLocalList<T>(path);
   },
 
   async getDocument<T>(path: string, id: string): Promise<T | null> {
-    try {
-      const docRef = doc(db, path, id);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() } as T;
+    const client = getSupabaseClient();
+    if (client) {
+      try {
+        const { data, error } = await client
+          .from('campaign_records')
+          .select('record_id, payload')
+          .eq('record_type', path)
+          .eq('record_id', id)
+          .maybeSingle();
+
+        if (!error && data && data.payload) {
+          return { id: data.record_id, ...data.payload } as T;
+        }
+      } catch (e) {
+        console.warn(`Supabase getDocument error for ${path}/${id}:`, e);
       }
-      return null;
-    } catch (error) {
-      handleFirestoreError(error, OperationType.GET, `${path}/${id}`);
-      return null;
     }
+
+    const localItems = getLocalList<any>(path);
+    const found = localItems.find(item => item.id === id);
+    if (found) return found as T;
+
+    try {
+      const raw = localStorage.getItem(getLocalKey(path, id));
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+
+    return null;
   },
 
   async setDocument(path: string, id: string, data: any, merge: boolean = true) {
+    const client = getSupabaseClient();
+    const payload = { id, ...data };
+    const coordinatorId = data.coordinatorId || data.coordinator_id || data.userId || 'default';
+
+    // Local storage sync
+    const items = getLocalList<any>(path);
+    const idx = items.findIndex(item => item.id === id);
+    if (idx >= 0) {
+      items[idx] = merge ? { ...items[idx], ...payload } : payload;
+    } else {
+      items.push(payload);
+    }
+    setLocalList(path, items);
     try {
-      console.log(`🦅 [FirestoreService] Gravando em ${path}/${id}`, data);
-      await setDoc(doc(db, path, id), data, { merge });
-      console.log(`🦅 [FirestoreService] Sucesso em ${path}/${id}`);
-    } catch (error) {
-      console.error(`🦅 [FirestoreService] Erro em ${path}/${id}:`, error);
-      handleFirestoreError(error, OperationType.WRITE, `${path}/${id}`);
+      localStorage.setItem(getLocalKey(path, id), JSON.stringify(payload));
+    } catch (e) {}
+
+    if (client) {
+      try {
+        await client.from('campaign_records').upsert({
+          coordinator_id: coordinatorId,
+          record_type: path,
+          record_id: id,
+          payload: payload
+        }, { onConflict: 'record_type,record_id' });
+      } catch (e) {
+        console.warn(`Supabase setDocument error for ${path}/${id}:`, e);
+      }
     }
   },
 
   async updateDocument(path: string, id: string, data: any) {
-    try {
-      await updateDoc(doc(db, path, id), data);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `${path}/${id}`);
-    }
+    const existing = (await firestoreService.getDocument<any>(path, id)) || {};
+    const updated = { ...existing, ...data };
+    await firestoreService.setDocument(path, id, updated, true);
   },
-  
+
   async deleteDocument(path: string, id: string) {
+    const items = getLocalList<any>(path).filter(item => item.id !== id);
+    setLocalList(path, items);
     try {
-      await deleteDoc(doc(db, path, id));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `${path}/${id}`);
+      localStorage.removeItem(getLocalKey(path, id));
+    } catch (e) {}
+
+    const client = getSupabaseClient();
+    if (client) {
+      try {
+        await client
+          .from('campaign_records')
+          .delete()
+          .eq('record_type', path)
+          .eq('record_id', id);
+      } catch (e) {
+        console.warn(`Supabase deleteDocument error for ${path}/${id}:`, e);
+      }
     }
   },
 
-  async addDocument(path: string, data: any) {
-    try {
-      const docRef = await addDoc(collection(db, path), data);
-      return docRef.id;
-    } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, path);
-    }
+  async addDocument(path: string, data: any): Promise<string> {
+    const id = data.id || `rec_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    await this.setDocument(path, id, data, true);
+    return id;
   },
 
   subscribeToCollection<T>(path: string, callback: (data: T[]) => void) {
-    const q = collection(db, path);
-    return onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-      callback(data);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, path);
-    });
+    // Initial emission from Supabase or LocalStorage
+    firestoreService.getCollection<T>(path).then(callback);
+
+    const client = getSupabaseClient();
+    if (client) {
+      const channel = client
+        .channel(`public:campaign_records:${path}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'campaign_records',
+          filter: `record_type=eq.${path}`
+        }, () => {
+          firestoreService.getCollection<T>(path).then(callback);
+        })
+        .subscribe();
+
+      return () => {
+        client.removeChannel(channel);
+      };
+    }
+
+    return () => {};
   },
 
   subscribeToCollectionFiltered<T>(path: string, coordinatorId: string, callback: (data: T[]) => void) {
-    const q = query(collection(db, path), where('coordinatorId', '==', coordinatorId));
-    return onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-      callback(data);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, path);
-    });
+    firestoreService.getCollectionFiltered<T>(path, coordinatorId).then(callback);
+
+    const client = getSupabaseClient();
+    if (client) {
+      const channel = client
+        .channel(`public:campaign_records:${path}:${coordinatorId}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'campaign_records',
+          filter: `record_type=eq.${path}`
+        }, () => {
+          firestoreService.getCollectionFiltered<T>(path, coordinatorId).then(callback);
+        })
+        .subscribe();
+
+      return () => {
+        client.removeChannel(channel);
+      };
+    }
+
+    return () => {};
   },
 
   async getCollectionFiltered<T>(path: string, coordinatorId: string): Promise<T[]> {
-    try {
-      const q = query(collection(db, path), where('coordinatorId', '==', coordinatorId));
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.LIST, path);
-      return [];
+    const client = getSupabaseClient();
+    if (client) {
+      try {
+        const { data, error } = await client
+          .from('campaign_records')
+          .select('record_id, payload')
+          .eq('record_type', path)
+          .or(`coordinator_id.eq.${coordinatorId},payload->>coordinatorId.eq.${coordinatorId}`);
+
+        if (!error && data) {
+          const items = data.map(row => ({
+            id: row.record_id,
+            ...(row.payload || {})
+          })) as T[];
+          return items;
+        }
+      } catch (e) {
+        console.warn(`Supabase getCollectionFiltered error for ${path}:`, e);
+      }
     }
+
+    const all = getLocalList<any>(path);
+    return all.filter(item => item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId) as T[];
   }
 };

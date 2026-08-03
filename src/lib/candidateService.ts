@@ -1,5 +1,4 @@
-import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
-import { db } from './firebase';
+import { firestoreService } from './firestoreService';
 
 export interface CandidateInfo {
   name: string;
@@ -63,17 +62,17 @@ export const candidateService = {
   async getCandidateInfo(coordinatorId?: string): Promise<CandidateInfo> {
     try {
       if (coordinatorId) {
-        const snapCoord = await getDoc(doc(db, 'settings', `candidate_${coordinatorId}`));
-        if (snapCoord.exists()) {
-          const info = extractCandidateData(snapCoord.data());
+        const docCoord = await firestoreService.getDocument<any>('settings', `candidate_${coordinatorId}`);
+        if (docCoord) {
+          const info = extractCandidateData(docCoord);
           setLocalCache(info);
           return info;
         }
       }
 
-      const snapGlobal = await getDoc(doc(db, 'settings', 'candidate'));
-      if (snapGlobal.exists()) {
-        const info = extractCandidateData(snapGlobal.data());
+      const docGlobal = await firestoreService.getDocument<any>('settings', 'candidate');
+      if (docGlobal) {
+        const info = extractCandidateData(docGlobal);
         setLocalCache(info);
         return info;
       }
@@ -81,7 +80,7 @@ export const candidateService = {
       const cached = getLocalCache();
       if (cached) return cached;
     } catch (error) {
-      console.warn("Aviso ao buscar configurações do candidato no Firestore:", error);
+      console.warn("Aviso ao buscar configurações do candidato no Supabase:", error);
     }
     return DEFAULT_CANDIDATE_INFO;
   },
@@ -96,86 +95,28 @@ export const candidateService = {
     setLocalCache(payload);
 
     try {
-      // Save master candidate doc
-      await setDoc(doc(db, 'settings', 'candidate'), payload, { merge: true });
+      await firestoreService.setDocument('settings', 'candidate', payload, true);
 
-      // Save specific candidate doc for coordinatorId
       if (coordinatorId) {
-        await setDoc(doc(db, 'settings', `candidate_${coordinatorId}`), payload, { merge: true });
+        await firestoreService.setDocument('settings', `candidate_${coordinatorId}`, payload, true);
       }
 
-      // Save specific candidate doc for userId if different
       if (userId && userId !== coordinatorId) {
-        await setDoc(doc(db, 'settings', `candidate_${userId}`), payload, { merge: true });
+        await firestoreService.setDocument('settings', `candidate_${userId}`, payload, true);
       }
     } catch (e) {
-      console.error("Erro ao salvar dados do candidato no Firestore:", e);
+      console.error("Erro ao salvar dados do candidato no Supabase:", e);
       throw e;
     }
   },
 
   subscribeCandidateInfo(callback: (info: CandidateInfo) => void, coordinatorId?: string) {
-    let specificInfo: CandidateInfo | null = null;
-    let globalInfo: CandidateInfo | null = null;
+    this.getCandidateInfo(coordinatorId).then(callback);
 
-    const emitCurrent = () => {
-      if (specificInfo) {
-        setLocalCache(specificInfo);
-        callback(specificInfo);
-        return;
-      }
-      if (globalInfo) {
-        setLocalCache(globalInfo);
-        callback(globalInfo);
-        return;
-      }
-      const cached = getLocalCache();
-      if (cached) {
-        callback(cached);
-        return;
-      }
-      callback(DEFAULT_CANDIDATE_INFO);
-    };
+    const unsub = firestoreService.subscribeToCollection<any>('settings', () => {
+      this.getCandidateInfo(coordinatorId).then(callback);
+    });
 
-    // Global listener
-    const unsubGlobal = onSnapshot(
-      doc(db, 'settings', 'candidate'),
-      (snap) => {
-        if (snap.exists()) {
-          globalInfo = extractCandidateData(snap.data());
-        } else {
-          globalInfo = null;
-        }
-        emitCurrent();
-      },
-      (err) => {
-        console.warn("Aviso no listener global do candidato:", err);
-        emitCurrent();
-      }
-    );
-
-    let unsubSpecific: (() => void) | null = null;
-    if (coordinatorId) {
-      unsubSpecific = onSnapshot(
-        doc(db, 'settings', `candidate_${coordinatorId}`),
-        (snap) => {
-          if (snap.exists()) {
-            specificInfo = extractCandidateData(snap.data());
-          } else {
-            specificInfo = null;
-          }
-          emitCurrent();
-        },
-        (err) => {
-          console.warn("Aviso no listener específico do candidato:", err);
-          emitCurrent();
-        }
-      );
-    }
-
-    return () => {
-      unsubGlobal();
-      if (unsubSpecific) unsubSpecific();
-    };
+    return unsub;
   }
 };

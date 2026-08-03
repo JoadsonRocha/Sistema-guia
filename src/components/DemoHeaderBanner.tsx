@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart, LogOut, Crown, Shield, Users, Sparkles } from 'lucide-react';
+import { ShoppingCart, LogOut, Crown, Shield, Users, Sparkles, FileText } from 'lucide-react';
 import { UserRole } from '../lib/FirebaseProvider';
 
 interface DemoHeaderBannerProps {
@@ -7,13 +7,15 @@ interface DemoHeaderBannerProps {
   onSelectRole: (role: UserRole) => void;
   onGoToSalesPage: () => void;
   onExitDemo: () => void;
+  onDownloadDoc?: () => void;
 }
 
 export const DemoHeaderBanner: React.FC<DemoHeaderBannerProps> = ({
   activeRole,
   onSelectRole,
   onGoToSalesPage,
-  onExitDemo
+  onExitDemo,
+  onDownloadDoc
 }) => {
   return (
     <div className="bg-zinc-950 border-b border-blue-500/40 text-white z-50 sticky top-0 shadow-2xl">
@@ -80,6 +82,17 @@ export const DemoHeaderBanner: React.FC<DemoHeaderBannerProps> = ({
 
         {/* Right: Plan Purchase & Exit */}
         <div className="flex items-center gap-2 shrink-0">
+          {onDownloadDoc && (
+            <button
+              onClick={onDownloadDoc}
+              className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all active:scale-95 border border-blue-400/40"
+              title="Baixar Documento de Arquitetura e Requisitos (.DOC)"
+            >
+              <FileText className="w-3.5 h-3.5 text-blue-200" />
+              <span>Doc (.DOC)</span>
+            </button>
+          )}
+
           <button
             onClick={onGoToSalesPage}
             className="px-3.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all active:scale-95"

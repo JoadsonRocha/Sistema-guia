@@ -1,5 +1,4 @@
-import { doc, getDoc, setDoc, getCountFromServer, collection, query, where } from 'firebase/firestore';
-import { db } from './firebase';
+import { firestoreService } from './firestoreService';
 
 export type PlanType = 'free' | 'start' | 'comando' | 'dominio' | 'none';
 
@@ -64,53 +63,45 @@ export const PLAN_CONFIGS: Record<PlanType, {
   },
 };
 
-/**
- * Consulta as informações de assinatura do Coordenador Geral no Firestore.
- */
 export async function getSubscriptionInfo(coordinatorId?: string): Promise<SubscriptionInfo> {
   try {
-    const subDoc = await getDoc(doc(db, 'settings', 'subscription'));
-    if (subDoc.exists()) {
-      const data = subDoc.data();
-      const plan: PlanType = (data.plan as PlanType) || 'free';
-      const status = data.status || 'active';
+    const subDoc = await firestoreService.getDocument<any>('settings', 'subscription');
+    if (subDoc) {
+      const plan: PlanType = (subDoc.plan as PlanType) || 'free';
+      const status = subDoc.status || 'active';
       const config = PLAN_CONFIGS[plan] || PLAN_CONFIGS.free;
 
       return {
         plan,
         status: status === 'active' ? 'active' : 'none',
-        coordinatorEmail: data.coordinatorEmail || '',
+        coordinatorEmail: subDoc.coordinatorEmail || '',
         maxVoters: config.maxVoters,
         maxLeaders: config.maxLeaders,
         maxRegionals: config.maxRegionals,
         maxGeneralCoordinators: config.maxGeneralCoordinators,
-        expiresAt: data.expiresAt,
+        expiresAt: subDoc.expiresAt,
       };
     }
 
-    const candDoc = await getDoc(doc(db, 'settings', 'candidate'));
-    if (candDoc.exists()) {
-      const data = candDoc.data();
-      if (data.plan) {
-        const plan: PlanType = (data.plan as PlanType) || 'free';
-        const status = data.subscriptionStatus || 'active';
-        const config = PLAN_CONFIGS[plan] || PLAN_CONFIGS.free;
-        return {
-          plan,
-          status: status === 'active' ? 'active' : 'none',
-          coordinatorEmail: data.coordinatorEmail || '',
-          maxVoters: config.maxVoters,
-          maxLeaders: config.maxLeaders,
-          maxRegionals: config.maxRegionals,
-          maxGeneralCoordinators: config.maxGeneralCoordinators,
-        };
-      }
+    const candDoc = await firestoreService.getDocument<any>('settings', 'candidate');
+    if (candDoc && candDoc.plan) {
+      const plan: PlanType = (candDoc.plan as PlanType) || 'free';
+      const status = candDoc.subscriptionStatus || 'active';
+      const config = PLAN_CONFIGS[plan] || PLAN_CONFIGS.free;
+      return {
+        plan,
+        status: status === 'active' ? 'active' : 'none',
+        coordinatorEmail: candDoc.coordinatorEmail || '',
+        maxVoters: config.maxVoters,
+        maxLeaders: config.maxLeaders,
+        maxRegionals: config.maxRegionals,
+        maxGeneralCoordinators: config.maxGeneralCoordinators,
+      };
     }
   } catch (error) {
     console.warn("Aviso ao buscar assinatura:", error);
   }
 
-  // Padrão de entrada: Plano Grátis (Degustação)
   return {
     plan: 'free',
     status: 'active',
@@ -121,9 +112,6 @@ export async function getSubscriptionInfo(coordinatorId?: string): Promise<Subsc
   };
 }
 
-/**
- * Salva ou atualiza a licença de uso da campanha.
- */
 export async function saveSubscriptionPlan(
   plan: PlanType,
   status: 'active' | 'none' | 'canceled' = 'active',
@@ -136,13 +124,10 @@ export async function saveSubscriptionPlan(
     updatedAt: Date.now(),
   };
 
-  await setDoc(doc(db, 'settings', 'subscription'), payload, { merge: true });
-  await setDoc(doc(db, 'settings', 'candidate'), { plan, subscriptionStatus: status }, { merge: true });
+  await firestoreService.setDocument('settings', 'subscription', payload, true);
+  await firestoreService.setDocument('settings', 'candidate', { plan, subscriptionStatus: status }, true);
 }
 
-/**
- * Dispara aviso de limite e redireciona à página de aquisição de planos SOMENTE se for o Coordenador Geral.
- */
 export function triggerUpgradeRedirect(reason: string, isCoordenadorGeral: boolean = false) {
   if (isCoordenadorGeral) {
     alert(`🚨 LIMITE DE CADASTROS DO PLANO ATINGIDO (COORDENADOR GERAL):\n\n${reason}\n\nVocê será redirecionado para a página de apresentação dos planos para escolher e adquirir a licença da sua campanha.`);
@@ -156,9 +141,6 @@ export function triggerUpgradeRedirect(reason: string, isCoordenadorGeral: boole
   }
 }
 
-/**
- * Valida se é possível realizar um novo cadastro de eleitor.
- */
 export async function validateVoterRegistration(coordinatorId?: string): Promise<{
   allowed: boolean;
   reason?: string;
@@ -171,7 +153,7 @@ export async function validateVoterRegistration(coordinatorId?: string): Promise
   if (sub.status !== 'active' || sub.plan === 'none') {
     return {
       allowed: false,
-      reason: 'A campanha atual não possui um plano ativo contratado para o Coordenador Geral. Regularize o plano na página de planos para habilitar novos cadastros de eleitores.',
+      reason: 'A campanha atual não possui um plano ativo contratado para o Coordenador Geral.',
       currentCount: 0,
       limit: 0,
       planName: 'Sem Plano Ativo',
@@ -183,18 +165,17 @@ export async function validateVoterRegistration(coordinatorId?: string): Promise
   }
 
   try {
-    const votersColl = collection(db, 'voters');
-    const q = coordinatorId && coordinatorId !== 'demo_coord_geral'
-      ? query(votersColl, where('coordinatorId', '==', coordinatorId))
-      : votersColl;
+    const voters = await firestoreService.getCollection<any>('voters');
+    const filtered = coordinatorId && coordinatorId !== 'demo_coord_geral'
+      ? voters.filter(v => v.coordinatorId === coordinatorId)
+      : voters;
     
-    const snap = await getCountFromServer(q);
-    const totalVoters = snap.data().count;
+    const totalVoters = filtered.length;
 
     if (totalVoters >= sub.maxVoters) {
       return {
         allowed: false,
-        reason: `Você atingiu o limite máximo de ${sub.maxVoters} eleitores do seu ${PLAN_CONFIGS[sub.plan].name}. O cadastro do 8º eleitor (ou seguinte) exige o upgrade da sua licença.`,
+        reason: `Você atingiu o limite máximo de ${sub.maxVoters} eleitores do seu ${PLAN_CONFIGS[sub.plan].name}.`,
         currentCount: totalVoters,
         limit: sub.maxVoters,
         planName: PLAN_CONFIGS[sub.plan].name,
@@ -213,9 +194,6 @@ export async function validateVoterRegistration(coordinatorId?: string): Promise
   }
 }
 
-/**
- * Valida se é possível cadastrar uma nova Equipe / Líder.
- */
 export async function validateLeaderRegistration(coordinatorId?: string): Promise<{
   allowed: boolean;
   reason?: string;
@@ -237,18 +215,17 @@ export async function validateLeaderRegistration(coordinatorId?: string): Promis
   }
 
   try {
-    const teamsColl = collection(db, 'teams');
-    const q = coordinatorId && coordinatorId !== 'demo_coord_geral'
-      ? query(teamsColl, where('coordinatorId', '==', coordinatorId))
-      : teamsColl;
+    const teams = await firestoreService.getCollection<any>('teams');
+    const filtered = coordinatorId && coordinatorId !== 'demo_coord_geral'
+      ? teams.filter(t => t.coordinatorId === coordinatorId)
+      : teams;
 
-    const snap = await getCountFromServer(q);
-    const totalLeaders = snap.data().count;
+    const totalLeaders = filtered.length;
 
     if (totalLeaders >= sub.maxLeaders) {
       return {
         allowed: false,
-        reason: `Você atingiu o limite máximo de ${sub.maxLeaders} líderes/equipes do seu ${PLAN_CONFIGS[sub.plan].name}. O cadastro da 3ª equipe exige o upgrade para um plano superior.`,
+        reason: `Você atingiu o limite máximo de ${sub.maxLeaders} líderes/equipes do seu ${PLAN_CONFIGS[sub.plan].name}.`,
         currentCount: totalLeaders,
         limit: sub.maxLeaders,
         planName: PLAN_CONFIGS[sub.plan].name,
@@ -267,9 +244,6 @@ export async function validateLeaderRegistration(coordinatorId?: string): Promis
   }
 }
 
-/**
- * Valida se é possível cadastrar um novo Coordenador Regional.
- */
 export async function validateRegionalRegistration(coordinatorId?: string): Promise<{
   allowed: boolean;
   reason?: string;
@@ -282,7 +256,7 @@ export async function validateRegionalRegistration(coordinatorId?: string): Prom
   if (sub.status !== 'active' || sub.plan === 'none') {
     return {
       allowed: false,
-      reason: 'A campanha atual não possui um plano ativo contratado. Regularize seu plano para cadastrar novos coordenadores regionais.',
+      reason: 'A campanha atual não possui um plano ativo contratado.',
     };
   }
 
@@ -291,18 +265,17 @@ export async function validateRegionalRegistration(coordinatorId?: string): Prom
   }
 
   try {
-    const regionalsColl = collection(db, 'regional_coordinators');
-    const q = coordinatorId && coordinatorId !== 'demo_coord_geral'
-      ? query(regionalsColl, where('coordinatorId', '==', coordinatorId))
-      : regionalsColl;
+    const regionals = await firestoreService.getCollection<any>('regional_coordinators');
+    const filtered = coordinatorId && coordinatorId !== 'demo_coord_geral'
+      ? regionals.filter(r => r.coordinatorId === coordinatorId)
+      : regionals;
 
-    const snap = await getCountFromServer(q);
-    const totalRegionals = snap.data().count;
+    const totalRegionals = filtered.length;
 
     if (totalRegionals >= sub.maxRegionals) {
       return {
         allowed: false,
-        reason: `Você atingiu o limite máximo de ${sub.maxRegionals} coordenadores regionais do seu ${PLAN_CONFIGS[sub.plan].name}. O cadastro do 3º coordenador regional exige o upgrade para um plano superior.`,
+        reason: `Você atingiu o limite máximo de ${sub.maxRegionals} coordenadores regionais do seu ${PLAN_CONFIGS[sub.plan].name}.`,
         currentCount: totalRegionals,
         limit: sub.maxRegionals,
         planName: PLAN_CONFIGS[sub.plan].name,
@@ -321,9 +294,6 @@ export async function validateRegionalRegistration(coordinatorId?: string): Prom
   }
 }
 
-/**
- * Valida se é possível cadastrar um novo Coordenador Geral na tela de login/registro.
- */
 export async function validateGeneralCoordinatorRegistration(): Promise<{
   allowed: boolean;
   reason?: string;
@@ -338,21 +308,14 @@ export async function validateGeneralCoordinatorRegistration(): Promise<{
   }
 
   try {
-    const usersColl = collection(db, 'users');
-    const q1 = query(usersColl, where('role', '==', 'coordenador_geral'));
-    const q2 = query(usersColl, where('role', '==', 'coordenador'));
-
-    const [snap1, snap2] = await Promise.all([
-      getCountFromServer(q1),
-      getCountFromServer(q2)
-    ]);
-
-    const totalGeneral = snap1.data().count + snap2.data().count;
+    const users = await firestoreService.getCollection<any>('users');
+    const filtered = users.filter(u => u.role === 'coordenador_geral' || u.role === 'coordenador');
+    const totalGeneral = filtered.length;
 
     if (totalGeneral >= sub.maxGeneralCoordinators) {
       return {
         allowed: false,
-        reason: `A campanha já possui ${totalGeneral} Coordenador Geral cadastrado (o primeiro cadastro obrigatório). O cadastro de novos coordenadores gerais exige um plano ilimitado.`,
+        reason: `A campanha já possui ${totalGeneral} Coordenador Geral cadastrado.`,
         currentCount: totalGeneral,
         limit: sub.maxGeneralCoordinators,
         planName: PLAN_CONFIGS[sub.plan].name,
@@ -370,4 +333,3 @@ export async function validateGeneralCoordinatorRegistration(): Promise<{
     return { allowed: true };
   }
 }
-

@@ -88,8 +88,6 @@ import {
   PieChart,
   Pie
 } from 'recharts';
-import { onSnapshot, doc, collection, query, orderBy, limit, getDocs, where, getDoc, addDoc, serverTimestamp, updateDoc, getCountFromServer, startAfter } from 'firebase/firestore';
-import { db, auth } from '../lib/firebase';
 import { validarSugestaoAgenda, AgendaItem } from '../lib/agendaLogic';
 import * as XLSX from 'xlsx';
 import { safeLocalStorage } from '../utils/safeStorage';
@@ -1521,8 +1519,8 @@ export default function CoordinatorDashboard({
         });
       }
 
-      // Add to Firestore History
-      await addDoc(collection(db, 'reports'), {
+      // Add to Reports History
+      await firestoreService.addDocument('reports', {
         type,
         title: `${title} (${format.toUpperCase()})`,
         subtitle,
@@ -1530,7 +1528,7 @@ export default function CoordinatorDashboard({
         timestamp: Date.now(),
         createdBy: user?.email,
         createdByDisplayName: profileData?.name || user?.email,
-        createdAt: serverTimestamp(),
+        createdAt: Date.now(),
         detailLevel: filters.detailLevel || 'summary',
         itemCount: data.length,
         coordinatorId: coordinatorId || ''
@@ -1578,35 +1576,15 @@ export default function CoordinatorDashboard({
     
     const unsubUrgencies = firestoreService.subscribeToCollectionFiltered('urgencies', coordinatorId, (data) => setUrgencies(data));
 
-    const unsubStats = onSnapshot(doc(db, 'stats', `stats_${coordinatorId}`), (snapshot) => {
-      if (snapshot.exists()) {
-        setStatsData(snapshot.data());
-      }
-    }, (err) => {
-      const errInfo = {
-        error: err.message,
-        operationType: 'get',
-        path: `stats/stats_${coordinatorId}`,
-        authInfo: {
-          userId: auth.currentUser?.uid,
-          email: auth.currentUser?.email,
-          emailVerified: auth.currentUser?.emailVerified,
-        }
-      };
-      console.error("Stats sync error details:", JSON.stringify(errInfo));
+    const unsubStats = firestoreService.subscribeToCollection<any>('stats', (data) => {
+      const found = data.find(item => item.id === `stats_${coordinatorId}`);
+      if (found) setStatsData(found);
     });
 
     const unsubAgendas = firestoreService.subscribeToCollectionFiltered('agenda', coordinatorId, (data) => setAgendas(data));
 
-    const unsubNotes = query(
-      collection(db, 'notes'), 
-      where('coordinatorId', '==', coordinatorId),
-      orderBy('createdAt', 'desc')
-    );
-    const unsubNotesSnap = onSnapshot(unsubNotes, (snapshot) => {
-      setNotes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    }, (err) => {
-      console.warn("Notes sync error (permission or query failure):", err.message);
+    const unsubNotesSnap = firestoreService.subscribeToCollectionFiltered<any>('notes', coordinatorId, (data) => {
+      setNotes(data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
     });
 
     let unsubProfile: (() => void) | null = null;
@@ -1620,66 +1598,32 @@ export default function CoordinatorDashboard({
         region: isRegional ? 'REGIÃO 1 - NORTE' : 'Todas as Regiões'
       });
     } else if (user?.uid) {
-      unsubProfile = onSnapshot(doc(db, 'users', user.uid), (snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.data();
-          const userEmail = (user.email || data.email || '').toLowerCase();
-          const userName = (data.name || '').toLowerCase();
+      unsubProfile = firestoreService.subscribeToCollection<any>('users', (data) => {
+        const found = data.find(u => u.id === user.uid);
+        if (found) {
+          const userEmail = (user.email || found.email || '').toLowerCase();
+          const userName = (found.name || '').toLowerCase();
           const isAntonio = userEmail.includes('antonio') || userName.includes('antonio');
-          
-          if (isAntonio && data.role !== 'coordenador_regional') {
-            data.role = 'coordenador_regional';
-            firestoreService.setDocument('users', user.uid, { ...data, role: 'coordenador_regional' }).catch(console.error);
+          if (isAntonio && found.role !== 'coordenador_regional') {
+            found.role = 'coordenador_regional';
+            firestoreService.setDocument('users', user.uid, { ...found, role: 'coordenador_regional' }).catch(console.error);
           }
-          setProfileData(data);
+          setProfileData(found);
         }
-      }, (err) => {
-        console.warn("Profile sync error:", err.message);
       });
     }
-    
-    // Fallback for empty collections
-    const checkAndSeed = async () => {
-      if (isAdmin) {
-        // No more seeding - only real data
-      }
-    };
-    checkAndSeed();
 
-    const unsubDailyOrder = onSnapshot(doc(db, 'config', `dailyOrder_${coordinatorId}`), (snap) => {
-      if (snap.exists()) {
-        setDailyOrder(snap.data());
-        setNewDailyOrder(snap.data().text || '');
+    const unsubDailyOrder = firestoreService.subscribeToCollection<any>('config', (data) => {
+      const found = data.find(c => c.id === `dailyOrder_${coordinatorId}`);
+      if (found) {
+        setDailyOrder(found);
+        setNewDailyOrder(found.text || '');
       }
-    }, (err) => {
-      console.warn("DailyOrder sync error:", err.message);
     });
 
-    const unsubMaterials = onSnapshot(
-      query(collection(db, 'materials'), where('coordinatorId', '==', coordinatorId)), 
-      (snap) => {
-        setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, 
-      (err) => {
-        console.warn("Materials sync error:", err.message);
-      }
-    );
-
+    const unsubMaterials = firestoreService.subscribeToCollectionFiltered('materials', coordinatorId, (data) => setMaterials(data));
     const unsubMaterialRequests = firestoreService.subscribeToCollectionFiltered('material_requests', coordinatorId, (data) => setMaterialRequests(data));
-
-    const unsubReports = onSnapshot(
-      query(
-        collection(db, 'reports'), 
-        where('coordinatorId', '==', coordinatorId),
-        orderBy('createdAt', 'desc')
-      ), 
-      (snap) => {
-        setReportsHistory(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, 
-      (err) => {
-        console.warn("Reports sync error:", err.message);
-      }
-    );
+    const unsubReports = firestoreService.subscribeToCollectionFiltered('reports', coordinatorId, (data) => setReportsHistory(data));
 
     return () => {
       unsubTeams();
@@ -1699,13 +1643,9 @@ export default function CoordinatorDashboard({
   const fetchServerCounts = async () => {
     if (!coordinatorId) return;
     try {
-      const qTotal = query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId));
-      const snapTotal = await getCountFromServer(qTotal);
-      setTotalVotersCount(snapTotal.data().count);
-
-      const qVoted = query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId), where('voted', '==', true));
-      const snapVoted = await getCountFromServer(qVoted);
-      setVotedVotersCount(snapVoted.data().count);
+      const voters = await firestoreService.getCollectionFiltered<any>('voters', coordinatorId);
+      setTotalVotersCount(voters.length);
+      setVotedVotersCount(voters.filter(v => v.voted).length);
     } catch (err) {
       console.warn("Erro ao buscar contagens agregadas do servidor:", err);
     }
@@ -1725,26 +1665,11 @@ export default function CoordinatorDashboard({
     const fetchTeamVoterCounts = async () => {
       try {
         const counts: Record<string, number> = {};
-        await Promise.all(
-          teams.map(async (team) => {
-            const teamName = team.name;
-            const q = query(
-              collection(db, 'voters'),
-              where('coordinatorId', '==', coordinatorId),
-              where('team', '==', teamName)
-            );
-            const snap = await getCountFromServer(q);
-            let total = snap.data().count;
-
-            if (allVoters.length > 0) {
-              const matchedFromAll = allVoters.filter(v => isVoterInTeam(v, team)).length;
-              if (matchedFromAll > total) {
-                total = matchedFromAll;
-              }
-            }
-            counts[teamName] = total;
-          })
-        );
+        for (const team of teams) {
+          const teamName = team.name;
+          const matchedFromAll = allVoters.filter(v => isVoterInTeam(v, team)).length;
+          counts[teamName] = matchedFromAll;
+        }
         setTeamVotersCountMap(counts);
       } catch (err) {
         console.warn("Erro ao buscar contagem de eleitores das equipes:", err);
@@ -1763,33 +1688,23 @@ export default function CoordinatorDashboard({
       return;
     }
 
-    console.log("🧠 [Optimization] Lazy loading campaign voters for coordinator:", coordinatorId, "tab:", activeTab);
-    const qVoters = query(collection(db, 'voters'), where('coordinatorId', '==', coordinatorId));
-
-    const unsubVoters = onSnapshot(
-      qVoters, 
-      (snap) => {
-        const rawData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
-        const uniqueMap = new Map();
-        rawData.forEach((v: any) => {
-          const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
-          if (!uniqueMap.has(key)) {
+    const unsubVoters = firestoreService.subscribeToCollectionFiltered<any>('voters', coordinatorId, (rawData) => {
+      const uniqueMap = new Map();
+      rawData.forEach((v: any) => {
+        const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, v);
+        } else {
+          const existing = uniqueMap.get(key);
+          if (!existing.articulatorId && v.articulatorId) {
             uniqueMap.set(key, v);
-          } else {
-            const existing = uniqueMap.get(key);
-            if (!existing.articulatorId && v.articulatorId) {
-              uniqueMap.set(key, v);
-            }
           }
-        });
-        const uniqueVoters = Array.from(uniqueMap.values());
-        setAllVoters(uniqueVoters);
-        safeLocalStorage.setItem(`urna360_voters_cache_${coordinatorId}`, JSON.stringify(uniqueVoters));
-      }, 
-      (err) => {
-        console.warn("Voters sync error:", err.message);
-      }
-    );
+        }
+      });
+      const uniqueVoters = Array.from(uniqueMap.values());
+      setAllVoters(uniqueVoters);
+      safeLocalStorage.setItem(`urna360_voters_cache_${coordinatorId}`, JSON.stringify(uniqueVoters));
+    });
 
     return () => unsubVoters();
   }, [coordinatorId, activeTab]);
@@ -1799,30 +1714,19 @@ export default function CoordinatorDashboard({
     if (!coordinatorId || activeTab !== 'voters') return;
 
     setLoadingPaginatedVoters(true);
-    let q = query(
-      collection(db, 'voters'),
-      where('coordinatorId', '==', coordinatorId)
-    );
-
-    if (articulatorFilter) {
-      q = query(q, where('articulatorId', '==', articulatorFilter));
-    }
-
-    const limitSize = 50 * voterPage;
-    q = query(q, limit(limitSize));
-
-    const unsub = onSnapshot(q, (snap) => {
-      const docs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const sorted = docs.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
+    firestoreService.getCollectionFiltered<any>('voters', coordinatorId).then((data) => {
+      let filtered = data;
+      if (articulatorFilter) {
+        filtered = filtered.filter(v => v.articulatorId === articulatorFilter);
+      }
+      const sorted = filtered.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
       setPaginatedVotersList(sorted);
-      setHasMoreVoters(snap.docs.length === limitSize);
+      setHasMoreVoters(false);
       setLoadingPaginatedVoters(false);
-    }, (err) => {
-      console.warn("Error listening to paginated voters:", err.message);
+    }).catch((err) => {
+      console.warn("Error getting paginated voters:", err);
       setLoadingPaginatedVoters(false);
     });
-
-    return () => unsub();
   }, [coordinatorId, activeTab, voterPage, articulatorFilter]);
 
   // 5. Carregar articuladores específicos para a campanha
@@ -1831,13 +1735,8 @@ export default function CoordinatorDashboard({
 
     const fetchArticulators = async () => {
       try {
-        const qArt = query(
-          collection(db, 'voters'),
-          where('coordinatorId', '==', coordinatorId),
-          where('isArticulator', '==', true)
-        );
-        const snap = await getDocs(qArt);
-        setArticulators(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const voters = await firestoreService.getCollectionFiltered<any>('voters', coordinatorId);
+        setArticulators(voters.filter(v => v.isArticulator));
       } catch (err) {
         console.warn("Error fetching articulators:", err);
       }
@@ -1851,43 +1750,21 @@ export default function CoordinatorDashboard({
 
     const healCoordinatorVotersAndRequests = async () => {
       try {
-        const promises: Promise<any>[] = [];
+        const allVoters = await firestoreService.getCollection<any>('voters');
+        const allRequests = await firestoreService.getCollection<any>('material_requests');
         
         for (const team of teams) {
           const teamId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
           
-          // 1. Heal Voters belonging to this team
-          const qVoters = query(collection(db, 'voters'), where('teamId', '==', teamId), where('coordinatorId', '==', coordinatorId));
-          const snapVoters = await getDocs(qVoters);
-          snapVoters.docs.forEach((vDoc) => {
-            const data = vDoc.data();
-            if (data.coordinatorId !== coordinatorId) {
-              promises.push(
-                updateDoc(doc(db, 'voters', vDoc.id), {
-                  coordinatorId: coordinatorId
-                })
-              );
-            }
-          });
+          const teamVoters = allVoters.filter(v => v.teamId === teamId && v.coordinatorId !== coordinatorId);
+          for (const v of teamVoters) {
+            await firestoreService.updateDocument('voters', v.id, { coordinatorId });
+          }
 
-          // 2. Heal Material Requests belonging to this team
-          const qReqs = query(collection(db, 'material_requests'), where('teamId', '==', teamId), where('coordinatorId', '==', coordinatorId));
-          const snapReqs = await getDocs(qReqs);
-          snapReqs.docs.forEach((rDoc) => {
-            const data = rDoc.data();
-            if (data.coordinatorId !== coordinatorId) {
-              promises.push(
-                updateDoc(doc(db, 'material_requests', rDoc.id), {
-                  coordinatorId: coordinatorId
-                })
-              );
-            }
-          });
-        }
-        
-        if (promises.length > 0) {
-          await Promise.all(promises);
-          console.log(`🧠 [Healer] Coordenador successfully healed ${promises.length} records for their teams!`);
+          const teamReqs = allRequests.filter(r => r.teamId === teamId && r.coordinatorId !== coordinatorId);
+          for (const r of teamReqs) {
+            await firestoreService.updateDocument('material_requests', r.id, { coordinatorId });
+          }
         }
       } catch (err) {
         console.error("Error healing coordinator records:", err);
@@ -2026,22 +1903,18 @@ export default function CoordinatorDashboard({
 
       const fetchLeaderAndVoters = async () => {
         try {
-          let qVoters = query(collection(db, 'voters'), where('team', '==', teamName), where('coordinatorId', '==', coordinatorId));
-          let snapVoters = await getDocs(qVoters);
+          const voters = await firestoreService.getCollectionFiltered<any>('voters', coordinatorId);
+          let teamVoters = voters.filter(v => v.team === teamName);
 
-          if (snapVoters.empty && leaderEmail) {
-            const usersRef = collection(db, 'users');
-            const qUser = query(usersRef, where('email', '==', leaderEmail), where('coordinatorId', '==', coordinatorId));
-            const userSnap = await getDocs(qUser);
-            if (!userSnap.empty) {
-              const leaderId = userSnap.docs[0].id;
-              qVoters = query(collection(db, 'voters'), where('leaderId', '==', leaderId), where('coordinatorId', '==', coordinatorId));
-              snapVoters = await getDocs(qVoters);
+          if (teamVoters.length === 0 && leaderEmail) {
+            const users = await firestoreService.getCollectionFiltered<any>('users', coordinatorId);
+            const leader = users.find(u => u.email?.toLowerCase() === leaderEmail);
+            if (leader) {
+              teamVoters = voters.filter(v => v.leaderId === leader.id);
             }
           }
 
-          const data = snapVoters.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setManagingTeamVoters(data);
+          setManagingTeamVoters(teamVoters);
         } catch (err) {
           console.error("Erro ao buscar eleitores da equipe:", err);
         }
@@ -2332,16 +2205,9 @@ export default function CoordinatorDashboard({
     setSelectedHistoryTeam(team);
     setIsHistoryModalOpen(true);
     try {
-      const q = query(
-        collection(db, 'transactions'),
-        where('team', '==', team.name),
-        where('coordinatorId', '==', coordinatorId),
-        orderBy('date', 'desc'),
-        limit(20)
-      );
-      const snap = await getDocs(q);
-      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setTeamHistory(data);
+      const txs = await firestoreService.getCollectionFiltered<any>('transactions', coordinatorId);
+      const teamTxs = txs.filter(t => t.team === team.name).sort((a, b) => (b.date || 0) - (a.date || 0)).slice(0, 20);
+      setTeamHistory(teamTxs);
     } catch (err) {
       console.error("Erro ao buscar histórico:", err);
     }

@@ -1,7 +1,6 @@
 import { normalizeLoc, RORAIMA_MUNICIPALITIES } from '../data/roraimaTreData';
 import { eleitoralStorage } from './eleitoralStorage';
-import { db } from './firebase';
-import { doc, getDoc, collection, getDocs, query, limit } from 'firebase/firestore';
+import { supabaseService } from './supabaseService';
 
 export interface TreLocationItem {
   id: string;
@@ -175,32 +174,6 @@ export function clearTreLocationsCache(coordinatorId?: string) {
 export async function loadTreLocationsFromFirestore(coordinatorId?: string): Promise<TreLocationItem[]> {
   const cleanId = coordinatorId ? coordinatorId.replace(/^coord_/, '').trim() : '';
 
-  // Helper to load and assemble chunked or single document locations
-  const loadDocData = async (docSnap: any, docId: string): Promise<any[]> => {
-    const data = docSnap.data();
-    if (!data || data.cleared) return [];
-
-    let locationsArr: any[] = [];
-    if (data.isChunked && data.chunksCount > 0) {
-      const promises = [];
-      for (let i = 0; i < data.chunksCount; i++) {
-        promises.push(getDoc(doc(db, 'eleitoral_data', `${docId}_${i}`)));
-      }
-      const chunkSnaps = await Promise.all(promises);
-      for (const cs of chunkSnaps) {
-        if (cs.exists()) {
-          const cData = cs.data();
-          if (cData?.locations && Array.isArray(cData.locations)) {
-            locationsArr = locationsArr.concat(cData.locations);
-          }
-        }
-      }
-    } else if (Array.isArray(data.locations)) {
-      locationsArr = data.locations;
-    }
-    return locationsArr;
-  };
-
   // 1. Try IndexedDB / localStorage
   try {
     const saved = await eleitoralStorage.loadLocations(cleanId || 'default');
@@ -212,46 +185,15 @@ export async function loadTreLocationsFromFirestore(coordinatorId?: string): Pro
     console.warn("Error reading local TRE locations:", e);
   }
 
-  // 2. Try specific Firestore document for coordinator if cleanId is provided
-  if (cleanId && cleanId !== 'geral' && cleanId !== 'default') {
-    try {
-      const docId = `coord_${cleanId}`;
-      const snap = await getDoc(doc(db, 'eleitoral_data', docId));
-      if (snap.exists()) {
-        const locationsArr = await loadDocData(snap, docId);
-        if (locationsArr.length > 0) {
-          setTreLocationsForCoordinator(cleanId, locationsArr);
-          return getAllTreLocations(cleanId);
-        }
-      }
-    } catch (err) {
-      console.warn("Failed to fetch TRE locations for cleanId:", cleanId, err);
-    }
-  }
-
-  // 3. Fallback: Query collection 'eleitoral_data' for ANY document with data!
+  // 2. Try Supabase
   try {
-    const q = query(collection(db, 'eleitoral_data'), limit(15));
-    const querySnap = await getDocs(q);
-    for (const dSnap of querySnap.docs) {
-      // Skip chunk sub-documents (e.g. coord_xxx_0, coord_xxx_1)
-      if (dSnap.id.includes('_') && dSnap.id.split('_').length > 2) continue;
-      if (/\_\d+$/.test(dSnap.id)) continue;
-
-      const locs = await loadDocData(dSnap, dSnap.id);
-      if (locs.length > 0) {
-        const docCoordId = dSnap.data()?.coordinatorId || cleanId || 'default';
-        setTreLocationsForCoordinator(docCoordId, locs);
-        if (cleanId) {
-          setTreLocationsForCoordinator(cleanId, locs);
-        }
-        setTreLocationsForCoordinator('default', locs);
-        setTreLocationsForCoordinator('geral', locs);
-        return getAllTreLocations(cleanId || 'default');
-      }
+    const sbLocations = await supabaseService.loadTreLocations(cleanId || 'default');
+    if (sbLocations && sbLocations.length > 0) {
+      setTreLocationsForCoordinator(cleanId || 'default', sbLocations);
+      return getAllTreLocations(cleanId || 'default');
     }
   } catch (err) {
-    console.warn("Fallback query for eleitoral_data failed:", err);
+    console.warn("Failed to fetch TRE locations from Supabase:", err);
   }
 
   return getDefaultRoraimaLocations();

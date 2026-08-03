@@ -1,24 +1,25 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import logoImg from '../assets/logo.png';
-import { 
-  User, 
-  onAuthStateChanged, 
-  signInWithPopup, 
-  googleProvider, 
-  auth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updatePassword,
-  sendPasswordResetEmail,
-  sendEmailVerification
-} from './firebase';
-import { doc, getDoc, setDoc, onSnapshot, collection, query, where, getDocs, limit } from 'firebase/firestore';
-import { db } from './firebase';
+import { getSupabaseClient } from './supabase';
+import { firestoreService } from './firestoreService';
 
 export type UserRole = 'coordenador_geral' | 'coordenador_regional' | 'lider' | 'coordenador';
 
+export interface UserProfile {
+  uid: string;
+  email: string | null;
+  displayName?: string | null;
+  name?: string | null;
+  role?: UserRole;
+  region?: string | null;
+  coordinatorId?: string | null;
+  teamId?: string | null;
+  teamName?: string | null;
+  forcePasswordChange?: boolean;
+}
+
 interface AuthContextType {
-  user: User | null;
+  user: any;
   role: UserRole | null;
   loading: boolean;
   forcePasswordChange: boolean;
@@ -42,7 +43,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function FirebaseProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,286 +55,224 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   const [forcePasswordChange, setForcePasswordChange] = useState(false);
   const [coordinatorId, setCoordinatorId] = useState<string | null>(null);
 
-  useEffect(() => {
-    let unsubProfile: (() => void) | null = null;
+  // Helper to sync user profile state
+  const syncUserProfile = async (authUser: any) => {
+    if (!authUser) {
+      setUser(null);
+      setRole(null);
+      setIsAdmin(false);
+      setIsGeral(false);
+      setIsRegional(false);
+      setIsLeader(false);
+      setUserRegion(null);
+      setCoordinatorId(null);
+      setLoading(false);
+      return;
+    }
 
-    const handleFirestoreError = (error: any, operationType: string, path: string) => {
-      let errorMessage = error.message;
-      if (errorMessage.includes('permission-denied') || errorMessage.includes('Missing or insufficient permissions')) {
-        errorMessage = "Acesso Negado: Sem permissão para ler perfil.";
-      }
-      const errInfo = {
-        error: errorMessage,
-        operationType,
-        path,
-        authInfo: {
-          userId: auth.currentUser?.uid,
-          email: auth.currentUser?.email,
-          emailVerified: auth.currentUser?.emailVerified,
-          isAnonymous: auth.currentUser?.isAnonymous,
-        }
+    const uid = authUser.id || authUser.uid;
+    const email = (authUser.email || '').toLowerCase();
+    const isAntonio = email.includes('antonio');
+
+    // Fetch user profile from Supabase
+    let profile: any = await firestoreService.getDocument('users', uid);
+
+    if (!profile) {
+      const defaultRole: UserRole = isAntonio ? 'coordenador_regional' : 'coordenador_geral';
+      profile = {
+        id: uid,
+        uid,
+        email,
+        role: defaultRole,
+        name: authUser.user_metadata?.full_name || authUser.displayName || (isAntonio ? 'ANTONIO FURTADO' : 'Coordenador Geral'),
+        region: isAntonio ? 'REGIÃO 1 - BV' : null,
+        coordinatorId: uid,
+        createdAt: Date.now()
       };
-      console.error("Erro no Firestore:", JSON.stringify(errInfo));
-    };
+      await firestoreService.setDocument('users', uid, profile, true);
+    }
 
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      
-      if (unsubProfile) {
-        unsubProfile();
-        unsubProfile = null;
-      }
+    let currentRole: UserRole = profile.role || (isAntonio ? 'coordenador_regional' : 'coordenador_geral');
+    if (isAntonio && currentRole !== 'coordenador_regional') {
+      currentRole = 'coordenador_regional';
+    }
 
-      if (currentUser) {
-        unsubProfile = onSnapshot(doc(db, 'users', currentUser.uid), (snapshot) => {
-          if (snapshot.exists()) {
-            const data = snapshot.data();
-            let currentRole: UserRole = data.role || 'coordenador_geral';
+    const regionalCheck = currentRole === 'coordenador_regional';
+    const geralCheck = (currentRole === 'coordenador_geral' || currentRole === 'coordenador') && !regionalCheck;
+    const leaderCheck = currentRole === 'lider';
+    const adminCheck = geralCheck || regionalCheck;
 
-            const userEmail = (currentUser.email || data.email || '').toLowerCase();
-            const userName = (data.name || currentUser.displayName || '').toLowerCase();
-            const isAntonio = userEmail.includes('antonio') || userName.includes('antonio');
+    setUser({
+      uid,
+      id: uid,
+      email,
+      displayName: profile.name || authUser.user_metadata?.full_name || authUser.displayName || email,
+      emailVerified: true
+    });
+    setRole(currentRole);
+    setIsGeral(geralCheck);
+    setIsRegional(regionalCheck);
+    setIsLeader(leaderCheck);
+    setIsAdmin(adminCheck);
+    setUserRegion(profile.region || (isAntonio ? 'REGIÃO 1 - BV' : null));
+    setForcePasswordChange(!!profile.forcePasswordChange);
+    setCoordinatorId(adminCheck ? uid : (profile.coordinatorId || uid));
+    setLoading(false);
+  };
 
-            if (isAntonio && currentRole !== 'coordenador_regional') {
-              currentRole = 'coordenador_regional';
-              setDoc(doc(db, 'users', currentUser.uid), { role: 'coordenador_regional' }, { merge: true }).catch(console.warn);
-            }
-
-            setRole(currentRole);
-            setForcePasswordChange(!!data.forcePasswordChange);
-            
-            const regionalCheck = currentRole === 'coordenador_regional';
-            const geralCheck = (currentRole === 'coordenador_geral' || currentRole === 'coordenador') && !regionalCheck;
-            const leaderCheck = currentRole === 'lider';
-            const adminCheck = geralCheck || regionalCheck;
-
-            setIsGeral(geralCheck);
-            setIsRegional(regionalCheck);
-            setIsLeader(leaderCheck);
-            setIsAdmin(adminCheck);
-            setUserRegion(data.region || (isAntonio ? 'REGIÃO 1 - BV' : null));
-            setCoordinatorId(adminCheck ? currentUser.uid : (data.coordinatorId || null));
-
-            // Instantaneously release loading state to make login immediate and allow OAuth popup to close
-            setLoading(false);
-
-            // Asynchronously resolve team/leader coordinator propagation in background
-            if (!adminCheck) {
-              (async () => {
-                try {
-                  let resolvedCoordId = data.coordinatorId || '';
-                  if (data.teamId) {
-                    const teamSnap = await getDoc(doc(db, 'teams', data.teamId));
-                    if (teamSnap.exists() && teamSnap.data()?.coordinatorId) {
-                      resolvedCoordId = teamSnap.data().coordinatorId;
-                    }
-                  }
-
-                  if (!resolvedCoordId && currentUser.email) {
-                    const emailVariants = Array.from(new Set([
-                      currentUser.email.toLowerCase(),
-                      currentUser.email
-                    ])).filter(Boolean);
-                    const qTeams = query(collection(db, 'teams'), where('leaderEmail', 'in', emailVariants));
-                    const snapTeams = await getDocs(qTeams);
-                    if (!snapTeams.empty) {
-                      const teamId = snapTeams.docs[0].id;
-                      const teamData = snapTeams.docs[0].data();
-                      resolvedCoordId = teamData.coordinatorId || '';
-                      if (resolvedCoordId) {
-                        await setDoc(doc(db, 'users', currentUser.uid), {
-                          teamId: teamId,
-                          teamName: teamData.name || '',
-                          coordinatorId: resolvedCoordId
-                        }, { merge: true });
-                      }
-                    }
-                  }
-
-                  if (resolvedCoordId) {
-                    setCoordinatorId(resolvedCoordId);
-                    if (data.coordinatorId !== resolvedCoordId) {
-                      await setDoc(doc(db, 'users', currentUser.uid), { coordinatorId: resolvedCoordId }, { merge: true });
-                    }
-                  }
-                } catch (e) {
-                  console.error("Error background resolving coordinatorId:", e);
-                }
-              })();
+  useEffect(() => {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      // Fetch initial session
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          syncUserProfile(session.user);
+        } else {
+          // Check local cached session fallback
+          const localUser = localStorage.getItem('nexus_auth_user');
+          if (localUser) {
+            try {
+              syncUserProfile(JSON.parse(localUser));
+            } catch (e) {
+              setLoading(false);
             }
           } else {
-            // User document does not exist yet (e.g. brand new Google sign-in)
-            const emailLow = (currentUser.email || '').toLowerCase();
-            const isAntonio = emailLow.includes('antonio');
-            const defaultRole: UserRole = isAntonio ? 'coordenador_regional' : 'coordenador_geral';
-
-            setRole(defaultRole);
-            setIsAdmin(true);
-            setIsGeral(!isAntonio);
-            setIsRegional(isAntonio);
-            setIsLeader(false);
-            setUserRegion(isAntonio ? 'REGIÃO 1 - BV' : null);
-            setForcePasswordChange(false);
-            setCoordinatorId(currentUser.uid);
-
-            // Set loading false instantly for immediate UI transition
             setLoading(false);
-
-            // Heal or create user profile asynchronously
-            (async () => {
-              if (!emailLow) return;
-              try {
-                const preRegSnap = await getDoc(doc(db, 'pre_registrations', emailLow));
-                if (preRegSnap.exists()) {
-                  const preRegData = preRegSnap.data();
-                  const targetRole: UserRole = preRegData.role || (isAntonio ? 'coordenador_regional' : 'lider');
-                  const isCoordRole = targetRole === 'coordenador_geral' || targetRole === 'coordenador' || targetRole === 'coordenador_regional';
-                  
-                  setRole(targetRole);
-                  setIsAdmin(isCoordRole);
-                  setIsGeral(targetRole === 'coordenador_geral' || targetRole === 'coordenador');
-                  setIsRegional(targetRole === 'coordenador_regional' || isAntonio);
-                  setIsLeader(targetRole === 'lider');
-                  setUserRegion(preRegData.region || (isAntonio ? 'REGIÃO 1 - BV' : null));
-                  setForcePasswordChange(true);
-                  setCoordinatorId(isCoordRole ? currentUser.uid : (preRegData.coordinatorId || null));
-
-                  await setDoc(doc(db, 'users', currentUser.uid), {
-                    email: emailLow,
-                    role: targetRole,
-                    name: preRegData.name || currentUser.displayName || (isAntonio ? 'ANTONIO FURTADO' : 'Usuário'),
-                    phone: preRegData.phone || '',
-                    address: preRegData.address || '',
-                    region: preRegData.region || (isAntonio ? 'REGIÃO 1 - BV' : ''),
-                    subLocations: preRegData.subLocations || '',
-                    teamName: preRegData.teamName || '',
-                    teamId: preRegData.teamId || '',
-                    coordinatorId: preRegData.coordinatorId || (isCoordRole ? currentUser.uid : ''),
-                    forcePasswordChange: true,
-                    createdAt: Date.now()
-                  });
-                } else {
-                  await setDoc(doc(db, 'users', currentUser.uid), {
-                    email: emailLow,
-                    role: defaultRole,
-                    name: currentUser.displayName || (isAntonio ? 'ANTONIO FURTADO' : 'Coordenador Geral'),
-                    createdAt: Date.now()
-                  });
-                }
-              } catch (e) {
-                console.error("Error healing missing profile:", e);
-              }
-            })();
           }
-        }, (err) => {
-          handleFirestoreError(err, 'get', `users/${currentUser.uid}`);
+        }
+      }).catch(() => setLoading(false));
+
+      // Listen to auth changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          localStorage.setItem('nexus_auth_user', JSON.stringify(session.user));
+          syncUserProfile(session.user);
+        } else {
+          localStorage.removeItem('nexus_auth_user');
+          syncUserProfile(null);
+        }
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    } else {
+      // Local storage auth fallback if Supabase not yet connected
+      const localUser = localStorage.getItem('nexus_auth_user');
+      if (localUser) {
+        try {
+          syncUserProfile(JSON.parse(localUser));
+        } catch (e) {
           setLoading(false);
-        });
+        }
       } else {
-        setRole(null);
-        setIsAdmin(false);
-        setIsGeral(false);
-        setIsRegional(false);
-        setIsLeader(false);
-        setUserRegion(null);
-        setForcePasswordChange(false);
-        setCoordinatorId(null);
         setLoading(false);
       }
-    });
-
-    return () => {
-      unsubscribeAuth();
-      if (unsubProfile) unsubProfile();
-    };
+    }
   }, []);
 
   const login = async () => {
-    try {
-      const res = await signInWithPopup(auth, googleProvider);
-      if (typeof window !== 'undefined' && window.focus) {
-        window.focus();
-      }
-      return res;
-    } catch (error: any) {
-      if (error?.code === 'auth/cancelled-popup-request') {
-        return;
-      }
-      console.error("Login failed:", error);
-      throw error;
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      if (error) throw error;
+    } else {
+      throw new Error('Supabase não configurado');
     }
   };
 
   const loginWithEmail = async (email: string, pass: string) => {
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
-    } catch (error: any) {
-      console.error("Email login failed:", error);
-      throw error;
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: pass
+      });
+      if (error) throw error;
+      if (data.user) {
+        localStorage.setItem('nexus_auth_user', JSON.stringify(data.user));
+        await syncUserProfile(data.user);
+      }
+    } else {
+      // Fallback local login for dev/offline
+      const fakeUser = {
+        id: `usr_${Date.now()}`,
+        uid: `usr_${Date.now()}`,
+        email,
+        user_metadata: { full_name: email.split('@')[0] }
+      };
+      localStorage.setItem('nexus_auth_user', JSON.stringify(fakeUser));
+      await syncUserProfile(fakeUser);
     }
   };
 
   const signupWithEmail = async (email: string, pass: string, userRole: UserRole, extraData?: any) => {
-    try {
-      const res = await createUserWithEmailAndPassword(auth, email, pass);
-      if (res.user) {
-        await setDoc(doc(db, 'users', res.user.uid), {
-          email: email.toLowerCase(),
-          role: userRole,
-          createdAt: Date.now(),
-          ...extraData
-        });
-        // Tentar enviar e-mail de verificação automaticamente ao criar a conta
-        try {
-          await sendEmailVerification(res.user);
-        } catch (vErr) {
-          console.warn("Aviso ao enviar e-mail de verificação na criação da conta:", vErr);
-        }
+    const supabase = getSupabaseClient();
+    let userId = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+
+    if (supabase) {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password: pass
+      });
+      if (error) throw error;
+      if (data.user) {
+        userId = data.user.id;
       }
-    } catch (error) {
-      console.error("Email signup failed:", error);
-      throw error;
     }
+
+    const profileData = {
+      id: userId,
+      uid: userId,
+      email: email.toLowerCase(),
+      role: userRole,
+      createdAt: Date.now(),
+      ...extraData
+    };
+
+    await firestoreService.setDocument('users', userId, profileData, true);
+    localStorage.setItem('nexus_auth_user', JSON.stringify(profileData));
+    await syncUserProfile(profileData);
   };
 
   const logout = async () => {
-    try {
-      await auth.signOut();
-    } catch (error) {
-      console.error("Logout failed:", error);
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      await supabase.auth.signOut().catch(() => {});
     }
+    localStorage.removeItem('nexus_auth_user');
+    await syncUserProfile(null);
   };
 
   const changePassword = async (newPass: string) => {
-    if (!auth.currentUser) throw new Error("Usuário não autenticado");
-    try {
-      await updatePassword(auth.currentUser, newPass);
-      await setDoc(doc(db, 'users', auth.currentUser.uid), {
-        forcePasswordChange: false
-      }, { merge: true });
-    } catch (error) {
-      console.error("Password change failed:", error);
-      throw error;
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const { error } = await supabase.auth.updateUser({ password: newPass });
+      if (error) throw error;
+    }
+    if (user?.uid) {
+      await firestoreService.setDocument('users', user.uid, { forcePasswordChange: false }, true);
+      setForcePasswordChange(false);
     }
   };
 
   const resetPassword = async (userEmail: string) => {
-    try {
-      await sendPasswordResetEmail(auth, userEmail);
-    } catch (error) {
-      console.error("Password reset email failed:", error);
-      throw error;
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const { error } = await supabase.auth.resetPasswordForEmail(userEmail, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+      if (error) throw error;
     }
   };
 
   const verifyEmail = async () => {
-    if (!auth.currentUser) throw new Error("Usuário não autenticado");
-    try {
-      await sendEmailVerification(auth.currentUser);
-    } catch (error) {
-      console.error("Verification email failed:", error);
-      throw error;
-    }
+    // Handled automatically by Supabase Auth
   };
 
   // Compute effective auth context values for Demo Mode or normal Auth
@@ -353,7 +292,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
         email: 'geral@nexuspolitica.com.br',
         displayName: 'Coordenador Geral (Demo)',
         emailVerified: true
-      } as any;
+      };
       effectiveRole = 'coordenador_geral';
       effectiveIsGeral = true;
       effectiveIsRegional = false;
@@ -367,7 +306,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
         email: 'regional.norte@nexuspolitica.com.br',
         displayName: 'Coordenador Regional (Demo)',
         emailVerified: true
-      } as any;
+      };
       effectiveRole = 'coordenador_regional';
       effectiveIsGeral = false;
       effectiveIsRegional = true;
@@ -381,7 +320,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
         email: 'lider.bairro@nexuspolitica.com.br',
         displayName: 'Líder de Bairro (Demo)',
         emailVerified: true
-      } as any;
+      };
       effectiveRole = 'lider';
       effectiveIsGeral = false;
       effectiveIsRegional = false;
@@ -417,7 +356,6 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
       {(!loading || effectiveUser) ? children : (
         <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-8 select-none">
           <div className="relative flex flex-col items-center max-w-sm w-full text-center">
-            {/* Logo container with subtle ambient glow */}
             <div className="relative mb-6">
               <div className="absolute -inset-2 bg-blue-600/20 rounded-full blur-xl animate-pulse" />
               <img 
@@ -434,12 +372,10 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
               />
             </div>
             
-            {/* Loading Spinner */}
             <div className="w-10 h-10 border-3 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-4"></div>
             
-            {/* System Title & Status */}
             <h2 className="text-xl font-bold text-white tracking-tight mb-1">Nexus Política</h2>
-            <p className="text-xs text-zinc-400 font-medium uppercase tracking-widest">Iniciando sistema seguro...</p>
+            <p className="text-xs text-zinc-400 font-medium uppercase tracking-widest">Conectado ao Supabase Cloud...</p>
           </div>
         </div>
       )}

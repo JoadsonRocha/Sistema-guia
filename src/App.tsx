@@ -1,10 +1,12 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { ShieldCheck, Lock } from 'lucide-react';
+import { ShieldCheck, Lock, FileText } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth, UserRole } from './lib/FirebaseProvider';
 import { firestoreService } from './lib/firestoreService';
 import { DemoHeaderBanner } from './components/DemoHeaderBanner';
 import { DemoBlockModal } from './components/DemoBlockModal';
+import { DocDownloadModal } from './components/DocDownloadModal';
+import { downloadRequirementsDoc } from './utils/docGenerator';
 import { safeLocalStorage } from './utils/safeStorage';
 import { validateGeneralCoordinatorRegistration, triggerUpgradeRedirect } from './lib/planService';
 import logoImg from './assets/logo.png';
@@ -66,6 +68,7 @@ export default function App() {
     return params.has('demo');
   });
   const [showDemoBlockModal, setShowDemoBlockModal] = useState(false);
+  const [showDocModal, setShowDocModal] = useState(true);
 
   // Sync demoRole when demo mode starts
   useEffect(() => {
@@ -580,7 +583,8 @@ export default function App() {
           activeRole={demoRole || 'coordenador_geral'}
           onSelectRole={handleSelectDemoRole}
           onGoToSalesPage={() => setIsSalesLanding(true)} 
-          onExitDemo={handleExitDemoMode} 
+          onExitDemo={handleExitDemoMode}
+          onDownloadDoc={() => setShowDocModal(true)}
         />
       )}
 
@@ -592,6 +596,23 @@ export default function App() {
           setIsSalesLanding(true);
         }}
       />
+
+      <DocDownloadModal
+        isOpen={showDocModal}
+        onClose={() => setShowDocModal(false)}
+      />
+
+      {/* Floating Quick Download Trigger */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setShowDocModal(true)}
+        className="fixed bottom-5 right-5 z-40 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-3 rounded-full shadow-2xl flex items-center gap-2 text-xs uppercase tracking-wider border-2 border-white/20 transition-all"
+        title="Especificação de Requisitos e Arquitetura em .DOC"
+      >
+        <FileText className="w-4 h-4 text-blue-200" />
+        <span className="hidden sm:inline">Baixar Doc (.DOC)</span>
+      </motion.button>
 
       <Suspense fallback={<ComponentLoader />}>
         {view === 'coord' ? (

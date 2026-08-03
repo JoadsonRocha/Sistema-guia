@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { db } from '../lib/firebase';
 import { firestoreService } from '../lib/firestoreService';
 import { Lock, Trash2, MessageSquare, Send } from 'lucide-react';
 
@@ -21,11 +19,8 @@ export default function NoteCard({ note, user, isAdmin, onDelete, currentUserNam
   const [showComments, setShowComments] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, 'notes', note.id, 'comments'), orderBy('createdAt', 'asc'));
-    const unsub = onSnapshot(q, (snap) => {
-      setComments(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    }, (err) => {
-      console.warn("Comments sync permission or access denied:", err.message);
+    const unsub = firestoreService.subscribeToCollection<any>(`note_comments_${note.id}`, (data) => {
+      setComments(data.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)));
     });
     return () => unsub();
   }, [note.id]);
@@ -36,7 +31,7 @@ export default function NoteCard({ note, user, isAdmin, onDelete, currentUserNam
     setIsSubmitting(true);
     try {
       const commentId = `comment_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-      await firestoreService.setDocument(`notes/${note.id}/comments`, commentId, {
+      await firestoreService.setDocument(`note_comments_${note.id}`, commentId, {
         id: commentId,
         text: newComment,
         authorId: user.uid,
