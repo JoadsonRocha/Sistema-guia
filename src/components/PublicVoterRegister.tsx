@@ -737,7 +737,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
 
                       <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-4 space-y-3">
                         <p className="text-[11px] text-zinc-700 font-medium leading-relaxed">
-                          Em conformidade com a <strong>LGPD (Lei nº 13.709/2018)</strong>, autorizo o uso dos meus dados cadastrais exclusivamente para relacionamento cívico e ações de engajamento do projeto <strong>{candidateInfo.name}</strong>.
+                          Em conformidade com a <strong>LGPD (Lei nº 13.709/2018)</strong>, autorizo o uso dos meus dados cadastrais exclusivamente para relacionamento cívico e comunicações da campanha de <strong>{candidateInfo.name}</strong>.
                         </p>
 
                         <label className="flex items-start gap-3 cursor-pointer select-none pt-1">
@@ -748,8 +748,8 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                             onChange={e => setAcceptedLgpd(e.target.checked)}
                             className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-blue-600 cursor-pointer accent-blue-600 shrink-0"
                           />
-                          <span className="text-xs text-zinc-900 font-bold leading-tight">
-                            Autorizo o tratamento dos meus dados conforme os termos expostos acima. *
+                          <span className="text-[11px] text-zinc-800 font-bold leading-tight">
+                            Li e concordo com a <a href="/download/arquitetura-doc" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-extrabold hover:text-blue-800">Política de Privacidade e Proteção de Dados (LGPD)</a>. *
                           </span>
                         </label>
                       </div>
