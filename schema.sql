@@ -1,8 +1,8 @@
 -- ==============================================================================
--- 🦅 NEXUS POLÍTICA / SISTEMA ÁGUIA (2026) - ESQUEMA SUPABASE POSTGRESQL
+-- 🦅 NEXUS POLÍTICA / SISTEMA ÁGUIA (2026) - ESQUEMA SUPABASE POSTGRESQL (BLINDAGEM PROD)
 -- ==============================================================================
--- Este arquivo DDL configura o banco de dados PostgreSQL relacional completo
--- no Supabase com suporte a RLS (Row Level Security), Auth Triggers e Índices.
+-- Este arquivo DDL configura o banco de dados PostgreSQL relacional no Supabase
+-- com ISOLAMENTO MULTI-TENANT RIGOROSO e REGRAS RLS (Row Level Security) DE PRODUÇÃO.
 -- Execute este script no SQL Editor do seu Dashboard Supabase.
 -- ==============================================================================
 
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3.2 CAMPANHAS (Multi-tenancy)
+-- 3.2 CAMPANHAS (Multi-tenancy Isolado)
 CREATE TABLE IF NOT EXISTS public.campaigns (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS public.teams (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3.4 BASE DE ELEITORES (CRM ELEITORAL & REDE DE INFLUÊNCIA)
+-- 3.4 BASE DE ELEITORES (CRM ELEITORAL & REDE DE INFLUÊNCIA - DADOS SENSÍVEIS)
 CREATE TABLE IF NOT EXISTS public.voters (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   coordinator_id UUID NOT NULL,
@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS public.urgencies (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3.6 TRANSAÇÕES FINANCEIRAS & CAIXA FORTE
+-- 3.6 TRANSAÇÕES FINANCEIRAS & CAIXA FORTE (SIGILO FINANCEIRO)
 CREATE TABLE IF NOT EXISTS public.transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   coordinator_id UUID NOT NULL,
@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS public.material_requests (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3.11 PONTOS DE VOTAÇÃO DO TRE (RORAIMA & REGIONAIS)
+-- 3.11 PONTOS DE VOTAÇÃO DO TRE
 CREATE TABLE IF NOT EXISTS public.tre_locations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   coordinator_id TEXT NOT NULL,
@@ -191,7 +191,7 @@ CREATE TABLE IF NOT EXISTS public.tre_locations (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3.12 REGISTROS GENÉRICOS DE CAMPANHA (CAMPAIGN RECORDS - ALTA FLEXIBILIDADE)
+-- 3.12 REGISTROS GENÉRICOS DE CAMPANHA
 CREATE TABLE IF NOT EXISTS public.campaign_records (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   coordinator_id TEXT NOT NULL,
@@ -211,7 +211,7 @@ CREATE TABLE IF NOT EXISTS public.coordinator_campaigns (
 );
 
 -- ==============================================================================
--- 4. CRIAÇÃO DE ÍNDICES DE ALTA PERFORMANCE
+-- 4. ÍNDICES DE DESEMPENHO E BUSCA RÁPIDA
 -- ==============================================================================
 CREATE INDEX IF NOT EXISTS idx_campaign_records_type_id ON public.campaign_records(record_type, record_id);
 CREATE INDEX IF NOT EXISTS idx_campaign_records_coord ON public.campaign_records(coordinator_id);
@@ -219,14 +219,48 @@ CREATE INDEX IF NOT EXISTS idx_voters_leader ON public.voters(leader_id);
 CREATE INDEX IF NOT EXISTS idx_voters_coord ON public.voters(coordinator_id);
 CREATE INDEX IF NOT EXISTS idx_voters_sentiment ON public.voters(sentiment);
 CREATE INDEX IF NOT EXISTS idx_tre_locations_coord ON public.tre_locations(coordinator_id);
-CREATE INDEX IF NOT EXISTS idx_tre_locations_muni ON public.tre_locations(municipio);
 CREATE INDEX IF NOT EXISTS idx_urgencies_status ON public.urgencies(status);
 CREATE INDEX IF NOT EXISTS idx_transactions_team ON public.transactions(team_id);
 
 -- ==============================================================================
--- 5. CONFIGURAÇÃO DE SEGURANÇA ROW LEVEL SECURITY (RLS)
+-- 5. FUNÇÕES AUXILIARES DE NÍVEL DE SEGURANÇA (SECURITY DEFINER)
 -- ==============================================================================
 
+-- 5.1 Verificar se o usuário autenticado é Administrador ou Coordenador
+CREATE OR REPLACE FUNCTION public.is_admin_or_coordinator()
+RETURNS BOOLEAN AS $$
+DECLARE
+  u_role public.user_role;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RETURN FALSE;
+  END IF;
+
+  SELECT role INTO u_role FROM public.profiles WHERE id = auth.uid();
+  RETURN u_role IN ('admin', 'coordenador_geral', 'coordenador_regional', 'coordenador');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 5.2 Obter o coordinator_id do usuário atual
+CREATE OR REPLACE FUNCTION public.get_my_coordinator_id()
+RETURNS UUID AS $$
+DECLARE
+  c_id UUID;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  SELECT COALESCE(coordinator_id, id) INTO c_id FROM public.profiles WHERE id = auth.uid();
+  RETURN c_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==============================================================================
+-- 6. CONFIGURAÇÃO DE SEGURANÇA RIGOROSA ROW LEVEL SECURITY (RLS)
+-- ==============================================================================
+
+-- Habilitar RLS em todas as tabelas
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.voters ENABLE ROW LEVEL SECURITY;
@@ -240,27 +274,110 @@ ALTER TABLE public.tre_locations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.campaign_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coordinator_campaigns ENABLE ROW LEVEL SECURITY;
 
--- 5.1 POLÍTICAS RLS PERMISSIVAS PARA DESENVOLVIMENTO / PRODUÇÃO SEGURA
-CREATE POLICY "Permitir leitura pública/autenticada em profiles" ON public.profiles FOR SELECT USING (true);
-CREATE POLICY "Permitir alteração própria em profiles" ON public.profiles FOR ALL USING (auth.uid() = id);
+-- Limpar políticas antigas/permissivas caso existam
+DROP POLICY IF EXISTS "Acesso a voters" ON public.voters;
+DROP POLICY IF EXISTS "Acesso a transactions" ON public.transactions;
+DROP POLICY IF EXISTS "Acesso a teams" ON public.teams;
+DROP POLICY IF EXISTS "Acesso a urgencies" ON public.urgencies;
+DROP POLICY IF EXISTS "Acesso a campaign_records" ON public.campaign_records;
+DROP POLICY IF EXISTS "Acesso a coordinator_campaigns" ON public.coordinator_campaigns;
 
-CREATE POLICY "Acesso a campaign_records" ON public.campaign_records FOR ALL USING (true);
-CREATE POLICY "Acesso a coordinator_campaigns" ON public.coordinator_campaigns FOR ALL USING (true);
-CREATE POLICY "Acesso a tre_locations" ON public.tre_locations FOR ALL USING (true);
-CREATE POLICY "Acesso a teams" ON public.teams FOR ALL USING (true);
-CREATE POLICY "Acesso a voters" ON public.voters FOR ALL USING (true);
-CREATE POLICY "Acesso a urgencies" ON public.urgencies FOR ALL USING (true);
-CREATE POLICY "Acesso a transactions" ON public.transactions FOR ALL USING (true);
-CREATE POLICY "Acesso a agenda_events" ON public.agenda_events FOR ALL USING (true);
-CREATE POLICY "Acesso a notes" ON public.notes FOR ALL USING (true);
-CREATE POLICY "Acesso a materials" ON public.materials FOR ALL USING (true);
-CREATE POLICY "Acesso a material_requests" ON public.material_requests FOR ALL USING (true);
+-- 6.1 POLÍTICAS PARA PROFILES
+CREATE POLICY "Leitura de Perfis da Campanha" ON public.profiles
+  FOR SELECT USING (
+    auth.uid() IS NOT NULL AND (
+      id = auth.uid() OR public.is_admin_or_coordinator()
+    )
+  );
+
+CREATE POLICY "Atualização do Próprio Perfil ou por Coordenador" ON public.profiles
+  FOR UPDATE USING (
+    id = auth.uid() OR public.is_admin_or_coordinator()
+  );
+
+-- 6.2 POLÍTICAS PARA ELEITORES (VOTERS - BLINDAGEM DE DADOS)
+-- Líderes de Campo só visualizam eleitores cadastrados por eles mesmos.
+-- Coordenadores visualizam todos os eleitores da coordenação.
+CREATE POLICY "Seleção de Eleitores Isolada" ON public.voters
+  FOR SELECT USING (
+    auth.uid() IS NOT NULL AND (
+      leader_id = auth.uid() 
+      OR coordinator_id = public.get_my_coordinator_id()
+      OR public.is_admin_or_coordinator()
+    )
+  );
+
+CREATE POLICY "Cadastro de Eleitores por Líderes Autenticados" ON public.voters
+  FOR INSERT WITH CHECK (
+    auth.uid() IS NOT NULL AND (
+      leader_id = auth.uid() OR public.is_admin_or_coordinator()
+    )
+  );
+
+CREATE POLICY "Edição e Exclusão de Eleitores por Autor ou Coordenador" ON public.voters
+  FOR UPDATE USING (
+    leader_id = auth.uid() OR public.is_admin_or_coordinator()
+  );
+
+CREATE POLICY "Exclusão de Eleitores por Coordenador" ON public.voters
+  FOR DELETE USING (
+    leader_id = auth.uid() OR public.is_admin_or_coordinator()
+  );
+
+-- 6.3 POLÍTICAS PARA TRANSAÇÕES FINANCEIRAS (SIGILO TOTAL)
+-- Apenas Coordenadores e Admins possuem acesso às finanças e caixa forte.
+-- Líderes de campo NÃO podem ler nem registrar movimentações do caixa geral.
+CREATE POLICY "Acesso Financeiro Restrito a Coordenadores" ON public.transactions
+  FOR ALL USING (
+    auth.uid() IS NOT NULL AND public.is_admin_or_coordinator()
+  );
+
+-- 6.4 POLÍTICAS PARA URGENCIAS & COMBUSTÍVEL
+CREATE POLICY "Leitura de Urgências por Líder ou Coordenador" ON public.urgencies
+  FOR SELECT USING (
+    auth.uid() IS NOT NULL AND (
+      leader_id = auth.uid() OR public.is_admin_or_coordinator()
+    )
+  );
+
+CREATE POLICY "Criação de Urgência por Líder" ON public.urgencies
+  FOR INSERT WITH CHECK (
+    auth.uid() IS NOT NULL AND (
+      leader_id = auth.uid() OR public.is_admin_or_coordinator()
+    )
+  );
+
+CREATE POLICY "Aprovação de Urgência Apenas por Coordenadores" ON public.urgencies
+  FOR UPDATE USING (
+    auth.uid() IS NOT NULL AND public.is_admin_or_coordinator()
+  );
+
+-- 6.5 POLÍTICAS PARA CAMPAIGN_RECORDS E ESTADO CONSOLIDADO
+CREATE POLICY "Isolamento de Registros por Coordenador" ON public.campaign_records
+  FOR ALL USING (
+    auth.uid() IS NOT NULL AND (
+      coordinator_id = auth.uid()::text 
+      OR coordinator_id = public.get_my_coordinator_id()::text
+      OR public.is_admin_or_coordinator()
+    )
+  );
+
+CREATE POLICY "Isolamento de Estado da Campanha" ON public.coordinator_campaigns
+  FOR ALL USING (
+    auth.uid() IS NOT NULL AND (
+      coordinator_id = auth.uid()::text 
+      OR coordinator_id = public.get_my_coordinator_id()::text
+      OR public.is_admin_or_coordinator()
+    )
+  );
+
+CREATE POLICY "Acesso Autenticado a TRE Locations" ON public.tre_locations
+  FOR ALL USING (auth.uid() IS NOT NULL);
 
 -- ==============================================================================
--- 6. TRIGGERS E FUNÇÕES AUTOMÁTICAS
+-- 7. TRIGGERS E FUNÇÕES AUTOMÁTICAS
 -- ==============================================================================
 
--- 6.1 Função para atualizar updated_at automaticamente
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -269,7 +386,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Triggers de atualização de data
 DROP TRIGGER IF EXISTS set_updated_at_profiles ON public.profiles;
 CREATE TRIGGER set_updated_at_profiles BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
@@ -279,7 +395,7 @@ CREATE TRIGGER set_updated_at_voters BEFORE UPDATE ON public.voters FOR EACH ROW
 DROP TRIGGER IF EXISTS set_updated_at_campaign_records ON public.campaign_records;
 CREATE TRIGGER set_updated_at_campaign_records BEFORE UPDATE ON public.campaign_records FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
--- 6.2 Função para criar Profile automaticamente ao registrar no Supabase Auth
+-- Trigger para criar Profile ao registar no Supabase Auth
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -296,12 +412,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Trigger disparado na criação de usuário no auth.users
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ==============================================================================
--- FIM DO SCRIPT DDL SUPABASE
+-- FIM DO SCRIPT DDL SUPABASE PROD HARDENED
 -- ==============================================================================

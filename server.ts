@@ -8,6 +8,38 @@ const PORT = 3000;
 
 const DEFAULT_PHOTO = 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=600';
 
+// ==============================================================================
+// MIDDLEWARE DE SEGURANÇA HTTP & HARDENING (HELMET & CORS STRICTIONS)
+// ==============================================================================
+app.use((req, res, next) => {
+  // Cabeçalhos de Proteção HTTP
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'geolocation=(self), camera=(self), microphone=(self)');
+  
+  // Configuração estrita de CORS
+  const allowedOrigins = [
+    'https://www.nexuspolitica.com.br',
+    'https://nexuspolitica.com.br',
+    `http://localhost:${PORT}`,
+    `http://127.0.0.1:${PORT}`
+  ];
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
+  next();
+});
+
 async function fetchCandidateInfoServer(coordId?: string): Promise<{ name: string; title: string; photoUrl: string }> {
   return {
     name: 'Nosso Candidato',
@@ -30,9 +62,16 @@ async function startServer() {
     console.error('Failed to create Vite server in middlewareMode:', err);
   }
 
-  // API route to force download of the .doc document
+  // Rota com sanitização contra Path Traversal
   app.get('/download/arquitetura-doc', (req, res) => {
-    const filePath = path.join(process.cwd(), 'public', 'ARQUITETURA_E_REQUISITOS_NEXUS_POLITICA.doc');
+    const publicDir = path.resolve(process.cwd(), 'public');
+    const filePath = path.resolve(publicDir, 'ARQUITETURA_E_REQUISITOS_NEXUS_POLITICA.doc');
+
+    // Validação estrita de Path Traversal
+    if (!filePath.startsWith(publicDir)) {
+      return res.status(403).send('Acesso negado');
+    }
+
     if (fs.existsSync(filePath)) {
       res.setHeader('Content-Type', 'application/msword; charset=utf-8');
       res.setHeader('Content-Disposition', 'attachment; filename="ARQUITETURA_E_REQUISITOS_NEXUS_POLITICA.doc"');
@@ -43,14 +82,14 @@ async function startServer() {
 
   // HTML Intercept Middleware for Open Graph / WhatsApp Preview
   app.use((req, res, next) => {
-    // Handle async logic cleanly to avoid unhandled rejections in Express
     (async () => {
       if (req.method !== 'GET') return next();
 
-      // Check if file exists in public directory or dist directory
+      // Path traversal check on static routes
       if (req.path !== '/' && req.path !== '/index.html') {
-        const publicFile = path.join(process.cwd(), 'public', req.path);
-        if (fs.existsSync(publicFile) && fs.statSync(publicFile).isFile()) {
+        const publicDir = path.resolve(process.cwd(), 'public');
+        const publicFile = path.resolve(publicDir, req.path.replace(/^\/+/, ''));
+        if (publicFile.startsWith(publicDir) && fs.existsSync(publicFile) && fs.statSync(publicFile).isFile()) {
           return next();
         }
       }
@@ -119,4 +158,3 @@ async function startServer() {
 startServer().catch((err) => {
   console.error('Fatal server start error:', err);
 });
-
