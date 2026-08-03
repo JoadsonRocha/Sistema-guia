@@ -9,6 +9,7 @@ import { DocDownloadModal } from './components/DocDownloadModal';
 import { downloadRequirementsDoc } from './utils/docGenerator';
 import { safeLocalStorage } from './utils/safeStorage';
 import { validateGeneralCoordinatorRegistration, triggerUpgradeRedirect } from './lib/planService';
+import { OfflineSyncBar } from './components/OfflineSyncBar';
 import logoImg from './assets/logo.png';
 
 // Lazy loading heavy components to optimize initial page load speed
@@ -631,6 +632,9 @@ export default function App() {
           />
         )}
       </Suspense>
+
+      {/* Connectivity & Offline Sync Status Bar */}
+      <OfflineSyncBar coordinatorId={user?.uid} />
     </div>
   );
 }
