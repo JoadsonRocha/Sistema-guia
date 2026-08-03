@@ -13,7 +13,7 @@ O **Nexus Política / Sistema Águia** é uma solução web de alta relevância 
 
 Após uma varredura completa no site em produção (`https://www.nexuspolitica.com.br/`) e no código-fonte local (`Sistema-guia`), identificamos um ecossistema com **excelente proposta de valor funcional e riqueza de recursos**, porém apresentando **vulnerabilidades críticas de segurança no banco de dados**, **gargalos de manutenibilidade por arquivos monolíticos** e **oportunidades decisivas de otimização para usabilidade mobile em zonas de sombra de sinal**.
 
-Este documento apresenta o diagnóstico detalhado divididos em 4 eixos principais, seguidos por um **Plano Estratégico de Implementação em 4 Fases**.
+Este documento apresenta o diagnóstico detalhado divididos em 5 eixos principais, seguidos por um **Plano Estratégico de Implementação em 4 Fases** e a **Especificação de Arquitetura Target Enterprise**.
 
 ---
 
@@ -89,7 +89,105 @@ Este documento apresenta o diagnóstico detalhado divididos em 4 eixos principai
 
 ---
 
-## 🎯 4. PLANO ESTRATÉGICO DE IMPLEMENTAÇÃO (ROADMAP BEST-PRACTICES)
+## 🏛️ 4. ARQUITETURA TARGET RECOMENDADA (ENTERPRISE ECOSYSTEM)
+
+Para garantir **escalabilidade comercial como SaaS**, **segurança absoluta LGPD**, **alta disponibilidade** e **inteligência artificial avançada**, especificamos detalhadamente a stack recomendada para o Nexus Política:
+
+```mermaid
+graph TD
+    User["Usuário / Cabo de Campo (Navegador/PWA)"] --> Cloudflare["Cloudflare (WAF / DNS / CDN / SSL)"]
+    Cloudflare --> Vercel["Vercel / Cloudflare Pages (Frontend React 19 / Vite)"]
+    Cloudflare --> Railway["Railway (Backend API Node.js / Express / BullMQ)"]
+    
+    Railway --> Supabase["Supabase (PostgreSQL / RLS / Auth / Storage / Realtime)"]
+    Railway --> Gemini["Google Gemini API (Inteligência Artificial Política)"]
+    Railway --> Resend["Resend (E-mails Transacionais & Notificações)"]
+    Railway --> Stripe["Stripe (Cobrança SaaS & Assinaturas)"]
+    Railway --> Evolution["Evolution API / Z-API (Disparo de WhatsApp)"]
+    Railway --> Upstash["Upstash Redis (Rate Limiting & Cache)"]
+    
+    Vercel --> PostHog["PostHog (Product Analytics / Session Replay / LGPD)"]
+    Railway --> Sentry["Sentry (Monitoramento de Erros & APM)"]
+    Admin["Equipe Comercial Nexus"] --> Zoho["Zoho Suite (Zoho Mail & Zoho CRM/Desk)"]
+```
+
+---
+
+### 🔬 Detalhamento dos Componentes da Arquitetura Recomendada
+
+#### 1. 🚂 Railway (Hospedagem de Backend & Microsserviços)
+*   **Função:** Plataforma Cloud PaaS moderna para hospedar o servidor backend Node.js/Express, tarefas agendadas (Cron Jobs) e filas de processamento em segundo plano (BullMQ).
+*   **Por que utilizar:**
+    *   Deploy automático com integração nativa ao GitHub (CI/CD).
+    *   Ambiente isolado e seguro para execução de chaves privadas (Stripe, Gemini API, Resend).
+    *   Escalabilidade horizontal simples para suportar picos de tráfego no "Dia D" da eleição.
+    *   Custos previsíveis e métricas integradas sem a complexidade excessiva da AWS.
+
+#### 2. ⚡ Supabase (Banco de Dados Principal, Auth, RLS & Storage)
+*   **Função:** Atuar como o **Single Source of Truth** (Banco de Dados Primário Relacional PostgreSQL).
+*   **Por que utilizar (Substituindo/Evoluindo o Firestore):**
+    *   **Row Level Security (RLS) Nativo:** Regras de segurança executadas diretamente no banco de dados. Um líder de campo jamais conseguirá acessar dados de outra equipe, pois a trava ocorre a nível de SQL no banco.
+    *   **Supabase Auth:** Autenticação robusta com suporte a JWT, Magic Links, Google OAuth, 2FA e Roles nativas (`admin`, `coordenador`, `cabo`).
+    *   **Supabase Storage:** Armazenamento seguro de fotos de títulos de eleitor e comprovantes de ponto com URLs assinadas temporárias (acesso privado restrito).
+    *   **Realtime Subscriptions:** Atualização instantânea dos dashboards do Coordenador via WebSockets sempre que uma liderança grava uma nova informação no campo.
+
+#### 3. 📧 Resend (Email Transacional & Notificações de Alta Entregabilidade)
+*   **Função:** Envio de e-mails transacionais (convites para novos coordenadores/líderes, redefinição de senha, recibos de prestação de contas e relatórios semanais de desempenho).
+*   **Por que utilizar:**
+    *   Entregabilidade de elite (evita que e-mails da campanha caiam na caixa de SPAM).
+    *   Desenvolvimento de templates modernos usando React (`@react-email/components`).
+    *   Autenticação completa de domínio (DKIM/SPF) no domínio `nexuspolitica.com.br`.
+
+#### 4. 🦔 PostHog (Product Analytics & Product Intelligence com LGPD)
+*   **Função:** Telemetria da aplicação, análise de uso por funcionalidade, gravação de sessões (*Session Replay*) e *Feature Flags*.
+*   **Por que utilizar:**
+    *   Permite entender exatamente onde os cabos eleitorais estão encontrando dificuldades na interface mobile.
+    *   **Modo de Mascaramento LGPD:** O PostHog oculta automaticamente campos de PII (senhas, nomes, CPF, dados de eleitores) nas gravações de tela.
+    *   **Feature Flags:** Permite liberar novas funcionalidades (como o módulo de IA) gradualmente para determinadas equipes antes da liberação geral.
+
+#### 5. 💼 Zoho Suite (Comunicação Corporativa & Gestão de Clientes B2B)
+*   **Função:**
+    *   **Zoho Mail:** Contas de e-mail corporativo profissional (`contato@nexuspolitica.com.br`, `suporte@nexuspolitica.com.br`).
+    *   **Zoho CRM / Zoho Desk:** Gestão de vendas do software Nexus para campanhas, controle de contratos e canal de suporte técnico oficial para os coordenadores de campanha.
+
+#### 6. 🛡️ Cloudflare (Edge Security, WAF, DNS & CDN)
+*   **Função:** Primeira camada de defesa, aceleração e proteção do domínio `nexuspolitica.com.br`.
+*   **Por que utilizar:**
+    *   **WAF (Web Application Firewall):** Proteção contra ataques DDoS, botnets, tentativas de SQL Injection e força bruta no login.
+    *   **CDN & Caching na Borda:** Entrega do bundle estático com latência mínima, crucial para conexões instáveis no interior dos estados.
+    *   **SSL/TLS Automático & DNS de Baixíssima Latência.**
+
+#### 7. 💳 Stripe (Gestão de Assinaturas & Cobrança SaaS)
+*   **Função:** Processamento de pagamentos e faturamento recorrente para a venda do Nexus Política como plataforma SaaS para candidatos e partidos.
+*   **Por que utilizar:**
+    *   Estruturação de planos por porte da campanha (ex: Plano Vereador, Plano Prefeito, Plano Deputado) com limites configuráveis de eleitores e usuários.
+    *   Checkout transparente com suporte a Cartão de Crédito e PIX.
+    *   Tratamento automatizado de webhooks no backend (Railway) para liberação/bloqueio automático de acesso.
+
+#### 8. 🧠 Google Gemini API (Inteligência Artificial Política no Backend)
+*   **Função:** Motor de Inteligência Artificial para análise estratégica e automação de relatórios.
+*   **Por que utilizar:**
+    *   **Transcrição & Estruturação de Áudios de Campo:** Converte relatórios de voz informais enviados pelos cabos em notas táticas organizadas.
+    *   **Briefings Automáticos de Palanque:** Gera resumos para o candidato sobre o que falar e o que evitar antes de entrar em cada município.
+    *   **Detecção Preditiva de Crises:** Analisa relatos de ouvidoria para categorizar riscos e alertar a coordenação central.
+    *   *Diretriz de Segurança:* A chave de API do Gemini fica **100% protegida no Railway** (Server-Side), sem risco de vazamento no navegador do usuário.
+
+---
+
+### 🛠️ 5. SERVIÇOS ADICIONAIS RECOMENDADOS (COMPLEMENTOS ESSENCIAIS)
+
+Para fechar todas as lacunas operacionais do sistema, recomendamos integrar também:
+
+1. **Evolution API / Z-API (Gateway de WhatsApp):**
+   *   *Finalidade:* Envio de notificações automáticas via WhatsApp para os líderes de campo (avisos de reuniões, ordem do dia, aprovação de combustível).
+2. **Upstash Redis (Rate-Limiting & Caching de Alta Performance):**
+   *   *Finalidade:* Proteção contra abusos no formulário público de cadastro de eleitores (Rate Limiting de IPs) e gerenciamento de filas de tarefas assíncronas.
+3. **Sentry (Monitoramento de Erros & APM em Tempo Real):**
+   *   *Finalidade:* Captura instantânea de crashes de JavaScript nos celulares dos cabos e erros não tratados no servidor Node.js.
+
+---
+
+## 🎯 6. PLANO ESTRATÉGICO DE IMPLEMENTAÇÃO (ROADMAP BEST-PRACTICES)
 
 Para transformar o **Nexus Política / Sistema Águia** em uma plataforma de nível enterprise, ultra segura, rápida e em conformidade total com a legislação, propomos o roadmap abaixo:
 
@@ -97,7 +195,7 @@ Para transformar o **Nexus Política / Sistema Águia** em uma plataforma de ní
 graph TD
     A["Fase 1: Hardening de Segurança & LGPD"] --> B["Fase 2: Refatoração Modular & Desempenho"]
     B --> C["Fase 3: UX de Campo & Offline-First Total"]
-    C --> D["Fase 4: Backend Seguro & Multi-tenancy"]
+    C --> D["Fase 4: Migração Target (Railway + Supabase + APIs)"]
 ```
 
 ---
@@ -117,7 +215,7 @@ graph TD
    * **Regra para Financeiro / Transações:** Somente usuários com `role == 'admin'` ou `'coordenador'` possuem permissão de escrita e leitura de extratos globais.
 
 2. **Sanitização de Cadastro Público (`PublicVoterRegister.tsx`):**
-   * Desvincular a criação direta no Firestore. Os cadastros públicos devem passar por uma Cloud Function ou rota de backend com **reCAPTCHA v3** e validação estrita de esquemas antes de gravar no banco.
+   * Desvincular a criação direta no Firestore. Os cadastros públicos devem passar por uma rota de backend com **reCAPTCHA v3 / Upstash Rate-Limit** e validação estrita de esquemas antes de gravar no banco.
 
 3. **Headers de Proteção em `server.ts`:**
    * Adicionar o middleware `helmet` e configurar restrições de CORS para responder estritamente ao domínio oficial `https://www.nexuspolitica.com.br`.
@@ -143,7 +241,7 @@ graph TD
      ```
 
 3. **Centralização de Estado com Zustand:**
-   * Criar `useCampaignStore` para armazenar perfil do candidato, métricas globais e estado da conexão sem redundância de listeners no Firestore.
+   * Criar `useCampaignStore` para armazenar perfil do candidato, métricas globais e estado da conexão sem redundância de listeners.
 
 ---
 
@@ -160,23 +258,24 @@ graph TD
 
 ---
 
-### 🚀 FASE 4: EXPANSÃO BACKEND & MULTI-TENANCY DE CAMPANHAS
+### 🚀 FASE 4: MIGRAÇÃO TARGET (RAILWAY + SUPABASE + ECOSSISTEMA APIS)
 
-1. **Arquitetura Multi-Tenant Real:**
-   * Estruturar todas as coleções do Firestore/Supabase sob o identificador da campanha (`/campaigns/{campaignId}/voters`, `/campaigns/{campaignId}/teams`), permitindo isolamento total entre diferentes candidatos que contratarem a plataforma Nexus.
-
-2. **Webhooks e Backend Seguro para Integrações Externas:**
-   * Mover chamadas de API do Asaas (Pagamentos) e WhatsApp (Z-API/Evolution) para rotas seguras do servidor Node, evitando a exposição de Tokens Secretos no navegador do cliente.
+1. **Migração do Firestore para Supabase (PostgreSQL + RLS):**
+   * Migrar esquema de banco de dados no Supabase com tabelas relacionais, FKs e políticas RLS estritas.
+2. **Deploy do Server em Railway com WAF Cloudflare:**
+   * Conectar o repositório ao Railway para hospedagem da API Node.js e orquestração de webhooks.
+3. **Integração das APIs de Suporte (Stripe, Resend, Gemini, Evolution, PostHog, Sentry):**
+   * Configuração das chaves de API com isolamento de ambiente no Railway.
 
 ---
 
 ## 📌 CONCLUSÃO & PRÓXIMOS PASSOS
 
-O **Nexus Política / Sistema Águia** possui um design funcional sofisticado e atende com precisão às necessidades de campanhas modernas. A implementação deste plano estratégico corrigirá as vulnerabilidades de segurança existentes no Firestore e elevará a performance da aplicação para suportar milhares de cadastros simultâneos no Dia D.
+O **Nexus Política / Sistema Águia** possui um design funcional sofisticado e atende com precisão às necessidades de campanhas modernas. A adoção da stack recomendada (**Railway + Supabase + Resend + PostHog + Zoho + Cloudflare + Stripe + Gemini API**) posicionará a plataforma como referência absoluta em **segurança, escalabilidade e inteligência política no Brasil**.
 
-### Recomendação de Execução Imadiata:
-1. Aprovar o plano de hardening de segurança.
-2. Aplicar a atualização de `firestore.rules` no ambiente de Firebase.
+### Recomendação de Execução Imediata:
+1. Aprovar o plano de hardening de segurança (Fase 1).
+2. Aplicar a atualização emergencial em `firestore.rules`.
 3. Iniciar a refatoração modular do `CoordinatorDashboard.tsx`.
 
 ---
