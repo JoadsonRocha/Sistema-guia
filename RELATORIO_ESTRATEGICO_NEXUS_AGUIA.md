@@ -13,26 +13,24 @@ O **Nexus Política / Sistema Águia** é uma solução web de alta relevância 
 
 Após uma varredura completa no site em produção (`https://www.nexuspolitica.com.br/`) e no código-fonte local (`Sistema-guia`), identificamos um ecossistema com **excelente proposta de valor funcional e riqueza de recursos**, porém apresentando **vulnerabilidades críticas de segurança no banco de dados**, **gargalos de manutenibilidade por arquivos monolíticos** e **oportunidades decisivas de otimização para usabilidade mobile em zonas de sombra de sinal**.
 
-Este documento apresenta o diagnóstico detalhado divididos em eixos estratégicos, seguidos por uma **Proposta de Naming & Posicionamento de Marca**, **Plano Estratégico de Implementação em 4 Fases** e a **Especificação de Arquitetura Target Enterprise**.
+Este documento apresenta o diagnóstico detalhado divididos em eixos estratégicos, seguidos por uma **Proposta de Naming com Foco Político Puro**, **Plano Estratégico de Implementação em 4 Fases** e a **Especificação de Arquitetura Target Enterprise**.
 
 ---
 
-## 🏛️ 1. RECOMENDAÇÃO DE NOMING & POSICIONAMENTO ESTRATÉGICO DE MARCA
+## 🏛️ 1. RECOMENDAÇÃO DE NAMING COM FOCO POLÍTICO PURO & URNA
 
-Para elevar a percepção de valor do software junto a grandes campanhas (Majoritárias, Governo, Senado, Prefeituras de Capitais e Deputados), apresentamos 5 opções estratégicas de nome e posicionamento para substituir ou evoluir as marcas "Nexus Política" / "Sistema Águia":
+Para campanhas eleitorais, partidos e consultores políticos no Brasil, a marca precisa comunicar **imediatamente** poder eleitoral, conquista de votos, organização de base e vitória nas urnas. Apresentamos 8 nomes com foco político direto:
 
-| # | Nome Sugerido | Posicionamento & Conceito | Slogan Estratégico | Perfil de Campanha Alvo |
+| # | Nome Sugerido | Conceito & Apelo Político | Slogan Estratégico | Perfil de Aplicação |
 | :--- | :--- | :--- | :--- | :--- |
-| **1** | **VANGUARDA POLÍTICA** *(Vanguard Political)* | Transmite liderança, estar à frente das pesquisas, visão de futuro e comando soberano da eleição. | *"A tecnologia que lidera a vitória."* | Majoritárias (Governo, Senado, Prefeituras de Grandes Capitais) |
-| **2** | **ÁGORA INTELLIGENCE** *(ou Ágora Político)* | Inspirado na Ágora da Grécia Antiga (o centro de decisões e debate cívico). Combina tradição política e dados. | *"Decisão, inteligência e mobilização no centro do comando."* | Campanhas de Alta Performance e Consultorias Políticas |
-| **3** | **STRATOS ELEITORAL** *(Stratos Gov)* | Remete à visão de cima ("Visão do General"), inteligência territorial geoespacial e altitude tática. | *"Visão estratégica total: do terreno à decisão."* | Coordenações Regionais e Articulação Política de Campo |
-| **4** | **PULSO POLÍTICO** | Foco na capacidade de ouvir a rua em tempo real, captar o sentimento do eleitorado e agir rápido em crises. | *"Sinta o pulso da rua. Decida com precisão."* | Campanhas de Rua, Ouvidoria Ativa e Mobilização de Base |
-| **5** | **VETOR POLÍTICA** *(Vector Political)* | Foco na aceleração de votos, direcionamento de forças e precisão matemática de conversão de apoio. | *"A direção exata para a vitória eleitoral."* | Campanhas focadas em Metas de Conversão e CRM Eleitoral |
-
-### 💡 Recomendação de Evolução da Marca Atual:
-If o objetivo for manter a força e o domínio atual (`nexuspolitica.com.br`):
-*   **NEXUS VANGUARDA:** Evolui a marca Nexus associando-a à vanguarda tecnológica.
-*   **ÁGUIA STRATEGIC (ou Águia Intelligence):** Transforma o codinome de projeto "Sistema Águia" em uma marca comercial robusta com forte apelo visual de visão de raio-x e autoridade.
+| **1** | **GABINETE DE GUERRA** *(War Room)* | Conceito consagrado no marketing político para o centro de comando de campanha que reage em tempo real. | *"O centro de comando da sua vitória."* | Campanhas de Alto Impacto (Governo, Prefeitura, Senado) |
+| **2** | **COMANDO ELEITORAL** | Transmite hierarquia tática, controle absoluto das lideranças de campo e ordem de mobilização. | *"Inteligência de campo e controle total da eleição."* | Coordenação Geral de Campanha e Grandes Coligações |
+| **3** | **PLEITO INTELLIGENCE** | *"Pleito"* é o termo jurídico-político oficial para a eleição nas urnas. Passa sofisticação e autoridade. | *"Dados e estratégia para dominar o pleito."* | Consultorias Políticas, Marqueteiros e Analistas |
+| **4** | **MANDATO 360** | Conecta diretamente a campanha ao objetivo final: a conquista e a gestão do Mandato Político. | *"Da campanha à gestão do mandato."* | Deputados, Prefeitos e Vereadores (Campanha + Mandato) |
+| **5** | **VOTO & BASE** | Termo direto e focado no core da política de rua: cadastrar a base e converter em votos no Dia D. | *"Organize sua base. Garanta cada voto."* | Operações de Campo, Cabos Eleitorais e Mobilização |
+| **6** | **PALANQUE DIGITAL** | Remete ao principal símbolo da política brasileira (o palanque), modernizado com tecnologia de ponta. | *"A força da sua militância no ambiente digital."* | Comunicação de Campanha, Redes e Disparo de Lideranças |
+| **7** | **URNA CERTA** | Comunica precisão matemática no resultado final. Focado em auditoria de votos e metas por seção. | *"A precisão dos números rumo às urnas."* | Inteligência Geoeleitoral e Fiscalização de Dia D |
+| **8** | **SOBERANA POLÍTICA** | Transmite imponência, força política incontestável e domínio territorial completo da base. | *"A plataforma soberana para grandes campanhas."* | Grandes Partidos, Coligações Majoritárias e Governo |
 
 ---
 
@@ -201,7 +199,7 @@ graph TD
 
 ## 📌 CONCLUSÃO & PRÓXIMOS PASSOS
 
-O software possui um diferencial estratégico massivo. Com a definição de uma **nomenclatura de alto nível**, **hardening imediato no banco** e migração para a **Stack Enterprise recomendada**, a plataforma se tornará um produto dominante no mercado de inteligência política.
+O software possui um diferencial estratégico massivo. Com a definição de uma **nomenclatura com apelo político direto**, **hardening imediato no banco** e migração para a **Stack Enterprise recomendada**, a plataforma se tornará um produto dominante no mercado de inteligência política.
 
 ---
 *Relatório gerado automaticamente para a liderança estratégica.*
