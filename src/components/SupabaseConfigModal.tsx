@@ -36,6 +36,8 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({ isOpen
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSupabaseCredentials(url, anonKey);
+    const creds = getSupabaseCredentials();
+    setUrl(creds.url);
     await testConn();
     if (onConnected) onConnected();
   };

@@ -3,14 +3,25 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 const LOCAL_STORAGE_URL_KEY = 'nexus_supabase_url';
 const LOCAL_STORAGE_KEY_KEY = 'nexus_supabase_anon_key';
 
+export function sanitizeSupabaseUrl(rawUrl: string): string {
+  if (!rawUrl) return '';
+  let cleaned = rawUrl.trim();
+  cleaned = cleaned.replace(/\/rest\/v1\/?.*$/i, '');
+  cleaned = cleaned.replace(/\/auth\/v1\/?.*$/i, '');
+  cleaned = cleaned.replace(/\/+$/, '');
+  return cleaned;
+}
+
 export function getSupabaseCredentials(): { url: string; anonKey: string } {
-  const url = (import.meta as any).env?.VITE_SUPABASE_URL || localStorage.getItem(LOCAL_STORAGE_URL_KEY) || '';
-  const anonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || localStorage.getItem(LOCAL_STORAGE_KEY_KEY) || '';
+  const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || localStorage.getItem(LOCAL_STORAGE_URL_KEY) || '';
+  const url = sanitizeSupabaseUrl(rawUrl);
+  const anonKey = ((import.meta as any).env?.VITE_SUPABASE_ANON_KEY || localStorage.getItem(LOCAL_STORAGE_KEY_KEY) || '').trim();
   return { url, anonKey };
 }
 
 export function setSupabaseCredentials(url: string, anonKey: string): void {
-  if (url) localStorage.setItem(LOCAL_STORAGE_URL_KEY, url.trim());
+  const cleanUrl = sanitizeSupabaseUrl(url);
+  if (cleanUrl) localStorage.setItem(LOCAL_STORAGE_URL_KEY, cleanUrl);
   else localStorage.removeItem(LOCAL_STORAGE_URL_KEY);
 
   if (anonKey) localStorage.setItem(LOCAL_STORAGE_KEY_KEY, anonKey.trim());
