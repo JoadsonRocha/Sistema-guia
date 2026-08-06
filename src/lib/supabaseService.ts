@@ -318,7 +318,7 @@ export const supabaseDataService = {
   },
 
   async updateDocument(path: string, id: string, data: any) {
-    const existing = (await this.getDocument<any>(path, id)) || {};
+    const existing = (await this.getDocument(path, id)) || {};
     const updated = { ...existing, ...data };
     await this.setDocument(path, id, updated, true);
   },
@@ -351,7 +351,7 @@ export const supabaseDataService = {
   },
 
   subscribeToCollection<T>(path: string, callback: (data: T[]) => void) {
-    this.getCollection<T>(path).then(callback);
+    (this as any).getCollection(path).then(callback);
 
     const client = getSupabaseClient();
     if (client) {
@@ -363,7 +363,7 @@ export const supabaseDataService = {
           table: 'campaign_records',
           filter: `record_type=eq.${path}`
         }, () => {
-          this.getCollection<T>(path).then(callback);
+          (this as any).getCollection(path).then(callback);
         })
         .subscribe();
 
@@ -376,7 +376,7 @@ export const supabaseDataService = {
   },
 
   subscribeToCollectionFiltered<T>(path: string, coordinatorId: string, callback: (data: T[]) => void) {
-    this.getCollectionFiltered<T>(path, coordinatorId).then(callback);
+    (this as any).getCollectionFiltered(path, coordinatorId).then(callback);
 
     const client = getSupabaseClient();
     if (client) {
@@ -388,7 +388,7 @@ export const supabaseDataService = {
           table: 'campaign_records',
           filter: `record_type=eq.${path}`
         }, () => {
-          this.getCollectionFiltered<T>(path, coordinatorId).then(callback);
+          (this as any).getCollectionFiltered(path, coordinatorId).then(callback);
         })
         .subscribe();
 
@@ -427,5 +427,4 @@ export const supabaseDataService = {
   }
 };
 
-export const supabaseService = supabaseDataService;
 export const supabaseService = supabaseDataService;

@@ -4,7 +4,6 @@ import { useAuth } from '../lib/SupabaseProvider';
 import { setTreLocationsForCoordinator, clearTreLocationsCache, getAllTreLocations } from '../lib/treDataService';
 import { eleitoralStorage } from '../lib/eleitoralStorage';
 import { SupabaseConfigModal } from './SupabaseConfigModal';
-import { supabaseService } from '../lib/supabaseService';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
