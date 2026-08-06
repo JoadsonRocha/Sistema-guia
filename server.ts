@@ -1,10 +1,14 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
+
+dotenv.config();
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 const DEFAULT_PHOTO = 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=600';
 
@@ -52,7 +56,7 @@ async function startServer() {
   let vite: any;
 
   try {
-    if (process.env.NODE_ENV !== 'production') {
+    if (NODE_ENV !== 'production') {
       vite = await createViteServer({
         server: { middlewareMode: true },
         appType: 'spa',

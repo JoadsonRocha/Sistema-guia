@@ -13,9 +13,10 @@ export function sanitizeSupabaseUrl(rawUrl: string): string {
 }
 
 export function getSupabaseCredentials(): { url: string; anonKey: string } {
-  const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || localStorage.getItem(LOCAL_STORAGE_URL_KEY) || '';
+  const runtimeEnv = (globalThis as any)?.process?.env ?? {};
+  const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || runtimeEnv.VITE_SUPABASE_URL || localStorage.getItem(LOCAL_STORAGE_URL_KEY) || '';
   const url = sanitizeSupabaseUrl(rawUrl);
-  const anonKey = ((import.meta as any).env?.VITE_SUPABASE_ANON_KEY || localStorage.getItem(LOCAL_STORAGE_KEY_KEY) || '').trim();
+  const anonKey = ((import.meta as any).env?.VITE_SUPABASE_ANON_KEY || runtimeEnv.VITE_SUPABASE_ANON_KEY || localStorage.getItem(LOCAL_STORAGE_KEY_KEY) || '').trim();
   return { url, anonKey };
 }
 
