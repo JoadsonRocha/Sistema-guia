@@ -53,6 +53,7 @@ export default function App() {
     logout, 
     loading, 
     isAdmin, 
+    isLeader,
     forcePasswordChange, 
     changePassword, 
     resetPassword,
@@ -141,9 +142,9 @@ export default function App() {
   
   useEffect(() => {
     if (user) {
-      setView(isAdmin ? 'coord' : 'cabo');
+      setView(isAdmin || isLeader ? 'coord' : 'cabo');
     }
-  }, [user, isAdmin]);
+  }, [user, isAdmin, isLeader]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -626,7 +627,15 @@ export default function App() {
         onClose={() => setShowDocModal(false)}
       />
 
-      {/* Floating Quick Download Trigger */}
+      <div className="fixed top-4 right-4 z-40 flex items-center gap-2 rounded-full border border-[var(--border-color)] bg-[var(--bg-secondary)]/85 px-3 py-2 shadow-lg backdrop-blur">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600/10 text-blue-600">
+          <ShieldCheck className="h-4 w-4" />
+        </div>
+        <div className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-secondary)]">
+          {isLeader ? 'Área de líder' : 'Área protegida'}
+        </div>
+      </div>
+
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}

@@ -23,6 +23,7 @@ interface AuthContextType {
   role: UserRole | null;
   loading: boolean;
   forcePasswordChange: boolean;
+  sessionLocked: boolean;
   login: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   signupWithEmail: (email: string, pass: string, role: UserRole, extraData?: any) => Promise<void>;
@@ -290,12 +291,14 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    setSessionLocked(true);
     const supabase = getSupabaseClient();
     if (supabase) {
       await supabase.auth.signOut().catch(() => {});
     }
     localStorage.removeItem('nexus_auth_user');
     await syncUserProfile(null);
+    setSessionLocked(false);
   };
 
   const changePassword = async (newPass: string) => {
@@ -385,6 +388,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       user: effectiveUser, 
       role: effectiveRole, 
       loading: demoRole ? false : loading, 
+      sessionLocked,
       login, 
       loginWithEmail, 
       signupWithEmail, 
