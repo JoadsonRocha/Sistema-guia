@@ -2503,7 +2503,7 @@ export default function CoordinatorDashboard({
                       value={newDailyOrder}
                       onChange={(e) => setNewDailyOrder(e.target.value)}
                       placeholder="Digite a diretiva central para todas as equipes..."
-                      className="w-full bg-white/5 border border-white/10 rounded-sm p-4 text-xs font-bold text-white outline-none focus:border-blue-600 min-h-[120px] transition-colors"
+                      className="w-full bg-zinc-50 dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-sm p-4 text-xs font-bold text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none focus:border-blue-600 min-h-[120px] transition-colors"
                     />
                     <button 
                       onClick={handleUpdateDailyOrder}
