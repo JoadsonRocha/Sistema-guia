@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { firestoreService } from '../lib/firestoreService';
+import { supabaseService } from '../lib/supabaseService';
 import { Lock, Trash2, MessageSquare, Send } from 'lucide-react';
 
 interface NoteCardProps {
@@ -19,7 +19,7 @@ export default function NoteCard({ note, user, isAdmin, onDelete, currentUserNam
   const [showComments, setShowComments] = useState(false);
 
   useEffect(() => {
-    const unsub = firestoreService.subscribeToCollection<any>(`note_comments_${note.id}`, (data) => {
+    const unsub = supabaseService.subscribeToCollection<any>(`note_comments_${note.id}`, (data) => {
       setComments(data.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)));
     });
     return () => unsub();
@@ -31,7 +31,7 @@ export default function NoteCard({ note, user, isAdmin, onDelete, currentUserNam
     setIsSubmitting(true);
     try {
       const commentId = `comment_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-      await firestoreService.setDocument(`note_comments_${note.id}`, commentId, {
+      await supabaseService.setDocument(`note_comments_${note.id}`, commentId, {
         id: commentId,
         text: newComment,
         authorId: user.uid,

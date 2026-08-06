@@ -428,4 +428,4 @@ export const supabaseDataService = {
 };
 
 export const supabaseService = supabaseDataService;
-export const firestoreService = supabaseDataService;
+export const supabaseService = supabaseDataService;

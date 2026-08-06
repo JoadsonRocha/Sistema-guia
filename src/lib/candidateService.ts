@@ -1,4 +1,4 @@
-import { firestoreService } from './firestoreService';
+import { supabaseService } from './supabaseService';
 
 export interface CandidateInfo {
   name: string;
@@ -62,7 +62,7 @@ export const candidateService = {
   async getCandidateInfo(coordinatorId?: string): Promise<CandidateInfo> {
     try {
       if (coordinatorId) {
-        const docCoord = await firestoreService.getDocument<any>('settings', `candidate_${coordinatorId}`);
+        const docCoord = await supabaseService.getDocument<any>('settings', `candidate_${coordinatorId}`);
         if (docCoord) {
           const info = extractCandidateData(docCoord);
           setLocalCache(info);
@@ -70,7 +70,7 @@ export const candidateService = {
         }
       }
 
-      const docGlobal = await firestoreService.getDocument<any>('settings', 'candidate');
+      const docGlobal = await supabaseService.getDocument<any>('settings', 'candidate');
       if (docGlobal) {
         const info = extractCandidateData(docGlobal);
         setLocalCache(info);
@@ -95,14 +95,14 @@ export const candidateService = {
     setLocalCache(payload);
 
     try {
-      await firestoreService.setDocument('settings', 'candidate', payload, true);
+      await supabaseService.setDocument('settings', 'candidate', payload, true);
 
       if (coordinatorId) {
-        await firestoreService.setDocument('settings', `candidate_${coordinatorId}`, payload, true);
+        await supabaseService.setDocument('settings', `candidate_${coordinatorId}`, payload, true);
       }
 
       if (userId && userId !== coordinatorId) {
-        await firestoreService.setDocument('settings', `candidate_${userId}`, payload, true);
+        await supabaseService.setDocument('settings', `candidate_${userId}`, payload, true);
       }
     } catch (e) {
       console.error("Erro ao salvar dados do candidato no Supabase:", e);
@@ -113,7 +113,7 @@ export const candidateService = {
   subscribeCandidateInfo(callback: (info: CandidateInfo) => void, coordinatorId?: string) {
     this.getCandidateInfo(coordinatorId).then(callback);
 
-    const unsub = firestoreService.subscribeToCollection<any>('settings', () => {
+    const unsub = supabaseService.subscribeToCollection<any>('settings', () => {
       this.getCandidateInfo(coordinatorId).then(callback);
     });
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShoppingCart, LogOut, Crown, Shield, Users, Sparkles, FileText } from 'lucide-react';
-import { UserRole } from '../lib/FirebaseProvider';
+import { UserRole } from '../lib/SupabaseProvider';
 
 interface DemoHeaderBannerProps {
   activeRole: UserRole;

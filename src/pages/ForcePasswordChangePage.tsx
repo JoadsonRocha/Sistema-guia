@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Lock } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useAuth } from '../lib/FirebaseProvider';
+import { useAuth } from '../lib/SupabaseProvider';
 import { showToast } from '../components/GlobalToastHost';
 
 export function ForcePasswordChangePage() {

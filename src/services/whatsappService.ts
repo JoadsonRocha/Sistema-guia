@@ -1,4 +1,4 @@
-import { firestoreService } from '../lib/firestoreService';
+import { supabaseService } from '../lib/supabaseService';
 
 export interface WhatsAppMessagePayload {
   recipientPhone: string;
@@ -92,7 +92,7 @@ class WhatsAppService {
    */
   public async logDispatch(recipientName: string, phone: string, message: string) {
     try {
-      await firestoreService.addDocument('whatsapp_logs', {
+      await supabaseService.addDocument('whatsapp_logs', {
         recipientName,
         phone,
         message,

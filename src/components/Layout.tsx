@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { useAuth, UserRole } from '../lib/FirebaseProvider';
+import { useAuth, UserRole } from '../lib/SupabaseProvider';
 import { ShieldCheck, FileText } from 'lucide-react';
 import { motion } from 'motion/react';
 import { DemoHeaderBanner } from './DemoHeaderBanner';

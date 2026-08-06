@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../../lib/FirebaseProvider';
+import { useAuth } from '../../lib/SupabaseProvider';
 import { ComponentLoader } from './ProtectedRoute';
 
 export function PublicRoute() {

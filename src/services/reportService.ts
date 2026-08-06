@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import { firestoreService } from '../lib/firestoreService';
+import { supabaseService } from '../lib/supabaseService';
 import logoImg from '../assets/logo.png';
 
 export interface ReportConfig {
@@ -149,7 +149,7 @@ export const reportService = {
     // Save to History
     try {
       const reportId = `rep_${Date.now()}`;
-      await firestoreService.setDocument('reports', reportId, {
+      await supabaseService.setDocument('reports', reportId, {
         id: reportId,
         title: `${config.title} (PDF)`,
         type: config.type,
@@ -197,7 +197,7 @@ export const reportService = {
     // Save to History
     try {
       const reportId = `rep_${Date.now()}`;
-      await firestoreService.setDocument('reports', reportId, {
+      await supabaseService.setDocument('reports', reportId, {
         id: reportId,
         title: `${config.title} (Excel)`,
         type: config.type,

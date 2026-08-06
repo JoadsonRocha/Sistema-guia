@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import logoImg from '../assets/logo.png';
 import { TreLocationFields } from './TreLocationFields';
-import { firestoreService } from '../lib/firestoreService';
+import { supabaseService } from '../lib/supabaseService';
 import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO } from '../lib/candidateService';
 import { validateVoterRegistration, triggerUpgradeRedirect } from '../lib/planService';
 import { motion, AnimatePresence } from 'motion/react';
@@ -139,7 +139,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
 
         if (activeLeaderId) {
           // 1. Tentar carregar de 'users'
-          const userDoc = await firestoreService.getDocument<any>('users', activeLeaderId);
+          const userDoc = await supabaseService.getDocument<any>('users', activeLeaderId);
           if (userDoc) {
             const uData = userDoc;
             resolvedLeaderId = activeLeaderId;
@@ -149,7 +149,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
             resolvedTeamId = uData.teamId || '';
           } else {
             // Se não encontrou em users, tentar carregar como se fosse teamId da coleção 'teams'
-            const teamDoc = await firestoreService.getDocument<any>('teams', activeLeaderId);
+            const teamDoc = await supabaseService.getDocument<any>('teams', activeLeaderId);
             if (teamDoc) {
               const tData = teamDoc;
               resolvedTeamId = activeLeaderId;
@@ -157,7 +157,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
               resolvedTeamName = tData.name || 'Base';
               resolvedCoordinatorId = tData.coordinatorId || '';
               
-              const users = await firestoreService.getCollection<any>('users');
+              const users = await supabaseService.getCollection<any>('users');
               const foundUser = users.find(u => u.teamId === activeLeaderId && u.role === 'lider');
               if (foundUser) {
                 resolvedLeaderId = foundUser.id;
@@ -173,7 +173,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
           }
         } else if (activeTeamId) {
           // 2. Tentar carregar de 'teams'
-          const teamDoc = await firestoreService.getDocument<any>('teams', activeTeamId);
+          const teamDoc = await supabaseService.getDocument<any>('teams', activeTeamId);
           if (teamDoc) {
             const tData = teamDoc;
             resolvedTeamId = activeTeamId;
@@ -181,7 +181,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
             resolvedTeamName = tData.name || 'Base';
             resolvedCoordinatorId = tData.coordinatorId || '';
             
-            const users = await firestoreService.getCollection<any>('users');
+            const users = await supabaseService.getCollection<any>('users');
             const foundUser = users.find(u => u.teamId === activeTeamId && u.role === 'lider');
             if (foundUser) {
               resolvedLeaderId = foundUser.id;
@@ -204,7 +204,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
         }
 
         if (!resolvedCoordinatorId) {
-          const users = await firestoreService.getCollection<any>('users');
+          const users = await supabaseService.getCollection<any>('users');
           const foundCoord = users.find(u => u.role === 'coordenador' || u.role === 'coordenador_geral');
           if (foundCoord) {
             resolvedCoordinatorId = foundCoord.id;
@@ -217,7 +217,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
         // Buscar nome real do coordenador se o nome atual for genérico ou vago
         if ((!resolvedLeaderName || resolvedLeaderName === 'Coordenação Geral' || resolvedLeaderName === 'Líder' || resolvedLeaderName === 'geral') && resolvedCoordinatorId) {
           try {
-            const coordDoc = await firestoreService.getDocument<any>('users', resolvedCoordinatorId);
+            const coordDoc = await supabaseService.getDocument<any>('users', resolvedCoordinatorId);
             if (coordDoc) {
               if (coordDoc.name || coordDoc.displayName) {
                 resolvedLeaderName = coordDoc.name || coordDoc.displayName;
@@ -269,7 +269,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
     setIsSubmitting(true);
     try {
       if (voterForm.phone && voterForm.phone.length > 5) {
-        const voters = await firestoreService.getCollectionFiltered<any>('voters', leaderInfo.coordinatorId);
+        const voters = await supabaseService.getCollectionFiltered<any>('voters', leaderInfo.coordinatorId);
         const existing = voters.find(v => v.phone === voterForm.phone);
         if (existing) {
           showToast('⚠️ Este número de telefone já está cadastrado nesta coordenação.', 'error');
@@ -293,7 +293,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
         lgpdConsentDate: Date.now()
       };
 
-      await firestoreService.setDocument('voters', `voter_${Date.now()}`, payload);
+      await supabaseService.setDocument('voters', `voter_${Date.now()}`, payload);
       setSuccess(true);
       showToast('Cadastro realizado com sucesso!', 'success');
     } catch (err: any) {

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../lib/FirebaseProvider';
-import { firestoreService } from '../lib/firestoreService';
+import { useAuth } from '../lib/SupabaseProvider';
+import { supabaseService } from '../lib/supabaseService';
 import { validateGeneralCoordinatorRegistration, triggerUpgradeRedirect } from '../lib/planService';
 import logoImg from '../assets/logo.png';
 
@@ -79,7 +79,7 @@ export function LoginPage() {
         } catch (err: any) {
           // Se falhou o login padrão, verificar se é um pré-registro
           if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || (err.message && err.message.includes('INVALID_LOGIN_CREDENTIALS'))) {
-            const preRegDoc = await firestoreService.getDocument('pre_registrations', email.toLowerCase()) as any;
+            const preRegDoc = await supabaseService.getDocument('pre_registrations', email.toLowerCase()) as any;
             
             if (preRegDoc && preRegDoc.tempPassword === password) {
               const assignedRole = preRegDoc.role || 'lider';
@@ -107,7 +107,7 @@ export function LoginPage() {
       const errorCode = err.code || '';
 
       if (errorCode === 'auth/email-already-in-use' || errorMsg.includes('email-already-in-use')) {
-        setAuthError('Este e-mail já possui uma conta activa no Firebase. Se você é o líder João Cardoso e já criou uma senha personalizada anteriormente, por favor faça o login usando a SUA SENHA cadastrada. Caso tenha esquecido, clique em "Esqueceu a senha?" abaixo para redefinir.');
+        setAuthError('Este e-mail já possui uma conta activa no Supabase. Se você é o líder João Cardoso e já criou uma senha personalizada anteriormente, por favor faça o login usando a SUA SENHA cadastrada. Caso tenha esquecido, clique em "Esqueceu a senha?" abaixo para redefinir.');
       } else if (errorCode === 'auth/invalid-credential' || errorMsg.includes('invalid-credential') || errorMsg.includes('INVALID_LOGIN_CREDENTIALS')) {
         setAuthError('Chave de acesso (senha) incorreta para este operador. Se você recebeu uma senha temporária por WhatsApp, verifique se digitou as letras e números exatamente iguais.');
       } else if (errorCode === 'auth/user-not-found' || errorMsg.includes('user-not-found')) {
@@ -135,12 +135,12 @@ export function LoginPage() {
       } else if (errorCode === 'auth/popup-closed-by-user' || errorMsg.includes('popup-closed-by-user')) {
         setAuthError('Janela de autenticação fechada antes de concluir o login.');
       } else if (errorCode === 'auth/unauthorized-domain' || errorMsg.includes('unauthorized-domain')) {
-        setAuthError('Domínio de visualização não autorizado no Firebase.');
+        setAuthError('Domínio de visualização não autorizado no Supabase.');
         setShowDomainGuide(true);
       } else if (errorCode === 'auth/popup-blocked' || errorMsg.includes('popup-blocked')) {
         setAuthError('O popup de login foi bloqueado pelo navegador. Ative as permissões de popups para este domínio.');
       } else if (errorCode === 'auth/operation-not-allowed' || errorMsg.includes('operation-not-allowed')) {
-        setAuthError('O login do Google não está ativado no Firebase. Ative o Google em "Authentication > Sign-in method" no Console.');
+        setAuthError('O login do Google não está ativado no Supabase. Ative o Google em "Authentication > Sign-in method" no Console.');
       } else {
         setAuthError(errorMsg || 'Erro na autenticação com Google. Verifique o console do navegador.');
       }

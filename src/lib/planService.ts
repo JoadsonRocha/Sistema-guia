@@ -1,4 +1,4 @@
-import { firestoreService } from './firestoreService';
+import { supabaseService } from './supabaseService';
 
 export type PlanType = 'free' | 'start' | 'comando' | 'dominio' | 'none';
 
@@ -65,7 +65,7 @@ export const PLAN_CONFIGS: Record<PlanType, {
 
 export async function getSubscriptionInfo(coordinatorId?: string): Promise<SubscriptionInfo> {
   try {
-    const subDoc = await firestoreService.getDocument<any>('settings', 'subscription');
+    const subDoc = await supabaseService.getDocument<any>('settings', 'subscription');
     if (subDoc) {
       const plan: PlanType = (subDoc.plan as PlanType) || 'free';
       const status = subDoc.status || 'active';
@@ -83,7 +83,7 @@ export async function getSubscriptionInfo(coordinatorId?: string): Promise<Subsc
       };
     }
 
-    const candDoc = await firestoreService.getDocument<any>('settings', 'candidate');
+    const candDoc = await supabaseService.getDocument<any>('settings', 'candidate');
     if (candDoc && candDoc.plan) {
       const plan: PlanType = (candDoc.plan as PlanType) || 'free';
       const status = candDoc.subscriptionStatus || 'active';
@@ -124,8 +124,8 @@ export async function saveSubscriptionPlan(
     updatedAt: Date.now(),
   };
 
-  await firestoreService.setDocument('settings', 'subscription', payload, true);
-  await firestoreService.setDocument('settings', 'candidate', { plan, subscriptionStatus: status }, true);
+  await supabaseService.setDocument('settings', 'subscription', payload, true);
+  await supabaseService.setDocument('settings', 'candidate', { plan, subscriptionStatus: status }, true);
 }
 
 export function triggerUpgradeRedirect(reason: string, isCoordenadorGeral: boolean = false) {
@@ -165,7 +165,7 @@ export async function validateVoterRegistration(coordinatorId?: string): Promise
   }
 
   try {
-    const voters = await firestoreService.getCollection<any>('voters');
+    const voters = await supabaseService.getCollection<any>('voters');
     const filtered = coordinatorId && coordinatorId !== 'demo_coord_geral'
       ? voters.filter(v => v.coordinatorId === coordinatorId)
       : voters;
@@ -215,7 +215,7 @@ export async function validateLeaderRegistration(coordinatorId?: string): Promis
   }
 
   try {
-    const teams = await firestoreService.getCollection<any>('teams');
+    const teams = await supabaseService.getCollection<any>('teams');
     const filtered = coordinatorId && coordinatorId !== 'demo_coord_geral'
       ? teams.filter(t => t.coordinatorId === coordinatorId)
       : teams;
@@ -265,7 +265,7 @@ export async function validateRegionalRegistration(coordinatorId?: string): Prom
   }
 
   try {
-    const regionals = await firestoreService.getCollection<any>('regional_coordinators');
+    const regionals = await supabaseService.getCollection<any>('regional_coordinators');
     const filtered = coordinatorId && coordinatorId !== 'demo_coord_geral'
       ? regionals.filter(r => r.coordinatorId === coordinatorId)
       : regionals;
@@ -308,7 +308,7 @@ export async function validateGeneralCoordinatorRegistration(): Promise<{
   }
 
   try {
-    const users = await firestoreService.getCollection<any>('users');
+    const users = await supabaseService.getCollection<any>('users');
     const filtered = users.filter(u => u.role === 'coordenador_geral' || u.role === 'coordenador');
     const totalGeneral = filtered.length;
 

@@ -69,8 +69,8 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { processarCaos, gerarBriefingCandidato, processarNotaAudio } from '../services/geminiService';
 import { reportService } from '../services/reportService';
-import { useAuth } from '../lib/FirebaseProvider';
-import { firestoreService } from '../lib/firestoreService';
+import { useAuth } from '../lib/SupabaseProvider';
+import { supabaseService } from '../lib/supabaseService';
 import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO } from '../lib/candidateService';
 import { getSubscriptionInfo, saveSubscriptionPlan, PlanType, PLAN_CONFIGS, validateLeaderRegistration, validateRegionalRegistration, triggerUpgradeRedirect } from '../lib/planService';
 import NoteCard from './NoteCard';
@@ -598,9 +598,9 @@ export default function CoordinatorDashboard({
   // Subscrições para Coordenadores Regionais e Metas
   useEffect(() => {
     if (!coordinatorId) return;
-    const unsubRegs = firestoreService.subscribeToCollectionFiltered<any>('regional_coordinators', coordinatorId, (data) => setRegionalCoordinators(data));
+    const unsubRegs = supabaseService.subscribeToCollectionFiltered<any>('regional_coordinators', coordinatorId, (data) => setRegionalCoordinators(data));
 
-    const unsubGoals = firestoreService.subscribeToCollectionFiltered<any>('goals', coordinatorId, (data) => setGoalsList(data));
+    const unsubGoals = supabaseService.subscribeToCollectionFiltered<any>('goals', coordinatorId, (data) => setGoalsList(data));
 
     return () => {
       unsubRegs();
@@ -626,7 +626,7 @@ export default function CoordinatorDashboard({
       const coordId = `reg_${newRegCoord.email.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
       const tempPassword = 'nexus' + Math.floor(1000 + Math.random() * 9000);
       
-      await firestoreService.setDocument('regional_coordinators', coordId, {
+      await supabaseService.setDocument('regional_coordinators', coordId, {
         ...newRegCoord,
         email: newRegCoord.email.toLowerCase(),
         subLocations: newRegCoord.subLocations || '',
@@ -636,7 +636,7 @@ export default function CoordinatorDashboard({
         createdAt: Date.now()
       });
 
-      await firestoreService.setDocument('pre_registrations', newRegCoord.email.toLowerCase(), {
+      await supabaseService.setDocument('pre_registrations', newRegCoord.email.toLowerCase(), {
         email: newRegCoord.email.toLowerCase(),
         name: newRegCoord.name,
         phone: newRegCoord.phone,
@@ -661,9 +661,9 @@ export default function CoordinatorDashboard({
   const handleDeleteRegionalCoordinator = async (id: string, email: string) => {
     if (confirm("Deseja realmente remover este Coordenador Regional?")) {
       try {
-        await firestoreService.deleteDocument('regional_coordinators', id);
+        await supabaseService.deleteDocument('regional_coordinators', id);
         if (email) {
-          await firestoreService.deleteDocument('pre_registrations', email.toLowerCase());
+          await supabaseService.deleteDocument('pre_registrations', email.toLowerCase());
         }
         alert("Coordenador Regional removido!");
       } catch (err: any) {
@@ -680,7 +680,7 @@ export default function CoordinatorDashboard({
     }
     try {
       const goalId = `goal_${newGoal.category}_${newGoal.locationName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
-      await firestoreService.setDocument('goals', goalId, {
+      await supabaseService.setDocument('goals', goalId, {
         ...newGoal,
         targetVoters: Number(newGoal.targetVoters) || 500,
         coordinatorId: coordinatorId || user?.uid || '',
@@ -696,7 +696,7 @@ export default function CoordinatorDashboard({
   const handleDeleteGoal = async (id: string) => {
     if (confirm("Deseja excluir esta meta?")) {
       try {
-        await firestoreService.deleteDocument('goals', id);
+        await supabaseService.deleteDocument('goals', id);
       } catch (err: any) {
         alert("Erro ao excluir meta: " + err.message);
       }
@@ -713,7 +713,7 @@ export default function CoordinatorDashboard({
     if (!editingGoal || !editingGoal.locationName) return;
     try {
       setIsProcessing(true);
-      await firestoreService.setDocument('goals', editingGoal.id, {
+      await supabaseService.setDocument('goals', editingGoal.id, {
         ...editingGoal,
         targetVoters: Number(editingGoal.targetVoters) || 0,
         updatedAt: Date.now()
@@ -738,13 +738,13 @@ export default function CoordinatorDashboard({
     if (!editingRegCoord || !editingRegCoord.name || !editingRegCoord.email) return;
     try {
       setIsProcessing(true);
-      await firestoreService.setDocument('regional_coordinators', editingRegCoord.id, {
+      await supabaseService.setDocument('regional_coordinators', editingRegCoord.id, {
         ...editingRegCoord,
         targetVoters: Number(editingRegCoord.targetVoters) || 0,
         updatedAt: Date.now()
       });
       if (editingRegCoord.email) {
-        await firestoreService.setDocument('pre_registrations', editingRegCoord.email.toLowerCase(), {
+        await supabaseService.setDocument('pre_registrations', editingRegCoord.email.toLowerCase(), {
           email: editingRegCoord.email.toLowerCase(),
           name: editingRegCoord.name,
           phone: editingRegCoord.phone || '',
@@ -810,7 +810,7 @@ export default function CoordinatorDashboard({
 
         for (const coll of collectionsToWipe) {
           try {
-            const allDocs = await firestoreService.getCollection<any>(coll);
+            const allDocs = await supabaseService.getCollection<any>(coll);
             const myDocs = allDocs.filter(d => 
               !d.coordinatorId || 
               d.coordinatorId === activeCoordId || 
@@ -818,7 +818,7 @@ export default function CoordinatorDashboard({
               d.userId === activeCoordId
             );
             for (const d of myDocs) {
-              await firestoreService.deleteDocument(coll, d.id);
+              await supabaseService.deleteDocument(coll, d.id);
             }
           } catch (e) {
             console.warn(`Aviso ao limpar coleção ${coll}:`, e);
@@ -826,28 +826,28 @@ export default function CoordinatorDashboard({
         }
 
         try {
-          const allPreRegs = await firestoreService.getCollection<any>('pre_registrations');
+          const allPreRegs = await supabaseService.getCollection<any>('pre_registrations');
           const myPreRegs = allPreRegs.filter(pr => pr.coordinatorId === activeCoordId);
           for (const pr of myPreRegs) {
-            await firestoreService.deleteDocument('pre_registrations', pr.id);
+            await supabaseService.deleteDocument('pre_registrations', pr.id);
           }
         } catch (e) {
           console.warn("Aviso ao limpar pré-registros:", e);
         }
 
         try {
-          await firestoreService.deleteDocument('stats', `stats_${activeCoordId}`);
+          await supabaseService.deleteDocument('stats', `stats_${activeCoordId}`);
         } catch (e) {
           console.warn("Aviso ao deletar stats:", e);
         }
         try {
-          await firestoreService.deleteDocument('config', `dailyOrder_${activeCoordId}`);
+          await supabaseService.deleteDocument('config', `dailyOrder_${activeCoordId}`);
         } catch (e) {
           console.warn("Aviso ao deletar ordem do dia:", e);
         }
 
         try {
-          await firestoreService.setDocument('eleitoral_data', `coord_${activeCoordId}`, {
+          await supabaseService.setDocument('eleitoral_data', `coord_${activeCoordId}`, {
             locations: [],
             cleared: true,
             updatedAt: Date.now(),
@@ -857,7 +857,7 @@ export default function CoordinatorDashboard({
           });
           for (let i = 0; i < 20; i++) {
             try {
-              await firestoreService.deleteDocument('eleitoral_data', `coord_${activeCoordId}_${i}`);
+              await supabaseService.deleteDocument('eleitoral_data', `coord_${activeCoordId}_${i}`);
             } catch (e) {}
           }
         } catch (e) {
@@ -996,7 +996,7 @@ export default function CoordinatorDashboard({
   const handleUpdateDailyOrder = async () => {
     try {
       const activeCoordId = coordinatorId || user?.uid || '';
-      await firestoreService.setDocument('config', `dailyOrder_${activeCoordId}`, {
+      await supabaseService.setDocument('config', `dailyOrder_${activeCoordId}`, {
         text: newDailyOrder,
         updatedAt: Date.now(),
         updatedBy: profileData?.name || user?.email,
@@ -1026,13 +1026,13 @@ export default function CoordinatorDashboard({
       const existing = materials.find(m => m.name.toLowerCase() === name.toLowerCase());
       
       if (existing) {
-        await firestoreService.updateDocument('materials', existing.id, {
+        await supabaseService.updateDocument('materials', existing.id, {
           total: (existing.total || 0) + qty,
           current: (existing.current || 0) + qty
         });
         alert(`Quantidade adicionada ao material existente: ${name}`);
       } else {
-        await firestoreService.addDocument('materials', {
+        await supabaseService.addDocument('materials', {
           name,
           total: qty,
           current: qty,
@@ -1052,7 +1052,7 @@ export default function CoordinatorDashboard({
     try {
       const mat = materials.find(m => m.id === id);
       if (!mat) return;
-      await firestoreService.updateDocument('materials', id, {
+      await supabaseService.updateDocument('materials', id, {
         current: Math.max(0, (mat.current || 0) + amount)
       });
     } catch (err: any) {
@@ -1063,7 +1063,7 @@ export default function CoordinatorDashboard({
   const handleDeleteMaterial = async (id: string) => {
     if (confirm("Deseja realmente excluir este tipo de material e todo seu estoque?")) {
       try {
-        await firestoreService.deleteDocument('materials', id);
+        await supabaseService.deleteDocument('materials', id);
         alert("Material excluído!");
       } catch (err: any) {
         alert("Erro ao excluir: " + err.message);
@@ -1099,7 +1099,7 @@ export default function CoordinatorDashboard({
 
       const diffUsed = (old.total || 0) - (old.current || 0);
 
-      await firestoreService.updateDocument('materials', editingMaterialId, {
+      await supabaseService.updateDocument('materials', editingMaterialId, {
         name: materialForm.name,
         total: qty,
         current: Math.max(0, qty - diffUsed)
@@ -1152,14 +1152,14 @@ export default function CoordinatorDashboard({
       }
 
       // Update material qty
-      await firestoreService.updateDocument('materials', req.materialId, {
+      await supabaseService.updateDocument('materials', req.materialId, {
         current: mat.current - req.qty
       });
 
       const signatureHash = 'URNA360-SIG-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now().toString().slice(-4);
 
       // Update request status with signature details
-      await firestoreService.updateDocument('material_requests', req.id, {
+      await supabaseService.updateDocument('material_requests', req.id, {
         status: 'aprovado',
         approvedAt: Date.now(),
         signedBy: signerName.trim(),
@@ -1178,7 +1178,7 @@ export default function CoordinatorDashboard({
 
   const handleDenyMaterialRequest = async (id: string) => {
     if (confirm("Deseja realmente negar esta solicitação?")) {
-      await firestoreService.updateDocument('material_requests', id, {
+      await supabaseService.updateDocument('material_requests', id, {
         status: 'negado',
         deniedAt: Date.now()
       });
@@ -1190,11 +1190,11 @@ export default function CoordinatorDashboard({
       try {
         const mat = materials.find(m => m.id === req.materialId);
         if (mat) {
-          await firestoreService.updateDocument('materials', req.materialId, {
+          await supabaseService.updateDocument('materials', req.materialId, {
             current: (mat.current || 0) + req.qty
           });
         }
-        await firestoreService.updateDocument('material_requests', req.id, {
+        await supabaseService.updateDocument('material_requests', req.id, {
           status: 'devolvido',
           returnApprovedByCoord: true,
           returnApprovedAt: Date.now()
@@ -1520,7 +1520,7 @@ export default function CoordinatorDashboard({
       }
 
       // Add to Reports History
-      await firestoreService.addDocument('reports', {
+      await supabaseService.addDocument('reports', {
         type,
         title: `${title} (${format.toUpperCase()})`,
         subtitle,
@@ -1572,18 +1572,18 @@ export default function CoordinatorDashboard({
     if (!user || !coordinatorId) return;
 
     // Subs para dados reais da campanha (filtrados por coordinatorId para isolamento total)
-    const unsubTeams = firestoreService.subscribeToCollectionFiltered('teams', coordinatorId, (data) => setTeams(data));
+    const unsubTeams = supabaseService.subscribeToCollectionFiltered('teams', coordinatorId, (data) => setTeams(data));
     
-    const unsubUrgencies = firestoreService.subscribeToCollectionFiltered('urgencies', coordinatorId, (data) => setUrgencies(data));
+    const unsubUrgencies = supabaseService.subscribeToCollectionFiltered('urgencies', coordinatorId, (data) => setUrgencies(data));
 
-    const unsubStats = firestoreService.subscribeToCollection<any>('stats', (data) => {
+    const unsubStats = supabaseService.subscribeToCollection<any>('stats', (data) => {
       const found = data.find(item => item.id === `stats_${coordinatorId}`);
       if (found) setStatsData(found);
     });
 
-    const unsubAgendas = firestoreService.subscribeToCollectionFiltered('agenda', coordinatorId, (data) => setAgendas(data));
+    const unsubAgendas = supabaseService.subscribeToCollectionFiltered('agenda', coordinatorId, (data) => setAgendas(data));
 
-    const unsubNotesSnap = firestoreService.subscribeToCollectionFiltered<any>('notes', coordinatorId, (data) => {
+    const unsubNotesSnap = supabaseService.subscribeToCollectionFiltered<any>('notes', coordinatorId, (data) => {
       setNotes(data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
     });
 
@@ -1598,7 +1598,7 @@ export default function CoordinatorDashboard({
         region: isRegional ? 'REGIÃO 1 - NORTE' : 'Todas as Regiões'
       });
     } else if (user?.uid) {
-      unsubProfile = firestoreService.subscribeToCollection<any>('users', (data) => {
+      unsubProfile = supabaseService.subscribeToCollection<any>('users', (data) => {
         const found = data.find(u => u.id === user.uid);
         if (found) {
           const userEmail = (user.email || found.email || '').toLowerCase();
@@ -1606,14 +1606,14 @@ export default function CoordinatorDashboard({
           const isAntonio = userEmail.includes('antonio') || userName.includes('antonio');
           if (isAntonio && found.role !== 'coordenador_regional') {
             found.role = 'coordenador_regional';
-            firestoreService.setDocument('users', user.uid, { ...found, role: 'coordenador_regional' }).catch(console.error);
+            supabaseService.setDocument('users', user.uid, { ...found, role: 'coordenador_regional' }).catch(console.error);
           }
           setProfileData(found);
         }
       });
     }
 
-    const unsubDailyOrder = firestoreService.subscribeToCollection<any>('config', (data) => {
+    const unsubDailyOrder = supabaseService.subscribeToCollection<any>('config', (data) => {
       const found = data.find(c => c.id === `dailyOrder_${coordinatorId}`);
       if (found) {
         setDailyOrder(found);
@@ -1621,9 +1621,9 @@ export default function CoordinatorDashboard({
       }
     });
 
-    const unsubMaterials = firestoreService.subscribeToCollectionFiltered('materials', coordinatorId, (data) => setMaterials(data));
-    const unsubMaterialRequests = firestoreService.subscribeToCollectionFiltered('material_requests', coordinatorId, (data) => setMaterialRequests(data));
-    const unsubReports = firestoreService.subscribeToCollectionFiltered('reports', coordinatorId, (data) => setReportsHistory(data));
+    const unsubMaterials = supabaseService.subscribeToCollectionFiltered('materials', coordinatorId, (data) => setMaterials(data));
+    const unsubMaterialRequests = supabaseService.subscribeToCollectionFiltered('material_requests', coordinatorId, (data) => setMaterialRequests(data));
+    const unsubReports = supabaseService.subscribeToCollectionFiltered('reports', coordinatorId, (data) => setReportsHistory(data));
 
     return () => {
       unsubTeams();
@@ -1643,7 +1643,7 @@ export default function CoordinatorDashboard({
   const fetchServerCounts = async () => {
     if (!coordinatorId) return;
     try {
-      const voters = await firestoreService.getCollectionFiltered<any>('voters', coordinatorId);
+      const voters = await supabaseService.getCollectionFiltered<any>('voters', coordinatorId);
       setTotalVotersCount(voters.length);
       setVotedVotersCount(voters.filter(v => v.voted).length);
     } catch (err) {
@@ -1688,7 +1688,7 @@ export default function CoordinatorDashboard({
       return;
     }
 
-    const unsubVoters = firestoreService.subscribeToCollectionFiltered<any>('voters', coordinatorId, (rawData) => {
+    const unsubVoters = supabaseService.subscribeToCollectionFiltered<any>('voters', coordinatorId, (rawData) => {
       const uniqueMap = new Map();
       rawData.forEach((v: any) => {
         const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
@@ -1714,7 +1714,7 @@ export default function CoordinatorDashboard({
     if (!coordinatorId || activeTab !== 'voters') return;
 
     setLoadingPaginatedVoters(true);
-    firestoreService.getCollectionFiltered<any>('voters', coordinatorId).then((data) => {
+    supabaseService.getCollectionFiltered<any>('voters', coordinatorId).then((data) => {
       let filtered = data;
       if (articulatorFilter) {
         filtered = filtered.filter(v => v.articulatorId === articulatorFilter);
@@ -1735,7 +1735,7 @@ export default function CoordinatorDashboard({
 
     const fetchArticulators = async () => {
       try {
-        const voters = await firestoreService.getCollectionFiltered<any>('voters', coordinatorId);
+        const voters = await supabaseService.getCollectionFiltered<any>('voters', coordinatorId);
         setArticulators(voters.filter(v => v.isArticulator));
       } catch (err) {
         console.warn("Error fetching articulators:", err);
@@ -1750,20 +1750,20 @@ export default function CoordinatorDashboard({
 
     const healCoordinatorVotersAndRequests = async () => {
       try {
-        const allVoters = await firestoreService.getCollection<any>('voters');
-        const allRequests = await firestoreService.getCollection<any>('material_requests');
+        const allVoters = await supabaseService.getCollection<any>('voters');
+        const allRequests = await supabaseService.getCollection<any>('material_requests');
         
         for (const team of teams) {
           const teamId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
           
           const teamVoters = allVoters.filter(v => v.teamId === teamId && v.coordinatorId !== coordinatorId);
           for (const v of teamVoters) {
-            await firestoreService.updateDocument('voters', v.id, { coordinatorId });
+            await supabaseService.updateDocument('voters', v.id, { coordinatorId });
           }
 
           const teamReqs = allRequests.filter(r => r.teamId === teamId && r.coordinatorId !== coordinatorId);
           for (const r of teamReqs) {
-            await firestoreService.updateDocument('material_requests', r.id, { coordinatorId });
+            await supabaseService.updateDocument('material_requests', r.id, { coordinatorId });
           }
         }
       } catch (err) {
@@ -1848,7 +1848,7 @@ export default function CoordinatorDashboard({
     if (!isAdmin) return;
     try {
       const agendaId = editingAgenda?.id || `agenda_${Date.now()}`;
-      await firestoreService.setDocument('agenda', agendaId, {
+      await supabaseService.setDocument('agenda', agendaId, {
         ...agendaForm,
         status: editingAgenda ? editingAgenda.status : 'confirmado',
         sugeridoPorId: user?.uid,
@@ -1881,7 +1881,7 @@ export default function CoordinatorDashboard({
   const handleDeleteAgenda = async (id: string) => {
     if (window.confirm("Deseja excluir este item da agenda?")) {
       try {
-        await firestoreService.deleteDocument('agenda', id);
+        await supabaseService.deleteDocument('agenda', id);
         alert("Item movido com sucesso!");
       } catch (err: any) {
         alert("Erro ao excluir: " + err.message);
@@ -1903,11 +1903,11 @@ export default function CoordinatorDashboard({
 
       const fetchLeaderAndVoters = async () => {
         try {
-          const voters = await firestoreService.getCollectionFiltered<any>('voters', coordinatorId);
+          const voters = await supabaseService.getCollectionFiltered<any>('voters', coordinatorId);
           let teamVoters = voters.filter(v => v.team === teamName);
 
           if (teamVoters.length === 0 && leaderEmail) {
-            const users = await firestoreService.getCollectionFiltered<any>('users', coordinatorId);
+            const users = await supabaseService.getCollectionFiltered<any>('users', coordinatorId);
             const leader = users.find(u => u.email?.toLowerCase() === leaderEmail);
             if (leader) {
               teamVoters = voters.filter(v => v.leaderId === leader.id);
@@ -1979,7 +1979,7 @@ export default function CoordinatorDashboard({
     setIsProcessing(true);
     try {
       const noteId = `note_coord_${Date.now()}`;
-      await firestoreService.setDocument('notes', noteId, {
+      await supabaseService.setDocument('notes', noteId, {
         id: noteId,
         text: chaosText,
         authorId: user.uid,
@@ -2018,7 +2018,7 @@ export default function CoordinatorDashboard({
       const defaultPassword = 'urna' + Math.floor(1000 + Math.random() * 9000);
       
       // 1. Criar/Atualizar a equipe no Firestore
-      await firestoreService.setDocument('teams', teamId, {
+      await supabaseService.setDocument('teams', teamId, {
         ...newTeam,
         allocated: Number(newTeam.allocated) || 0,
         spent: Number(newTeam.spent) || 0,
@@ -2034,7 +2034,7 @@ export default function CoordinatorDashboard({
 
       if (!isEditMode) {
         // 2. Criar pré-registro para o líder (apenas em criação)
-        await firestoreService.setDocument('pre_registrations', newTeam.leaderEmail.toLowerCase(), {
+        await supabaseService.setDocument('pre_registrations', newTeam.leaderEmail.toLowerCase(), {
           email: newTeam.leaderEmail.toLowerCase(),
           name: newTeam.leader,
           phone: newTeam.leaderPhone,
@@ -2108,16 +2108,16 @@ export default function CoordinatorDashboard({
         // 1. Limpar Coleções Principais da campanha
         const collections = ['transactions', 'attendance', 'notes', 'urgencies', 'agenda', 'voters'];
         for (const coll of collections) {
-          const docs = await firestoreService.getCollectionFiltered<any>(coll, activeCoordId);
+          const docs = await supabaseService.getCollectionFiltered<any>(coll, activeCoordId);
           for (const d of docs) {
-            await firestoreService.deleteDocument(coll, d.id);
+            await supabaseService.deleteDocument(coll, d.id);
           }
         }
 
         // 2. Resetar Campos das Equipes da campanha
         for (const team of teams) {
           const teamId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
-          await firestoreService.updateDocument('teams', teamId, {
+          await supabaseService.updateDocument('teams', teamId, {
             allocated: 0,
             spent: 0,
             contacts: 0,
@@ -2127,7 +2127,7 @@ export default function CoordinatorDashboard({
         }
 
         // 3. Resetar Stats da campanha
-        await firestoreService.setDocument('stats', `stats_${activeCoordId}`, {
+        await supabaseService.setDocument('stats', `stats_${activeCoordId}`, {
           totalFunded: 0,
           combustivelHoje: 0,
           combustivelSaldo: 0,
@@ -2149,7 +2149,7 @@ export default function CoordinatorDashboard({
     e.preventDefault();
     if (!selectedVoter) return;
     try {
-      await firestoreService.setDocument('voters', selectedVoter.id, voterEditForm, true);
+      await supabaseService.setDocument('voters', selectedVoter.id, voterEditForm, true);
       setIsVoterEditModalOpen(false);
       setSelectedVoter(null);
       await fetchServerCounts();
@@ -2162,7 +2162,7 @@ export default function CoordinatorDashboard({
   const handleDeleteTeam = async (teamId: string, teamName: string) => {
     if (window.confirm(`Deseja realmente excluir a equipe "${teamName}"? Esta ação não pode ser desfeita.`)) {
       try {
-        await firestoreService.deleteDocument('teams', teamId);
+        await supabaseService.deleteDocument('teams', teamId);
         alert("Equipe excluída com sucesso!");
       } catch (err: any) {
         alert("Erro ao excluir equipe: " + err.message);
@@ -2173,7 +2173,7 @@ export default function CoordinatorDashboard({
   const handleDeleteVoter = async (voterId: string) => {
     if (window.confirm("Deseja realmente excluir este eleitor? Esta ação não pode ser desfeita.")) {
       try {
-        await firestoreService.deleteDocument('voters', voterId);
+        await supabaseService.deleteDocument('voters', voterId);
         await fetchServerCounts();
         alert("Eleitor excluído com sucesso!");
       } catch (err: any) {
@@ -2188,7 +2188,7 @@ export default function CoordinatorDashboard({
     setBriefingLocation(location);
     try {
       // Buscar demandas desse município
-      const allUrgencies = await firestoreService.getCollectionFiltered<any>('urgencies', coordinatorId || '');
+      const allUrgencies = await supabaseService.getCollectionFiltered<any>('urgencies', coordinatorId || '');
       const localDemands = allUrgencies.filter(u => u.team === location && u.type === 'demanda');
       
       const res = await gerarBriefingCandidato(location, localDemands);
@@ -2205,7 +2205,7 @@ export default function CoordinatorDashboard({
     setSelectedHistoryTeam(team);
     setIsHistoryModalOpen(true);
     try {
-      const txs = await firestoreService.getCollectionFiltered<any>('transactions', coordinatorId);
+      const txs = await supabaseService.getCollectionFiltered<any>('transactions', coordinatorId);
       const teamTxs = txs.filter(t => t.team === team.name).sort((a, b) => (b.date || 0) - (a.date || 0)).slice(0, 20);
       setTeamHistory(teamTxs);
     } catch (err) {
@@ -3682,7 +3682,7 @@ export default function CoordinatorDashboard({
                             <div className="flex gap-2.5 w-full md:w-auto">
                               <button 
                                 onClick={async () => {
-                                  await firestoreService.updateDocument('agenda', item.id, { status: 'negado' });
+                                  await supabaseService.updateDocument('agenda', item.id, { status: 'negado' });
                                 }}
                                 className="flex-1 md:flex-none px-6 py-3 bg-red-50 text-red-600 font-black text-[9px] uppercase rounded-sm hover:bg-red-600 hover:text-white transition-all shadow-sm"
                               >
@@ -3690,7 +3690,7 @@ export default function CoordinatorDashboard({
                               </button>
                               <button 
                                 onClick={async () => {
-                                  await firestoreService.updateDocument('agenda', item.id, { status: 'confirmado' });
+                                  await supabaseService.updateDocument('agenda', item.id, { status: 'confirmado' });
                                 }}
                                 className="flex-1 md:flex-none px-6 py-3 bg-green-600 text-white font-black text-[9px] uppercase rounded-sm shadow-xl shadow-green-100 hover:bg-green-700 transition-all border-b-2 border-green-800 active:border-b-0 active:translate-y-0.5"
                               >
@@ -3797,7 +3797,7 @@ export default function CoordinatorDashboard({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {notes.filter(n => noteSubTab === 'private' ? (n.type === 'private' && n.authorId === user?.uid) : (n.type === 'tactical')).length > 0 ? (
                     notes.filter(n => noteSubTab === 'private' ? (n.type === 'private' && n.authorId === user?.uid) : (n.type === 'tactical')).map((note) => (
-                      <NoteCard key={note.id} note={note} user={user} isAdmin={isAdmin} currentUserName={profileData?.name} onDelete={() => firestoreService.deleteDocument('notes', note.id)} />
+                      <NoteCard key={note.id} note={note} user={user} isAdmin={isAdmin} currentUserName={profileData?.name} onDelete={() => supabaseService.deleteDocument('notes', note.id)} />
                     ))
                   ) : (
                     <div className="col-span-full py-24 bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-sm text-center grayscale opacity-40">
@@ -4522,7 +4522,7 @@ export default function CoordinatorDashboard({
                   <div className="grid grid-cols-2 gap-3">
                     <button 
                       onClick={async () => {
-                        await firestoreService.updateDocument('urgencies', selectedUrgency.id, {
+                        await supabaseService.updateDocument('urgencies', selectedUrgency.id, {
                           status: 'negado',
                           observation,
                           updatedAt: Date.now()
@@ -4536,7 +4536,7 @@ export default function CoordinatorDashboard({
                     </button>
                     <button 
                       onClick={async () => {
-                        await firestoreService.updateDocument('urgencies', selectedUrgency.id, {
+                        await supabaseService.updateDocument('urgencies', selectedUrgency.id, {
                           status: 'aprovado',
                           observation,
                           updatedAt: Date.now()
@@ -5139,7 +5139,7 @@ export default function CoordinatorDashboard({
                                    onClick={async () => {
                                       if(window.confirm(`Remover o eleitor ${vx.name}?`)) {
                                          try {
-                                            await firestoreService.deleteDocument('voters', vx.id);
+                                            await supabaseService.deleteDocument('voters', vx.id);
                                              await fetchServerCounts();
                                             alert("Membro removido com sucesso!");
                                          } catch (err: any) {
@@ -5546,7 +5546,7 @@ export default function CoordinatorDashboard({
                     updatedAt: Date.now()
                   };
                   try {
-                    await firestoreService.setDocument('users', user?.uid || '', updates, true);
+                    await supabaseService.setDocument('users', user?.uid || '', updates, true);
                     setIsProfileModalOpen(false);
                     alert("Perfil atualizado com sucesso!");
                   } catch (err: any) {

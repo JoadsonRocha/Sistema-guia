@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { useAuth } from '../lib/FirebaseProvider';
+import { useAuth } from '../lib/SupabaseProvider';
 import { safeLocalStorage } from '../utils/safeStorage';
 import { DemoBlockModal } from '../components/DemoBlockModal';
 import { ComponentLoader } from '../components/routing/ProtectedRoute';

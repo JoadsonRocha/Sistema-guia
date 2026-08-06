@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { firestoreService } from '../lib/firestoreService';
-import { useAuth } from '../lib/FirebaseProvider';
+import { supabaseService } from '../lib/supabaseService';
+import { useAuth } from '../lib/SupabaseProvider';
 import { setTreLocationsForCoordinator, clearTreLocationsCache, getAllTreLocations } from '../lib/treDataService';
 import { eleitoralStorage } from '../lib/eleitoralStorage';
 import { SupabaseConfigModal } from './SupabaseConfigModal';
@@ -358,7 +358,7 @@ export default function EleitoralDashboard({
 
       try {
         const docId = `coord_${activeCoordId}`;
-        await firestoreService.setDocument('eleitoral_data', docId, {
+        await supabaseService.setDocument('eleitoral_data', docId, {
           locations: [],
           cleared: true,
           updatedAt: Date.now(),
@@ -368,7 +368,7 @@ export default function EleitoralDashboard({
         }, true);
         for (let i = 0; i < 30; i++) {
           try {
-            await firestoreService.deleteDocument('eleitoral_data', `${docId}_${i}`);
+            await supabaseService.deleteDocument('eleitoral_data', `${docId}_${i}`);
           } catch (e) {}
         }
       } catch (err) {
@@ -399,7 +399,7 @@ export default function EleitoralDashboard({
       const docId = `coord_${activeCoordId}`;
       const cleanData = newData.map(cleanLocationForFirestore);
 
-      await firestoreService.setDocument('eleitoral_data', docId, {
+      await supabaseService.setDocument('eleitoral_data', docId, {
         locations: cleanData,
         cleared: false,
         updatedAt: Date.now(),
@@ -461,7 +461,7 @@ export default function EleitoralDashboard({
 
     if (!activeCoordId) return;
 
-    const unsub = firestoreService.subscribeToCollectionFiltered<any>('eleitoral_data', activeCoordId, (dataList) => {
+    const unsub = supabaseService.subscribeToCollectionFiltered<any>('eleitoral_data', activeCoordId, (dataList) => {
       if (isSavingRef.current) return;
       const data = dataList.find(item => item.id === `coord_${activeCoordId}`);
       if (!data) return;

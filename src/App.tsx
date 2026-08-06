@@ -6,7 +6,7 @@ import { Layout } from './components/Layout';
 import { LoginPage } from './pages/LoginPage';
 import { ForcePasswordChangePage } from './pages/ForcePasswordChangePage';
 import { DashboardPage } from './pages/DashboardPage';
-import { useAuth } from './lib/FirebaseProvider';
+import { useAuth } from './lib/SupabaseProvider';
 
 // Lazy loading heavy components
 const PublicVoterRegister = lazy(() => import('./components/PublicVoterRegister'));

@@ -33,9 +33,7 @@ export default defineConfig(({mode}) => {
               if (id.includes('lucide-react')) {
                 return 'vendor-icons';
               }
-              if (id.includes('firebase')) {
-                return 'vendor-firebase';
-              }
+
               if (id.includes('recharts') || id.includes('d3')) {
                 return 'vendor-charts';
               }

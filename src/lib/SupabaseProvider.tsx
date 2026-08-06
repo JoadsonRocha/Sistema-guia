@@ -436,16 +436,10 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export const FirebaseProvider = SupabaseProvider;
-
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within a SupabaseProvider');
   }
   return context;
-}
-
-export function useFirebase() {
-  return useAuth();
 }

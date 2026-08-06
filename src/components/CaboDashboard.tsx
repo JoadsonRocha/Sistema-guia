@@ -58,9 +58,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { processarCaos, gerarBriefingCandidato, processarNotaAudio } from '../services/geminiService';
-import { useAuth } from '../lib/FirebaseProvider';
+import { useAuth } from '../lib/SupabaseProvider';
 import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO } from '../lib/candidateService';
-import { firestoreService } from '../lib/firestoreService';
+import { supabaseService } from '../lib/supabaseService';
 import NoteCard from './NoteCard';
 import RoraimaMapComponent from './RoraimaMapComponent';
 import EleitoralDashboard from './EleitoralDashboard';
@@ -245,30 +245,30 @@ export default function CaboDashboard({
         if (!subscribedMaterials) {
           subscribedMaterials = true;
           if (unsubMaterials) unsubMaterials();
-          unsubMaterials = firestoreService.subscribeToCollection<any>('materials', (data) => setMaterials(data));
+          unsubMaterials = supabaseService.subscribeToCollection<any>('materials', (data) => setMaterials(data));
         }
 
         if (demoCoordId !== currentSubscribedCoordId) {
           currentSubscribedCoordId = demoCoordId;
 
           if (unsubNotes) unsubNotes();
-          unsubNotes = firestoreService.subscribeToCollection<any>('notes', (data) => {
+          unsubNotes = supabaseService.subscribeToCollection<any>('notes', (data) => {
             setNotes(data.filter(n => n.type === 'tactical').sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
           });
 
           if (unsubDailyOrder) unsubDailyOrder();
-          unsubDailyOrder = firestoreService.subscribeToCollection<any>('config', (data) => {
+          unsubDailyOrder = supabaseService.subscribeToCollection<any>('config', (data) => {
             const found = data.find(c => c.id === `dailyOrder_${demoCoordId}`);
             if (found) setDailyOrder(found);
           });
 
           if (unsubMaterialRequests) unsubMaterialRequests();
-          unsubMaterialRequests = firestoreService.subscribeToCollection('material_requests', (data) => {
+          unsubMaterialRequests = supabaseService.subscribeToCollection('material_requests', (data) => {
             setMaterialRequests(data);
           });
         }
       } else {
-        unsubProfile = firestoreService.subscribeToCollection<any>('users', (users) => {
+        unsubProfile = supabaseService.subscribeToCollection<any>('users', (users) => {
           const data = users.find(u => u.id === user.uid);
           if (data) {
             const teamName = data.teamName || data.zone || data.team || '';
@@ -282,7 +282,7 @@ export default function CaboDashboard({
             if (!subscribedMaterials) {
               subscribedMaterials = true;
               if (unsubMaterials) unsubMaterials();
-              unsubMaterials = firestoreService.subscribeToCollection<any>('materials', (mats) => setMaterials(mats));
+              unsubMaterials = supabaseService.subscribeToCollection<any>('materials', (mats) => setMaterials(mats));
             }
             
             let resolvedCoordId = data.coordinatorId || coordinatorId || '';
@@ -292,11 +292,11 @@ export default function CaboDashboard({
 
           // If we have a teamId, fetch team details in the background
           if (data.teamId && (!teamData || teamData.id !== data.teamId)) {
-            firestoreService.getDocument<any>('teams', data.teamId).then((teamDataRaw) => {
+            supabaseService.getDocument<any>('teams', data.teamId).then((teamDataRaw) => {
               if (teamDataRaw) {
                 setTeamData({ ...teamDataRaw, id: data.teamId });
                 if (!resolvedCoordId && teamDataRaw.coordinatorId) {
-                  firestoreService.updateDocument('users', user.uid, {
+                  supabaseService.updateDocument('users', user.uid, {
                     coordinatorId: teamDataRaw.coordinatorId
                   }).catch(err => console.error("Error healing coordinatorId from team:", err));
                 }
@@ -307,23 +307,23 @@ export default function CaboDashboard({
           // If still no coordinatorId and we have user email, heal in the background
           if (!resolvedCoordId && user.email) {
             const userEmailLower = user.email.toLowerCase();
-            firestoreService.getCollection<any>('teams').then((allTeams) => {
+            supabaseService.getCollection<any>('teams').then((allTeams) => {
               const matchedTeam = allTeams.find(t => t.leaderEmail && t.leaderEmail.toLowerCase() === userEmailLower);
               if (matchedTeam) {
                 setTeamData(matchedTeam);
                 const foundCoordId = matchedTeam.coordinatorId || '';
                 if (foundCoordId) {
-                  firestoreService.updateDocument('users', user.uid, {
+                  supabaseService.updateDocument('users', user.uid, {
                     teamId: matchedTeam.id,
                     teamName: matchedTeam.name || '',
                     coordinatorId: foundCoordId
                   }).catch(err => console.error("Error healing profile with matching team:", err));
                 }
               } else {
-                firestoreService.getCollection<any>('users').then((allUsers) => {
+                supabaseService.getCollection<any>('users').then((allUsers) => {
                   const coordUser = allUsers.find(u => u.role === 'coordenador');
                   if (coordUser) {
-                    firestoreService.updateDocument('users', user.uid, {
+                    supabaseService.updateDocument('users', user.uid, {
                       coordinatorId: coordUser.id
                     }).catch(err => console.error("Error healing fallback coordinatorId:", err));
                   }
@@ -336,7 +336,7 @@ export default function CaboDashboard({
             setResolvedCoordinatorId(resolvedCoordId);
             
             if (data.coordinatorId !== resolvedCoordId) {
-              firestoreService.updateDocument('users', user.uid, {
+              supabaseService.updateDocument('users', user.uid, {
                 coordinatorId: resolvedCoordId
               }).catch(err => console.error("Error writing coordinatorId to user profile:", err));
             }
@@ -344,7 +344,7 @@ export default function CaboDashboard({
             const healVotersAndRequests = async (rCoordId: string) => {
               try {
                 const targetTeamName = teamData?.name || profileData.zone || '';
-                const allVoters = await firestoreService.getCollection<any>('voters');
+                const allVoters = await supabaseService.getCollection<any>('voters');
                 const myVoters = allVoters.filter(v => v.leaderId === user.uid);
                 
                 for (const v of myVoters) {
@@ -357,14 +357,14 @@ export default function CaboDashboard({
                       updates.team = targetTeamName;
                       updates.teamName = targetTeamName;
                     }
-                    await firestoreService.updateDocument('voters', v.id, updates);
+                    await supabaseService.updateDocument('voters', v.id, updates);
                   }
                 }
 
-                const allRequests = await firestoreService.getCollection<any>('material_requests');
+                const allRequests = await supabaseService.getCollection<any>('material_requests');
                 const myRequests = allRequests.filter(r => r.leaderId === user.uid && (!r.coordinatorId || r.coordinatorId === ''));
                 for (const r of myRequests) {
-                  await firestoreService.updateDocument('material_requests', r.id, { coordinatorId: rCoordId });
+                  await supabaseService.updateDocument('material_requests', r.id, { coordinatorId: rCoordId });
                 }
               } catch (err) {
                 console.error("Error healing records:", err);
@@ -376,7 +376,7 @@ export default function CaboDashboard({
           // Subscribe to transactions whenever team info is available
           if (teamName) {
             if (unsubTx) unsubTx();
-            unsubTx = firestoreService.subscribeToCollectionFiltered<any>('transactions', resolvedCoordId || coordinatorId || '', (data) => {
+            unsubTx = supabaseService.subscribeToCollectionFiltered<any>('transactions', resolvedCoordId || coordinatorId || '', (data) => {
               const txs = data.filter(t => t.team === teamName);
               setTeamTransactions(txs.sort((a, b) => (b.date || 0) - (a.date || 0)));
             });
@@ -386,28 +386,28 @@ export default function CaboDashboard({
             currentSubscribedCoordId = resolvedCoordId;
 
             if (unsubNotes) unsubNotes();
-            unsubNotes = firestoreService.subscribeToCollectionFiltered<any>('notes', resolvedCoordId, (data) => {
+            unsubNotes = supabaseService.subscribeToCollectionFiltered<any>('notes', resolvedCoordId, (data) => {
               setNotes(data.filter(n => n.type === 'tactical').sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
             });
 
             if (unsubDailyOrder) unsubDailyOrder();
-            unsubDailyOrder = firestoreService.subscribeToCollection<any>('config', (data) => {
+            unsubDailyOrder = supabaseService.subscribeToCollection<any>('config', (data) => {
               const found = data.find(c => c.id === `dailyOrder_${resolvedCoordId}`);
               if (found) setDailyOrder(found);
             });
 
             if (unsubPartners) unsubPartners();
-            unsubPartners = firestoreService.subscribeToCollectionFiltered('partners', resolvedCoordId, (data) => {
+            unsubPartners = supabaseService.subscribeToCollectionFiltered('partners', resolvedCoordId, (data) => {
               setPartners(data);
             });
 
             if (unsubMaterialRequests) unsubMaterialRequests();
-            unsubMaterialRequests = firestoreService.subscribeToCollectionFiltered('material_requests', resolvedCoordId, (data) => {
+            unsubMaterialRequests = supabaseService.subscribeToCollectionFiltered('material_requests', resolvedCoordId, (data) => {
               setMaterialRequests(data);
             });
 
             if (unsubUrgencies) unsubUrgencies();
-            unsubUrgencies = firestoreService.subscribeToCollectionFiltered('urgencies', resolvedCoordId, (data) => {
+            unsubUrgencies = supabaseService.subscribeToCollectionFiltered('urgencies', resolvedCoordId, (data) => {
               setMyRequests(data.filter((r: any) => r.leaderId === user.uid));
             });
           }
@@ -415,7 +415,7 @@ export default function CaboDashboard({
       });
     }
 
-       const unsubAgendas = firestoreService.subscribeToCollection<any>('agenda', (data) => {
+       const unsubAgendas = supabaseService.subscribeToCollection<any>('agenda', (data) => {
          setMyAgendas(data.filter(a => a.sugeridoPorId === user.uid));
        });
 
@@ -437,7 +437,7 @@ export default function CaboDashboard({
   const fetchServerCounts = async () => {
     if (!user?.uid) return;
     try {
-      const allVoters = await firestoreService.getCollection<any>('voters');
+      const allVoters = await supabaseService.getCollection<any>('voters');
       const myVoters = allVoters.filter(v => v.leaderId === user.uid);
       setTotalVotersCount(myVoters.length);
       setVotedVotersCount(myVoters.filter(v => v.voted).length);
@@ -458,7 +458,7 @@ export default function CaboDashboard({
     if (activeTab !== 'equipe' && activeTab !== 'analise_eleitoral') return;
 
     setLoadingPaginatedVoters(true);
-    const unsub = firestoreService.subscribeToCollection<any>('voters', (allVoters) => {
+    const unsub = supabaseService.subscribeToCollection<any>('voters', (allVoters) => {
       const docs = allVoters.filter(v => v.leaderId === user.uid);
       const sorted = docs.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
       setVoters(sorted);
@@ -477,7 +477,7 @@ export default function CaboDashboard({
       return;
     }
 
-    const unsub = firestoreService.subscribeToCollectionFiltered<any>('voters', resolvedCoordinatorId, (rawData) => {
+    const unsub = supabaseService.subscribeToCollectionFiltered<any>('voters', resolvedCoordinatorId, (rawData) => {
       const uniqueMap = new Map();
       rawData.forEach((v: any) => {
         const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
@@ -550,7 +550,7 @@ export default function CaboDashboard({
           
           // Se online, já tenta salvar
           if (navigator.onLine) {
-            await firestoreService.setDocument('attendance', `checkin_${Date.now()}`, checkinData);
+            await supabaseService.setDocument('attendance', `checkin_${Date.now()}`, checkinData);
           }
           
           setIsLocating(false);
@@ -565,7 +565,7 @@ export default function CaboDashboard({
   const handleDeleteVoter = async (voterId: string) => {
     if (window.confirm("Tem certeza que deseja excluir este eleitor? Esta ação é irreversível.")) {
       try {
-        await firestoreService.deleteDocument('voters', voterId);
+        await supabaseService.deleteDocument('voters', voterId);
         await fetchServerCounts();
         setIsVoterDetailOpen(false);
         setSelectedVoter(null);
@@ -730,7 +730,7 @@ export default function CaboDashboard({
 
     const mat = materials.find((m: any) => m.id === materialId);
     
-    await firestoreService.addDocument('material_requests', {
+    await supabaseService.addDocument('material_requests', {
       leaderId: user.uid,
       leaderName: profileData.name || user?.displayName || 'Líder',
       teamId: teamData?.id || profileData.teamId || '',
@@ -781,7 +781,7 @@ export default function CaboDashboard({
 
       // Verificar se já existe um eleitor com este telefone antes de criar um novo dentro da mesma campanha
       if (!isEditingVoter && voterForm.phone && voterForm.phone.length > 5) {
-        const voters = await firestoreService.getCollectionFiltered<any>('voters', activeCoordId);
+        const voters = await supabaseService.getCollectionFiltered<any>('voters', activeCoordId);
         const exists = voters.some(v => v.phone === voterForm.phone);
         if (exists) {
           alert("🚨 ATENÇÃO: Este telefone já está cadastrado na base geral da campanha! Não é permitido duplicar eleitores.");
@@ -790,7 +790,7 @@ export default function CaboDashboard({
       }
 
       if (isEditingVoter && editingVoterId) {
-        await firestoreService.setDocument('voters', editingVoterId, {
+        await supabaseService.setDocument('voters', editingVoterId, {
           ...voterForm,
           coordinatorId: activeCoordId,
           updatedAt: Date.now()
@@ -810,7 +810,7 @@ export default function CaboDashboard({
           coordinatorId: activeCoordId,
           location: null
         };
-        await firestoreService.setDocument('voters', `voter_${Date.now()}`, payload);
+        await supabaseService.setDocument('voters', `voter_${Date.now()}`, payload);
         await fetchServerCounts();
         alert("✅ CADASTRO REALIZADO COM SUCESSO!");
       }
@@ -1028,7 +1028,7 @@ export default function CaboDashboard({
         try {
           const activeCoordId = resolvedCoordinatorId || coordinatorId || teamData?.coordinatorId || '';
           if (voter.phone && voter.phone.length > 5) {
-            const allVoters = await firestoreService.getCollectionFiltered<any>('voters', activeCoordId);
+            const allVoters = await supabaseService.getCollectionFiltered<any>('voters', activeCoordId);
             const exists = allVoters.some(v => v.phone === voter.phone);
             if (exists) {
               duplicateCount++;
@@ -1049,7 +1049,7 @@ export default function CaboDashboard({
             location: null
           };
 
-          await firestoreService.setDocument('voters', `voter_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, payload);
+          await supabaseService.setDocument('voters', `voter_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, payload);
           successCount++;
         } catch (err) {
           console.error("Erro ao cadastrar eleitor em lote:", err);
@@ -1082,7 +1082,7 @@ export default function CaboDashboard({
     e.preventDefault();
     if (!user) return;
     try {
-      await firestoreService.setDocument('urgencies', `fuel_${Date.now()}`, {
+      await supabaseService.setDocument('urgencies', `fuel_${Date.now()}`, {
         type: 'combustivel',
         title: `Solicitação de Combustível: ${fuelForm.amount}L`,
         description: fuelForm.reason,
@@ -1106,7 +1106,7 @@ export default function CaboDashboard({
     e.preventDefault();
     if (!user) return;
     try {
-      await firestoreService.setDocument('urgencies', `demand_${Date.now()}`, {
+      await supabaseService.setDocument('urgencies', `demand_${Date.now()}`, {
         type: 'demanda',
         title: demandForm.title,
         description: demandForm.description,
@@ -1132,7 +1132,7 @@ export default function CaboDashboard({
     try {
       // TAREFA 3: VALIDAR CHOQUE LOGÍSTICO (filtrado por campanha do coordenador)
       const activeCoordId = resolvedCoordinatorId || coordinatorId || '';
-      const confirmedAgendas = await firestoreService.getCollectionFiltered<any>('agenda', activeCoordId);
+      const confirmedAgendas = await supabaseService.getCollectionFiltered<any>('agenda', activeCoordId);
       const validation = validarSugestaoAgenda(
         agendaForm as AgendaItem, 
         confirmedAgendas.filter(a => a.status === 'confirmado')
@@ -1143,7 +1143,7 @@ export default function CaboDashboard({
         return;
       }
 
-      await firestoreService.setDocument('agenda', `agenda_${Date.now()}`, {
+      await supabaseService.setDocument('agenda', `agenda_${Date.now()}`, {
         ...agendaForm,
         status: 'pendente',
         sugeridoPorId: user.uid,
@@ -1177,13 +1177,13 @@ export default function CaboDashboard({
 
     try {
       // 1. Update Team Spent
-      await firestoreService.updateDocument('teams', teamData.id, {
+      await supabaseService.updateDocument('teams', teamData.id, {
         spent: (teamData.spent || 0) + val
       });
 
       // 2. Create Transaction
       const txId = `tx_spent_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-      await firestoreService.setDocument('transactions', txId, {
+      await supabaseService.setDocument('transactions', txId, {
         id: txId,
         type: 'gasto',
         amount: val,
@@ -1208,7 +1208,7 @@ export default function CaboDashboard({
     }
     
     try {
-      await firestoreService.updateDocument('transactions', tx.id, {
+      await supabaseService.updateDocument('transactions', tx.id, {
         receiptStatus: 'assinado',
         signedAt: Date.now(),
         signedBy: profileData.name || user?.displayName || user?.email
@@ -1263,7 +1263,7 @@ export default function CaboDashboard({
     try {
       const processedNote = await processarNotaAudio(noteText);
       const noteId = `note_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-      await firestoreService.setDocument('notes', noteId, {
+      await supabaseService.setDocument('notes', noteId, {
         id: noteId,
         text: processedNote,
         originalText: noteText,
@@ -1294,7 +1294,7 @@ export default function CaboDashboard({
 
   const handleDeleteNote = async (id: string) => {
     if (confirm("Deseja excluir esta nota?")) {
-      await firestoreService.deleteDocument('notes', id);
+      await supabaseService.deleteDocument('notes', id);
     }
   };
 
@@ -1584,7 +1584,7 @@ export default function CaboDashboard({
                                 <button 
                                   onClick={async () => {
                                     if(window.confirm("Abortar sugestão estratégica?")) {
-                                      await firestoreService.deleteDocument('agenda', agenda.id);
+                                      await supabaseService.deleteDocument('agenda', agenda.id);
                                     }
                                   }}
                                   className="text-[9px] font-semibold text-red-500 hover:text-red-700 uppercase tracking-wider underline transition-colors"
@@ -2089,7 +2089,7 @@ export default function CaboDashboard({
                           onClick={async () => {
                             if (confirm("Confirmar recebimento deste lote de material?")) {
                               try {
-                                await firestoreService.updateDocument('material_requests', req.id, {
+                                await supabaseService.updateDocument('material_requests', req.id, {
                                   receivedByLeader: true,
                                   receivedAt: Date.now()
                                 });
@@ -2110,7 +2110,7 @@ export default function CaboDashboard({
                           onClick={async () => {
                             if (confirm(`Confirmar devolução do material: ${req.materialName}?`)) {
                               try {
-                                await firestoreService.updateDocument('material_requests', req.id, {
+                                await supabaseService.updateDocument('material_requests', req.id, {
                                   status: 'devolucao_pendente',
                                   returnedByLeader: true,
                                   returnedAt: Date.now()
@@ -2161,7 +2161,7 @@ export default function CaboDashboard({
                     user={user} 
                     isAdmin={isAdmin} 
                     currentUserName={profileData?.name} 
-                    onDelete={() => firestoreService.deleteDocument('notes', note.id)} 
+                    onDelete={() => supabaseService.deleteDocument('notes', note.id)} 
                   />
                 ))
               ) : (
@@ -2257,7 +2257,7 @@ export default function CaboDashboard({
                   <button 
                     onClick={async () => {
                       try {
-                        await firestoreService.updateDocument('users', user.uid, profileData);
+                        await supabaseService.updateDocument('users', user.uid, profileData);
                         setIsProfileModalOpen(false);
                       } catch (err: any) {
                         alert("Erro ao atualizar credenciais: " + err.message);

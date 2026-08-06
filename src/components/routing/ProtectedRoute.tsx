@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '../../lib/FirebaseProvider';
+import { useAuth } from '../../lib/SupabaseProvider';
 import { motion } from 'motion/react';
 import logoImg from '../../assets/logo.png';
 
