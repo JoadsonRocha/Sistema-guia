@@ -3,7 +3,6 @@ import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import * as Sentry from '@sentry/node';
-import { createServer as createViteServer } from 'vite';
 
 const MAX_BODY_SIZE = process.env.MAX_BODY_SIZE || '2mb';
 
@@ -103,6 +102,7 @@ async function startServer() {
 
   try {
     if (NODE_ENV !== 'production') {
+      const { createServer: createViteServer } = await import('vite');
       vite = await createViteServer({
         server: { middlewareMode: true },
         appType: 'spa',
