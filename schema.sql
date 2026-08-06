@@ -293,13 +293,17 @@ DROP POLICY IF EXISTS "Acesso Autenticado a TRE Locations" ON public.tre_locatio
 CREATE POLICY "Leitura de Perfis da Campanha" ON public.profiles
   FOR SELECT USING (
     auth.uid() IS NOT NULL AND (
-      id = auth.uid() OR public.is_admin_or_coordinator()
+      id = auth.uid()
+      OR public.is_admin_or_coordinator()
+      OR coordinator_id = public.get_my_coordinator_id()
     )
   );
 
 CREATE POLICY "Atualização do Próprio Perfil ou por Coordenador" ON public.profiles
   FOR UPDATE USING (
-    id = auth.uid() OR public.is_admin_or_coordinator()
+    id = auth.uid()
+    OR public.is_admin_or_coordinator()
+    OR coordinator_id = public.get_my_coordinator_id()
   );
 
 -- 6.2 POLÍTICAS PARA ELEITORES (VOTERS - BLINDAGEM DE DADOS)
@@ -308,7 +312,7 @@ CREATE POLICY "Atualização do Próprio Perfil ou por Coordenador" ON public.pr
 CREATE POLICY "Seleção de Eleitores Isolada" ON public.voters
   FOR SELECT USING (
     auth.uid() IS NOT NULL AND (
-      leader_id = auth.uid() 
+      leader_id = auth.uid()
       OR coordinator_id = public.get_my_coordinator_id()
       OR public.is_admin_or_coordinator()
     )
@@ -317,18 +321,23 @@ CREATE POLICY "Seleção de Eleitores Isolada" ON public.voters
 CREATE POLICY "Cadastro de Eleitores por Líderes Autenticados" ON public.voters
   FOR INSERT WITH CHECK (
     auth.uid() IS NOT NULL AND (
-      leader_id = auth.uid() OR public.is_admin_or_coordinator()
+      leader_id = auth.uid()
+      OR public.is_admin_or_coordinator()
     )
   );
 
 CREATE POLICY "Edição e Exclusão de Eleitores por Autor ou Coordenador" ON public.voters
   FOR UPDATE USING (
-    leader_id = auth.uid() OR public.is_admin_or_coordinator()
+    leader_id = auth.uid()
+    OR public.is_admin_or_coordinator()
+    OR coordinator_id = public.get_my_coordinator_id()
   );
 
 CREATE POLICY "Exclusão de Eleitores por Coordenador" ON public.voters
   FOR DELETE USING (
-    leader_id = auth.uid() OR public.is_admin_or_coordinator()
+    leader_id = auth.uid()
+    OR public.is_admin_or_coordinator()
+    OR coordinator_id = public.get_my_coordinator_id()
   );
 
 -- 6.3 POLÍTICAS PARA TRANSAÇÕES FINANCEIRAS (SIGILO TOTAL)
@@ -343,20 +352,26 @@ CREATE POLICY "Acesso Financeiro Restrito a Coordenadores" ON public.transaction
 CREATE POLICY "Leitura de Urgências por Líder ou Coordenador" ON public.urgencies
   FOR SELECT USING (
     auth.uid() IS NOT NULL AND (
-      leader_id = auth.uid() OR public.is_admin_or_coordinator()
+      leader_id = auth.uid()
+      OR coordinator_id = public.get_my_coordinator_id()
+      OR public.is_admin_or_coordinator()
     )
   );
 
 CREATE POLICY "Criação de Urgência por Líder" ON public.urgencies
   FOR INSERT WITH CHECK (
     auth.uid() IS NOT NULL AND (
-      leader_id = auth.uid() OR public.is_admin_or_coordinator()
+      leader_id = auth.uid()
+      OR public.is_admin_or_coordinator()
     )
   );
 
 CREATE POLICY "Aprovação de Urgência Apenas por Coordenadores" ON public.urgencies
   FOR UPDATE USING (
-    auth.uid() IS NOT NULL AND public.is_admin_or_coordinator()
+    auth.uid() IS NOT NULL AND (
+      public.is_admin_or_coordinator()
+      OR coordinator_id = public.get_my_coordinator_id()
+    )
   );
 
 -- 6.5 POLÍTICAS PARA CAMPAIGN_RECORDS E ESTADO CONSOLIDADO
@@ -379,7 +394,16 @@ CREATE POLICY "Isolamento de Estado da Campanha" ON public.coordinator_campaigns
   );
 
 CREATE POLICY "Acesso Autenticado a TRE Locations" ON public.tre_locations
-  FOR ALL USING (auth.uid() IS NOT NULL);
+  FOR SELECT USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Gestão de TRE Locations por Coordenadores" ON public.tre_locations
+  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL AND public.is_admin_or_coordinator());
+
+CREATE POLICY "Atualização de TRE Locations por Coordenadores" ON public.tre_locations
+  FOR UPDATE USING (auth.uid() IS NOT NULL AND public.is_admin_or_coordinator());
+
+CREATE POLICY "Exclusão de TRE Locations por Coordenadores" ON public.tre_locations
+  FOR DELETE USING (auth.uid() IS NOT NULL AND public.is_admin_or_coordinator());
 
 -- ==============================================================================
 -- 7. TRIGGERS E FUNÇÕES AUTOMÁTICAS
