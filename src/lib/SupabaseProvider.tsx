@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import logoImg from '../assets/logo.png';
-import { getSupabaseClient } from './supabase';
+import { getSupabaseClient, resetSupabaseClient } from './supabase';
 import { supabaseDataService } from './supabaseService';
 
 export type UserRole = 'coordenador_geral' | 'coordenador_regional' | 'lider' | 'coordenador';
@@ -169,6 +169,54 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
       }
     }
+  }, []);
+
+  // Handle BFCache (pageshow/pagehide) to cleanup and re-init Supabase realtime/auth
+  useEffect(() => {
+    const handlePageHide = () => {
+      try {
+        // reset client to ensure websockets/subscriptions are re-created on show
+        resetSupabaseClient();
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    const handlePageShow = (ev: PageTransitionEvent | Event) => {
+      const persisted = (ev as any)?.persisted === true || document.visibilityState === 'visible';
+      if (!persisted) return;
+      try {
+        const s = getSupabaseClient();
+        if (!s) return;
+        // Re-fetch session and re-sync profile so subscriptions/auth state are restored
+        s.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) {
+            localStorage.setItem('nexus_auth_user', JSON.stringify(session.user));
+            syncUserProfile(session.user);
+          } else {
+            const localUser = localStorage.getItem('nexus_auth_user');
+            if (localUser) {
+              try {
+                syncUserProfile(JSON.parse(localUser));
+              } catch (e) {}
+            }
+          }
+        }).catch(() => {});
+      } catch (e) {}
+    };
+
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('pageshow', handlePageShow as EventListener);
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') handlePageShow(new Event('pageshow'));
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('pageshow', handlePageShow as EventListener);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, []);
 
   const login = async () => {

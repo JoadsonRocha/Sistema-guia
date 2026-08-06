@@ -58,3 +58,9 @@ export function isSupabaseConfigured(): boolean {
   const { url, anonKey } = getSupabaseCredentials();
   return Boolean(url && anonKey);
 }
+
+// Force reset of the Supabase client instance. Useful when the page
+// is suspended/restored (BFCache) so websockets/subscriptions are recreated.
+export function resetSupabaseClient(): void {
+  supabaseInstance = null;
+}

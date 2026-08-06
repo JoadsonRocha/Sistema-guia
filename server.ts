@@ -4,7 +4,7 @@ import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 const DEFAULT_PHOTO = 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=600';
 
@@ -61,6 +61,10 @@ async function startServer() {
   } catch (err) {
     console.error('Failed to create Vite server in middlewareMode:', err);
   }
+
+  app.get('/health', (_req, res) => {
+    res.status(200).send('ok');
+  });
 
   // Rota com sanitização contra Path Traversal
   app.get('/download/arquitetura-doc', (req, res) => {
