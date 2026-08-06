@@ -146,6 +146,12 @@ export default function App() {
     }
   }, [user, isAdmin, isLeader]);
 
+  useEffect(() => {
+    if (user || demoRole || isDemoMode) {
+      setIsSalesLanding(false);
+    }
+  }, [user, demoRole, isDemoMode]);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userRole, setUserRole] = useState<'coordenador_geral' | 'coordenador_regional' | 'lider'>('coordenador_geral');
@@ -205,17 +211,6 @@ export default function App() {
     );
   }
 
-  if (isSalesLanding) {
-    return (
-      <Suspense fallback={<ComponentLoader />}>
-        <SalesLandingPage 
-          onAccessSystem={() => setIsSalesLanding(false)} 
-          onStartDemoMode={handleStartDemoMode}
-        />
-      </Suspense>
-    );
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-8 transition-colors duration-500">
@@ -244,6 +239,20 @@ export default function App() {
       </div>
     );
   }
+
+  if (isSalesLanding && !user && !demoRole && !isDemoMode) {
+    return (
+      <Suspense fallback={<ComponentLoader />}>
+        <SalesLandingPage 
+          onAccessSystem={() => setIsSalesLanding(false)} 
+          onStartDemoMode={handleStartDemoMode}
+          onLogout={user ? logout : undefined}
+          isLoggedIn={Boolean(user || demoRole)}
+        />
+      </Suspense>
+    );
+  }
+
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
