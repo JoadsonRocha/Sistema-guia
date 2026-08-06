@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { ShieldCheck, Lock, FileText } from 'lucide-react';
+import { ShieldCheck, Lock, FileText, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth, UserRole } from './lib/FirebaseProvider';
 import { firestoreService } from './lib/firestoreService';
@@ -10,6 +10,7 @@ import { downloadRequirementsDoc } from './utils/docGenerator';
 import { safeLocalStorage } from './utils/safeStorage';
 import { validateGeneralCoordinatorRegistration, triggerUpgradeRedirect } from './lib/planService';
 import { OfflineSyncBar } from './components/OfflineSyncBar';
+import { showToast } from './components/GlobalToastHost';
 import logoImg from './assets/logo.png';
 
 // Lazy loading heavy components to optimize initial page load speed
@@ -152,6 +153,7 @@ export default function App() {
   const [showDomainGuide, setShowDomainGuide] = useState(false);
   const [copiedDomain, setCopiedDomain] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const handleOpenSales = (e: any) => {
@@ -250,7 +252,7 @@ export default function App() {
     }
     try {
       await changePassword(newPassword);
-      alert("Senha alterada com sucesso!");
+      showToast('Senha alterada com sucesso!', 'success');
     } catch (err: any) {
       setAuthError(err.message || 'Erro ao alterar senha');
     }
@@ -402,8 +404,17 @@ export default function App() {
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }} 
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-[var(--bg-secondary)] p-10 md:p-14 rounded-sm shadow-2xl border border-[var(--border-color)] relative z-20 backdrop-blur-sm"
+          className="max-w-md w-full bg-[var(--bg-secondary)] p-10 md:p-14 rounded-[28px] shadow-[0_25px_85px_-30px_rgba(2,132,199,0.45)] border border-[var(--border-color)] relative z-20 backdrop-blur-sm"
         >
+          <div className="flex items-center justify-center gap-3 mb-6 text-[var(--text-primary)]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-600/10 text-blue-600">
+              <ShieldCheck className="h-6 w-6" />
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-black uppercase tracking-[0.35em] text-blue-600">Acesso restrito</p>
+              <p className="text-sm font-semibold text-[var(--text-secondary)]">Painel operacional Nexus Política</p>
+            </div>
+          </div>
           <div className="flex justify-center mb-6 text-[var(--text-primary)]">
             <div className="flex items-center justify-center bg-transparent w-full">
               <img 
@@ -460,14 +471,24 @@ export default function App() {
                   </button>
                 )}
               </div>
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-4.5 rounded-sm focus:outline-none focus:border-blue-600 transition-all font-bold text-sm shadow-inner placeholder:[var(--text-secondary)] placeholder:opacity-30"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input 
+                  type={showPassword ? 'text' : 'password'} 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-4.5 pr-12 rounded-sm focus:outline-none focus:border-blue-600 transition-all font-bold text-sm shadow-inner placeholder:[var(--text-secondary)] placeholder:opacity-30"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-blue-600"
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
             {authError && (
@@ -524,7 +545,7 @@ export default function App() {
 
             <button 
               type="submit"
-              className="w-full bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 py-5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl transition-all active:scale-95"
+              className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:from-blue-700 hover:to-cyan-600 py-5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl transition-all active:scale-95"
             >
               {isRegistering ? 'Solicitar Cadastro' : 'Autenticar Unidade'}
             </button>
@@ -580,6 +601,7 @@ export default function App() {
   return (
     <div className={`${theme} min-h-screen transition-colors duration-300 relative flex flex-col`}>
       {isDemoMode && (
+        <div className="sticky top-0 z-50 border-b border-[var(--border-color)] bg-[var(--bg-secondary)]/90 backdrop-blur-xl">
         <DemoHeaderBanner 
           activeRole={demoRole || 'coordenador_geral'}
           onSelectRole={handleSelectDemoRole}
@@ -587,6 +609,7 @@ export default function App() {
           onExitDemo={handleExitDemoMode}
           onDownloadDoc={() => setShowDocModal(true)}
         />
+      </div>
       )}
 
       <DemoBlockModal

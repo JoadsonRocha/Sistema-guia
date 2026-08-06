@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { SupabaseProvider } from './lib/SupabaseProvider.tsx';
+import { GlobalToastHost } from './components/GlobalToastHost';
 
 // Global Error Catch for initialization
 window.addEventListener('error', (event) => {
@@ -26,6 +27,7 @@ window.addEventListener('unhandledrejection', (event) => {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SupabaseProvider>
+      <GlobalToastHost />
       <App />
     </SupabaseProvider>
   </StrictMode>,

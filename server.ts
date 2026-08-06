@@ -2,15 +2,40 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
+import * as Sentry from '@sentry/node';
 import { createServer as createViteServer } from 'vite';
+
+const MAX_BODY_SIZE = process.env.MAX_BODY_SIZE || '2mb';
 
 dotenv.config();
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://www.nexuspolitica.com.br,https://nexuspolitica.com.br,http://localhost:3000,http://127.0.0.1:3000')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: NODE_ENV,
+    release: process.env.RAILWAY_GIT_COMMIT_SHA || 'local',
+    tracesSampleRate: 0.2,
+  });
+}
 
 const DEFAULT_PHOTO = 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=600';
+
+app.disable('x-powered-by');
+app.disable('etag');
+app.use(express.json({ limit: MAX_BODY_SIZE }));
+app.use(express.urlencoded({ extended: true, limit: MAX_BODY_SIZE }));
+
+if (process.env.SENTRY_DSN) {
+  app.use(Sentry.Handlers.requestHandler());
+}
 
 // ==============================================================================
 // MIDDLEWARE DE SEGURANÇA HTTP & HARDENING (HELMET & CORS STRICTIONS)
@@ -22,16 +47,20 @@ app.use((req, res, next) => {
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'geolocation=(self), camera=(self), microphone=(self)');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https: wss:; object-src 'none'; base-uri 'self'; frame-ancestors 'self';");
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
   
   // Configuração estrita de CORS
-  const allowedOrigins = [
-    'https://www.nexuspolitica.com.br',
-    'https://nexuspolitica.com.br',
-    `http://localhost:${PORT}`,
-    `http://127.0.0.1:${PORT}`
-  ];
   const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
+  const isAllowedOrigin = Boolean(origin && ALLOWED_ORIGINS.some((allowedOrigin) => {
+    if (allowedOrigin.includes('*')) {
+      return origin.startsWith(allowedOrigin.replace('*', ''));
+    }
+    return origin === allowedOrigin;
+  }));
+
+  if (isAllowedOrigin) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
@@ -39,6 +68,23 @@ app.use((req, res, next) => {
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
+  }
+
+  next();
+});
+
+app.use((req, res, next) => {
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    return next();
+  }
+
+  if (req.path.startsWith('/health')) {
+    return next();
+  }
+
+  const contentLength = Number(req.headers['content-length'] || 0);
+  if (contentLength > 2 * 1024 * 1024) {
+    return res.status(413).json({ error: 'Payload too large' });
   }
 
   next();
@@ -158,6 +204,10 @@ async function startServer() {
     });
   }
 
+  if (process.env.SENTRY_DSN) {
+    app.use(Sentry.Handlers.errorHandler());
+  }
+
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);
   });
@@ -165,4 +215,7 @@ async function startServer() {
 
 startServer().catch((err) => {
   console.error('Fatal server start error:', err);
+  if (process.env.SENTRY_DSN) {
+    Sentry.captureException(err);
+  }
 });

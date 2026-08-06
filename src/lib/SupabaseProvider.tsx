@@ -47,6 +47,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<UserRole | null>(null);
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionLocked, setSessionLocked] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isGeral, setIsGeral] = useState(false);
   const [isRegional, setIsRegional] = useState(false);

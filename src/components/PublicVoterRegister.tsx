@@ -5,6 +5,7 @@ import { firestoreService } from '../lib/firestoreService';
 import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO } from '../lib/candidateService';
 import { validateVoterRegistration, triggerUpgradeRedirect } from '../lib/planService';
 import { motion, AnimatePresence } from 'motion/react';
+import { showToast } from './GlobalToastHost';
 import { 
   ShieldCheck, 
   User, 
@@ -254,7 +255,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
     if (!leaderInfo) return;
 
     if (!acceptedLgpd) {
-      alert("Por favor, aceite os termos de proteção de dados (LGPD) para prosseguir.");
+      showToast('Por favor, aceite os termos de proteção de dados (LGPD) para prosseguir.', 'error');
       return;
     }
 
@@ -271,7 +272,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
         const voters = await firestoreService.getCollectionFiltered<any>('voters', leaderInfo.coordinatorId);
         const existing = voters.find(v => v.phone === voterForm.phone);
         if (existing) {
-          alert("⚠️ Este número de telefone já está cadastrado nesta coordenação!");
+          showToast('⚠️ Este número de telefone já está cadastrado nesta coordenação.', 'error');
           setIsSubmitting(false);
           return;
         }
@@ -294,8 +295,9 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
 
       await firestoreService.setDocument('voters', `voter_${Date.now()}`, payload);
       setSuccess(true);
+      showToast('Cadastro realizado com sucesso!', 'success');
     } catch (err: any) {
-      alert("Erro ao realizar cadastro: " + err.message);
+      showToast(`Erro ao realizar cadastro: ${err.message}`, 'error');
     } finally {
       setIsSubmitting(false);
     }
