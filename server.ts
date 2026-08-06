@@ -33,7 +33,7 @@ app.use(express.json({ limit: MAX_BODY_SIZE }));
 app.use(express.urlencoded({ extended: true, limit: MAX_BODY_SIZE }));
 
 if (process.env.SENTRY_DSN) {
-  app.use(Sentry.Handlers.requestHandler());
+  // Sentry >= v8 automatically instruments requests, Handlers.requestHandler is removed.
 }
 
 // ==============================================================================
@@ -205,7 +205,7 @@ async function startServer() {
   }
 
   if (process.env.SENTRY_DSN) {
-    app.use(Sentry.Handlers.errorHandler());
+    Sentry.setupExpressErrorHandler(app);
   }
 
   app.listen(PORT, '0.0.0.0', () => {
