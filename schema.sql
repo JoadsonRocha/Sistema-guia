@@ -275,12 +275,19 @@ ALTER TABLE public.campaign_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coordinator_campaigns ENABLE ROW LEVEL SECURITY;
 
 -- Limpar políticas antigas/permissivas caso existam
-DROP POLICY IF EXISTS "Acesso a voters" ON public.voters;
-DROP POLICY IF EXISTS "Acesso a transactions" ON public.transactions;
-DROP POLICY IF EXISTS "Acesso a teams" ON public.teams;
-DROP POLICY IF EXISTS "Acesso a urgencies" ON public.urgencies;
-DROP POLICY IF EXISTS "Acesso a campaign_records" ON public.campaign_records;
-DROP POLICY IF EXISTS "Acesso a coordinator_campaigns" ON public.coordinator_campaigns;
+DROP POLICY IF EXISTS "Leitura de Perfis da Campanha" ON public.profiles;
+DROP POLICY IF EXISTS "Atualização do Próprio Perfil ou por Coordenador" ON public.profiles;
+DROP POLICY IF EXISTS "Seleção de Eleitores Isolada" ON public.voters;
+DROP POLICY IF EXISTS "Cadastro de Eleitores por Líderes Autenticados" ON public.voters;
+DROP POLICY IF EXISTS "Edição e Exclusão de Eleitores por Autor ou Coordenador" ON public.voters;
+DROP POLICY IF EXISTS "Exclusão de Eleitores por Coordenador" ON public.voters;
+DROP POLICY IF EXISTS "Acesso Financeiro Restrito a Coordenadores" ON public.transactions;
+DROP POLICY IF EXISTS "Leitura de Urgências por Líder ou Coordenador" ON public.urgencies;
+DROP POLICY IF EXISTS "Criação de Urgência por Líder" ON public.urgencies;
+DROP POLICY IF EXISTS "Aprovação de Urgência Apenas por Coordenadores" ON public.urgencies;
+DROP POLICY IF EXISTS "Isolamento de Registros por Coordenador" ON public.campaign_records;
+DROP POLICY IF EXISTS "Isolamento de Estado da Campanha" ON public.coordinator_campaigns;
+DROP POLICY IF EXISTS "Acesso Autenticado a TRE Locations" ON public.tre_locations;
 
 -- 6.1 POLÍTICAS PARA PROFILES
 CREATE POLICY "Leitura de Perfis da Campanha" ON public.profiles
