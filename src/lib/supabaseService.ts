@@ -446,6 +446,29 @@ export const supabaseDataService = {
 
     const all = getLocalList<any>(path);
     return all.filter(item => item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId) as T[];
+  },
+
+  /**
+   * Limpa todos os dados locais de demonstração/teste armazenados em cache (localStorage)
+   */
+  clearAllLocalDemoData(): void {
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (
+          key.startsWith('nexus_sb_') ||
+          key.startsWith('sistema_urna360_') ||
+          key.startsWith('urna360-') ||
+          key.startsWith('nexus_candidate_')
+        )) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+    } catch (e) {
+      console.warn("Erro ao limpar dados locais de demonstração:", e);
+    }
   }
 };
 
