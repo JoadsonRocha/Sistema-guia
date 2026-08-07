@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/SupabaseProvider';
 import { motion } from 'motion/react';
 import logoImg from '../../assets/logo.png';
@@ -32,14 +32,16 @@ export const ComponentLoader = () => (
 );
 
 export function ProtectedRoute() {
-  const { user, loading, forcePasswordChange, demoRole } = useAuth();
+  const { user, loading, forcePasswordChange, demoRole, sessionLocked } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   if (loading) {
     return <ComponentLoader />;
   }
 
-  const isLoggedIn = !!user || !!demoRole;
+  // sessionLocked indicates an ongoing logout/lock; treat as unauthenticated
+  const isLoggedIn = (!!user && !sessionLocked) || !!demoRole;
 
   if (!isLoggedIn) {
     return <Navigate to="/login" state={{ from: location }} replace />;
@@ -50,10 +52,13 @@ export function ProtectedRoute() {
     return <Navigate to="/change-password" replace />;
   }
 
-  // Se já alterou a senha mas está tentando acessar a rota de change-password, joga pro dashboard
+  // If user already changed password, prevent returning to change-password
   if (!forcePasswordChange && location.pathname === '/change-password') {
     return <Navigate to="/dashboard" replace />;
   }
+
+  // Defensive navigation: if at any point the user becomes null, navigate to login
+  // (useEffect avoided to keep component simple — immediate render logic handles this)
 
   return <Outlet />;
 }

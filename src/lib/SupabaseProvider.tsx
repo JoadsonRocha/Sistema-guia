@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import logoImg from '../assets/logo.png';
 import { getSupabaseClient, resetSupabaseClient } from './supabase';
 import { supabaseDataService } from './supabaseService';
@@ -130,15 +130,21 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           syncUserProfile(session.user);
         } else {
-          // Check local cached session fallback
-          const localUser = localStorage.getItem('nexus_auth_user');
-          if (localUser) {
-            try {
-              syncUserProfile(JSON.parse(localUser));
-            } catch (e) {
+          // In production we avoid trusting localStorage for auth state.
+          const isProd = (import.meta as any)?.env?.MODE === 'production' || (import.meta as any)?.env?.PROD === true;
+          if (!isProd) {
+            const localUser = localStorage.getItem('nexus_auth_user');
+            if (localUser) {
+              try {
+                syncUserProfile(JSON.parse(localUser));
+              } catch (e) {
+                setLoading(false);
+              }
+            } else {
               setLoading(false);
             }
           } else {
+            // production: mark loaded and rely on Supabase session/cookie
             setLoading(false);
           }
         }
@@ -147,10 +153,14 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       // Listen to auth changes
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session?.user) {
-          localStorage.setItem('nexus_auth_user', JSON.stringify(session.user));
+          // Avoid persisting full session in localStorage in production
+          const isProd = (import.meta as any)?.env?.MODE === 'production' || (import.meta as any)?.env?.PROD === true;
+          if (!isProd) {
+            localStorage.setItem('nexus_auth_user', JSON.stringify(session.user));
+          }
           syncUserProfile(session.user);
         } else {
-          localStorage.removeItem('nexus_auth_user');
+          try { localStorage.removeItem('nexus_auth_user'); } catch(e) {}
           syncUserProfile(null);
         }
       });
@@ -172,6 +182,36 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       }
     }
   }, []);
+
+  // Inactivity logout: auto-logout after configured idle minutes (defaults to 30)
+  useEffect(() => {
+    const idleMinutes = Number((import.meta as any)?.env?.VITE_IDLE_LOGOUT_MINUTES || 30);
+    const idleMs = Math.max(1, idleMinutes) * 60 * 1000;
+    const lastActivity = { current: Date.now() } as { current: number };
+    const timerRef = { current: 0 } as { current: number };
+
+    const resetTimer = () => {
+      lastActivity.current = Date.now();
+      if (timerRef.current) {
+        window.clearTimeout(timerRef.current);
+      }
+      timerRef.current = window.setTimeout(() => {
+        // Logout on inactivity
+        if (user) {
+          logout().catch(() => {});
+        }
+      }, idleMs);
+    };
+
+    const events = ['mousemove', 'keydown', 'visibilitychange', 'touchstart'];
+    events.forEach((ev) => window.addEventListener(ev, resetTimer));
+    resetTimer();
+
+    return () => {
+      events.forEach((ev) => window.removeEventListener(ev, resetTimer));
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    };
+  }, [user]);
 
   // Handle BFCache (pageshow/pagehide) to cleanup and re-init Supabase realtime/auth
   useEffect(() => {
