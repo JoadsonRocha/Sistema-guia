@@ -116,7 +116,6 @@ export function validarSugestaoAgenda(
     if (hFimConf <= hInicioConf) {
       hFimConf += 1440;
     }
-    const hFimConf = aMinutos(confirmada.hora_fim);
 
     // --- TRAVA 1: CHOQUE FÍSICO (SOBREPOSIÇÃO) ---
     // (Início da nova está dentro de uma confirmada) OU (Fim da nova está dentro de uma confirmada) 
