@@ -6,24 +6,22 @@ import { Layout } from './components/Layout';
 import { LoginPage } from './pages/LoginPage';
 import { ForcePasswordChangePage } from './pages/ForcePasswordChangePage';
 import { DashboardPage } from './pages/DashboardPage';
-import { useAuth } from './lib/SupabaseProvider';
 
 // Lazy loading heavy components
 const PublicVoterRegister = lazy(() => import('./components/PublicVoterRegister'));
 const SalesLandingPage = lazy(() => import('./components/SalesLandingPage').then(m => ({ default: m.SalesLandingPage })));
 
 function SalesLandingWrapper() {
-  const { user, demoRole, logout, setDemoRole } = useAuth();
   const navigate = useNavigate();
-  const isLoggedIn = Boolean(user || demoRole);
 
   const handleAccessSystem = () => {
-    navigate(isLoggedIn ? '/dashboard' : '/login');
+    // Landing page is isolated from auth state: always send users to login
+    navigate('/login');
   };
 
   const handleStartDemoMode = () => {
-    setDemoRole('coordenador_geral');
-    navigate('/dashboard');
+    // Start demo via login query param so demo activation happens within auth context
+    navigate('/login?demo=coordenador_geral');
   };
 
   return (

@@ -63,3 +63,73 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   @apply bg-zinc-300;
 }
+
+/* Form controls: uniform, high-contrast, accessible */
+@layer base {
+  label {
+    color: var(--text-primary);
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 0.375rem;
+    font-size: 0.95rem;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  textarea,
+  select {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    padding: 0.56rem 0.75rem !important;
+    border-radius: 0.5rem !important;
+    font-size: 1rem !important;
+    line-height: 1.25 !important;
+    min-height: 44px !important;
+    outline: none !important;
+    box-shadow: none !important;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    caret-color: var(--accent-color) !important;
+  }
+
+  textarea {
+    min-height: 96px;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    resize: vertical;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: var(--text-secondary) !important;
+    opacity: 0.85 !important;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--accent-color) !important;
+    box-shadow: 0 0 0 6px rgba(5,120,211,0.08) !important;
+    background-color: var(--bg-secondary) !important;
+  }
+
+  /* Disabled state */
+  input:disabled, textarea:disabled, select:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background-color: var(--bg-tertiary) !important;
+  }
+
+  /* Make primary buttons easy to tap and consistent */
+  button, .btn {
+    min-height: 44px;
+    padding: 0.56rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+  }
+
+  /* Ensure form controls inherit high-contrast text color in dark mode */
+  .dark input, .dark textarea, .dark select {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-secondary) !important;
+  }
+}

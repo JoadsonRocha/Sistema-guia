@@ -32,6 +32,7 @@ export function LoginPage() {
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get('email');
     const tokenParam = params.get('access_token');
+    const demoParam = params.get('demo');
     
     if (emailParam) {
       setEmail(emailParam);
@@ -43,6 +44,19 @@ export function LoginPage() {
         setPassword(decodedPass);
       } catch (e) {
         console.error("Token inválido");
+      }
+    }
+
+    // If landing requested demo mode, activate demoRole and redirect
+    if (demoParam) {
+      try {
+        // Slight delay to allow provider initialization
+        setTimeout(() => {
+          setDemoRole(demoParam as any);
+          navigate('/dashboard');
+        }, 150);
+      } catch (e) {
+        console.warn('Failed to auto-start demo mode:', e);
       }
     }
 
