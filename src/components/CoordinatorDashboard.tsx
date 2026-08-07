@@ -865,6 +865,7 @@ export default function CoordinatorDashboard({
         }
 
         clearTreLocationsCache(activeCoordId);
+        supabaseService.clearAllLocalDemoData();
         safeLocalStorage.removeItem(`urna360_voters_cache_${activeCoordId}`);
         safeLocalStorage.removeItem(`sistema_urna360_eleitoral_data_${activeCoordId}`);
         safeLocalStorage.setItem(`sistema_urna360_eleitoral_data_${activeCoordId}`, '[]');
