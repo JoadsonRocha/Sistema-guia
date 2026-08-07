@@ -1,3 +1,11 @@
+/**
+ * supabaseService
+ *
+ * Lightweight data service wrapper around Supabase client providing:
+ * - Local caching in `localStorage` for offline-first behavior
+ * - Helpers to persist and load campaign state and TRE locations
+ * - Batch sync and upsert convenience methods used by the UI sync bar
+ */
 import { getSupabaseClient, isSupabaseConfigured } from './supabase';
 import { TreLocationItem, parseSecoes, extractZonaNum } from './treDataService';
 
@@ -9,12 +17,22 @@ export interface CampaignRecord {
   created_at?: string;
 }
 
-// Local storage key helper
+/**
+ * getLocalKey
+ *
+ * Return a deterministic localStorage key for a given collection `path` and optional `id`.
+ * - Item keys: `nexus_sb_<path>_<id>`
+ * - List keys: `nexus_sb_<path>_list`
+ */
 function getLocalKey(path: string, id?: string) {
   return id ? `nexus_sb_${path}_${id}` : `nexus_sb_${path}_list`;
 }
 
-// Get cached local list
+/**
+ * getLocalList
+ *
+ * Read a cached collection from localStorage. Returns an empty array on error.
+ */
 function getLocalList<T>(path: string): T[] {
   try {
     const raw = localStorage.getItem(getLocalKey(path));
@@ -23,7 +41,11 @@ function getLocalList<T>(path: string): T[] {
   return [];
 }
 
-// Save cached local list
+/**
+ * setLocalList
+ *
+ * Persist a collection to localStorage using the `getLocalKey` naming scheme.
+ */
 function setLocalList(path: string, list: any[]) {
   try {
     localStorage.setItem(getLocalKey(path), JSON.stringify(list));
@@ -290,7 +312,7 @@ export const supabaseDataService = {
     const payload = { id, ...data };
     const coordinatorId = data.coordinatorId || data.coordinator_id || data.userId || 'default';
 
-    // Local storage sync
+    // Local storage sync: keep a local copy for offline-first UX
     const items = getLocalList<any>(path);
     const idx = items.findIndex(item => item.id === id);
     if (idx >= 0) {

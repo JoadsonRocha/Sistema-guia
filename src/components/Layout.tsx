@@ -42,16 +42,19 @@ export function Layout() {
 
       {/* Removed fixed 'Área protegida' badge to simplify dashboard UI */}
 
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setShowDocModal(true)}
-        className="fixed bottom-5 right-5 z-40 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-3 rounded-full shadow-2xl flex items-center gap-2 text-xs uppercase tracking-wider border-2 border-white/20 transition-all"
-        title="Especificação de Requisitos e Arquitetura em .DOC"
-      >
-        <FileText className="w-4 h-4 text-blue-200" />
-        <span className="hidden sm:inline">Baixar Doc (.DOC)</span>
-      </motion.button>
+      <motion.div className="fixed top-4 right-4 z-40 flex items-center gap-2">
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => setShowDocModal(true)}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md shadow-md text-sm font-semibold transition-all"
+          title="Especificação de Requisitos e Arquitetura (.DOC)"
+          aria-label="Baixar especificação do sistema"
+        >
+          <FileText className="w-4 h-4 text-white" />
+          <span className="hidden md:inline">Baixar Doc</span>
+        </motion.button>
+      </motion.div>
 
       <Outlet />
 

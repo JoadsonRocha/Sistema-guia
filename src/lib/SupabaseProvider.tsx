@@ -1,3 +1,16 @@
+/**
+ * SupabaseProvider
+ *
+ * Context provider that exposes authentication state and helpers to the app.
+ * - Keeps a lightweight `user` profile in React state
+ * - Syncs profile information from Supabase or local fallback (dev only)
+ * - Exposes login, logout, signup and password helpers
+ * - Implements inactivity auto-logout and BFCache re-initialization
+ *
+ * Notes:
+ * - In production the provider avoids trusting localStorage for auth state.
+ * - Demo mode can be enabled for testing via `demoRole` (disabled in production builds by upstream checks).
+ */
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import logoImg from '../assets/logo.png';
 import { getSupabaseClient, resetSupabaseClient } from './supabase';
@@ -58,6 +71,12 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   const [coordinatorId, setCoordinatorId] = useState<string | null>(null);
 
   // Helper to sync user profile state from Supabase
+  /**
+   * syncUserProfile
+   *
+   * Populate the local React state from an auth user object returned by Supabase
+   * or from a local cached profile. Responsible for deriving roles/flags.
+   */
   const syncUserProfile = async (authUser: any) => {
     if (!authUser) {
       setUser(null);
@@ -150,7 +169,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
         }
       }).catch(() => setLoading(false));
 
-      // Listen to auth changes
+      // Listen to auth changes and keep local state in sync with Supabase
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session?.user) {
           // Avoid persisting full session in localStorage in production
