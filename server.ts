@@ -105,12 +105,47 @@ app.use((req, res, next) => {
   next();
 });
 
+function escapeHtmlAttribute(str: string): string {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 async function fetchCandidateInfoServer(coordId?: string): Promise<{ name: string; title: string; photoUrl: string }> {
-  return {
+  const fallback = {
     name: 'Nosso Candidato',
     title: 'Campanha Eleitoral',
     photoUrl: DEFAULT_PHOTO
   };
+
+  if (!coordId || !process.env.VITE_SUPABASE_URL || !process.env.VITE_SUPABASE_ANON_KEY) {
+    return fallback;
+  }
+
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY);
+    const { data } = await supabase
+      .from('campaigns')
+      .select('candidate_name, candidate_title, photo_url')
+      .limit(1)
+      .maybeSingle();
+
+    if (data && data.candidate_name) {
+      return {
+        name: data.candidate_name,
+        title: data.candidate_title || 'Campanha Eleitoral',
+        photoUrl: data.photo_url || DEFAULT_PHOTO
+      };
+    }
+  } catch (err) {
+    console.warn('Could not fetch candidate info from Supabase in server:', err);
+  }
+
+  return fallback;
 }
 
 async function startServer() {
@@ -188,15 +223,19 @@ async function startServer() {
       const coordId = (req.query.coordinatorId as string) || (req.query.leaderId as string) || undefined;
       const cand = await fetchCandidateInfoServer(coordId);
 
-      // Inject candidate photo and text into Open Graph meta tags
-      const ogTitle = `FAÇA PARTE DO NOSSO TIME! 🗳️ - ${cand.name}`;
-      const ogDesc = `Faça parte do nosso time! Cadastre-se e apoie a campanha de ${cand.name} (${cand.title}).`;
-      const ogPhoto = cand.photoUrl || DEFAULT_PHOTO;
+      // Inject candidate photo and text into Open Graph meta tags (sanitized against attribute injection)
+      const ogTitle = escapeHtmlAttribute(`FAÇA PARTE DO NOSSO TIME! 🗳️ - ${cand.name}`);
+      const ogDesc = escapeHtmlAttribute(`Faça parte do nosso time! Cadastre-se e apoie a campanha de ${cand.name} (${cand.title}).`);
+      const ogPhoto = escapeHtmlAttribute(cand.photoUrl || DEFAULT_PHOTO);
 
       let html = template;
       html = html.replace(/<meta property="og:title" content="[^"]*"/i, `<meta property="og:title" content="${ogTitle}"`);
       html = html.replace(/<meta property="og:description" content="[^"]*"/i, `<meta property="og:description" content="${ogDesc}"`);
       html = html.replace(/<meta property="og:image" content="[^"]*"/i, `<meta property="og:image" content="${ogPhoto}"`);
+
+      html = html.replace(/<meta name="twitter:title" content="[^"]*"/i, `<meta name="twitter:title" content="${ogTitle}"`);
+      html = html.replace(/<meta name="twitter:description" content="[^"]*"/i, `<meta name="twitter:description" content="${ogDesc}"`);
+      html = html.replace(/<meta name="twitter:image" content="[^"]*"/i, `<meta name="twitter:image" content="${ogPhoto}"`);
 
       html = html.replace(/<meta name="twitter:title" content="[^"]*"/i, `<meta name="twitter:title" content="${ogTitle}"`);
       html = html.replace(/<meta name="twitter:description" content="[^"]*"/i, `<meta name="twitter:description" content="${ogDesc}"`);

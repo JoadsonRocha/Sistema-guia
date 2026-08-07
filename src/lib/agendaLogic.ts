@@ -98,7 +98,11 @@ export function validarSugestaoAgenda(
 ): { aprovada: boolean; motivo_recusa: string | null } {
   
   const hInicioNova = aMinutos(novaAgenda.hora_inicio);
-  const hFimNova = aMinutos(novaAgenda.hora_fim);
+  let hFimNova = aMinutos(novaAgenda.hora_fim);
+  if (hFimNova <= hInicioNova) {
+    // Tratamento para compromissos que cruzam a meia-noite
+    hFimNova += 1440;
+  }
   const MARGEM_SEGURANCA_MINUTOS = 30;
 
   // Filtrar agendas do mesmo dia e ordenar por horário
@@ -108,6 +112,10 @@ export function validarSugestaoAgenda(
 
   for (const confirmada of agendaDoDia) {
     const hInicioConf = aMinutos(confirmada.hora_inicio);
+    let hFimConf = aMinutos(confirmada.hora_fim);
+    if (hFimConf <= hInicioConf) {
+      hFimConf += 1440;
+    }
     const hFimConf = aMinutos(confirmada.hora_fim);
 
     // --- TRAVA 1: CHOQUE FÍSICO (SOBREPOSIÇÃO) ---
