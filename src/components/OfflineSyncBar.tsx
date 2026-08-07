@@ -5,6 +5,8 @@ import { supabaseDataService } from '../lib/supabaseService';
 export const OfflineSyncBar: React.FC<{ coordinatorId?: string }> = ({ coordinatorId }) => {
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const [pendingCount, setPendingCount] = useState<number>(0);
+  const [categories, setCategories] = useState<Record<string, number>>({});
+  const [totalRecords, setTotalRecords] = useState<number>(0);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
@@ -12,6 +14,8 @@ export const OfflineSyncBar: React.FC<{ coordinatorId?: string }> = ({ coordinat
   const checkPendingItems = () => {
     try {
       let count = 0;
+      const cats: Record<string, number> = {};
+      let totalRecs = 0;
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         // Count any localStorage key used for offline items.
@@ -20,11 +24,39 @@ export const OfflineSyncBar: React.FC<{ coordinatorId?: string }> = ({ coordinat
           // Optionally ignore internal metadata keys if present
           if (key.endsWith('_meta')) continue;
           count++;
+
+          // Attempt to derive category and count list size
+          const listMatch = key.match(/^nexus_sb_([^_]+)_list$/);
+          if (listMatch) {
+            const path = listMatch[1];
+            try {
+              const raw = localStorage.getItem(key);
+              const parsed = raw ? JSON.parse(raw) : [];
+              const c = Array.isArray(parsed) ? parsed.length : 1;
+              cats[path] = (cats[path] || 0) + c;
+              totalRecs += c;
+            } catch (e) {
+              cats[path] = (cats[path] || 0) + 1;
+              totalRecs += 1;
+            }
+          } else {
+            // key like nexus_sb_<path>_<id> -> count as one record under the path
+            const itemMatch = key.match(/^nexus_sb_([^_]+)_.+$/);
+            if (itemMatch) {
+              const path = itemMatch[1];
+              cats[path] = (cats[path] || 0) + 1;
+              totalRecs += 1;
+            }
+          }
         }
       }
       setPendingCount(count);
+      setCategories(cats);
+      setTotalRecords(totalRecs);
     } catch (e) {
       setPendingCount(0);
+      setCategories({});
+      setTotalRecords(0);
     }
   };
 
@@ -59,16 +91,62 @@ export const OfflineSyncBar: React.FC<{ coordinatorId?: string }> = ({ coordinat
     setSyncMessage('Sincronizando registros pendentes...');
 
     try {
-      // Sync local records with Supabase if online
+      // Build campaignState aggregating all *_list keys and individual items grouped by category
       if (coordinatorId) {
-        const localVoters = localStorage.getItem('nexus_sb_voters_list');
-        if (localVoters) {
-          const parsed = JSON.parse(localVoters);
-          await supabaseDataService.syncCampaignState(coordinatorId, { voters: parsed });
+        const campaignState: Record<string, any[]> = {};
+        const keysToRemove: string[] = [];
+
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (!key || !key.startsWith('nexus_sb_')) continue;
+          if (key.endsWith('_meta')) continue;
+
+          const listMatch = key.match(/^nexus_sb_([^_]+)_list$/);
+          if (listMatch) {
+            const path = listMatch[1];
+            try {
+              const raw = localStorage.getItem(key);
+              const parsed = raw ? JSON.parse(raw) : [];
+              campaignState[path] = campaignState[path] || [];
+              if (Array.isArray(parsed)) campaignState[path].push(...parsed);
+              else campaignState[path].push(parsed);
+              keysToRemove.push(key);
+            } catch (e) {
+              // if parsing fails, skip but mark for removal to avoid stuck state
+              keysToRemove.push(key);
+            }
+          } else {
+            // item key: nexus_sb_<path>_<id>
+            const itemMatch = key.match(/^nexus_sb_([^_]+)_(.+)$/);
+            if (itemMatch) {
+              const path = itemMatch[1];
+              try {
+                const raw = localStorage.getItem(key);
+                const parsed = raw ? JSON.parse(raw) : null;
+                campaignState[path] = campaignState[path] || [];
+                if (parsed) campaignState[path].push(parsed);
+                keysToRemove.push(key);
+              } catch (e) {
+                keysToRemove.push(key);
+              }
+            }
+          }
+        }
+
+        // Perform a single bulk upsert via syncCampaignState
+        const synced = await supabaseDataService.syncCampaignState(coordinatorId, campaignState);
+        if (synced) {
+          // Clear synchronized keys
+          keysToRemove.forEach(k => {
+            try { localStorage.removeItem(k); } catch (e) {}
+          });
+          setSyncMessage(`Sincronizados ${Object.values(campaignState).reduce((s, arr) => s + (Array.isArray(arr) ? arr.length : 0), 0)} registro(s) em ${Object.keys(campaignState).length} categoria(s).`);
+        } else {
+          setSyncMessage('Falha ao sincronizar. Tentaremos novamente em breve.');
         }
       }
+
       checkPendingItems();
-      setSyncMessage('Todos os dados foram sincronizados com sucesso!');
       setTimeout(() => setSyncMessage(null), 4000);
     } catch (err) {
       console.warn('Erro ao sincronizar offline:', err);
@@ -113,9 +191,7 @@ export const OfflineSyncBar: React.FC<{ coordinatorId?: string }> = ({ coordinat
           )}
 
           <span className="hidden md:inline border-l border-zinc-700/60 pl-2.5 text-zinc-300">
-            {syncMessage || (!isOnline 
-              ? `${pendingCount} registro(s) salvos no dispositivo.` 
-              : `${pendingCount} item(ns) prontos para sincronizar.`)}
+            {syncMessage || (!isOnline ? `${totalRecords} registro(s) salvos no dispositivo em ${Object.keys(categories).length} categoria(s).` : `${totalRecords} registro(s) em ${Object.keys(categories).length} categoria(s).`)}
           </span>
         </div>
 
