@@ -210,8 +210,8 @@ export async function validateLeaderRegistration(coordinatorId?: string): Promis
     };
   }
 
-  if (sub.maxLeaders === Infinity) {
-    return { allowed: true, planName: PLAN_CONFIGS[sub.plan].name };
+  if (!sub.maxLeaders || sub.maxLeaders === Infinity || sub.plan === 'dominio') {
+    return { allowed: true, planName: PLAN_CONFIGS[sub.plan]?.name || 'Plano Domínio' };
   }
 
   try {
@@ -260,8 +260,8 @@ export async function validateRegionalRegistration(coordinatorId?: string): Prom
     };
   }
 
-  if (sub.maxRegionals === Infinity) {
-    return { allowed: true, planName: PLAN_CONFIGS[sub.plan].name };
+  if (!sub.maxRegionals || sub.maxRegionals === Infinity || sub.plan === 'dominio') {
+    return { allowed: true, planName: PLAN_CONFIGS[sub.plan]?.name || 'Plano Domínio' };
   }
 
   try {
