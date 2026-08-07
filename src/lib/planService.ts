@@ -75,10 +75,10 @@ export async function getSubscriptionInfo(coordinatorId?: string): Promise<Subsc
         plan,
         status: status === 'active' ? 'active' : 'none',
         coordinatorEmail: subDoc.coordinatorEmail || '',
-        maxVoters: config.maxVoters,
-        maxLeaders: config.maxLeaders,
-        maxRegionals: config.maxRegionals,
-        maxGeneralCoordinators: config.maxGeneralCoordinators,
+        maxVoters: config.maxVoters ?? Infinity,
+        maxLeaders: config.maxLeaders ?? Infinity,
+        maxRegionals: config.maxRegionals ?? Infinity,
+        maxGeneralCoordinators: config.maxGeneralCoordinators ?? Infinity,
         expiresAt: subDoc.expiresAt,
       };
     }
@@ -92,10 +92,10 @@ export async function getSubscriptionInfo(coordinatorId?: string): Promise<Subsc
         plan,
         status: status === 'active' ? 'active' : 'none',
         coordinatorEmail: candDoc.coordinatorEmail || '',
-        maxVoters: config.maxVoters,
-        maxLeaders: config.maxLeaders,
-        maxRegionals: config.maxRegionals,
-        maxGeneralCoordinators: config.maxGeneralCoordinators,
+        maxVoters: config.maxVoters ?? Infinity,
+        maxLeaders: config.maxLeaders ?? Infinity,
+        maxRegionals: config.maxRegionals ?? Infinity,
+        maxGeneralCoordinators: config.maxGeneralCoordinators ?? Infinity,
       };
     }
   } catch (error) {
