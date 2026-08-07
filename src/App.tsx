@@ -11,8 +11,12 @@ import { DashboardPage } from './pages/DashboardPage';
 const PublicVoterRegister = lazy(() => import('./components/PublicVoterRegister'));
 const SalesLandingPage = lazy(() => import('./components/SalesLandingPage').then(m => ({ default: m.SalesLandingPage })));
 
+import { useAuth } from './lib/SupabaseProvider';
+
 function SalesLandingWrapper() {
   const navigate = useNavigate();
+  const { user, logout, demoRole } = useAuth();
+  const isLoggedIn = !!user || !!demoRole;
 
   const handleAccessSystem = () => {
     // Landing page is isolated from auth state: always send users to login
