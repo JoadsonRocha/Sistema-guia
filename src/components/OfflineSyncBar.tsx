@@ -14,7 +14,11 @@ export const OfflineSyncBar: React.FC<{ coordinatorId?: string }> = ({ coordinat
       let count = 0;
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key.startsWith('nexus_sb_') && !key.endsWith('_list')) {
+        // Count any localStorage key used for offline items.
+        // Treat both item keys and list keys (suffix `_list`) as 1 pending unit each.
+        if (key && key.startsWith('nexus_sb_')) {
+          // Optionally ignore internal metadata keys if present
+          if (key.endsWith('_meta')) continue;
           count++;
         }
       }
