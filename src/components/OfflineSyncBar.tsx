@@ -74,13 +74,15 @@ export const OfflineSyncBar: React.FC<{ coordinatorId?: string }> = ({ coordinat
     }
   };
 
+  const shouldShow = !isOnline || pendingCount > 0;
+
+  if (!shouldShow) return null;
+
   return (
     <div className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 ${
       !isOnline 
         ? 'bg-amber-950/95 border-t border-amber-600/50 text-amber-200 backdrop-blur-md shadow-lg shadow-amber-950/50' 
-        : pendingCount > 0
-        ? 'bg-blue-950/95 border-t border-blue-600/50 text-blue-200 backdrop-blur-md shadow-lg shadow-blue-950/50'
-        : 'bg-zinc-900/90 border-t border-zinc-800 text-zinc-400 backdrop-blur-sm'
+        : 'bg-blue-950/95 border-t border-blue-600/50 text-blue-200 backdrop-blur-md shadow-lg shadow-blue-950/50'
     }`}>
       <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between text-xs font-medium">
         <div className="flex items-center space-x-2.5">
@@ -109,9 +111,7 @@ export const OfflineSyncBar: React.FC<{ coordinatorId?: string }> = ({ coordinat
           <span className="hidden md:inline border-l border-zinc-700/60 pl-2.5 text-zinc-300">
             {syncMessage || (!isOnline 
               ? `${pendingCount} registro(s) salvos no dispositivo.` 
-              : pendingCount > 0 
-              ? `${pendingCount} item(ns) prontos para sincronizar.`
-              : 'Todos os cadastros estão sincronizados.')}
+              : `${pendingCount} item(ns) prontos para sincronizar.`)}
           </span>
         </div>
 
