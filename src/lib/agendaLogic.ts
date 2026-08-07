@@ -1,6 +1,11 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * Módulo de Validação e Logística de Agenda (Sistema Águia 2026)
+ * Valida a viabilidade de propostas de compromissos do candidato,
+ * calculando sobreposição de horários e estimativas de deslocamento
+ * pelas rodovias e estradas vicinais de Roraima.
  */
 
 /**
@@ -33,16 +38,26 @@ export const TEMPOS_VIAGEM: Record<string, Record<string, number>> = {
   "Caroebe": { "São João da Baliza": 0.5 }
 };
 
+/**
+ * Interface que representa um compromisso individual na agenda.
+ */
 export interface AgendaItem {
+  /** ID opcional do compromisso */
   id?: string;
+  /** Município de realização do compromisso */
   municipio: string;
-  hora_inicio: string; // Formato "HH:mm"
-  hora_fim: string;    // Formato "HH:mm"
-  data: string;        // Formato "YYYY-MM-DD"
+  /** Horário de início no formato "HH:mm" */
+  hora_inicio: string;
+  /** Horário de término no formato "HH:mm" */
+  hora_fim: string;
+  /** Data no formato "YYYY-MM-DD" */
+  data: string;
 }
 
 /**
  * Converte string "HH:mm" em minutos totais do dia para cálculos matemáticos.
+ * @param hora Horário em formato HH:mm
+ * @returns Minutos decorridos desde a meia-noite
  */
 const aMinutos = (hora: string) => {
   const [h, m] = hora.split(':').map(Number);
@@ -50,8 +65,11 @@ const aMinutos = (hora: string) => {
 };
 
 /**
- * Tenta encontrar o tempo de viagem entre dois pontos.
- * Se não houver rota direta na matriz, assume um tempo padrão ou passa por Boa Vista (Hub).
+ * Tenta encontrar o tempo de viagem em horas entre dois municípios de Roraima.
+ * Se não houver rota direta na matriz, calcula rota pelo hub central de Boa Vista.
+ * @param origem Município de saída
+ * @param destino Município de chegada
+ * @returns Tempo estimado de viagem em horas
  */
 const calcularTempoDeslocamento = (origem: string, destino: string): number => {
   if (origem === destino) return 0.5; // Deslocamento interno padrão (30 min)
@@ -68,7 +86,11 @@ const calcularTempoDeslocamento = (origem: string, destino: string): number => {
 };
 
 /**
- * Função Core de Validação de Agenda e Logística
+ * Função Core de Validação de Agenda e Logística.
+ * Verifica choques diretos de horários e tempo de deslocamento entre municípios.
+ * @param novaAgenda Proposta de compromisso a ser validada
+ * @param agendasConfirmadas Lista de compromissos já aprovados
+ * @returns Objeto com o status de aprovação e o motivo da recusa (caso haja)
  */
 export function validarSugestaoAgenda(
   novaAgenda: AgendaItem,
