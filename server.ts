@@ -121,13 +121,16 @@ async function fetchCandidateInfoServer(coordId?: string): Promise<{ name: strin
     photoUrl: DEFAULT_PHOTO
   };
 
-  if (!coordId || !process.env.VITE_SUPABASE_URL || !process.env.VITE_SUPABASE_ANON_KEY) {
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
+
+  if (!coordId || !supabaseUrl || !supabaseKey) {
     return fallback;
   }
 
   try {
     const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY);
+    const supabase = createClient(supabaseUrl, supabaseKey);
     const { data } = await supabase
       .from('campaigns')
       .select('candidate_name, candidate_title, photo_url')
