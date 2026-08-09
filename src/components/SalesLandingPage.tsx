@@ -31,11 +31,9 @@ import { trackAdsConversion } from '../utils/gtag';
 interface SalesLandingPageProps {
   onAccessSystem: () => void;
   onStartDemoMode?: () => void;
-  onLogout?: () => void | Promise<void>;
-  isLoggedIn?: boolean;
 }
 
-export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSystem, onStartDemoMode, onLogout, isLoggedIn = false }) => {
+export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSystem, onStartDemoMode }) => {
   const [showDomainModal, setShowDomainModal] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState<'terms' | 'refund' | 'tse' | null>(null);
   const [leadersCount, setLeadersCount] = useState(15);
@@ -59,16 +57,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
             <MessageSquare className="w-3.5 h-3.5" />
             <span>Falar com Consultor</span>
           </a>
-
-          {isLoggedIn && onLogout ? (
-            <button
-              onClick={() => onLogout()}
-              className="px-3.5 py-1.5 rounded border border-zinc-700 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-200 text-xs font-bold flex items-center gap-1.5 transition-all"
-            >
-              <span>Sair da Conta</span>
-              <X className="w-3.5 h-3.5" />
-            </button>
-          ) : null}
 
           <button
             onClick={onAccessSystem}

@@ -1409,8 +1409,17 @@ export default function CaboDashboard({
             <button 
               onClick={() => setIsProfileModalOpen(true)}
               className="p-3 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm text-[var(--text-secondary)] hover:bg-blue-600 hover:text-white active:scale-95 transition-all shadow-[var(--shadow-sm)]"
+              title="Configurações do Perfil"
             >
               <Settings className="w-5 h-5" />
+            </button>
+
+            <button 
+              onClick={logout}
+              className="p-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-sm transition-all border border-red-500/20 active:scale-95 shadow-sm"
+              title="Desligar Terminal (Sair do Sistema)"
+            >
+              <LogOut className="w-5 h-5" />
             </button>
           </div>
         </header>

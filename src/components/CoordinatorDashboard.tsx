@@ -2440,6 +2440,15 @@ export default function CoordinatorDashboard({
                 </p>
               </div>
             </button>
+
+            <button 
+              onClick={logout}
+              className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-sm transition-all border border-red-500/20 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider shadow-sm active:scale-95"
+              title="Sair do Sistema"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden md:inline">Sair</span>
+            </button>
           </div>
         </header>
 

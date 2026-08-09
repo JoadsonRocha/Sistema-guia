@@ -44,7 +44,7 @@ export function ProtectedRoute() {
   const isLoggedIn = (!!user && !sessionLocked) || !!demoRole;
 
   if (!isLoggedIn) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   // If user is logged in but needs to change password, redirect to change password page.

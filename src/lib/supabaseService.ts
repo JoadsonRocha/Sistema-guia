@@ -605,6 +605,17 @@ export const supabaseDataService = {
     return getOfflineQueue();
   },
 
+  clearAllLocalDemoData() {
+    clearOfflineQueue();
+    try {
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('nexus_sb_') || key.startsWith('urna360_') || key.startsWith('sistema_urna360_')) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (e) {}
+  },
+
   async processSyncQueue() {
     const queue = getOfflineQueue();
     if (queue.length === 0) return true;

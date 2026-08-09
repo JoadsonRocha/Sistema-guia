@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { ProtectedRoute, ComponentLoader } from './components/routing/ProtectedRoute';
 import { PublicRoute } from './components/routing/PublicRoute';
 import { Layout } from './components/Layout';
@@ -70,11 +70,14 @@ function SyncIndicator() {
 
 function SalesLandingWrapper() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
-  const isLoggedIn = !!user;
+  const { user, demoRole } = useAuth();
+  const isLoggedIn = !!user || !!demoRole;
+
+  if (isLoggedIn) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleAccessSystem = () => {
-    // Landing page is isolated from auth state: always send users to login
     navigate('/login');
   };
 
@@ -82,8 +85,6 @@ function SalesLandingWrapper() {
     <SalesLandingPage 
       onAccessSystem={handleAccessSystem}
       onStartDemoMode={() => {}}
-      onLogout={isLoggedIn ? logout : undefined}
-      isLoggedIn={isLoggedIn}
     />
   );
 }
