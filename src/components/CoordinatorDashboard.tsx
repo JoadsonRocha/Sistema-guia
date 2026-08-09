@@ -1543,7 +1543,8 @@ export default function CoordinatorDashboard({
     data: '',
     hora_inicio: '',
     hora_fim: '',
-    motivo: ''
+    motivo: '',
+    allocatedMaterials: ''
   });
 
   useEffect(() => {
@@ -3731,12 +3732,12 @@ export default function CoordinatorDashboard({
                   <button 
                     onClick={() => {
                       setEditingAgenda(null);
-                      setAgendaForm({ municipio: '', data: '', hora_inicio: '', hora_fim: '', motivo: '' });
+                      setAgendaForm({ municipio: '', data: '', hora_inicio: '', hora_fim: '', motivo: '', allocatedMaterials: '' });
                       setIsAgendaCreateModalOpen(true);
                     }}
-                    className="bg-zinc-950 text-white px-6 py-3.5 rounded-sm font-black text-[10px] uppercase flex items-center gap-2.5 shadow-xl shadow-zinc-200 hover:scale-[1.01] active:scale-95 transition-all w-full md:w-auto"
+                    className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-semibold text-xs flex items-center gap-2 shadow-md active:scale-95 transition-all w-full md:w-auto cursor-pointer"
                   >
-                    <Plus className="w-4 h-4 text-blue-600" /> Agendar Evento
+                    <Plus className="w-4 h-4 text-white" /> Agendar Evento
                   </button>
                 </div>
 
@@ -3756,12 +3757,18 @@ export default function CoordinatorDashboard({
                                 <span className="text-2xl font-black text-zinc-950 leading-none">{new Date(item.data).getDate()}</span>
                               </div>
                               <div className="space-y-1.5">
-                                <h3 className="text-lg font-black uppercase tracking-tight text-zinc-950 group-hover:text-blue-600 transition-colors">{item.municipio}</h3>
-                                <div className="flex flex-wrap items-center gap-3 text-[9px] font-black text-zinc-400 tracking-widest uppercase">
-                                  <span className="flex items-center gap-1.5"><Clock className="w-2.5 h-2.5 text-blue-600" /> {item.hora_inicio} - {item.hora_fim}</span>
-                                  <span className="flex items-center gap-1.5"><User className="w-2.5 h-2.5 text-blue-600" /> <span className="text-zinc-900">{item.team || '---'}</span> • {item.sugeridoPor}</span>
+                                <h3 className="text-base font-bold tracking-tight text-[var(--text-primary)] group-hover:text-blue-600 transition-colors">{item.municipio}</h3>
+                                <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-[var(--text-secondary)]">
+                                  <span className="flex items-center gap-1.5"><Clock className="w-3 h-3 text-blue-600" /> {item.hora_inicio} - {item.hora_fim}</span>
+                                  <span className="flex items-center gap-1.5"><User className="w-3 h-3 text-blue-600" /> <span>{item.team || 'Equipe Geral'}</span> • {item.sugeridoPor || 'Coordenador'}</span>
                                 </div>
-                                {item.motivo && <p className="text-[10px] text-zinc-500 font-bold bg-zinc-100 px-2.5 py-0.5 rounded-sm inline-block">{item.motivo}</p>}
+                                {item.allocatedMaterials && (
+                                  <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 font-semibold pt-1">
+                                    <Package className="w-3.5 h-3.5 shrink-0" />
+                                    <span>Materiais do evento: {item.allocatedMaterials}</span>
+                                  </div>
+                                )}
+                                {item.motivo && <p className="text-xs text-[var(--text-secondary)] bg-[var(--bg-tertiary)] px-2.5 py-1 rounded-md inline-block font-normal mt-1">{item.motivo}</p>}
                               </div>
                             </div>
                             <div className="flex gap-2.5 w-full md:w-auto">
@@ -3898,9 +3905,19 @@ export default function CoordinatorDashboard({
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 md:space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4 md:pb-6">
                   <div>
-                    <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none font-sans">Gestão de Materiais</h2>
-                    <p className="text-[var(--text-secondary)] text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-1.5 md:mt-3 opacity-70">Controle tático de suprimentos e distribuição regional</p>
+                    <h2 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] leading-none font-sans">Gestão de Materiais</h2>
+                    <p className="text-[var(--text-secondary)] text-xs font-normal mt-1 md:mt-2">Controle tático de suprimentos, lotes e distribuição para eventos da campanha</p>
                   </div>
+                  <button
+                    onClick={() => {
+                      setIsEditingMaterial(false);
+                      setEditingMaterialId(null);
+                      setMaterialForm({ name: '', qty: '', category: 'Impresso' });
+                    }}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm active:scale-95 transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" /> Cadastrar Novo Material
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
@@ -5001,20 +5018,64 @@ export default function CoordinatorDashboard({
                 </div>
 
                 <div className="space-y-1.5">
-                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Objetivo / Atividade</label>
+                   <label className="text-xs font-semibold text-zinc-600 block">Objetivo / Atividade</label>
                    <textarea 
                      value={agendaForm.motivo}
                      onChange={(e) => setAgendaForm({...agendaForm, motivo: e.target.value})}
-                     placeholder="Breve descrição do objetivo..."
-                     className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-blue-600 transition-all h-24 resize-none placeholder:text-zinc-300"
+                     placeholder="Breve descrição do objetivo da caminhada, reunião ou comício..."
+                     className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs font-medium text-zinc-900 outline-none focus:border-blue-600 transition-all h-20 resize-none placeholder:italic"
                    />
+                </div>
+
+                {/* VINCULAÇÃO DE MATERIAIS PARA O EVENTO DA AGENDA */}
+                <div className="space-y-2 pt-2 border-t border-zinc-200">
+                  <label className="text-xs font-semibold text-blue-600 block flex items-center gap-1.5">
+                    <Package className="w-4 h-4" /> Materiais Necessários para o Evento
+                  </label>
+                  
+                  {materials && materials.length > 0 ? (
+                    <div className="space-y-2">
+                      <select
+                        onChange={(e) => {
+                          const selectedName = e.target.value;
+                          if (!selectedName) return;
+                          const current = agendaForm.allocatedMaterials;
+                          const updated = current ? `${current}, 100x ${selectedName}` : `100x ${selectedName}`;
+                          setAgendaForm({ ...agendaForm, allocatedMaterials: updated });
+                        }}
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs font-medium text-zinc-900 outline-none focus:border-blue-600 transition-all"
+                      >
+                        <option value="">Selecione um material cadastrado para adicionar...</option>
+                        {materials.map(m => (
+                          <option key={m.id} value={m.name}>{m.name} (Estoque: {m.qty})</option>
+                        ))}
+                      </select>
+                      
+                      <input 
+                        type="text" 
+                        value={agendaForm.allocatedMaterials}
+                        onChange={(e) => setAgendaForm({ ...agendaForm, allocatedMaterials: e.target.value })}
+                        placeholder="Ex: 500x Santinho 55000, 20x Camisas, 10x Bandeiras"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs font-medium text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:italic"
+                      />
+                    </div>
+                  ) : (
+                    <input 
+                      type="text" 
+                      value={agendaForm.allocatedMaterials}
+                      onChange={(e) => setAgendaForm({ ...agendaForm, allocatedMaterials: e.target.value })}
+                      placeholder="Ex: 500x Santinho 55000, 20x Camisas da Campanha"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs font-medium text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:italic"
+                    />
+                  )}
                 </div>
                 
                 <button 
                   type="submit"
-                  className="w-full bg-zinc-950 text-blue-600 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl border-zinc-950 hover:bg-zinc-900 transition-all mt-2"
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-semibold text-xs shadow-md transition-all mt-2 cursor-pointer flex items-center justify-center gap-2 active:scale-95"
                 >
-                  {editingAgenda ? 'ATUALIZAR CRONOGRAMA' : 'PUBLICAR EVENTO'}
+                  <Check className="w-4 h-4" />
+                  {editingAgenda ? 'Atualizar Cronograma' : 'Publicar Evento'}
                 </button>
               </form>
             </motion.div>
