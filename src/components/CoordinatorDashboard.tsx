@@ -198,15 +198,8 @@ export default function CoordinatorDashboard({
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
   const [selectedLinkTeam, setSelectedLinkTeam] = useState('');
 
-  // Redirect away from Coordenador Geral / Regional restricted tabs
-  useEffect(() => {
-    if (!isGeral && (activeTab === 'metas' || activeTab === 'regional_coords')) {
-      setActiveTab('overview');
-    }
-    if (isGeral && (activeTab === 'teams' || activeTab === 'voters')) {
-      setActiveTab('overview');
-    }
-  }, [isGeral, activeTab]);
+  // Redirect away logic removed to ensure all tabs are accessible
+
 
   // Coordenadores Regionais State
   const [regionalCoordinators, setRegionalCoordinators] = useState<any[]>([]);
@@ -2208,10 +2201,10 @@ export default function CoordinatorDashboard({
           {[
             { id: 'overview', label: 'Dashboard Geral', icon: <LayoutDashboard className="w-4 h-4" /> },
             { id: 'candidato', label: 'Cadastrar Candidato', icon: <UserPlus className="w-4 h-4" /> },
-            ...(isGeral ? [{ id: 'metas', label: 'Metas Eleitorais', icon: <Target className="w-4 h-4" /> }] : []),
-            ...(isGeral ? [{ id: 'regional_coords', label: 'Coord. Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
-            ...(!isGeral ? [{ id: 'teams', label: 'Equipes & Líderes', icon: <Users className="w-4 h-4" /> }] : []),
-            ...(!isGeral ? [{ id: 'voters', label: 'Eleitores Geral', icon: <UserPlus className="w-4 h-4" /> }] : []),
+            { id: 'teams', label: 'Equipes & Líderes', icon: <Users className="w-4 h-4" /> },
+            { id: 'voters', label: 'Eleitores Geral', icon: <UserPlus className="w-4 h-4" /> },
+            { id: 'metas', label: 'Metas Eleitorais', icon: <Target className="w-4 h-4" /> },
+            { id: 'regional_coords', label: 'Coord. Regionais', icon: <ShieldCheck className="w-4 h-4" /> },
             { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
             { id: 'mapa', label: 'Mapa Regional', icon: <MapIcon className="w-4 h-4" /> },
             { id: 'analise_eleitoral', label: 'Análise Eleitoral', icon: <TrendingUp className="w-4 h-4" /> },
