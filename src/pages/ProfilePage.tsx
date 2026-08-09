@@ -233,7 +233,7 @@ export function ProfilePage() {
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate(-1)}
               className="p-2 sm:px-3 sm:py-2 rounded-xl bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] hover:bg-blue-600 hover:text-white transition-all shadow-xs active:scale-95 flex items-center gap-2 text-xs font-semibold"
               title="Voltar ao Painel"
             >
@@ -583,7 +583,7 @@ export function ProfilePage() {
           <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-[var(--border-color)]">
             <button
               type="button"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate(-1)}
               className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] font-semibold text-xs hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all cursor-pointer text-center"
             >
               Cancelar
