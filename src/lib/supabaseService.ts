@@ -17,6 +17,36 @@ export interface CampaignRecord {
   created_at?: string;
 }
 
+export interface OfflineAction {
+  action: 'set' | 'delete';
+  path: string;
+  id: string;
+  data?: any;
+  timestamp: number;
+}
+
+function getOfflineQueue(): OfflineAction[] {
+  try {
+    const raw = localStorage.getItem('nexus_offline_queue');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [];
+}
+
+function pushToOfflineQueue(action: OfflineAction) {
+  const queue = getOfflineQueue();
+  // Se for set, substituir sets anteriores do mesmo doc
+  const filtered = queue.filter(q => !(q.path === action.path && q.id === action.id));
+  filtered.push(action);
+  localStorage.setItem('nexus_offline_queue', JSON.stringify(filtered));
+  window.dispatchEvent(new Event('offline_queue_updated'));
+}
+
+function clearOfflineQueue() {
+  localStorage.removeItem('nexus_offline_queue');
+  window.dispatchEvent(new Event('offline_queue_updated'));
+}
+
 /**
  * getLocalKey
  *
@@ -350,15 +380,22 @@ export const supabaseDataService = {
 
     if (client) {
       try {
-        await client.from('campaign_records').upsert({
+        const { error } = await client.from('campaign_records').upsert({
           coordinator_id: coordinatorId,
           record_type: path,
           record_id: id,
           payload: payload
         }, { onConflict: 'record_type,record_id' });
-      } catch (e) {
+        
+        if (error) throw error;
+      } catch (e: any) {
         console.warn(`Supabase setDocument error for ${path}/${id}:`, e);
+        if (!window.navigator.onLine || e.message?.includes('fetch') || e.message?.includes('Network')) {
+          pushToOfflineQueue({ action: 'set', path, id, data: payload, timestamp: Date.now() });
+        }
       }
+    } else {
+      pushToOfflineQueue({ action: 'set', path, id, data: payload, timestamp: Date.now() });
     }
   },
 
@@ -378,14 +415,21 @@ export const supabaseDataService = {
     const client = getSupabaseClient();
     if (client) {
       try {
-        await client
+        const { error } = await client
           .from('campaign_records')
           .delete()
           .eq('record_type', path)
           .eq('record_id', id);
-      } catch (e) {
+          
+        if (error) throw error;
+      } catch (e: any) {
         console.warn(`Supabase deleteDocument error for ${path}/${id}:`, e);
+        if (!window.navigator.onLine || e.message?.includes('fetch') || e.message?.includes('Network')) {
+          pushToOfflineQueue({ action: 'delete', path, id, timestamp: Date.now() });
+        }
       }
+    } else {
+       pushToOfflineQueue({ action: 'delete', path, id, timestamp: Date.now() });
     }
   },
 
@@ -471,6 +515,140 @@ export const supabaseDataService = {
     return all.filter(item => item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId) as T[];
   },
 
+  async getCollectionPaginated<T>(path: string, coordinatorId: string, options: { page: number; pageSize: number; filters?: any }): Promise<{ data: T[], total: number }> {
+    const client = getSupabaseClient();
+    const { page, pageSize, filters } = options;
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    if (client && window.navigator.onLine) {
+      try {
+        let query = client.from('campaign_records').select('record_id, payload', { count: 'exact' }).eq('record_type', path);
+        if (coordinatorId && coordinatorId !== 'demo_coord_geral') {
+           query = query.or(`coordinator_id.eq.${coordinatorId},payload->>coordinatorId.eq.${coordinatorId}`);
+        }
+
+        if (filters?.search) {
+          query = query.ilike('payload->>name', `%${filters.search}%`);
+        }
+        if (filters?.intention) {
+          query = query.eq('payload->>sentiment', filters.intention);
+        }
+        if (filters?.voted !== undefined) {
+           query = query.eq('payload->>voted', filters.voted ? 'true' : 'false');
+        }
+
+        const { data, error, count } = await query.range(from, to);
+
+        if (!error && data) {
+          const items = data.map(row => ({
+            id: row.record_id,
+            ...(row.payload || {})
+          })) as T[];
+          return { data: items, total: count || 0 };
+        }
+      } catch (e) {
+        console.warn(`Supabase getCollectionPaginated error for ${path}:`, e);
+      }
+    }
+
+    // Fallback offline (local storage)
+    let all = getLocalList<any>(path);
+    if (coordinatorId && coordinatorId !== 'demo_coord_geral') {
+       all = all.filter(item => item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId);
+    }
+    
+    if (filters?.search) {
+      const s = filters.search.toLowerCase();
+      all = all.filter(item => item.name?.toLowerCase().includes(s));
+    }
+    if (filters?.intention) {
+      all = all.filter(item => item.sentiment === filters.intention);
+    }
+    if (filters?.voted !== undefined) {
+      all = all.filter(item => !!item.voted === filters.voted);
+    }
+
+    const total = all.length;
+    const paginated = all.slice(from, to + 1);
+    
+    return { data: paginated as T[], total };
+  },
+
+  async uploadImage(file: File, bucket: string = 'public_assets'): Promise<string | null> {
+    const client = getSupabaseClient();
+    if (!client) return null;
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      const filePath = `uploads/${fileName}`;
+
+      const { error: uploadError } = await client.storage
+        .from(bucket)
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Supabase upload error:', uploadError);
+        return null;
+      }
+
+      const { data } = client.storage.from(bucket).getPublicUrl(filePath);
+      return data.publicUrl;
+    } catch (e) {
+      console.error('Error uploading image:', e);
+      return null;
+    }
+  },
+
+  getQueue() {
+    return getOfflineQueue();
+  },
+
+  async processSyncQueue() {
+    const queue = getOfflineQueue();
+    if (queue.length === 0) return true;
+
+    const client = getSupabaseClient();
+    if (!client || !window.navigator.onLine) return false;
+
+    let allSuccess = true;
+    for (const action of queue) {
+      try {
+        if (action.action === 'set' && action.data) {
+          const coordinatorId = action.data.coordinatorId || action.data.coordinator_id || action.data.userId || 'default';
+          const { error } = await client.from('campaign_records').upsert({
+            coordinator_id: coordinatorId,
+            record_type: action.path,
+            record_id: action.id,
+            payload: action.data
+          }, { onConflict: 'record_type,record_id' });
+          if (error) throw error;
+        } else if (action.action === 'delete') {
+          const { error } = await client.from('campaign_records')
+            .delete()
+            .eq('record_type', action.path)
+            .eq('record_id', action.id);
+          if (error) throw error;
+        }
+      } catch (err) {
+        console.error(`Falha ao sincronizar item da fila (${action.action} ${action.path}/${action.id}):`, err);
+        allSuccess = false;
+      }
+    }
+
+    if (allSuccess) {
+      clearOfflineQueue();
+    }
+    return allSuccess;
+  }
+
 };
 
 export const supabaseService = supabaseDataService;
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    supabaseService.processSyncQueue().catch(console.error);
+  });
+}

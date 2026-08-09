@@ -251,6 +251,7 @@ export default function CoordinatorDashboard({
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('comando');
   const [selectedPlanStatus, setSelectedPlanStatus] = useState<'active' | 'none'>('active');
   const [isSavingCandidate, setIsSavingCandidate] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   useEffect(() => {
     const unsub = candidateService.subscribeCandidateInfo((info) => {
@@ -265,38 +266,24 @@ export default function CoordinatorDashboard({
     return () => unsub();
   }, [coordinatorId]);
 
-  const handleCandidatePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCandidatePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        const maxDim = 600;
-        if (width > maxDim || height > maxDim) {
-          if (width > height) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-          setCandidateForm(prev => ({ ...prev, photoUrl: dataUrl }));
-        }
-      };
-      img.src = event.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+    
+    setIsUploadingPhoto(true);
+    try {
+      const publicUrl = await supabaseService.uploadImage(file, 'public_assets');
+      if (publicUrl) {
+        setCandidateForm(prev => ({ ...prev, photoUrl: publicUrl }));
+      } else {
+        alert("Erro ao fazer upload da imagem para o Supabase Storage. Verifique se o bucket 'public_assets' existe e tem permissões públicas.");
+      }
+    } catch (err) {
+      console.error("Upload failed", err);
+      alert("Falha no upload da foto.");
+    } finally {
+      setIsUploadingPhoto(false);
+    }
   };
 
   const handleSaveCandidateInfo = async (e: React.FormEvent) => {
@@ -6375,13 +6362,14 @@ export default function CoordinatorDashboard({
                   </label>
                   
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <label className="flex-1 flex items-center justify-center gap-2 p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl cursor-pointer font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95">
-                      <Upload className="w-4 h-4" /> Escolher Foto do Dispositivo
+                    <label className={`flex-1 flex items-center justify-center gap-2 p-3 ${isUploadingPhoto ? 'bg-zinc-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 cursor-pointer'} text-white rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95`}>
+                      <Upload className="w-4 h-4" /> {isUploadingPhoto ? 'Enviando...' : 'Escolher Foto do Dispositivo'}
                       <input 
                         type="file" 
                         accept="image/*" 
                         onChange={handleCandidatePhotoUpload} 
                         className="hidden" 
+                        disabled={isUploadingPhoto}
                       />
                     </label>
                   </div>
