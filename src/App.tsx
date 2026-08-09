@@ -20,18 +20,28 @@ function SyncIndicator() {
   const [queueCount, setQueueCount] = React.useState(0);
   const [isOnline, setIsOnline] = React.useState(typeof window !== 'undefined' ? window.navigator.onLine : true);
   const [isSyncing, setIsSyncing] = React.useState(false);
+  const [showSyncedMsg, setShowSyncedMsg] = React.useState(false);
 
   React.useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
     
+    let timer: any = null;
     const updateQueue = () => {
       const q = supabaseService.getQueue();
+      const previousCount = queueCount;
       setQueueCount(q.length);
+
       if (q.length > 0 && window.navigator.onLine) {
         setIsSyncing(true);
-        // Timeout para dar feedback visual antes de sumir
-        setTimeout(() => setIsSyncing(false), 2000); 
+        setShowSyncedMsg(false);
+      } else if (q.length === 0 && previousCount > 0 && window.navigator.onLine) {
+        setIsSyncing(false);
+        setShowSyncedMsg(true);
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => setShowSyncedMsg(false), 2500);
+      } else {
+        setIsSyncing(false);
       }
     };
 
@@ -45,25 +55,26 @@ function SyncIndicator() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       window.removeEventListener('offline_queue_updated', updateQueue);
+      if (timer) clearTimeout(timer);
     };
   }, []);
 
-  if (queueCount === 0 && isOnline) return null;
+  if (isOnline && queueCount === 0 && !showSyncedMsg && !isSyncing) return null;
 
   return (
-    <div className="fixed top-0 left-1/2 -translate-x-1/2 z-[9999] mt-2">
-      <div className={`flex items-center gap-2 px-4 py-2 rounded-full shadow-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-        !isOnline ? 'bg-red-500 text-white' : 
-        isSyncing ? 'bg-amber-500 text-white animate-pulse' : 
-        'bg-emerald-500 text-white'
+    <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none">
+      <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full shadow-md text-xs font-semibold tracking-normal transition-all duration-300 backdrop-blur-md ${
+        !isOnline ? 'bg-red-600/95 text-white' : 
+        isSyncing ? 'bg-amber-500/95 text-zinc-950 animate-pulse' : 
+        'bg-emerald-600/95 text-white'
       }`}>
-        {!isOnline && <CloudOff className="w-4 h-4" />}
-        {isOnline && isSyncing && <RefreshCw className="w-4 h-4 animate-spin" />}
-        {isOnline && !isSyncing && queueCount > 0 && <CheckCircle2 className="w-4 h-4" />}
+        {!isOnline && <CloudOff className="w-3.5 h-3.5" />}
+        {isOnline && isSyncing && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+        {isOnline && !isSyncing && <CheckCircle2 className="w-3.5 h-3.5" />}
         
-        {!isOnline ? `Modo Offline (${queueCount} pendentes)` : 
-         isSyncing ? `Sincronizando ${queueCount} itens...` : 
-         'Sincronizado!'}
+        {!isOnline ? `Modo offline (${queueCount} pendentes)` : 
+         isSyncing ? `Sincronizando ${queueCount} alterações...` : 
+         'Sincronizado'}
       </div>
     </div>
   );

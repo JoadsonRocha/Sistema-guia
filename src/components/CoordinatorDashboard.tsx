@@ -2240,15 +2240,15 @@ export default function CoordinatorDashboard({
           <div className="pt-6 border-t border-[var(--border-color)] space-y-1">
             <button 
               onClick={() => navigate('/perfil')}
-              className="w-full flex items-center gap-4 px-4 py-3 rounded-sm text-xs font-black text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all uppercase tracking-tight"
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all"
             >
               <Settings className="w-4 h-4" /> Configurações
             </button>
             <button 
               onClick={logout}
-              className="w-full flex items-center gap-4 px-4 py-3 rounded-sm text-xs font-black text-red-500 hover:bg-red-500/10 transition-all uppercase tracking-tight"
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-xs font-semibold text-red-500 hover:bg-red-500/10 transition-all"
             >
-              <LogOut className="w-4 h-4" /> Sair do Sistema
+              <LogOut className="w-4 h-4" /> Sair do sistema
             </button>
           </div>
         </div>
@@ -2396,19 +2396,19 @@ export default function CoordinatorDashboard({
 
             <div className="hidden sm:flex items-center gap-2.5 px-3 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-sm border border-zinc-200 dark:border-zinc-700">
                <div className={`w-2 h-2 rounded-sm ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
-               <span className="text-[9px] font-black text-[var(--text-primary)] uppercase tracking-widest">
-                 {isOnline ? 'SINC. ATIVO' : 'MODO OFFLINE'}
+               <span className="font-semibold text-xs">
+                 {isOnline ? 'Conectado' : 'Modo offline'}
                </span>
                {!isOnline && <CloudOff className="ml-1 w-3 h-3 text-red-500" />}
             </div>
             
-            <div className="h-8 w-px bg-zinc-200 hidden sm:block"></div>
+            <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-800 hidden sm:block"></div>
 
             <button 
               onClick={() => navigate('/perfil')}
-              className="flex items-center gap-2.5 hover:bg-zinc-50 p-1 rounded-sm transition-all"
+              className="flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 p-1.5 rounded-xl transition-all"
             >
-              <div className="w-8 h-8 rounded-sm bg-blue-600 flex items-center justify-center font-black text-xs text-white overflow-hidden shadow-sm border border-zinc-200">
+              <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-xs text-white overflow-hidden shadow-sm border border-zinc-200 dark:border-zinc-700">
                 {profileData?.photoURL ? (
                   <img src={profileData.photoURL} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
@@ -2416,15 +2416,15 @@ export default function CoordinatorDashboard({
                 )}
               </div>
               <div className="hidden xl:block text-left">
-                <p className="text-[11px] font-black text-zinc-950 leading-none mb-0.5">{profileData?.name || user?.email?.split('@')[0]}</p>
-                <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">
+                <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 leading-none mb-0.5">{profileData?.name || user?.email?.split('@')[0]}</p>
+                <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
                   {(profileData?.role === 'coordenador_regional' || isRegional || (user?.email && user.email.toLowerCase().includes('antonio')) || (profileData?.email && profileData.email.toLowerCase().includes('antonio')) || (profileData?.name && profileData.name.toLowerCase().includes('antonio'))) 
-                    ? 'COORDENADOR REGIONAL' 
+                    ? 'Coordenador Regional' 
                     : (profileData?.role === 'coordenador_geral' || isGeral) 
-                    ? 'COORDENADOR GERAL' 
+                    ? 'Coordenador Geral' 
                     : isLeader 
-                    ? 'LÍDER DE EQUIPE' 
-                    : 'COORDENADOR'}
+                    ? 'Líder de Equipe' 
+                    : 'Coordenador'}
                 </p>
               </div>
             </button>
