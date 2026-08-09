@@ -95,21 +95,21 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     let profile: any = await supabaseDataService.getDocument('users', uid);
 
     if (!profile) {
-      const defaultRole: UserRole = isAntonio ? 'coordenador_regional' : 'lider';
+      const defaultRole: UserRole = isAntonio ? 'coordenador_regional' : 'coordenador_geral';
       profile = {
         id: uid,
         uid,
         email,
         role: defaultRole,
-        name: authUser.user_metadata?.full_name || authUser.displayName || (isAntonio ? 'ANTONIO FURTADO' : 'Novo Usuário'),
+        name: authUser.user_metadata?.full_name || authUser.displayName || (isAntonio ? 'ANTONIO FURTADO' : 'Coordenador de Campanha'),
         region: isAntonio ? 'REGIÃO 1 - BV' : null,
-        coordinatorId: uid, // Note: This should ideally be assigned by the inviter
+        coordinatorId: uid,
         createdAt: Date.now()
       };
       await supabaseDataService.setDocument('users', uid, profile, true);
     }
 
-    let currentRole: UserRole = profile.role || (isAntonio ? 'coordenador_regional' : 'lider');
+    let currentRole: UserRole = profile.role || (isAntonio ? 'coordenador_regional' : 'coordenador_geral');
     if (isAntonio && currentRole !== 'coordenador_regional') {
       currentRole = 'coordenador_regional';
     }
