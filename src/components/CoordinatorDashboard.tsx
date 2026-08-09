@@ -2592,29 +2592,173 @@ export default function CoordinatorDashboard({
               </section>
 
                 <div className="pt-2 flex flex-col lg:flex-row gap-6">
-                  <div className="flex-1 space-y-5">
-                  </div>
+                  {/* COLUNA PRINCIPAL (ESQUERDA / CENTRO) */}
+                  <div className="flex-1 space-y-6">
 
-                  <div className="w-full lg:w-72 space-y-6">
-
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-5 shadow-[var(--shadow-sm)]">
-                      <h3 className="text-sm font-black uppercase tracking-tighter text-[var(--text-primary)] mb-4 flex items-center gap-2">
-                        < Zap className="w-3.5 h-3.5 text-blue-600" /> Atividade Recente
-                      </h3>
-                      <div className="space-y-4">
-                        {teams.slice(0, 4).map((team, i) => (
-                          <div key={i} className="flex gap-3 group/item cursor-default">
-                            <div className="w-8 h-8 rounded-sm bg-[var(--bg-tertiary)] flex items-center justify-center shrink-0 border border-[var(--border-color)] group-hover/item:border-blue-600/30 transition-colors">
-                              <Users className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover/item:text-blue-600 transition-colors" />
-                            </div>
-                            <div>
-                              <p className="text-[9px] font-black text-[var(--text-primary)] uppercase leading-none">{team.name}</p>
-                              <p className="text-[8px] font-bold text-[var(--text-secondary)] mt-1.5 uppercase tracking-widest opacity-70">Status OK • {10 + i}m atrás</p>
-                            </div>
+                    {/* CARD: EVENTOS DOS COORDENADORES REGIONAIS E LÍDERES */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-5 md:p-6 shadow-sm space-y-4">
+                      <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-2 bg-blue-50 dark:bg-blue-950/40 rounded-xl text-blue-600 dark:text-blue-400">
+                            <Calendar className="w-5 h-5" />
                           </div>
-                        ))}
+                          <div>
+                            <h3 className="text-base font-bold text-[var(--text-primary)]">Eventos & Agenda dos Coordenadores e Líderes</h3>
+                            <p className="text-xs text-[var(--text-secondary)]">Compromissos, caminhadas e ações de rua cadastradas pelas equipes de campo</p>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => setActiveTab('agenda')} 
+                          className="text-xs font-semibold text-blue-600 hover:text-blue-500 flex items-center gap-1 cursor-pointer"
+                        >
+                          Ver Agenda Completa <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {agendas && agendas.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                          {agendas.slice(0, 4).map((item) => (
+                            <div key={item.id} className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-4 space-y-2 hover:border-blue-500/40 transition-all">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{item.municipio}</span>
+                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${item.status === 'confirmado' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'}`}>
+                                  {item.status === 'confirmado' ? 'Confirmado' : 'Pendente'}
+                                </span>
+                              </div>
+                              <p className="text-xs font-medium text-[var(--text-primary)] line-clamp-1">{item.motivo || 'Atividade tática de campanha'}</p>
+                              <div className="flex items-center justify-between text-[11px] text-[var(--text-secondary)] pt-1 border-t border-[var(--border-color)]">
+                                <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-blue-600" /> {item.data} • {item.hora_inicio}h</span>
+                                <span className="flex items-center gap-1"><User className="w-3 h-3 text-blue-600" /> {item.team || item.sugeridoPor || 'Coord. Regional'}</span>
+                              </div>
+                              {item.allocatedMaterials && (
+                                <div className="text-[11px] text-blue-600 dark:text-blue-400 font-medium flex items-center gap-1">
+                                  <Package className="w-3 h-3" /> Materiais: {item.allocatedMaterials}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-6 text-center text-xs text-[var(--text-secondary)] bg-[var(--bg-tertiary)] rounded-xl">
+                          Nenhum evento agendado recentemente pelas coordenações regionais.
+                        </div>
+                      )}
+                    </div>
+
+                    {/* CARD: RESUMO DE ESTRUTURA E COORDENADORES REGIONAIS */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-5 md:p-6 shadow-sm space-y-4">
+                      <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-2 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl text-indigo-600 dark:text-indigo-400">
+                            <ShieldCheck className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h3 className="text-base font-bold text-[var(--text-primary)]">Coordenação Regional e Setores</h3>
+                            <p className="text-xs text-[var(--text-secondary)]">Acompanhamento dos coordenadores de polo e jurisdições</p>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => setActiveTab('regional_coords')} 
+                          className="text-xs font-semibold text-blue-600 hover:text-blue-500 flex items-center gap-1 cursor-pointer"
+                        >
+                          Gerenciar Regionais <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="bg-[var(--bg-tertiary)] p-4 rounded-xl border border-[var(--border-color)] space-y-1">
+                          <span className="text-xs font-semibold text-[var(--text-secondary)] block">Regionais Ativas</span>
+                          <p className="text-xl font-bold text-[var(--text-primary)]">{regionalCoordinators?.length || 0} Polos</p>
+                          <span className="text-[10px] text-emerald-600 font-medium">100% Cobertura Territorial</span>
+                        </div>
+                        <div className="bg-[var(--bg-tertiary)] p-4 rounded-xl border border-[var(--border-color)] space-y-1">
+                          <span className="text-xs font-semibold text-[var(--text-secondary)] block">Líderes de Bairro</span>
+                          <p className="text-xl font-bold text-[var(--text-primary)]">{teams?.length || 0} Líderes</p>
+                          <span className="text-[10px] text-blue-600 font-medium">Cadastrando no Campo</span>
+                        </div>
+                        <div className="bg-[var(--bg-tertiary)] p-4 rounded-xl border border-[var(--border-color)] space-y-1">
+                          <span className="text-xs font-semibold text-[var(--text-secondary)] block">Eleitores Registrados</span>
+                          <p className="text-xl font-bold text-[var(--text-primary)]">{allVoters?.length || 0} Eleitores</p>
+                          <span className="text-[10px] text-indigo-600 font-medium">Base Geral Validada</span>
+                        </div>
                       </div>
                     </div>
+
+                  </div>
+
+                  {/* COLUNA LATERAL DIREITA (CARDS DE SUPORTE & CANDIDATO) */}
+                  <div className="w-full lg:w-80 space-y-6">
+
+                    {/* CARTÃO EM DESTAQUE DO CANDIDATO */}
+                    <div className="bg-gradient-to-br from-blue-900 to-slate-900 text-white rounded-2xl p-5 shadow-md border border-blue-700/40 space-y-3">
+                      <span className="text-[10px] font-semibold text-blue-200 block uppercase tracking-wider">Candidato Oficial da Campanha</span>
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={candidateForm?.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
+                          alt="Candidato" 
+                          className="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-md shrink-0 bg-slate-800"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+                        />
+                        <div className="overflow-hidden">
+                          <h4 className="text-sm font-bold text-white truncate">{candidateForm?.name || 'Candidato da Campanha'}</h4>
+                          <p className="text-xs text-blue-200 truncate">{candidateForm?.title || 'Eleições 2026'}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => { setActiveTab('candidato'); setIsCandidateModalOpen(true); }}
+                        className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold text-xs transition-all shadow-sm cursor-pointer text-center"
+                      >
+                        Editar Informações do Candidato
+                      </button>
+                    </div>
+
+                    {/* ATIVIDADE E MOBILIZAÇÃO DAS EQUIPES */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm space-y-4">
+                      <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+                        <Zap className="w-4 h-4 text-blue-600" /> Atividade das Equipes no Campo
+                      </h3>
+                      <div className="space-y-3">
+                        {teams.length > 0 ? teams.slice(0, 5).map((team, i) => (
+                          <div key={i} className="flex items-center justify-between p-2.5 bg-[var(--bg-tertiary)] rounded-xl border border-[var(--border-color)]">
+                            <div className="flex items-center gap-2.5 overflow-hidden">
+                              <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs shrink-0">
+                                <Users className="w-4 h-4" />
+                              </div>
+                              <div className="overflow-hidden">
+                                <p className="text-xs font-bold text-[var(--text-primary)] truncate">{team.name}</p>
+                                <p className="text-[10px] text-[var(--text-secondary)] truncate">Líder: {team.leader || '---'}</p>
+                              </div>
+                            </div>
+                            <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full shrink-0">
+                              Ativo
+                            </span>
+                          </div>
+                        )) : (
+                          <p className="text-xs text-[var(--text-secondary)] italic">Nenhuma equipe cadastrada ainda.</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ESTOQUE E MATERIAIS */}
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+                          <Package className="w-4 h-4 text-blue-600" /> Estoque de Materiais
+                        </h3>
+                        <button onClick={() => setActiveTab('materials')} className="text-xs font-semibold text-blue-600 hover:underline cursor-pointer">Ver todos</button>
+                      </div>
+                      <div className="space-y-2">
+                        {materials && materials.length > 0 ? materials.slice(0, 3).map(m => (
+                          <div key={m.id} className="p-2.5 bg-[var(--bg-tertiary)] rounded-xl border border-[var(--border-color)] flex items-center justify-between text-xs">
+                            <span className="font-semibold text-[var(--text-primary)] truncate">{m.name}</span>
+                            <span className="font-bold text-blue-600 dark:text-blue-400 shrink-0">{m.current || m.total || 0} un</span>
+                          </div>
+                        )) : (
+                          <p className="text-xs text-[var(--text-secondary)] italic">Nenhum material registrado em estoque.</p>
+                        )}
+                      </div>
+                    </div>
+
                   </div>
                 </div>
               </motion.div>
