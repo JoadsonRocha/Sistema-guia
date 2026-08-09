@@ -101,7 +101,21 @@ export default function CaboDashboard({
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [queueCount, setQueueCount] = useState(0);
   const [isLocating, setIsLocating] = useState(false);
-  const [activeTab, setActiveTab] = useState<'equipe' | 'logistica' | 'ouvidoria' | 'financeiro' | 'notas' | 'materiais' | 'feed'>('logistica');
+  // Restaurar a última aba visitada ao recarregar a página (persiste no localStorage)
+  const CABO_TAB_KEY = 'nexus_cabo_active_tab';
+  type CaboTabType = 'equipe' | 'logistica' | 'ouvidoria' | 'financeiro' | 'notas' | 'materiais' | 'feed';
+  const [activeTab, setActiveTabState] = useState<CaboTabType>(() => {
+    try {
+      const saved = localStorage.getItem(CABO_TAB_KEY);
+      if (saved) return saved as CaboTabType;
+    } catch (_) {}
+    return 'logistica';
+  });
+  // Função que salva a aba ativa no localStorage antes de mudar o estado
+  const setActiveTab = (tab: CaboTabType) => {
+    try { localStorage.setItem(CABO_TAB_KEY, tab); } catch (_) {}
+    setActiveTabState(tab);
+  };
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [dailyOrder, setDailyOrder] = useState<any>(null);
   const [resolvedCoordinatorId, setResolvedCoordinatorId] = useState<string | null>(null);
