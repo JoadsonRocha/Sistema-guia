@@ -13,7 +13,7 @@ const SalesLandingPage = lazy(() => import('./components/SalesLandingPage').then
 
 import { useAuth } from './lib/SupabaseProvider';
 import { supabaseService } from './lib/supabaseService';
-import { CloudOff, CloudSync, CheckCircle2 } from 'lucide-react';
+import { CloudOff, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 function SyncIndicator() {
   const [queueCount, setQueueCount] = React.useState(0);
@@ -57,7 +57,7 @@ function SyncIndicator() {
         'bg-emerald-500 text-white'
       }`}>
         {!isOnline && <CloudOff className="w-4 h-4" />}
-        {isOnline && isSyncing && <CloudSync className="w-4 h-4 animate-spin" />}
+        {isOnline && isSyncing && <RefreshCw className="w-4 h-4 animate-spin" />}
         {isOnline && !isSyncing && queueCount > 0 && <CheckCircle2 className="w-4 h-4" />}
         
         {!isOnline ? `Modo Offline (${queueCount} pendentes)` : 
