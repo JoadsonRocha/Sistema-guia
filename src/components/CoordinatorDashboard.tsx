@@ -1571,16 +1571,7 @@ export default function CoordinatorDashboard({
     });
 
     let unsubProfile: (() => void) | null = null;
-    if (user?.uid && user.uid.startsWith('demo_')) {
-      setProfileData({
-        name: isRegional 
-          ? 'Coordenador Regional (Demonstração)' 
-          : 'Coordenador Geral (Demonstração)',
-        email: user.email || 'demo@nexuspolitica.com.br',
-        role: isRegional ? 'coordenador_regional' : 'coordenador_geral',
-        region: isRegional ? 'REGIÃO 1 - NORTE' : 'Todas as Regiões'
-      });
-    } else if (user?.uid) {
+    if (user?.uid) {
       unsubProfile = supabaseService.subscribeToCollection<any>('users', (data) => {
         const found = data.find(u => u.id === user.uid);
         if (found) {

@@ -228,43 +228,7 @@ export default function CaboDashboard({
       let subscribedMaterials = false;
       
       let unsubProfile: (() => void) | null = null;
-      if (user?.uid && user.uid.startsWith('demo_')) {
-        setProfileData({
-          name: 'Líder de Bairro (Demonstração)',
-          phone: '(95) 99111-2026',
-          photoUrl: '',
-          zone: 'Equipe Tática Bairro Centro'
-        });
-        const demoCoordId = 'demo_coord_geral';
-        setResolvedCoordinatorId(demoCoordId);
-
-        if (!subscribedMaterials) {
-          subscribedMaterials = true;
-          if (unsubMaterials) unsubMaterials();
-          unsubMaterials = supabaseService.subscribeToCollection<any>('materials', (data) => setMaterials(data));
-        }
-
-        if (demoCoordId !== currentSubscribedCoordId) {
-          currentSubscribedCoordId = demoCoordId;
-
-          if (unsubNotes) unsubNotes();
-          unsubNotes = supabaseService.subscribeToCollection<any>('notes', (data) => {
-            setNotes(data.filter(n => n.type === 'tactical').sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
-          });
-
-          if (unsubDailyOrder) unsubDailyOrder();
-          unsubDailyOrder = supabaseService.subscribeToCollection<any>('config', (data) => {
-            const found = data.find(c => c.id === `dailyOrder_${demoCoordId}`);
-            if (found) setDailyOrder(found);
-          });
-
-          if (unsubMaterialRequests) unsubMaterialRequests();
-          unsubMaterialRequests = supabaseService.subscribeToCollection('material_requests', (data) => {
-            setMaterialRequests(data);
-          });
-        }
-      } else {
-        unsubProfile = supabaseService.subscribeToCollection<any>('users', (users) => {
+      unsubProfile = supabaseService.subscribeToCollection<any>('users', (users) => {
           const data = users.find(u => u.id === user.uid);
           if (data) {
             const teamName = data.teamName || data.zone || data.team || '';
@@ -409,7 +373,6 @@ export default function CaboDashboard({
           }
         }
       });
-    }
 
        const unsubAgendas = supabaseService.subscribeToCollection<any>('agenda', (data) => {
          setMyAgendas(data.filter(a => a.sugeridoPorId === user.uid));
