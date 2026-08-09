@@ -90,6 +90,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     const uid = authUser.id || authUser.uid;
     const email = (authUser.email || '').toLowerCase();
     const isAntonio = email.includes('antonio');
+    const isJoadson = email.includes('joadsonrocharr') || email.includes('joadson');
 
     // Fetch user profile from Supabase
     let profile: any = await supabaseDataService.getDocument('users', uid);
@@ -101,7 +102,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
         uid,
         email,
         role: defaultRole,
-        name: authUser.user_metadata?.full_name || authUser.displayName || (isAntonio ? 'ANTONIO FURTADO' : 'Coordenador de Campanha'),
+        name: authUser.user_metadata?.full_name || authUser.displayName || (isJoadson ? 'Joadson Rocha' : isAntonio ? 'ANTONIO FURTADO' : 'Coordenador Geral'),
         region: isAntonio ? 'REGIÃO 1 - BV' : null,
         coordinatorId: uid,
         createdAt: Date.now()
@@ -110,7 +111,9 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     }
 
     let currentRole: UserRole = profile.role || (isAntonio ? 'coordenador_regional' : 'coordenador_geral');
-    if (isAntonio && currentRole !== 'coordenador_regional') {
+    if (isJoadson) {
+      currentRole = 'coordenador_geral';
+    } else if (isAntonio && currentRole !== 'coordenador_regional') {
       currentRole = 'coordenador_regional';
     }
 
