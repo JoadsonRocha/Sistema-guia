@@ -212,6 +212,8 @@ export default function CoordinatorDashboard({
     email: '',
     phone: '',
     region: '',
+    municipio: '',
+    bairro: '',
     subLocations: '',
     targetVoters: 500,
   });
@@ -1562,6 +1564,8 @@ export default function CoordinatorDashboard({
     leaderEmail: '',
     leaderPhone: '',
     leaderAddress: '',
+    municipio: '',
+    bairro: '',
     location: '',
     observations: '',
     status: 'OK',
@@ -5068,25 +5072,48 @@ export default function CoordinatorDashboard({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
                     <div className="space-y-1.5">
-                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Base / Polo</label>
+                      <label className="text-xs font-semibold text-zinc-600 block">Município *</label>
+                      <input 
+                        type="text" 
+                        value={newTeam.municipio}
+                        onChange={(e) => setNewTeam({...newTeam, municipio: e.target.value})}
+                        placeholder="Ex: Boa Vista"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 font-medium text-xs text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:italic"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-zinc-600 block">Bairro Principal / Atuação</label>
+                      <input 
+                        type="text" 
+                        value={newTeam.bairro}
+                        onChange={(e) => setNewTeam({...newTeam, bairro: e.target.value})}
+                        placeholder="Ex: Centro / Caçari"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 font-medium text-xs text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:italic"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-zinc-600 block">Base / Polo</label>
                       <input 
                         required
                         type="text" 
                         value={newTeam.location}
                         onChange={(e) => setNewTeam({...newTeam, location: e.target.value})}
                         placeholder="Ex: Boa Vista - Polo Sul"
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 font-medium text-xs text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:italic"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Endereço Físico</label>
+                      <label className="text-xs font-semibold text-zinc-600 block">Endereço Físico</label>
                       <input 
                         required
                         type="text" 
                         value={newTeam.leaderAddress}
                         onChange={(e) => setNewTeam({...newTeam, leaderAddress: e.target.value})}
                         placeholder="Logradouro completo"
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 font-medium text-xs text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:italic"
                       />
                     </div>
                   </div>
@@ -6469,24 +6496,47 @@ export default function CoordinatorDashboard({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">WhatsApp / Telefone</label>
+                      <label className="text-xs font-semibold text-[var(--text-secondary)] block mb-1">WhatsApp / Telefone</label>
                       <input 
                         type="text" 
                         value={newRegCoord.phone}
                         onChange={(e) => setNewRegCoord({ ...newRegCoord, phone: e.target.value })}
                         placeholder="(95) 99999-0000"
-                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-medium text-xs text-[var(--text-primary)] outline-none focus:border-blue-600"
                       />
                     </div>
                     <div>
-                      <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Região ou Polo Principal</label>
+                      <label className="text-xs font-semibold text-[var(--text-secondary)] block mb-1">Região ou Polo Principal *</label>
                       <input 
                         required
                         type="text" 
                         value={newRegCoord.region}
                         onChange={(e) => setNewRegCoord({ ...newRegCoord, region: e.target.value })}
                         placeholder="Ex: Região Sul / Caracaraí"
-                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-medium text-xs text-[var(--text-primary)] outline-none focus:border-blue-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-semibold text-[var(--text-secondary)] block mb-1">Município *</label>
+                      <input 
+                        type="text" 
+                        value={newRegCoord.municipio}
+                        onChange={(e) => setNewRegCoord({ ...newRegCoord, municipio: e.target.value })}
+                        placeholder="Ex: Boa Vista"
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-medium text-xs text-[var(--text-primary)] outline-none focus:border-blue-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-[var(--text-secondary)] block mb-1">Bairro Principal / Sede</label>
+                      <input 
+                        type="text" 
+                        value={newRegCoord.bairro}
+                        onChange={(e) => setNewRegCoord({ ...newRegCoord, bairro: e.target.value })}
+                        placeholder="Ex: Centro / Pintolândia"
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-medium text-xs text-[var(--text-primary)] outline-none focus:border-blue-600"
                       />
                     </div>
                   </div>
