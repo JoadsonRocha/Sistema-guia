@@ -170,6 +170,46 @@ async function startServer() {
     res.status(200).send('ok');
   });
 
+  app.post('/api/ai/process', async (req, res) => {
+    const { text, type, context } = req.body;
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY não configurada no servidor.' });
+    }
+
+    try {
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey });
+      
+      let prompt = text;
+      if (type === 'caos') {
+        prompt = `Analise o seguinte informe de campanha e extraia as tarefas de logística, ações políticas, alertas de crise e sugestões de agenda. Responda ESTRITAMENTE em formato JSON com as chaves: "tarefas_logistica" (array de string), "acoes_politicas" (array de string), "alertas_crise" (array de string) e "sugestoes_agenda" (array de objetos com "municipio" e "contexto"). Informe: ${text}`;
+      } else if (type === 'nota') {
+        prompt = `Estruture o seguinte áudio transcrito em uma nota de campo limpa e profissional, destacando termos importantes em negrito. Transcrição: ${text}`;
+      } else if (type === 'briefing') {
+        prompt = `Crie um briefing estratégico para o candidato sobre o município de ${context?.municipio || 'Roraima'}, considerando as seguintes demandas cadastradas no painel: ${JSON.stringify(context?.demandas || [])}. O briefing deve conter: 1. O que falar (Pautas recomendadas). 2. Riscos (O que evitar falar). 3. Tom de voz e postura indicados.`;
+      }
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: type === 'caos' ? 'application/json' : 'text/plain',
+        }
+      });
+      
+      if (type === 'caos') {
+         res.status(200).json(JSON.parse(response.text || '{}'));
+      } else {
+         res.status(200).json({ text: response.text });
+      }
+    } catch (err: any) {
+      console.error('Erro na API do Gemini:', err);
+      res.status(500).json({ error: 'Erro ao processar IA', details: err.message });
+    }
+  });
+
   // Rota com sanitização contra Path Traversal
   app.get('/download/arquitetura-doc', (req, res) => {
     const publicDir = path.resolve(process.cwd(), 'public');

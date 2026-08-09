@@ -251,7 +251,6 @@ export const supabaseDataService = {
     }
   },
 
-  // Generic document CRUD API
   async getCollection<T>(path: string): Promise<T[]> {
     const client = getSupabaseClient();
     if (client) {
@@ -274,6 +273,30 @@ export const supabaseDataService = {
       }
     }
     return getLocalList<T>(path);
+  },
+
+  async getCount(path: string, coordinatorId?: string): Promise<number> {
+    const client = getSupabaseClient();
+    if (client) {
+      try {
+        let query = client.from('campaign_records').select('id', { count: 'exact', head: true }).eq('record_type', path);
+        if (coordinatorId && coordinatorId !== 'demo_coord_geral') {
+           query = query.or(`coordinator_id.eq.${coordinatorId},payload->>coordinatorId.eq.${coordinatorId}`);
+        }
+        const { count, error } = await query;
+        if (!error && count !== null) {
+          return count;
+        }
+      } catch (e) {
+         console.warn(`Supabase getCount error for ${path}:`, e);
+      }
+    }
+    // Fallback offline
+    const all = getLocalList<any>(path);
+    if (coordinatorId && coordinatorId !== 'demo_coord_geral') {
+       return all.filter(item => item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId).length;
+    }
+    return all.length;
   },
 
   async getDocument<T>(path: string, id: string): Promise<T | null> {
@@ -448,28 +471,6 @@ export const supabaseDataService = {
     return all.filter(item => item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId) as T[];
   },
 
-  /**
-   * Limpa todos os dados locais de demonstração/teste armazenados em cache (localStorage)
-   */
-  clearAllLocalDemoData(): void {
-    try {
-      const keysToRemove: string[] = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (
-          key.startsWith('nexus_sb_') ||
-          key.startsWith('sistema_urna360_') ||
-          key.startsWith('urna360-') ||
-          key.startsWith('nexus_candidate_')
-        )) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach(k => localStorage.removeItem(k));
-    } catch (e) {
-      console.warn("Erro ao limpar dados locais de demonstração:", e);
-    }
-  }
 };
 
 export const supabaseService = supabaseDataService;

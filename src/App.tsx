@@ -15,23 +15,18 @@ import { useAuth } from './lib/SupabaseProvider';
 
 function SalesLandingWrapper() {
   const navigate = useNavigate();
-  const { user, logout, demoRole } = useAuth();
-  const isLoggedIn = !!user || !!demoRole;
+  const { user, logout } = useAuth();
+  const isLoggedIn = !!user;
 
   const handleAccessSystem = () => {
     // Landing page is isolated from auth state: always send users to login
     navigate('/login');
   };
 
-  const handleStartDemoMode = () => {
-    // Start demo via login query param so demo activation happens within auth context
-    navigate('/login?demo=coordenador_geral');
-  };
-
   return (
     <SalesLandingPage 
       onAccessSystem={handleAccessSystem}
-      onStartDemoMode={handleStartDemoMode}
+      onStartDemoMode={() => {}}
       onLogout={isLoggedIn ? logout : undefined}
       isLoggedIn={isLoggedIn}
     />

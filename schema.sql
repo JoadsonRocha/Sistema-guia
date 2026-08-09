@@ -435,7 +435,7 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
-    'coordenador_geral',
+    'lider',
     NOW()
   )
   ON CONFLICT (id) DO NOTHING;

@@ -165,12 +165,7 @@ export async function validateVoterRegistration(coordinatorId?: string): Promise
   }
 
   try {
-    const voters = await supabaseService.getCollection<any>('voters');
-    const filtered = coordinatorId && coordinatorId !== 'demo_coord_geral'
-      ? voters.filter(v => v.coordinatorId === coordinatorId)
-      : voters;
-    
-    const totalVoters = filtered.length;
+    const totalVoters = await supabaseService.getCount('voters', coordinatorId);
 
     if (totalVoters >= sub.maxVoters) {
       return {
@@ -215,12 +210,7 @@ export async function validateLeaderRegistration(coordinatorId?: string): Promis
   }
 
   try {
-    const teams = await supabaseService.getCollection<any>('teams');
-    const filtered = coordinatorId && coordinatorId !== 'demo_coord_geral'
-      ? teams.filter(t => t.coordinatorId === coordinatorId)
-      : teams;
-
-    const totalLeaders = filtered.length;
+    const totalLeaders = await supabaseService.getCount('teams', coordinatorId);
 
     if (totalLeaders >= sub.maxLeaders) {
       return {
@@ -265,12 +255,7 @@ export async function validateRegionalRegistration(coordinatorId?: string): Prom
   }
 
   try {
-    const regionals = await supabaseService.getCollection<any>('regional_coordinators');
-    const filtered = coordinatorId && coordinatorId !== 'demo_coord_geral'
-      ? regionals.filter(r => r.coordinatorId === coordinatorId)
-      : regionals;
-
-    const totalRegionals = filtered.length;
+    const totalRegionals = await supabaseService.getCount('regional_coordinators', coordinatorId);
 
     if (totalRegionals >= sub.maxRegionals) {
       return {
@@ -309,8 +294,7 @@ export async function validateGeneralCoordinatorRegistration(): Promise<{
 
   try {
     const users = await supabaseService.getCollection<any>('users');
-    const filtered = users.filter(u => u.role === 'coordenador_geral' || u.role === 'coordenador');
-    const totalGeneral = filtered.length;
+    const totalGeneral = users.filter(u => u.role === 'coordenador_geral' || u.role === 'coordenador').length;
 
     if (totalGeneral >= sub.maxGeneralCoordinators) {
       return {

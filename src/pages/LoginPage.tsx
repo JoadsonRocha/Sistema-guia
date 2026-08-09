@@ -12,8 +12,7 @@ export function LoginPage() {
     login, 
     loginWithEmail, 
     signupWithEmail, 
-    resetPassword,
-    setDemoRole
+    resetPassword
   } = useAuth();
   
   const navigate = useNavigate();
@@ -32,8 +31,6 @@ export function LoginPage() {
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get('email');
     const tokenParam = params.get('access_token');
-    const demoParam = params.get('demo');
-    
     if (emailParam) {
       setEmail(emailParam);
     }
@@ -47,19 +44,6 @@ export function LoginPage() {
       }
     }
 
-    // If landing requested demo mode, activate demoRole and redirect
-    if (demoParam) {
-      try {
-        // Slight delay to allow provider initialization
-        setTimeout(() => {
-          setDemoRole(demoParam as any);
-          navigate('/dashboard');
-        }, 150);
-      } catch (e) {
-        console.warn('Failed to auto-start demo mode:', e);
-      }
-    }
-
     if (emailParam || tokenParam) {
        try {
          window.history.replaceState({}, document.title, window.location.pathname);
@@ -68,11 +52,6 @@ export function LoginPage() {
        }
     }
   }, []);
-
-  const handleStartDemoMode = () => {
-    setDemoRole('coordenador_geral');
-    navigate('/dashboard');
-  };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -342,12 +321,7 @@ export function LoginPage() {
             {isRegistering ? 'Efetuar Login' : 'Registrar Operador'}
           </button>
 
-          <button 
-            onClick={handleStartDemoMode}
-            className="text-amber-500 hover:text-amber-400 transition-colors flex items-center gap-1 font-extrabold"
-          >
-            ⚡ Testar Demonstração ao Vivo
-          </button>
+
 
           <button 
             onClick={() => navigate('/')}
