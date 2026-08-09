@@ -2365,10 +2365,10 @@ export default function CoordinatorDashboard({
             {isGeral && (
               <button 
                 onClick={() => setIsCandidateModalOpen(true)}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-2xs active:scale-95 cursor-pointer whitespace-nowrap"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded shadow-md text-[10px] sm:text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer whitespace-nowrap"
                 title="Padronizar foto e biografia do candidato no link de cadastro"
               >
-                <UserPlus className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> Padronizar Candidato
+                <UserPlus className="w-3.5 h-3.5" /> Padronizar Candidato
               </button>
             )}
 
