@@ -1269,9 +1269,9 @@ export default function CaboDashboard({
               {profileData.name || user?.displayName || user?.email?.split('@')[0] || 'Operador'}
             </h3>
             <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mt-1">
-              {(profileData?.role === 'coordenador_geral' || isGeral || (user?.email && user.email.toLowerCase().includes('joadson'))) 
+              {(profileData?.role === 'coordenador_geral' || (user?.email && user.email.toLowerCase().includes('joadson'))) 
                 ? 'Coordenador Geral' 
-                : (profileData?.role === 'coordenador_regional' || isRegional) 
+                : (profileData?.role === 'coordenador_regional') 
                 ? 'Coordenador Regional' 
                 : 'Líder de Equipe / Campo'}
             </p>
