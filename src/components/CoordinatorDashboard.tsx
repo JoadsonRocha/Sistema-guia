@@ -2219,15 +2219,15 @@ export default function CoordinatorDashboard({
           {[
             { id: 'overview', label: 'Dashboard Geral', icon: <LayoutDashboard className="w-4 h-4" /> },
             { id: 'candidato', label: 'Cadastrar Candidato', icon: <UserPlus className="w-4 h-4" /> },
-            { id: 'teams', label: 'Equipes & Líderes', icon: <Users className="w-4 h-4" /> },
-            { id: 'voters', label: 'Eleitores Geral', icon: <UserPlus className="w-4 h-4" /> },
             { id: 'metas', label: 'Metas Eleitorais', icon: <Target className="w-4 h-4" /> },
             { id: 'regional_coords', label: 'Coord. Regionais', icon: <ShieldCheck className="w-4 h-4" /> },
+            { id: 'teams', label: 'Equipes & Líderes', icon: <Users className="w-4 h-4" /> },
+            { id: 'voters', label: 'Eleitores Geral', icon: <UserCheck className="w-4 h-4" /> },
             { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
             { id: 'mapa', label: 'Mapa Regional', icon: <MapIcon className="w-4 h-4" /> },
-            { id: 'analise_eleitoral', label: 'Análise Eleitoral', icon: <TrendingUp className="w-4 h-4" /> },
             { id: 'materials', label: 'Materiais', icon: <Package className="w-4 h-4" /> },
             { id: 'demands', label: 'Demandas', icon: <Activity className="w-4 h-4" /> },
+            { id: 'analise_eleitoral', label: 'Análise Eleitoral', icon: <TrendingUp className="w-4 h-4" /> },
             { id: 'notes', label: 'Anotações', icon: <MessageSquare className="w-4 h-4" /> },
             { id: 'reports', label: 'Relatórios & BI', icon: <FileDown className="w-4 h-4" /> },
           ].map((item) => (
