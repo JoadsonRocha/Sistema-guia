@@ -369,18 +369,6 @@ export function ProfilePage() {
                     )}
                   </div>
 
-                  <div className="pt-1">
-                    <label className="text-xs font-medium text-[var(--text-secondary)] block mb-1">
-                      Ou insira o link/URL da imagem online:
-                    </label>
-                    <input 
-                      type="text" 
-                      value={photoUrl} 
-                      onChange={(e) => setPhotoUrl(e.target.value)} 
-                      placeholder="https://exemplo.com/sua-foto.jpg" 
-                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-2.5 font-mono text-xs outline-none focus:border-blue-600 text-[var(--text-primary)]" 
-                    />
-                  </div>
                 </div>
 
               </div>

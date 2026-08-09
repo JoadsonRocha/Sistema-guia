@@ -1266,10 +1266,17 @@ export default function CaboDashboard({
             </div>
             <p className="text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Perfil ativo</p>
             <h3 className="text-xs font-bold text-[var(--text-primary)] truncate">
-              {profileData.name || user?.displayName || 'Líder'}
+              {profileData.name || user?.displayName || user?.email?.split('@')[0] || 'Operador'}
             </h3>
-            <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mt-2">
-              {profileData.zone || 'Setor não definido'}
+            <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mt-1">
+              {(profileData?.role === 'coordenador_geral' || isGeral || (user?.email && user.email.toLowerCase().includes('joadson'))) 
+                ? 'Coordenador Geral' 
+                : (profileData?.role === 'coordenador_regional' || isRegional) 
+                ? 'Coordenador Regional' 
+                : 'Líder de Equipe / Campo'}
+            </p>
+            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 mt-0.5">
+              {profileData.zone || 'Setor Geral da Campanha'}
             </p>
           </div>
         </div>
