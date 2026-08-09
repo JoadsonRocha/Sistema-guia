@@ -2642,15 +2642,19 @@ export default function CoordinatorDashboard({
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-[var(--text-secondary)] block">Foto do Candidato</label>
-                      <input 
-                        type="text" 
-                        value={candidateForm.photoUrl} 
-                        onChange={e => setCandidateForm({ ...candidateForm, photoUrl: e.target.value })} 
-                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 text-xs font-mono outline-none focus:border-blue-600 text-[var(--text-primary)]" 
-                        placeholder="Cole a URL ou link da foto oficial do candidato..." 
-                      />
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-[var(--text-secondary)] block">Foto Oficial do Candidato</label>
+                      <label className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl ${isUploadingPhoto ? 'bg-zinc-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 cursor-pointer'} text-white font-semibold text-xs transition-all shadow-md active:scale-95`}>
+                        <Upload className="w-4 h-4" />
+                        {isUploadingPhoto ? 'Processando foto...' : 'Escolher foto oficial do candidato (Computador ou Celular)'}
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleCandidatePhotoUpload} 
+                          disabled={isUploadingPhoto} 
+                          className="hidden" 
+                        />
+                      </label>
                     </div>
 
                     <div className="space-y-1.5">
@@ -6513,15 +6517,15 @@ export default function CoordinatorDashboard({
                   </div>
                 </div>
 
-                {/* Foto do Candidato com upload do dispositivo */}
+                {/* Foto do Candidato com upload padrão do dispositivo */}
                 <div className="space-y-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-4 rounded-xl">
-                  <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">
-                    Foto do Candidato *
+                  <label className="text-xs font-semibold text-[var(--text-secondary)] block">
+                    Foto Oficial do Candidato *
                   </label>
                   
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <label className={`flex-1 flex items-center justify-center gap-2 p-3 ${isUploadingPhoto ? 'bg-zinc-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 cursor-pointer'} text-white rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95`}>
-                      <Upload className="w-4 h-4" /> {isUploadingPhoto ? 'Enviando...' : 'Escolher Foto do Dispositivo'}
+                    <label className={`flex-1 flex items-center justify-center gap-2 p-3 ${isUploadingPhoto ? 'bg-zinc-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 cursor-pointer'} text-white rounded-xl font-semibold text-xs transition-all shadow-md active:scale-95`}>
+                      <Upload className="w-4 h-4" /> {isUploadingPhoto ? 'Enviando...' : 'Escolher Foto Oficial do Candidato (Computador ou Celular)'}
                       <input 
                         type="file" 
                         accept="image/*" 
@@ -6530,20 +6534,6 @@ export default function CoordinatorDashboard({
                         disabled={isUploadingPhoto}
                       />
                     </label>
-                  </div>
-
-                  <div className="pt-2 border-t border-[var(--border-color)]">
-                    <label className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block mb-1">
-                      Ou informe o Link / URL da Imagem Online:
-                    </label>
-                    <input 
-                      required
-                      type="text" 
-                      value={candidateForm.photoUrl} 
-                      onChange={e => setCandidateForm({...candidateForm, photoUrl: e.target.value})} 
-                      className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-2.5 font-mono text-[10px] outline-none focus:border-blue-600" 
-                      placeholder="https://sua-imagem.com/foto.jpg ou data:image/..." 
-                    />
                   </div>
                 </div>
 
