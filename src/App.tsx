@@ -17,67 +17,7 @@ import { supabaseService } from './lib/supabaseService';
 import { CloudOff, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 function SyncIndicator() {
-  const [queueCount, setQueueCount] = React.useState(0);
-  const [isOnline, setIsOnline] = React.useState(typeof window !== 'undefined' ? window.navigator.onLine : true);
-  const [isSyncing, setIsSyncing] = React.useState(false);
-  const [showSyncedMsg, setShowSyncedMsg] = React.useState(false);
-
-  React.useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    
-    let timer: any = null;
-    const updateQueue = () => {
-      const q = supabaseService.getQueue();
-      const previousCount = queueCount;
-      setQueueCount(q.length);
-
-      if (q.length > 0 && window.navigator.onLine) {
-        setIsSyncing(true);
-        setShowSyncedMsg(false);
-      } else if (q.length === 0 && previousCount > 0 && window.navigator.onLine) {
-        setIsSyncing(false);
-        setShowSyncedMsg(true);
-        if (timer) clearTimeout(timer);
-        timer = setTimeout(() => setShowSyncedMsg(false), 2500);
-      } else {
-        setIsSyncing(false);
-      }
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    window.addEventListener('offline_queue_updated', updateQueue);
-    
-    updateQueue();
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-      window.removeEventListener('offline_queue_updated', updateQueue);
-      if (timer) clearTimeout(timer);
-    };
-  }, []);
-
-  if (isOnline && queueCount === 0 && !showSyncedMsg && !isSyncing) return null;
-
-  return (
-    <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none">
-      <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full shadow-md text-xs font-semibold tracking-normal transition-all duration-300 backdrop-blur-md ${
-        !isOnline ? 'bg-red-600/95 text-white' : 
-        isSyncing ? 'bg-amber-500/95 text-zinc-950 animate-pulse' : 
-        'bg-emerald-600/95 text-white'
-      }`}>
-        {!isOnline && <CloudOff className="w-3.5 h-3.5" />}
-        {isOnline && isSyncing && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-        {isOnline && !isSyncing && <CheckCircle2 className="w-3.5 h-3.5" />}
-        
-        {!isOnline ? `Modo offline (${queueCount} pendentes)` : 
-         isSyncing ? `Sincronizando ${queueCount} alterações...` : 
-         'Sincronizado'}
-      </div>
-    </div>
-  );
+  return null;
 }
 
 function SalesLandingWrapper() {
