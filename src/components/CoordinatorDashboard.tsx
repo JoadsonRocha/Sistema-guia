@@ -2239,17 +2239,15 @@ export default function CoordinatorDashboard({
 
         <div className="mt-8 space-y-2">
           <div className="pt-6 border-t border-[var(--border-color)] space-y-1">
-            {isGeral && (
-              <button 
-                onClick={() => setIsCandidateModalOpen(true)}
-                className="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all"
-              >
-                <UserPlus className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Cadastrar Candidato
-              </button>
-            )}
+            <button 
+              onClick={() => { setActiveTab('candidato'); setIsCandidateModalOpen(true); }}
+              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Cadastrar Candidato
+            </button>
             <button 
               onClick={() => navigate('/perfil')}
-              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all"
+              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all cursor-pointer"
             >
               <Settings className="w-4 h-4" /> Configurações
             </button>
@@ -2353,15 +2351,13 @@ export default function CoordinatorDashboard({
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {isGeral && (
-              <button 
-                onClick={() => setIsCandidateModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-xs text-xs font-semibold transition-all active:scale-95 cursor-pointer whitespace-nowrap"
-                title="Cadastrar foto, biografia e informações do candidato para o link de cadastro"
-              >
-                <UserPlus className="w-3.5 h-3.5" /> Cadastrar Candidato
-              </button>
-            )}
+            <button 
+              onClick={() => { setActiveTab('candidato'); setIsCandidateModalOpen(true); }}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-md text-xs font-bold transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+              title="Cadastrar foto, biografia e informações do candidato para o link de cadastro"
+            >
+              <UserPlus className="w-4 h-4" /> Cadastrar Candidato
+            </button>
 
             <button 
               onClick={() => setIsWaModalOpen(true)}
@@ -2432,9 +2428,29 @@ export default function CoordinatorDashboard({
             
             {activeTab === 'overview' && (
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-5 md:space-y-8">
+              
+              {/* BANNER EM DESTAQUE DE CADASTRO DO CANDIDATO */}
+              <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-2xl p-5 shadow-lg border border-blue-700/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shrink-0">
+                    <UserPlus className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">Cadastrar Candidato da Campanha</h3>
+                    <p className="text-xs text-blue-200">Defina o nome, foto oficial e mensagem de apresentação exibidos aos eleitores.</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => { setActiveTab('candidato'); setIsCandidateModalOpen(true); }}
+                  className="px-5 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs shadow-md transition-all active:scale-95 whitespace-nowrap self-stretch sm:self-auto text-center cursor-pointer"
+                >
+                  Cadastrar Candidato Agora
+                </button>
+              </div>
+
               <div className="flex-col gap-1 flex">
-                <h2 className="text-base md:text-lg font-black text-zinc-950 tracking-tighter uppercase leading-none dark:text-white">Painel de Operações</h2>
-                <p className="text-[8px] md:text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Monitoramento estratégico em tempo real</p>
+                <h2 className="text-base md:text-lg font-bold text-[var(--text-primary)] leading-none">Painel de Operações</h2>
+                <p className="text-xs text-[var(--text-secondary)] font-normal">Monitoramento estratégico em tempo real</p>
               </div>
 
               <motion.section 
