@@ -2222,9 +2222,9 @@ export default function CoordinatorDashboard({
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id as any)}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md text-xs font-bold uppercase tracking-tight transition-all group ${
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all group ${
                 activeTab === item.id 
-                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 font-black shadow-2xs' 
+                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 font-bold shadow-2xs' 
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100/70 dark:hover:bg-zinc-800/50'
               }`}
             >
@@ -2240,15 +2240,9 @@ export default function CoordinatorDashboard({
           <div className="pt-6 border-t border-[var(--border-color)] space-y-1">
             <button 
               onClick={() => navigate('/perfil')}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all"
+              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all"
             >
               <Settings className="w-4 h-4" /> Configurações
-            </button>
-            <button 
-              onClick={logout}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-xs font-semibold text-red-500 hover:bg-red-500/10 transition-all"
-            >
-              <LogOut className="w-4 h-4" /> Sair do sistema
             </button>
           </div>
         </div>
@@ -2353,7 +2347,7 @@ export default function CoordinatorDashboard({
             {isGeral && (
               <button 
                 onClick={() => setIsCandidateModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded shadow-md text-[10px] sm:text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-xs text-xs font-semibold transition-all active:scale-95 cursor-pointer whitespace-nowrap"
                 title="Cadastrar foto, biografia e informações do candidato para o link de cadastro"
               >
                 <UserPlus className="w-3.5 h-3.5" /> Cadastrar Candidato
@@ -2362,7 +2356,7 @@ export default function CoordinatorDashboard({
 
             <button 
               onClick={() => setIsWaModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-2xs active:scale-95 cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 rounded-xl text-xs font-semibold transition-all shadow-xs active:scale-95 cursor-pointer whitespace-nowrap"
               title="Disparo de mensagens via WhatsApp (Gratuito wa.me)"
             >
               <MessageSquare className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Disparo WhatsApp
@@ -2370,21 +2364,11 @@ export default function CoordinatorDashboard({
 
             <button 
               onClick={() => setIsShareLinkModalOpen(true)}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-2xs active:scale-95 whitespace-nowrap"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 rounded-xl text-xs font-semibold transition-all shadow-xs active:scale-95 whitespace-nowrap"
               title="Gerar e copiar link de cadastro de eleitores"
             >
               <Send className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> Link de Cadastro
             </button>
-
-            {isGeral && (
-              <button 
-                onClick={handlePurgeAllTestData}
-                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50/50 dark:hover:bg-red-950/30 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all shadow-2xs active:scale-95 whitespace-nowrap"
-                title="Limpar todos os dados do banco para recomeçar do zero"
-              >
-                <Trash2 className="w-3.5 h-3.5 text-red-500" /> Zerar Banco
-              </button>
-            )}
 
             <button 
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -2427,15 +2411,6 @@ export default function CoordinatorDashboard({
                     : 'Coordenador'}
                 </p>
               </div>
-            </button>
-
-            <button 
-              onClick={logout}
-              className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-sm transition-all border border-red-500/20 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider shadow-sm active:scale-95"
-              title="Sair do Sistema"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden md:inline">Sair</span>
             </button>
           </div>
         </header>
@@ -3304,28 +3279,28 @@ export default function CoordinatorDashboard({
                 <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 shadow-sm space-y-4 md:space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Pesquisar por Nome/Telefone</label>
+                      <label className="text-xs font-semibold text-zinc-500 ml-1">Pesquisar por Nome ou Telefone</label>
                       <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
                         <input 
                           type="text" 
                           value={voterSearch}
                           onChange={e => setVoterSearch(e.target.value)}
-                          className="w-full bg-zinc-50 border border-zinc-100 rounded-sm py-3 pl-10 pr-4 text-xs font-bold text-zinc-900 outline-none focus:border-blue-600 transition-all"
-                          placeholder="Ex: João Silva ou 119..."
+                          className="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-xl py-2.5 pl-11 pr-4 text-xs font-medium text-zinc-900 dark:text-white outline-none focus:border-blue-600 transition-all"
+                          placeholder="Ex: João Silva ou (95) 99..."
                         />
                       </div>
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Filtrar por Articulador</label>
+                      <label className="text-xs font-semibold text-zinc-500 ml-1">Filtrar por Articulador</label>
                       <div className="relative">
-                        <Handshake className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                        <Handshake className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
                         <select 
                           value={articulatorFilter}
                           onChange={e => setArticulatorFilter(e.target.value)}
-                          className="w-full bg-zinc-50 border border-zinc-100 rounded-sm py-3 pl-10 pr-4 text-xs font-bold text-zinc-900 outline-none focus:border-blue-600 transition-all appearance-none"
+                          className="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-xl py-2.5 pl-11 pr-4 text-xs font-medium text-zinc-900 dark:text-white outline-none focus:border-blue-600 transition-all appearance-none"
                         >
-                          <option value="">TODOS OS ARTICULADORES</option>
+                          <option value="">Todos os articuladores</option>
                           {(allVoters.length > 0 ? allVoters.filter(v => v.isArticulator) : articulators).map(art => (
                             <option key={art.id} value={art.id}>{art.name}</option>
                           ))}

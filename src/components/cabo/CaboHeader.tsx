@@ -56,13 +56,6 @@ export const CaboHeader: React.FC<CaboHeaderProps> = ({
             <span className="hidden sm:inline">Novo Eleitor</span>
           </button>
 
-          <button
-            onClick={onLogout}
-            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-zinc-800 rounded-xl transition-all"
-            title="Sair do App"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
       </div>
     </header>

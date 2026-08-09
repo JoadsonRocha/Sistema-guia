@@ -1299,14 +1299,7 @@ export default function CaboDashboard({
           ))}
         </nav>
 
-        <div className="p-5 border-t border-white/5">
-          <button 
-            onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-sm bg-red-500/10 text-red-500 font-black text-[9px] uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all shadow-lg"
-          >
-            <LogOut className="w-3.5 h-3.5" /> Desligar Terminal
-          </button>
-        </div>
+
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
@@ -1330,39 +1323,32 @@ export default function CaboDashboard({
              </div>
           </div>
 
-          <div className="flex items-center gap-3 lg:gap-4">
+          <div className="flex items-center gap-2">
             <button 
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-3 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm text-[var(--text-secondary)] hover:bg-blue-600 hover:text-white active:scale-90 transition-all shadow-xl"
+              className="p-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl text-[var(--text-secondary)] hover:bg-blue-600 hover:text-white active:scale-90 transition-all shadow-xs"
+              title={theme === 'dark' ? "Ativar Modo Claro" : "Ativar Modo Escuro"}
             >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
 
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-sm border transition-all ${
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all ${
                 isOnline 
-                ? 'bg-green-500/10 border-green-500/20 text-green-500' 
-                : 'bg-orange-500/10 border-orange-500/20 text-orange-500'
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
+                : 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400'
             }`}>
-              {isOnline ? <Wifi className="w-4 h-4 animate-pulse" /> : <CloudOff className="w-4 h-4" />}
-              <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">
-                {isOnline ? 'Conexão Segura' : 'Modo Offline Ativo'}
+              {isOnline ? <Wifi className="w-3.5 h-3.5 animate-pulse" /> : <CloudOff className="w-3.5 h-3.5" />}
+              <span className="text-xs font-semibold hidden sm:inline">
+                {isOnline ? 'Conectado' : 'Modo offline'}
               </span>
             </div>
 
             <button 
               onClick={() => navigate('/perfil')}
-              className="p-3 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm text-[var(--text-secondary)] hover:bg-blue-600 hover:text-white active:scale-95 transition-all shadow-[var(--shadow-sm)]"
+              className="p-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl text-[var(--text-secondary)] hover:bg-blue-600 hover:text-white active:scale-95 transition-all shadow-xs"
               title="Configurações do Perfil"
             >
-              <Settings className="w-5 h-5" />
-            </button>
-
-            <button 
-              onClick={logout}
-              className="p-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-sm transition-all border border-red-500/20 active:scale-95 shadow-sm"
-              title="Desligar Terminal (Sair do Sistema)"
-            >
-              <LogOut className="w-5 h-5" />
+              <Settings className="w-4 h-4" />
             </button>
           </div>
         </header>
@@ -1633,13 +1619,13 @@ export default function CaboDashboard({
               {/* Advanced Search & Filtering */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
                 <div className="relative">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 pointer-events-none" />
                   <input 
                     type="text" 
                     value={voterSearch}
                     onChange={e => setVoterSearch(e.target.value)}
                     placeholder="Pesquisar por nome ou telefone..."
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-md py-2 pl-9 pr-3 text-xs font-medium text-[var(--text-primary)] outline-none focus:border-blue-600 transition-all"
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2 pl-10 pr-3 text-xs font-medium text-[var(--text-primary)] outline-none focus:border-blue-600 transition-all"
                   />
                 </div>
                 <div className="flex flex-wrap gap-1.5 items-center">

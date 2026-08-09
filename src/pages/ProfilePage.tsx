@@ -344,13 +344,13 @@ export function ProfilePage() {
                   Nome completo *
                 </label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <User className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input 
                     required
                     type="text" 
                     value={name} 
                     onChange={(e) => setName(e.target.value)} 
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-2.5 pl-10 text-xs font-medium outline-none focus:border-blue-600 text-[var(--text-primary)]" 
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-2.5 pl-11 text-xs font-medium outline-none focus:border-blue-600 text-[var(--text-primary)]" 
                     placeholder="Seu nome oficial" 
                   />
                 </div>
@@ -361,13 +361,13 @@ export function ProfilePage() {
                   Telefone / WhatsApp *
                 </label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Phone className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input 
                     required
                     type="text" 
                     value={phone} 
                     onChange={(e) => setPhone(e.target.value)} 
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-2.5 pl-10 text-xs font-medium outline-none focus:border-blue-600 text-[var(--text-primary)]" 
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-2.5 pl-11 text-xs font-medium outline-none focus:border-blue-600 text-[var(--text-primary)]" 
                     placeholder="(95) 99111-2026" 
                   />
                 </div>
@@ -378,13 +378,13 @@ export function ProfilePage() {
                   E-mail corporativo
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input 
                     disabled
                     readOnly
                     type="email" 
                     value={user?.email || ''} 
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-2.5 pl-10 text-xs opacity-60 cursor-not-allowed text-[var(--text-primary)]" 
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-2.5 pl-11 text-xs opacity-60 cursor-not-allowed text-[var(--text-primary)]" 
                   />
                 </div>
               </div>
@@ -394,12 +394,12 @@ export function ProfilePage() {
                   Zona / Região de atuação
                 </label>
                 <div className="relative">
-                  <MapPin className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <MapPin className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input 
                     type="text" 
                     value={zone} 
                     onChange={(e) => setZone(e.target.value)} 
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-2.5 pl-10 text-xs font-medium outline-none focus:border-blue-600 text-[var(--text-primary)]" 
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-2.5 pl-11 text-xs font-medium outline-none focus:border-blue-600 text-[var(--text-primary)]" 
                     placeholder="Ex: Zona Norte / Bairro Centro" 
                   />
                 </div>
@@ -474,30 +474,60 @@ export function ProfilePage() {
             )}
 
             {/* AÇÕES DE SEGURANÇA */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-1">
-              <div className="space-y-0.5">
-                <span className="text-xs font-semibold text-[var(--text-primary)] block">Redefinição de senha</span>
-                <p className="text-xs text-[var(--text-secondary)]">Envia um link de alteração de senha para o seu e-mail cadastrado.</p>
+            <div className="space-y-4 pt-1">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                  <span className="text-xs font-semibold text-[var(--text-primary)] block">Redefinição de senha</span>
+                  <p className="text-xs text-[var(--text-secondary)]">Envia um link de alteração de senha para o seu e-mail cadastrado.</p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!user?.email) return;
+                    if (confirm(`Deseja enviar um e-mail de redefinição de senha para ${user.email}?`)) {
+                      try {
+                        await resetPassword(user.email);
+                        alert(`✅ E-mail de redefinição enviado com sucesso para ${user.email}!`);
+                      } catch (err: any) {
+                        alert(`Erro ao enviar e-mail: ${err.message || err}`);
+                      }
+                    }
+                  }}
+                  className="px-4 py-2 rounded-xl bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer shrink-0"
+                >
+                  <KeyRound className="w-4 h-4" />
+                  Redefinir senha
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!user?.email) return;
-                  if (confirm(`Deseja enviar um e-mail de redefinição de senha para ${user.email}?`)) {
-                    try {
-                      await resetPassword(user.email);
-                      alert(`✅ E-mail de redefinição enviado com sucesso para ${user.email}!`);
-                    } catch (err: any) {
-                      alert(`Erro ao enviar e-mail: ${err.message || err}`);
-                    }
-                  }
-                }}
-                className="px-4 py-2 rounded-xl bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
-              >
-                <KeyRound className="w-4 h-4" />
-                Redefinir senha
-              </button>
+              {isGeral && (
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-3 border-t border-[var(--border-color)]">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-semibold text-red-500 block">Zerar banco de dados</span>
+                    <p className="text-xs text-[var(--text-secondary)]">Limpa todos os dados locais e registros de teste da campanha para recomeçar.</p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (confirm("⚠️ ATENÇÃO EXTREMA: Deseja apagar TODOS os dados da campanha (eleitores, equipes, materiais, agenda) para zerar o banco? Esta ação é irreversível!")) {
+                        try {
+                          await supabaseService.clearAllLocalDemoData();
+                          alert("✅ Banco de dados zerado com sucesso!");
+                          window.location.reload();
+                        } catch (err) {
+                          alert("Erro ao zerar banco: " + err);
+                        }
+                      }
+                    }}
+                    className="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 font-semibold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Zerar banco
+                  </button>
+                </div>
+              )}
             </div>
 
           </div>
