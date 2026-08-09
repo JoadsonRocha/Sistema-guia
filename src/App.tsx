@@ -6,6 +6,7 @@ import { Layout } from './components/Layout';
 import { LoginPage } from './pages/LoginPage';
 import { ForcePasswordChangePage } from './pages/ForcePasswordChangePage';
 import { DashboardPage } from './pages/DashboardPage';
+import { ProfilePage } from './pages/ProfilePage';
 
 // Lazy loading heavy components
 const PublicVoterRegister = lazy(() => import('./components/PublicVoterRegister'));
@@ -119,6 +120,7 @@ export default function App() {
           <Route path="/change-password" element={<ForcePasswordChangePage />} />
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/perfil" element={<ProfilePage />} />
           </Route>
         </Route>
       </Routes>

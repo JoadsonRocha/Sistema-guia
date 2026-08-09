@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import logoImg from '../assets/logo.png';
 import { TreLocationFields } from './TreLocationFields';
 import { WhatsAppDispatchModal } from './WhatsAppDispatchModal';
@@ -191,6 +192,7 @@ export default function CoordinatorDashboard({
   theme: 'light' | 'dark'; 
   setTheme: (t: 'light' | 'dark') => void;
 }) {
+  const navigate = useNavigate();
   const { user, login, logout, isAdmin, isGeral, isRegional, isLeader, userRegion, coordinatorId } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'regional_coords' | 'metas' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral'>('overview');
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
@@ -2237,7 +2239,7 @@ export default function CoordinatorDashboard({
         <div className="mt-8 space-y-2">
           <div className="pt-6 border-t border-[var(--border-color)] space-y-1">
             <button 
-              onClick={() => setIsProfileModalOpen(true)}
+              onClick={() => navigate('/perfil')}
               className="w-full flex items-center gap-4 px-4 py-3 rounded-sm text-xs font-black text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all uppercase tracking-tight"
             >
               <Settings className="w-4 h-4" /> Configurações
@@ -2403,7 +2405,7 @@ export default function CoordinatorDashboard({
             <div className="h-8 w-px bg-zinc-200 hidden sm:block"></div>
 
             <button 
-              onClick={() => setIsProfileModalOpen(true)}
+              onClick={() => navigate('/perfil')}
               className="flex items-center gap-2.5 hover:bg-zinc-50 p-1 rounded-sm transition-all"
             >
               <div className="w-8 h-8 rounded-sm bg-blue-600 flex items-center justify-center font-black text-xs text-white overflow-hidden shadow-sm border border-zinc-200">

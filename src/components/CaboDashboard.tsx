@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import logoImg from '../assets/logo.png';
 import { TreLocationFields } from './TreLocationFields';
 import { 
@@ -95,6 +96,7 @@ export default function CaboDashboard({
   theme: 'light' | 'dark'; 
   setTheme: (t: 'light' | 'dark') => void;
 }) {
+  const navigate = useNavigate();
   const { user, logout, isAdmin, isGeral, coordinatorId } = useAuth();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [queueCount, setQueueCount] = useState(0);
@@ -1348,7 +1350,7 @@ export default function CaboDashboard({
             </div>
 
             <button 
-              onClick={() => setIsProfileModalOpen(true)}
+              onClick={() => navigate('/perfil')}
               className="p-3 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm text-[var(--text-secondary)] hover:bg-blue-600 hover:text-white active:scale-95 transition-all shadow-[var(--shadow-sm)]"
               title="Configurações do Perfil"
             >
