@@ -267,11 +267,44 @@ export default function CoordinatorDashboard({
       if (publicUrl) {
         setCandidateForm(prev => ({ ...prev, photoUrl: publicUrl }));
       } else {
-        alert("Erro ao fazer upload da imagem para o Supabase Storage. Verifique se o bucket 'public_assets' existe e tem permissões públicas.");
+        // Fallback: Compressa a imagem para Data URL JPEG otimizada
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 500;
+            const scaleSize = MAX_WIDTH / (img.width || 1);
+            canvas.width = MAX_WIDTH;
+            canvas.height = (img.height || 1) * scaleSize;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const base64 = canvas.toDataURL('image/jpeg', 0.85);
+            setCandidateForm(prev => ({ ...prev, photoUrl: base64 }));
+          };
+          img.src = reader.result as string;
+        };
+        reader.readAsDataURL(file);
       }
     } catch (err) {
-      console.error("Upload failed", err);
-      alert("Falha no upload da foto.");
+      console.warn("Upload via Supabase Storage indisponível, aplicando compressão gráfica local:", err);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 500;
+          const scaleSize = MAX_WIDTH / (img.width || 1);
+          canvas.width = MAX_WIDTH;
+          canvas.height = (img.height || 1) * scaleSize;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const base64 = canvas.toDataURL('image/jpeg', 0.85);
+          setCandidateForm(prev => ({ ...prev, photoUrl: base64 }));
+        };
+        img.src = reader.result as string;
+      };
+      reader.readAsDataURL(file);
     } finally {
       setIsUploadingPhoto(false);
     }
