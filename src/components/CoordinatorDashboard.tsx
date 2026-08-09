@@ -2238,6 +2238,14 @@ export default function CoordinatorDashboard({
 
         <div className="mt-8 space-y-2">
           <div className="pt-6 border-t border-[var(--border-color)] space-y-1">
+            {isGeral && (
+              <button 
+                onClick={() => setIsCandidateModalOpen(true)}
+                className="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all"
+              >
+                <UserPlus className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Cadastrar Candidato
+              </button>
+            )}
             <button 
               onClick={() => navigate('/perfil')}
               className="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all"

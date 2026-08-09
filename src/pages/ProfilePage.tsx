@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/SupabaseProvider';
 import { supabaseService } from '../lib/supabaseService';
+import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO } from '../lib/candidateService';
 import { safeLocalStorage } from '../utils/safeStorage';
 import { getSubscriptionInfo, PLAN_CONFIGS } from '../lib/planService';
 import { 
@@ -20,7 +21,10 @@ import {
   Check, 
   Loader2, 
   KeyRound, 
-  Sparkles
+  Sparkles,
+  UserPlus,
+  Award,
+  FileText
 } from 'lucide-react';
 
 export function ProfilePage() {
@@ -30,6 +34,7 @@ export function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isUploadingCandidatePhoto, setIsUploadingCandidatePhoto] = useState(false);
 
   // Profile Form State
   const [name, setName] = useState('');
@@ -37,6 +42,9 @@ export function ProfilePage() {
   const [photoUrl, setPhotoUrl] = useState('');
   const [bio, setBio] = useState('');
   const [zone, setZone] = useState('');
+
+  // Candidate Registration State (Displayed on public voter register page /cadastro)
+  const [candidateForm, setCandidateForm] = useState<CandidateInfo>(DEFAULT_CANDIDATE_INFO);
 
   // System Settings State
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -47,7 +55,7 @@ export function ProfilePage() {
     status: 'active'
   });
 
-  // Load User Data
+  // Load User Data & Candidate Data
   useEffect(() => {
     if (!user?.uid) return;
 
@@ -71,8 +79,15 @@ export function ProfilePage() {
       if (isMounted) setLoading(false);
     });
 
-    // Fetch subscription info
+    // Load candidate info
     const activeCoordId = user.coordinatorId || user.uid;
+    candidateService.getCandidateInfo(activeCoordId).then((info) => {
+      if (isMounted && info) {
+        setCandidateForm(info);
+      }
+    });
+
+    // Fetch subscription info
     getSubscriptionInfo(activeCoordId).then(sub => {
       if (isMounted) {
         setSubscriptionInfo({ plan: sub.plan, status: sub.status });
@@ -90,7 +105,7 @@ export function ProfilePage() {
     safeLocalStorage.setItem('urna360-theme', theme);
   }, [theme]);
 
-  // Handle Device Photo Upload
+  // Handle User Photo Upload
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -127,13 +142,51 @@ export function ProfilePage() {
     }
   };
 
-  // Handle Form Submit
+  // Handle Candidate Photo Upload
+  const handleCandidatePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingCandidatePhoto(true);
+    try {
+      const uploadedUrl = await supabaseService.uploadImage(file, 'public_assets');
+      if (uploadedUrl) {
+        setCandidateForm(prev => ({ ...prev, photoUrl: uploadedUrl }));
+      } else {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 500;
+            const scaleSize = MAX_WIDTH / img.width;
+            canvas.width = MAX_WIDTH;
+            canvas.height = img.height * scaleSize;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const base64 = canvas.toDataURL('image/jpeg', 0.8);
+            setCandidateForm(prev => ({ ...prev, photoUrl: base64 }));
+          };
+          img.src = reader.result as string;
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch (err) {
+      console.error("Falha ao carregar foto do candidato:", err);
+      alert("Erro ao enviar foto do candidato. Tente novamente ou cole o link direto.");
+    } finally {
+      setIsUploadingCandidatePhoto(false);
+    }
+  };
+
+  // Handle Form Submit (Profile & Candidate)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.uid) return;
 
     setIsSaving(true);
     try {
+      // 1. Save user profile
       const updates = {
         name,
         phone,
@@ -142,11 +195,15 @@ export function ProfilePage() {
         zone,
         updatedAt: Date.now()
       };
-
       await supabaseService.setDocument('users', user.uid, updates, true);
-      alert("✅ Perfil e configurações atualizados com sucesso!");
+
+      // 2. Save candidate info if Coordenador Geral or user has candidate info
+      const activeCoordId = user.coordinatorId || user.uid;
+      await candidateService.saveCandidateInfo(candidateForm, user.uid, activeCoordId);
+
+      alert("✅ Perfil e dados do candidato atualizados com sucesso!");
     } catch (err: any) {
-      alert("Erro ao salvar alterações do perfil: " + (err.message || err));
+      alert("Erro ao salvar alterações: " + (err.message || err));
     } finally {
       setIsSaving(false);
     }
@@ -189,7 +246,7 @@ export function ProfilePage() {
                 Meu Perfil e Configurações
               </h1>
               <p className="text-xs text-[var(--text-secondary)] font-normal">
-                Gerencie seus dados e preferências do sistema
+                Gerencie seus dados e as informações do candidato da campanha
               </p>
             </div>
           </div>
@@ -220,7 +277,7 @@ export function ProfilePage() {
         
         <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* CARTÃO SUPERIOR DE APRESENTAÇÃO E FOTO DE PERFIL */}
+          {/* CARTÃO SUPERIOR DE APRESENTAÇÃO E FOTO DE PERFIL DO OPERADOR */}
           <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-6 sm:p-8 shadow-sm space-y-6 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-emerald-500"></div>
 
@@ -332,7 +389,110 @@ export function ProfilePage() {
 
           </div>
 
-          {/* FORMULÁRIO DE DADOS PESSOAIS E REGIONAIS */}
+          {/* MÓDULO EXCLUSIVO: CADASTRAR CANDIDATO DA CAMPANHA */}
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+              <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                <UserPlus className="w-4 h-4" /> Cadastrar Candidato (Página Pública de Cadastro)
+              </h3>
+              <span className="text-[11px] font-semibold text-zinc-500 bg-[var(--bg-tertiary)] px-2.5 py-1 rounded-full border border-[var(--border-color)]">
+                Exibido em /cadastro
+              </span>
+            </div>
+
+            {/* PRÉ-VISUALIZAÇÃO DO CANDIDATO */}
+            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 p-4 rounded-xl flex items-center gap-4">
+              <img 
+                src={candidateForm.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
+                alt="Preview Candidato" 
+                className="w-16 h-16 rounded-full object-cover border-2 border-blue-600 shadow-md shrink-0 bg-zinc-200"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+              />
+              <div className="overflow-hidden space-y-0.5">
+                <p className="text-[11px] font-semibold text-blue-600 dark:text-blue-400">Pré-visualização da Apresentação</p>
+                <p className="text-sm font-bold text-[var(--text-primary)] truncate">{candidateForm.name || 'Nome do Candidato'}</p>
+                <p className="text-xs text-[var(--text-secondary)] truncate">{candidateForm.title || 'Cargo / Função'}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[var(--text-secondary)] block">
+                  Nome do Candidato *
+                </label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input 
+                    type="text" 
+                    value={candidateForm.name} 
+                    onChange={(e) => setCandidateForm({ ...candidateForm, name: e.target.value })} 
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-2.5 pl-11 text-xs font-medium outline-none focus:border-blue-600 text-[var(--text-primary)]" 
+                    placeholder="Ex: Soldado Sampaio" 
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[var(--text-secondary)] block">
+                  Cargo / Função Pretendida *
+                </label>
+                <div className="relative">
+                  <Award className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input 
+                    type="text" 
+                    value={candidateForm.title} 
+                    onChange={(e) => setCandidateForm({ ...candidateForm, title: e.target.value })} 
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-2.5 pl-11 text-xs font-medium outline-none focus:border-blue-600 text-[var(--text-primary)]" 
+                    placeholder="Ex: Deputado Estadual - Eleições 2026" 
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* FOTO DO CANDIDATO */}
+            <div className="space-y-2 pt-1 border-t border-[var(--border-color)]">
+              <label className="text-xs font-semibold text-[var(--text-secondary)] block">
+                Foto do Candidato
+              </label>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <label className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl ${isUploadingCandidatePhoto ? 'bg-zinc-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 cursor-pointer'} text-white text-xs font-semibold transition-all shadow-sm active:scale-95`}>
+                  <Upload className="w-3.5 h-3.5" />
+                  {isUploadingCandidatePhoto ? 'Processando foto...' : 'Escolher foto oficial do candidato'}
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleCandidatePhotoUpload} 
+                    disabled={isUploadingCandidatePhoto} 
+                    className="hidden" 
+                  />
+                </label>
+              </div>
+
+              <input 
+                type="text" 
+                value={candidateForm.photoUrl} 
+                onChange={(e) => setCandidateForm({ ...candidateForm, photoUrl: e.target.value })} 
+                placeholder="Ou cole a URL da foto oficial do candidato..." 
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-2.5 font-mono text-xs outline-none focus:border-blue-600 text-[var(--text-primary)]" 
+              />
+            </div>
+
+            {/* MENSAGEM / APRESENTACAO DO CANDIDATO */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[var(--text-secondary)] block">
+                Mensagem de Apresentação do Candidato
+              </label>
+              <textarea 
+                rows={3}
+                value={candidateForm.bio} 
+                onChange={(e) => setCandidateForm({ ...candidateForm, bio: e.target.value })} 
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-2.5 text-xs font-medium outline-none focus:border-blue-600 text-[var(--text-primary)] resize-none" 
+                placeholder="Escreva uma mensagem de boas-vindas para os eleitores que acessarem o link público..." 
+              />
+            </div>
+          </div>
+
+          {/* FORMULÁRIO DE DADOS PESSOAIS E REGIONAIS DO OPERADOR */}
           <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-6 sm:p-8 shadow-sm space-y-5">
             <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2 border-b border-[var(--border-color)] pb-3">
               <User className="w-4 h-4" /> Informações pessoais e operacionais
@@ -544,7 +704,7 @@ export function ProfilePage() {
 
             <button
               type="submit"
-              disabled={isSaving || isUploadingPhoto}
+              disabled={isSaving || isUploadingPhoto || isUploadingCandidatePhoto}
               className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
             >
               {isSaving ? (
@@ -553,7 +713,7 @@ export function ProfilePage() {
                 </>
               ) : (
                 <>
-                  <Check className="w-4 h-4 text-white" /> Salvar perfil e configurações
+                  <Check className="w-4 h-4 text-white" /> Salvar perfil e candidato
                 </>
               )}
             </button>
