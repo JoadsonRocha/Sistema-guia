@@ -195,7 +195,23 @@ export default function CoordinatorDashboard({
 }) {
   const navigate = useNavigate();
   const { user, login, logout, isAdmin, isGeral, isRegional, isLeader, userRegion, coordinatorId } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'candidato' | 'regional_coords' | 'metas' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral'>('overview');
+
+  // Restaurar a última aba visitada ao recarregar a página (persiste no localStorage)
+  const ACTIVE_TAB_KEY = 'nexus_coordinator_active_tab';
+  type ActiveTabType = 'overview' | 'candidato' | 'regional_coords' | 'metas' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral';
+  const [activeTab, setActiveTabState] = useState<ActiveTabType>(() => {
+    try {
+      const saved = localStorage.getItem(ACTIVE_TAB_KEY);
+      if (saved) return saved as ActiveTabType;
+    } catch (_) {}
+    return 'overview';
+  });
+
+  // Função que salva a aba ativa no localStorage antes de mudar o estado
+  const setActiveTab = (tab: ActiveTabType) => {
+    try { localStorage.setItem(ACTIVE_TAB_KEY, tab); } catch (_) {}
+    setActiveTabState(tab);
+  };
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
   const [selectedLinkTeam, setSelectedLinkTeam] = useState('');
 
