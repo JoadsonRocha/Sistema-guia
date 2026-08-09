@@ -90,14 +90,10 @@ interface OfflineQueueItem {
 
 export default function CaboDashboard({ 
   theme, 
-  setTheme,
-  isDemoMode,
-  onBlockDemoVoterRegistration
+  setTheme
 }: { 
   theme: 'light' | 'dark'; 
   setTheme: (t: 'light' | 'dark') => void;
-  isDemoMode?: boolean;
-  onBlockDemoVoterRegistration?: () => void;
 }) {
   const { user, logout, isAdmin, isGeral, coordinatorId } = useAuth();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -753,15 +749,6 @@ export default function CaboDashboard({
   const handleVoterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isDemoMode) {
-      if (onBlockDemoVoterRegistration) {
-        onBlockDemoVoterRegistration();
-      } else {
-        alert("🔒 MODO DEMONSTRAÇÃO: O cadastro de eleitores é bloqueado na versão de testes. Adquira o Plano Eleições 2026 para liberar o cadastro de eleitores!");
-      }
-      return;
-    }
-
     if (!user) {
       alert("Usuário não autenticado.");
       return;
@@ -992,15 +979,6 @@ export default function CaboDashboard({
 
   const handleBulkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (isDemoMode) {
-      if (onBlockDemoVoterRegistration) {
-        onBlockDemoVoterRegistration();
-      } else {
-        alert("🔒 MODO DEMONSTRAÇÃO: O cadastro em lote de eleitores é bloqueado na versão de testes. Adquira o Plano Eleições 2026 para importar listas de eleitores!");
-      }
-      return;
-    }
 
     if (!user) {
       alert("Usuário não autenticado.");

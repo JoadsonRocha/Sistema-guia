@@ -186,14 +186,10 @@ export const isVoterInTeam = (voter: any, team: any) => {
 
 export default function CoordinatorDashboard({ 
   theme, 
-  setTheme,
-  isDemoMode,
-  onBlockDemoVoterRegistration
+  setTheme
 }: { 
   theme: 'light' | 'dark'; 
   setTheme: (t: 'light' | 'dark') => void;
-  isDemoMode?: boolean;
-  onBlockDemoVoterRegistration?: () => void;
 }) {
   const { user, login, logout, isAdmin, isGeral, isRegional, isLeader, userRegion, coordinatorId } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'regional_coords' | 'metas' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral'>('overview');

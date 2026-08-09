@@ -4,13 +4,13 @@ import { useAuth } from '../../lib/SupabaseProvider';
 import { ComponentLoader } from './ProtectedRoute';
 
 export function PublicRoute() {
-  const { user, loading, demoRole } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return <ComponentLoader />;
   }
 
-  const isLoggedIn = !!user || !!demoRole;
+  const isLoggedIn = !!user;
 
   if (isLoggedIn) {
     return <Navigate to="/dashboard" replace />;

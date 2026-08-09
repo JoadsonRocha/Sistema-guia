@@ -70,8 +70,8 @@ function SyncIndicator() {
 
 function SalesLandingWrapper() {
   const navigate = useNavigate();
-  const { user, demoRole } = useAuth();
-  const isLoggedIn = !!user || !!demoRole;
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
 
   if (isLoggedIn) {
     return <Navigate to="/dashboard" replace />;
@@ -84,7 +84,6 @@ function SalesLandingWrapper() {
   return (
     <SalesLandingPage 
       onAccessSystem={handleAccessSystem}
-      onStartDemoMode={() => {}}
     />
   );
 }

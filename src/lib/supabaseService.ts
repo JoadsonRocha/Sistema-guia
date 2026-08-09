@@ -310,7 +310,7 @@ export const supabaseDataService = {
     if (client) {
       try {
         let query = client.from('campaign_records').select('id', { count: 'exact', head: true }).eq('record_type', path);
-        if (coordinatorId && coordinatorId !== 'demo_coord_geral') {
+        if (coordinatorId) {
            query = query.or(`coordinator_id.eq.${coordinatorId},payload->>coordinatorId.eq.${coordinatorId}`);
         }
         const { count, error } = await query;
@@ -323,7 +323,7 @@ export const supabaseDataService = {
     }
     // Fallback offline
     const all = getLocalList<any>(path);
-    if (coordinatorId && coordinatorId !== 'demo_coord_geral') {
+    if (coordinatorId) {
        return all.filter(item => item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId).length;
     }
     return all.length;
@@ -524,7 +524,7 @@ export const supabaseDataService = {
     if (client && window.navigator.onLine) {
       try {
         let query = client.from('campaign_records').select('record_id, payload', { count: 'exact' }).eq('record_type', path);
-        if (coordinatorId && coordinatorId !== 'demo_coord_geral') {
+        if (coordinatorId) {
            query = query.or(`coordinator_id.eq.${coordinatorId},payload->>coordinatorId.eq.${coordinatorId}`);
         }
 
@@ -554,7 +554,7 @@ export const supabaseDataService = {
 
     // Fallback offline (local storage)
     let all = getLocalList<any>(path);
-    if (coordinatorId && coordinatorId !== 'demo_coord_geral') {
+    if (coordinatorId) {
        all = all.filter(item => item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId);
     }
     

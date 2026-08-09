@@ -1,9 +1,8 @@
 /**
  * SupabaseProvider
  *
- * Context provider that exposes authentication state and helpers to the app.
- * - Keeps a lightweight `user` profile in React state
- * - Syncs profile information from Supabase or local fallback (dev only)
+ * Provides global authentication context using Supabase Auth:
+ * - Listens to Auth state changes and syncs user profiles from Supabase database
  * - Exposes login, logout, signup and password helpers
  * - Implements inactivity auto-logout and BFCache re-initialization
  *

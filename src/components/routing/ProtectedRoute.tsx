@@ -32,7 +32,7 @@ export const ComponentLoader = () => (
 );
 
 export function ProtectedRoute() {
-  const { user, loading, forcePasswordChange, demoRole, sessionLocked } = useAuth();
+  const { user, loading, forcePasswordChange, sessionLocked } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -41,7 +41,7 @@ export function ProtectedRoute() {
   }
 
   // sessionLocked indicates an ongoing logout/lock; treat as unauthenticated
-  const isLoggedIn = (!!user && !sessionLocked) || !!demoRole;
+  const isLoggedIn = !!user && !sessionLocked;
 
   if (!isLoggedIn) {
     return <Navigate to="/" state={{ from: location }} replace />;

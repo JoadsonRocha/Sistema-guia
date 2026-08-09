@@ -30,10 +30,9 @@ import { trackAdsConversion } from '../utils/gtag';
 
 interface SalesLandingPageProps {
   onAccessSystem: () => void;
-  onStartDemoMode?: () => void;
 }
 
-export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSystem, onStartDemoMode }) => {
+export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSystem }) => {
   const [showDomainModal, setShowDomainModal] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState<'terms' | 'refund' | 'tse' | null>(null);
   const [leadersCount, setLeadersCount] = useState(15);
@@ -101,11 +100,11 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
         {/* CTA BUTTONS */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
           <button
-            onClick={onStartDemoMode || onAccessSystem}
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-blue-600/25 active:scale-95 transition-all"
+            onClick={onAccessSystem}
+            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-blue-600/25 active:scale-95 transition-all cursor-pointer"
           >
             <Zap className="w-4 h-4 text-amber-300" />
-            Testar Demonstração ao Vivo
+            Acessar o Sistema
           </button>
         </div>
 
@@ -388,7 +387,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
 
               <button
                 type="button"
-                onClick={onStartDemoMode || onAccessSystem}
+                onClick={onAccessSystem}
                 className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs text-center block transition-all active:scale-95 cursor-pointer shadow-lg shadow-emerald-600/20"
               >
                 Experimentar Plano Grátis
