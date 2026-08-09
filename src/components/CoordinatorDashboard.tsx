@@ -991,22 +991,26 @@ export default function CoordinatorDashboard({
   const handleAddMaterial = async (e: any) => {
     e.preventDefault();
     try {
-      const name = e.target.name.value.trim();
-      const rawQty = e.target.qty.value;
+      const name = (materialForm.name || (e?.target?.name?.value) || '').trim();
+      const rawQty = materialForm.qty || (e?.target?.qty?.value) || '';
       const qtyStr = rawQty.toString().replace(/\D/g, ''); 
       const qty = parseInt(qtyStr, 10);
       
       if (!name || isNaN(qty) || qty <= 0) {
-        alert("Preencha o nome e a quantidade corretamente.");
+        alert("Preencha a descrição do material e a quantidade corretamente.");
         return;
       }
       
-      const existing = materials.find(m => m.name.toLowerCase() === name.toLowerCase());
+      const existing = materials.find(m => m.name && m.name.toLowerCase() === name.toLowerCase());
+      const activeCoordId = coordinatorId || user?.uid || '';
       
       if (existing) {
+        const newTotal = (existing.total || 0) + qty;
+        const newCurrent = (existing.current || 0) + qty;
         await supabaseService.updateDocument('materials', existing.id, {
-          total: (existing.total || 0) + qty,
-          current: (existing.current || 0) + qty
+          total: newTotal,
+          current: newCurrent,
+          qty: newTotal.toLocaleString('pt-BR')
         });
         alert(`Quantidade adicionada ao material existente: ${name}`);
       } else {
@@ -1014,15 +1018,15 @@ export default function CoordinatorDashboard({
           name,
           total: qty,
           current: qty,
-          coordinatorId: coordinatorId || user?.uid || '',
+          qty: qty.toLocaleString('pt-BR'),
+          coordinatorId: activeCoordId,
           createdAt: Date.now()
         });
         alert("Material registrado com sucesso!");
       }
-      e.target.reset();
       setMaterialForm({ name: '', qty: '' });
     } catch (err: any) {
-      alert("Erro ao salvar: " + err.message);
+      alert("Erro ao salvar material: " + (err?.message || err));
     }
   };
 
