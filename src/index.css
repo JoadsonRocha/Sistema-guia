@@ -17,6 +17,16 @@
     @apply font-sans;
     line-height: 1.5;
   }
+  input::placeholder, textarea::placeholder, select::placeholder {
+    font-style: italic !important;
+    text-transform: none !important;
+  }
+  label {
+    text-transform: none !important;
+  }
+  .user-msg, .helper-text {
+    font-style: italic;
+  }
 }
 
 :root {

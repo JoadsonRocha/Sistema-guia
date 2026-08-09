@@ -542,30 +542,30 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">E-mail</label>
+                          <label className="text-xs font-semibold text-zinc-600 block">E-mail</label>
                           <div className="relative">
-                            <Mail className="w-4 h-4 text-zinc-400 absolute left-3.5 top-3.5" />
+                            <Mail className="w-4 h-4 text-zinc-400 absolute left-3.5 top-3.5 pointer-events-none" />
                             <input 
                               type="email" 
                               value={voterForm.email} 
                               onChange={e => setVoterForm({...voterForm, email: e.target.value})} 
-                              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 pl-10 font-bold text-xs text-zinc-900 outline-none focus:border-blue-600 focus:bg-white transition-all placeholder:text-zinc-300" 
+                              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 pl-11 font-medium text-xs text-zinc-900 outline-none focus:border-blue-600 focus:bg-white transition-all placeholder:italic" 
                               placeholder="seu@email.com" 
                             />
                           </div>
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Telefone / WhatsApp *</label>
+                          <label className="text-xs font-semibold text-zinc-600 block">Telefone / WhatsApp *</label>
                           <div className="relative">
-                            <Phone className="w-4 h-4 text-zinc-400 absolute left-3.5 top-3.5" />
+                            <Phone className="w-4 h-4 text-zinc-400 absolute left-3.5 top-3.5 pointer-events-none" />
                             <input 
                               required
                               type="text" 
                               value={voterForm.phone} 
                               onChange={e => setVoterForm({...voterForm, phone: e.target.value})} 
-                              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 pl-10 font-bold text-xs text-zinc-900 outline-none focus:border-blue-600 focus:bg-white transition-all placeholder:text-zinc-300" 
-                              placeholder="(00) 90000-0000" 
+                              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 pl-11 font-medium text-xs text-zinc-900 outline-none focus:border-blue-600 focus:bg-white transition-all placeholder:italic" 
+                              placeholder="(95) 99000-0000" 
                             />
                           </div>
                         </div>
