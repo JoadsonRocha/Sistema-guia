@@ -288,6 +288,9 @@ DROP POLICY IF EXISTS "Aprovação de Urgência Apenas por Coordenadores" ON pub
 DROP POLICY IF EXISTS "Isolamento de Registros por Coordenador" ON public.campaign_records;
 DROP POLICY IF EXISTS "Isolamento de Estado da Campanha" ON public.coordinator_campaigns;
 DROP POLICY IF EXISTS "Acesso Autenticado a TRE Locations" ON public.tre_locations;
+DROP POLICY IF EXISTS "Gestão de TRE Locations por Coordenadores" ON public.tre_locations;
+DROP POLICY IF EXISTS "Atualização de TRE Locations por Coordenadores" ON public.tre_locations;
+DROP POLICY IF EXISTS "Exclusão de TRE Locations por Coordenadores" ON public.tre_locations;
 
 -- 6.1 POLÍTICAS PARA PROFILES
 CREATE POLICY "Leitura de Perfis da Campanha" ON public.profiles
