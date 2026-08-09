@@ -5,6 +5,7 @@ export interface CandidateInfo {
   title: string;
   photoUrl: string;
   bio: string;
+  proposals?: string;
   badgeTitle: string;
   subtitle: string;
   updatedAt?: number;
@@ -16,6 +17,7 @@ export const DEFAULT_CANDIDATE_INFO: CandidateInfo = {
   title: 'Campanha Eleitoral',
   photoUrl: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=600',
   bio: 'Seja bem-vindo à nossa campanha eleitoral.',
+  proposals: '• Saúde com atendimento ágil e exames zerados\n• Educação estruturada e valorização dos professores\n• Apoio ao comércio, empreendedorismo e geração de empregos\n• Segurança comunitária e infraestrutura nos bairros',
   badgeTitle: 'Faça Parte do Nosso Projeto! 🎉',
   subtitle: 'Preencha o formulário abaixo e ajude a construir o nosso projeto. Seus dados estão seguros e protegidos.'
 };
@@ -51,6 +53,7 @@ function extractCandidateData(data: any): CandidateInfo {
     title: data.title || DEFAULT_CANDIDATE_INFO.title,
     photoUrl: data.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl,
     bio: data.bio || DEFAULT_CANDIDATE_INFO.bio,
+    proposals: data.proposals || DEFAULT_CANDIDATE_INFO.proposals,
     badgeTitle: data.badgeTitle || DEFAULT_CANDIDATE_INFO.badgeTitle,
     subtitle: data.subtitle || DEFAULT_CANDIDATE_INFO.subtitle,
     updatedAt: data.updatedAt,

@@ -400,6 +400,18 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
               </p>
             </div>
 
+            {/* PROPOSTAS DE CAMPANHA DO CANDIDATO */}
+            {candidateInfo.proposals && (
+              <div className="mt-4 pt-3 border-t border-white/20 text-left w-full space-y-1.5 bg-white/10 p-3.5 rounded-xl backdrop-blur-sm shadow-inner">
+                <p className="text-[10px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0" /> Propostas de Campanha:
+                </p>
+                <div className="text-xs text-white whitespace-pre-line font-normal leading-relaxed opacity-95">
+                  {candidateInfo.proposals}
+                </div>
+              </div>
+            )}
+
           </div>
 
           {/* RODAPÉ DO BANNER */}

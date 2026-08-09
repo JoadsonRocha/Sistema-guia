@@ -2849,6 +2849,17 @@ export default function CoordinatorDashboard({
                       />
                     </div>
 
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-[var(--text-secondary)] block">Propostas de Campanha / Plano de Governo</label>
+                      <textarea 
+                        rows={4}
+                        value={candidateForm.proposals || ''} 
+                        onChange={e => setCandidateForm({ ...candidateForm, proposals: e.target.value })} 
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 text-xs font-medium outline-none focus:border-blue-600 text-[var(--text-primary)] resize-none" 
+                        placeholder="Liste as principais propostas da campanha (ex: Saúde, Educação, Segurança, Emprego)..." 
+                      />
+                    </div>
+
                     <div className="flex justify-end pt-3">
                       <button
                         type="submit"
@@ -6719,16 +6730,29 @@ export default function CoordinatorDashboard({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">
+                  <label className="text-xs font-semibold text-[var(--text-secondary)] block">
                     Biografia / Texto de Apresentação *
                   </label>
                   <textarea 
                     required
-                    rows={4}
+                    rows={3}
                     value={candidateForm.bio} 
                     onChange={e => setCandidateForm({...candidateForm, bio: e.target.value})} 
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600 resize-none" 
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-medium text-xs outline-none focus:border-blue-600 resize-none" 
                     placeholder="Escreva uma breve biografia ou mensagem de apresentação do candidato..." 
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-[var(--text-secondary)] block">
+                    Propostas de Campanha / Plano de Governo
+                  </label>
+                  <textarea 
+                    rows={4}
+                    value={candidateForm.proposals || ''} 
+                    onChange={e => setCandidateForm({...candidateForm, proposals: e.target.value})} 
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-medium text-xs outline-none focus:border-blue-600 resize-none" 
+                    placeholder="Liste as principais propostas da campanha (ex: Saúde, Educação, Segurança, Emprego)..." 
                   />
                 </div>
 
