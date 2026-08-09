@@ -2831,7 +2831,7 @@ export default function CaboDashboard({
                       <span className="bg-blue-600 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider inline-block mb-0.5">
                         FAÇA PARTE DO NOSSO TIME!
                       </span>
-                      <p className="text-xs font-black text-zinc-900 truncate">{candidateInfo.name || 'Candidato Padronizado'}</p>
+                      <p className="text-xs font-black text-zinc-900 truncate">{candidateInfo.name || 'Candidato Cadastrado'}</p>
                       <p className="text-[9px] font-bold text-zinc-500 truncate">{candidateInfo.title || 'Campanha Eleitoral'}</p>
                     </div>
                   </div>
@@ -2842,7 +2842,7 @@ export default function CaboDashboard({
                       <input 
                         readOnly 
                         type="text" 
-                        value={`${window.location.origin}/?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`} 
+                        value={`${window.location.origin}/cadastro?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`} 
                         className="flex-1 bg-zinc-100 border border-zinc-200 rounded-sm p-3 font-mono text-[11px] text-zinc-700 outline-none select-all"
                       />
                     </div>
@@ -2851,7 +2851,7 @@ export default function CaboDashboard({
                       <button 
                         type="button"
                         onClick={() => {
-                          const caboUrl = `${window.location.origin}/?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`;
+                          const caboUrl = `${window.location.origin}/cadastro?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`;
                           const candName = candidateInfo.name || 'nosso candidato';
                           const messageText = `*FAÇA PARTE DO NOSSO TIME!* 🗳️\n\nOlá! Gostaria de convidar você para fazer parte da nossa caminhada e apoiar a campanha de *${candName}*.\n\nRealize seu cadastro de forma simples e rápida no link abaixo:\n${caboUrl}`;
                           window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`, '_blank');
@@ -2864,7 +2864,7 @@ export default function CaboDashboard({
                       <button 
                         type="button"
                         onClick={() => {
-                          const caboUrl = `${window.location.origin}/?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`;
+                          const caboUrl = `${window.location.origin}/cadastro?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`;
                           const candName = candidateInfo.name || 'nosso candidato';
                           const messageText = `*FAÇA PARTE DO NOSSO TIME!* 🗳️\n\nOlá! Gostaria de convidar você para fazer parte da nossa caminhada e apoiar a campanha de *${candName}*.\n\nRealize seu cadastro de forma simples e rápida no link abaixo:\n${caboUrl}`;
                           navigator.clipboard.writeText(messageText);

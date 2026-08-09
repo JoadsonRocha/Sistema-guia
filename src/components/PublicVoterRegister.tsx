@@ -70,7 +70,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
 
   const [acceptedLgpd, setAcceptedLgpd] = useState(false);
 
-  // Escutar dados do candidato padronizados do Firestore
+  // Escutar dados do candidato cadastrados do Supabase
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const activeCoordId = leaderInfo?.coordinatorId || urlParams.get('coordinatorId') || urlParams.get('leaderId') || undefined;

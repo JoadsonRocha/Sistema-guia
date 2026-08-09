@@ -245,7 +245,7 @@ export default function CoordinatorDashboard({
   const [isShareLinkModalOpen, setIsShareLinkModalOpen] = useState(false);
   const [selectedShareTeam, setSelectedShareTeam] = useState('');
 
-  // Padronização do Candidato State e Licença
+  // Cadastro do Candidato State e Licença
   const [isCandidateModalOpen, setIsCandidateModalOpen] = useState(false);
   const [candidateForm, setCandidateForm] = useState<CandidateInfo>(DEFAULT_CANDIDATE_INFO);
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('comando');
@@ -2366,9 +2366,9 @@ export default function CoordinatorDashboard({
               <button 
                 onClick={() => setIsCandidateModalOpen(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded shadow-md text-[10px] sm:text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer whitespace-nowrap"
-                title="Padronizar foto e biografia do candidato no link de cadastro"
+                title="Cadastrar foto, biografia e informações do candidato para o link de cadastro"
               >
-                <UserPlus className="w-3.5 h-3.5" /> Padronizar Candidato
+                <UserPlus className="w-3.5 h-3.5" /> Cadastrar Candidato
               </button>
             )}
 
@@ -3138,7 +3138,7 @@ export default function CoordinatorDashboard({
                         <input
                           readOnly
                           type="text"
-                          value={selectedLinkTeam ? `${window.location.origin}/?teamId=${selectedLinkTeam}&coordinatorId=${coordinatorId || user?.uid || ''}` : 'Por favor, selecione uma equipe acima...'}
+                          value={selectedLinkTeam ? `${window.location.origin}/cadastro?teamId=${selectedLinkTeam}&coordinatorId=${coordinatorId || user?.uid || ''}` : 'Por favor, selecione uma equipe acima...'}
                           className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-secondary)] rounded-md px-3 py-2 font-mono text-xs outline-none select-all"
                         />
                         <button
@@ -3146,7 +3146,7 @@ export default function CoordinatorDashboard({
                           disabled={!selectedLinkTeam}
                           onClick={() => {
                             if (!selectedLinkTeam) return;
-                            navigator.clipboard.writeText(`${window.location.origin}/?teamId=${selectedLinkTeam}&coordinatorId=${coordinatorId || user?.uid || ''}`);
+                            navigator.clipboard.writeText(`${window.location.origin}/cadastro?teamId=${selectedLinkTeam}&coordinatorId=${coordinatorId || user?.uid || ''}`);
                             alert("✅ Link copiado para a área de transferência!");
                           }}
                           className={`px-3 py-2 rounded-md font-semibold text-xs uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap ${
@@ -3245,7 +3245,7 @@ export default function CoordinatorDashboard({
                            <button 
                              onClick={() => {
                                const tId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
-                               navigator.clipboard.writeText(`${window.location.origin}/?teamId=${tId}&coordinatorId=${coordinatorId || user?.uid || ''}`);
+                               navigator.clipboard.writeText(`${window.location.origin}/cadastro?teamId=${tId}&coordinatorId=${coordinatorId || user?.uid || ''}`);
                                alert(`✅ Link de autocadastro da equipe "${team.name}" copiado com sucesso!`);
                              }}
                              className="p-1.5 sm:p-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-md hover:bg-zinc-900 hover:text-white transition-all border border-[var(--border-color)] flex items-center justify-center"
@@ -6220,7 +6220,7 @@ export default function CoordinatorDashboard({
                     <span className="bg-blue-600 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider inline-block mb-0.5">
                       FAÇA PARTE DO NOSSO TIME!
                     </span>
-                    <p className="text-xs font-black text-[var(--text-primary)] truncate">{candidateForm.name || 'Candidato Padronizado'}</p>
+                    <p className="text-xs font-black text-[var(--text-primary)] truncate">{candidateForm.name || 'Candidato Cadastrado'}</p>
                     <p className="text-[9px] font-bold text-[var(--text-secondary)] truncate">{candidateForm.title || 'Campanha 2026'}</p>
                   </div>
                 </div>
@@ -6242,14 +6242,14 @@ export default function CoordinatorDashboard({
                 <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-3 rounded-sm">
                   <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">URL de Cadastro Público:</p>
                   <p className="font-mono text-xs text-blue-500 break-all select-all">
-                    {`${window.location.origin}/?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`}
+                    {`${window.location.origin}/cadastro?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`}
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   <button 
                     onClick={() => {
-                      const finalUrl = `${window.location.origin}/?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`;
+                      const finalUrl = `${window.location.origin}/cadastro?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`;
                       const candName = candidateForm.name || 'nosso candidato';
                       const messageText = `*FAÇA PARTE DO NOSSO TIME!* 🗳️\n\nOlá! Gostaria de convidar você para fazer parte da nossa caminhada e apoiar a campanha de *${candName}*.\n\nRealize seu cadastro de forma simples e rápida no link abaixo:\n${finalUrl}`;
                       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`, '_blank');
@@ -6261,7 +6261,7 @@ export default function CoordinatorDashboard({
 
                   <button 
                     onClick={() => {
-                      const finalUrl = `${window.location.origin}/?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`;
+                      const finalUrl = `${window.location.origin}/cadastro?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`;
                       const candName = candidateForm.name || 'nosso candidato';
                       const messageText = `*FAÇA PARTE DO NOSSO TIME!* 🗳️\n\nOlá! Gostaria de convidar você para fazer parte da nossa caminhada e apoiar a campanha de *${candName}*.\n\nRealize seu cadastro de forma simples e rápida no link abaixo:\n${finalUrl}`;
                       navigator.clipboard.writeText(messageText);
@@ -6292,9 +6292,9 @@ export default function CoordinatorDashboard({
                     <UserPlus className="w-6 h-6" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-black uppercase tracking-tight text-white">Padronização do Candidato</h2>
+                    <h2 className="text-xl font-black uppercase tracking-tight text-white">Cadastrar Candidato</h2>
                     <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest">
-                      Defina a foto, nome e apresentação exibidos nos links externos de cadastro
+                      Cadastre a foto, nome, cargo e apresentação exibidos nos links externos de cadastro
                     </p>
                   </div>
                 </div>
@@ -6539,7 +6539,7 @@ export default function CoordinatorDashboard({
                       </>
                     ) : (
                       <>
-                        <Check className="w-4 h-4" /> Salvar Padronização
+                        <Check className="w-4 h-4" /> Salvar Candidato
                       </>
                     )}
                   </button>
