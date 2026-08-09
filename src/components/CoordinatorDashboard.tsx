@@ -291,8 +291,7 @@ export default function CoordinatorDashboard({
     setIsSavingCandidate(true);
     try {
       await candidateService.saveCandidateInfo(candidateForm, user?.uid, coordinatorId);
-      await saveSubscriptionPlan(selectedPlan, selectedPlanStatus, user?.email || undefined);
-      alert("✅ Informações do candidato e Licença do Plano salvas com sucesso!");
+      alert("✅ Informações do candidato salvas com sucesso!");
       setIsCandidateModalOpen(false);
     } catch (err: any) {
       alert("Erro ao salvar informações: " + err.message);
@@ -6433,90 +6432,6 @@ export default function CoordinatorDashboard({
                       className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600" 
                       placeholder="Preencha o formulário e ajude..." 
                     />
-                  </div>
-                </div>
-
-                {/* Seção de Licenciamento & Plano Ativo da Campanha */}
-                <div className="pt-4 border-t border-[var(--border-color)] space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest block">
-                        Licença & Plano da Campanha (Coordenador Geral)
-                      </span>
-                      <p className="text-[11px] text-[var(--text-secondary)]">
-                        Define a capacidade máxima de eleitores cadastrados e o bloqueio automático de novos cadastros.
-                      </p>
-                    </div>
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
-                      selectedPlanStatus === 'active' && selectedPlan !== 'none'
-                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
-                        : 'bg-rose-500/10 text-rose-500 border-rose-500/30'
-                    }`}>
-                      {selectedPlanStatus === 'active' && selectedPlan !== 'none' ? 'Licença Ativa' : 'Bloqueado'}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 pt-1">
-                    {[
-                      { key: 'free', name: 'Degustação (Grátis)', limit: '7 Eleitores, 2 Líderes, 2 Regionais, 1 Geral', badge: 'Grátis' },
-                      { key: 'start', name: 'Start Tático', limit: 'Até 2.500 Eleitores', badge: 'R$ 379/mês' },
-                      { key: 'comando', name: 'Comando Tático', limit: 'Até 10.000 Eleitores', badge: 'R$ 679/mês' },
-                      { key: 'dominio', name: 'Domínio Total', limit: 'Eleitores Ilimitados', badge: 'R$ 850/mês' }
-                    ].map((p) => (
-                      <button
-                        type="button"
-                        key={p.key}
-                        onClick={() => {
-                          setSelectedPlan(p.key as PlanType);
-                          setSelectedPlanStatus('active');
-                        }}
-                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden ${
-                          selectedPlan === p.key && selectedPlanStatus === 'active'
-                            ? 'bg-blue-600/10 border-blue-600 text-blue-600 dark:text-blue-400 font-bold shadow-sm'
-                            : 'bg-[var(--bg-tertiary)] border-[var(--border-color)] text-[var(--text-primary)] hover:border-blue-400'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-black">{p.name}</span>
-                          <span className="text-[9px] font-black uppercase bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded">
-                            {p.badge}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-[var(--text-secondary)] mt-1">{p.limit}</p>
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedPlan('none');
-                        setSelectedPlanStatus('none');
-                      }}
-                      className={`text-[10px] font-bold underline transition-all ${
-                        selectedPlan === 'none' || selectedPlanStatus === 'none'
-                          ? 'text-rose-500 font-black'
-                          : 'text-[var(--text-secondary)] hover:text-rose-400'
-                      }`}
-                    >
-                      {selectedPlan === 'none' ? '⚠️ Plano marcado como Sem Licença Ativa (Simular Bloqueio Total)' : 'Simular Suspensão de Plano (Bloquear Cadastros)'}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsCandidateModalOpen(false);
-                        window.dispatchEvent(new CustomEvent('open_sales_landing'));
-                        setTimeout(() => {
-                          const el = document.getElementById('planos');
-                          if (el) el.scrollIntoView({ behavior: 'smooth' });
-                        }, 300);
-                      }}
-                      className="text-[10px] font-black text-amber-500 hover:text-amber-400 underline transition-all cursor-pointer"
-                    >
-                      💎 Ver Página Completa dos Planos
-                    </button>
                   </div>
                 </div>
 
