@@ -1264,12 +1264,12 @@ export default function CaboDashboard({
             <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-all">
               <User className="w-16 h-16" />
             </div>
-            <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1.5">Perfil Ativo</p>
-            <h3 className="text-xs font-black text-[var(--text-primary)] uppercase truncate">
-              {profileData.name || user?.displayName || 'LÍDER'}
+            <p className="text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Perfil ativo</p>
+            <h3 className="text-xs font-bold text-[var(--text-primary)] truncate">
+              {profileData.name || user?.displayName || 'Líder'}
             </h3>
-            <p className="text-[8px] font-bold text-blue-600 dark:text-blue-600 mt-2 uppercase tracking-widest">
-              {profileData.zone || 'SETOR NÃO DEFINIDO'}
+            <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mt-2">
+              {profileData.zone || 'Setor não definido'}
             </p>
           </div>
         </div>
@@ -1285,9 +1285,9 @@ export default function CaboDashboard({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-md font-bold text-[10px] uppercase tracking-wider transition-all group ${
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all group ${
                 activeTab === tab.id 
-                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 font-black shadow-2xs' 
+                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 font-bold shadow-2xs' 
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100/70 dark:hover:bg-zinc-800/50'
               }`}
             >

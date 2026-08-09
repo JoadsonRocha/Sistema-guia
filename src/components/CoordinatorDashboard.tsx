@@ -194,7 +194,7 @@ export default function CoordinatorDashboard({
 }) {
   const navigate = useNavigate();
   const { user, login, logout, isAdmin, isGeral, isRegional, isLeader, userRegion, coordinatorId } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'regional_coords' | 'metas' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'candidato' | 'regional_coords' | 'metas' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral'>('overview');
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
   const [selectedLinkTeam, setSelectedLinkTeam] = useState('');
 
@@ -2207,6 +2207,7 @@ export default function CoordinatorDashboard({
         <nav className="flex-1 space-y-1">
           {[
             { id: 'overview', label: 'Dashboard Geral', icon: <LayoutDashboard className="w-4 h-4" /> },
+            { id: 'candidato', label: 'Cadastrar Candidato', icon: <UserPlus className="w-4 h-4" /> },
             ...(isGeral ? [{ id: 'metas', label: 'Metas Eleitorais', icon: <Target className="w-4 h-4" /> }] : []),
             ...(isGeral ? [{ id: 'regional_coords', label: 'Coord. Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
             ...(!isGeral ? [{ id: 'teams', label: 'Equipes & Líderes', icon: <Users className="w-4 h-4" /> }] : []),
@@ -2555,6 +2556,100 @@ export default function CoordinatorDashboard({
                       </div>
                     </div>
                   </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'candidato' && (
+              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+                  <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-xl border border-blue-200 dark:border-blue-900/50 text-blue-600 dark:text-blue-400">
+                        <UserPlus className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-[var(--text-primary)]">Cadastrar Candidato</h2>
+                        <p className="text-xs text-[var(--text-secondary)] font-normal">
+                          Cadastre a foto, nome, cargo e mensagem exibidos no link público de cadastro (/cadastro)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleSaveCandidateInfo} className="space-y-6">
+                    {/* Live Preview */}
+                    <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 p-4 rounded-xl flex items-center gap-4">
+                      <img 
+                        src={candidateForm.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
+                        alt="Preview Candidato" 
+                        className="w-16 h-16 rounded-full object-cover border-2 border-blue-600 shadow-md bg-zinc-200 shrink-0"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+                      />
+                      <div className="overflow-hidden space-y-0.5">
+                        <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Pré-visualização do Candidato</p>
+                        <p className="text-base font-bold text-[var(--text-primary)] truncate">{candidateForm.name || 'Nome do Candidato'}</p>
+                        <p className="text-xs text-[var(--text-secondary)] truncate">{candidateForm.title || 'Cargo / Função'}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-[var(--text-secondary)] block">Nome do Candidato *</label>
+                        <input 
+                          required
+                          type="text" 
+                          value={candidateForm.name} 
+                          onChange={e => setCandidateForm({ ...candidateForm, name: e.target.value })} 
+                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 text-xs font-medium outline-none focus:border-blue-600 text-[var(--text-primary)]" 
+                          placeholder="Ex: Soldado Sampaio" 
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-[var(--text-secondary)] block">Cargo / Função * (Eleições 2026)</label>
+                        <input 
+                          required
+                          type="text" 
+                          value={candidateForm.title} 
+                          onChange={e => setCandidateForm({ ...candidateForm, title: e.target.value })} 
+                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 text-xs font-medium outline-none focus:border-blue-600 text-[var(--text-primary)]" 
+                          placeholder="Ex: Deputado Estadual - Eleições 2026" 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-[var(--text-secondary)] block">Foto do Candidato</label>
+                      <input 
+                        type="text" 
+                        value={candidateForm.photoUrl} 
+                        onChange={e => setCandidateForm({ ...candidateForm, photoUrl: e.target.value })} 
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 text-xs font-mono outline-none focus:border-blue-600 text-[var(--text-primary)]" 
+                        placeholder="Cole a URL ou link da foto oficial do candidato..." 
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-[var(--text-secondary)] block">Mensagem de Apresentação</label>
+                      <textarea 
+                        rows={3}
+                        value={candidateForm.bio} 
+                        onChange={e => setCandidateForm({ ...candidateForm, bio: e.target.value })} 
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 text-xs font-medium outline-none focus:border-blue-600 text-[var(--text-primary)] resize-none" 
+                        placeholder="Escreva a mensagem de apresentação exibida para os eleitores no cadastro..." 
+                      />
+                    </div>
+
+                    <div className="flex justify-end pt-3">
+                      <button
+                        type="submit"
+                        className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-md active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+                      >
+                        <Check className="w-4 h-4" /> Salvar dados do candidato
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </motion.div>
             )}
