@@ -4,6 +4,7 @@ import logoImg from '../assets/logo.png';
 import { TreLocationFields } from './TreLocationFields';
 import { WhatsAppDispatchModal } from './WhatsAppDispatchModal';
 import { SystemManualModal } from './SystemManualModal';
+import { getGPSLocation } from '../lib/geoService';
 import { 
   BookOpen,
   ShieldCheck, 
@@ -1581,8 +1582,31 @@ export default function CoordinatorDashboard({
     hora_inicio: '',
     hora_fim: '',
     motivo: '',
-    allocatedMaterials: ''
+    allocatedMaterials: '',
+    latitude: undefined as number | undefined,
+    longitude: undefined as number | undefined
   });
+
+  const [isLocatingAgendaGPS, setIsLocatingAgendaGPS] = useState(false);
+
+  const handleGetAgendaGPS = async () => {
+    setIsLocatingAgendaGPS(true);
+    try {
+      const loc = await getGPSLocation();
+      const formatted = loc.address || [loc.suburb, loc.city].filter(Boolean).join(', ') || `${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}`;
+      setAgendaForm(prev => ({
+        ...prev,
+        municipio: formatted,
+        latitude: loc.lat,
+        longitude: loc.lng
+      }));
+      alert("📍 Localização de evento capturada via GPS com sucesso!");
+    } catch (err: any) {
+      alert(err.message || "Erro ao obter GPS.");
+    } finally {
+      setIsLocatingAgendaGPS(false);
+    }
+  };
 
   useEffect(() => {
     if (!user || !coordinatorId) return;
@@ -5168,14 +5192,25 @@ export default function CoordinatorDashboard({
 
               <form onSubmit={handleCreateOrUpdateAgenda} className="p-6 space-y-4 text-left">
                 <div className="space-y-1.5">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Localidade / Município</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-zinc-600 block">Localidade / Município *</label>
+                    <button
+                      type="button"
+                      disabled={isLocatingAgendaGPS}
+                      onClick={handleGetAgendaGPS}
+                      className="text-[11px] text-blue-600 hover:text-blue-500 font-semibold flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200/50 cursor-pointer active:scale-95 transition-all"
+                    >
+                      <MapPin className="w-3.5 h-3.5" />
+                      {isLocatingAgendaGPS ? 'Capturando GPS...' : 'Usar Localização Atual (GPS)'}
+                    </button>
+                  </div>
                   <input 
                     required
                     type="text" 
                     value={agendaForm.municipio}
                     onChange={(e) => setAgendaForm({...agendaForm, municipio: e.target.value})}
-                    placeholder="Ex: Boa Vista / Centro"
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300"
+                    placeholder="Ex: Boa Vista / Centro ou Ponto GPS..."
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs font-medium text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:italic"
                   />
                 </div>
                 

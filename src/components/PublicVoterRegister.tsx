@@ -3,6 +3,7 @@ import logoImg from '../assets/logo.png';
 import { TreLocationFields } from './TreLocationFields';
 import { supabaseService } from '../lib/supabaseService';
 import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO } from '../lib/candidateService';
+import { getGPSLocation } from '../lib/geoService';
 import { validateVoterRegistration, triggerUpgradeRedirect } from '../lib/planService';
 import { motion, AnimatePresence } from 'motion/react';
 import { showToast } from './GlobalToastHost';
@@ -69,6 +70,28 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
   });
 
   const [acceptedLgpd, setAcceptedLgpd] = useState(false);
+  const [isLocatingGPS, setIsLocatingGPS] = useState(false);
+
+  const handleGetGPSLocation = async () => {
+    setIsLocatingGPS(true);
+    try {
+      const loc = await getGPSLocation();
+      const formattedAddr = loc.address || [loc.road, loc.suburb, loc.city, loc.state].filter(Boolean).join(', ');
+      setVoterForm(prev => ({
+        ...prev,
+        address: formattedAddr || prev.address,
+        latitude: loc.lat,
+        longitude: loc.lng,
+        bairro: loc.suburb || prev.bairro,
+        cidade: loc.city || prev.cidade
+      }));
+      showToast("📍 Localização e endereço capturados via GPS com sucesso!", "success");
+    } catch (err: any) {
+      showToast(err.message || "Erro ao capturar GPS.", "error");
+    } finally {
+      setIsLocatingGPS(false);
+    }
+  };
 
   // Escutar dados do candidato cadastrados do Supabase
   useEffect(() => {
@@ -635,8 +658,19 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                         <h3 className="font-black text-xs uppercase tracking-wider text-zinc-900">Endereço & Dados Eleitorais</h3>
                       </div>
 
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Endereço Completo *</label>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Endereço Completo *</label>
+                          <button
+                            type="button"
+                            disabled={isLocatingGPS}
+                            onClick={handleGetGPSLocation}
+                            className="text-xs text-blue-600 hover:text-blue-500 font-semibold flex items-center gap-1 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1 rounded-lg border border-blue-200/50 cursor-pointer active:scale-95 transition-all"
+                          >
+                            <MapPin className="w-3.5 h-3.5" />
+                            {isLocatingGPS ? 'Capturando GPS...' : 'Usar Minha Localização Atual (GPS)'}
+                          </button>
+                        </div>
                         <input 
                           required
                           type="text" 
