@@ -242,6 +242,8 @@ export default function CoordinatorDashboard({
   // Cadastro do Candidato State e Licença
   const [isCandidateModalOpen, setIsCandidateModalOpen] = useState(false);
   const [candidateForm, setCandidateForm] = useState<CandidateInfo>(DEFAULT_CANDIDATE_INFO);
+  const [candidatesList, setCandidatesList] = useState<CandidateInfo[]>([DEFAULT_CANDIDATE_INFO]);
+  const [editingCandidateId, setEditingCandidateId] = useState<string | undefined>(undefined);
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('comando');
   const [selectedPlanStatus, setSelectedPlanStatus] = useState<'active' | 'none'>('active');
   const [isSavingCandidate, setIsSavingCandidate] = useState(false);
@@ -251,13 +253,16 @@ export default function CoordinatorDashboard({
     const unsub = candidateService.subscribeCandidateInfo((info) => {
       setCandidateForm(info);
     }, coordinatorId);
+    const unsubList = candidateService.subscribeCandidatesList((list) => {
+      setCandidatesList(list);
+    }, coordinatorId);
     getSubscriptionInfo(coordinatorId).then(sub => {
       setSelectedPlan(sub.plan);
       setSelectedPlanStatus(sub.status === 'active' ? 'active' : 'none');
     }).catch(err => {
       console.warn("Erro ao buscar subscrição:", err);
     });
-    return () => unsub();
+    return () => { unsub(); unsubList(); };
   }, [coordinatorId]);
 
   const handleCandidatePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -317,11 +322,18 @@ export default function CoordinatorDashboard({
     e.preventDefault();
     setIsSavingCandidate(true);
     try {
-      await candidateService.saveCandidateInfo(candidateForm, user?.uid, coordinatorId);
-      alert("✅ Informações do candidato salvas com sucesso!");
+      const candidateToSave: CandidateInfo = {
+        ...candidateForm,
+        id: editingCandidateId || candidateForm.id || `cand_${Date.now()}`
+      };
+      const newList = await candidateService.saveCandidate(candidateToSave, user?.uid, coordinatorId);
+      setCandidatesList(newList);
+      setCandidateForm({ ...DEFAULT_CANDIDATE_INFO, id: undefined });
+      setEditingCandidateId(undefined);
       setIsCandidateModalOpen(false);
+      alert("✅ Candidato salvo com sucesso!");
     } catch (err: any) {
-      alert("Erro ao salvar informações: " + err.message);
+      alert("Erro ao salvar candidato: " + err.message);
     } finally {
       setIsSavingCandidate(false);
     }
@@ -2279,7 +2291,6 @@ export default function CoordinatorDashboard({
         <nav className="flex-1 space-y-1">
           {[
             { id: 'overview', label: 'Dashboard Geral', icon: <LayoutDashboard className="w-4 h-4" /> },
-            { id: 'candidato', label: 'Cadastrar Candidato', icon: <UserPlus className="w-4 h-4" /> },
             { id: 'metas', label: 'Metas Eleitorais', icon: <Target className="w-4 h-4" /> },
             { id: 'regional_coords', label: 'Coord. Regionais', icon: <ShieldCheck className="w-4 h-4" /> },
             { id: 'teams', label: 'Equipes & Líderes', icon: <Users className="w-4 h-4" /> },
@@ -2792,31 +2803,100 @@ export default function CoordinatorDashboard({
               </motion.div>
             )}
 
+
             {activeTab === 'candidato' && (
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
-                  <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-xl border border-blue-200 dark:border-blue-900/50 text-blue-600 dark:text-blue-400">
-                        <UserPlus className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold text-[var(--text-primary)]">Cadastrar Candidato</h2>
-                        <p className="text-xs text-[var(--text-secondary)] font-normal">
-                          Cadastre a foto, nome, cargo e mensagem exibidos no link público de cadastro (/cadastro)
-                        </p>
-                      </div>
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-xl border border-blue-200 dark:border-blue-900/50 text-blue-600 dark:text-blue-400">
+                      <UserPlus className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-[var(--text-primary)]">Candidatos da Campanha</h2>
+                      <p className="text-xs text-[var(--text-secondary)] font-normal">
+                        Gerencie todos os candidatos da chapa — cargos diferentes, propostas específicas.
+                      </p>
                     </div>
                   </div>
+                  <button
+                    onClick={() => {
+                      setCandidateForm({ ...DEFAULT_CANDIDATE_INFO, id: undefined });
+                      setEditingCandidateId(undefined);
+                      setIsCandidateModalOpen(true);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-md active:scale-95 transition-all cursor-pointer"
+                  >
+                    <UserPlus className="w-4 h-4" /> Adicionar Candidato
+                  </button>
+                </div>
 
-                  <form onSubmit={handleSaveCandidateInfo} className="space-y-6">
-                    {/* Live Preview */}
-                    <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 p-4 rounded-xl flex items-center gap-4">
-                      <img 
-                        src={candidateForm.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
-                        alt="Preview Candidato" 
-                        className="w-16 h-16 rounded-full object-cover border-2 border-blue-600 shadow-md bg-zinc-200 shrink-0"
-                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+                {/* Lista de candidatos */}
+                {candidatesList.length === 0 ? (
+                  <div className="text-center py-12 text-[var(--text-secondary)]">
+                    <UserPlus className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p className="text-sm font-semibold">Nenhum candidato cadastrado ainda.</p>
+                    <p className="text-xs mt-1">Clique em "Adicionar Candidato" para começar.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {candidatesList.map((cand) => (
+                      <div key={cand.id || cand.name} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm flex items-start gap-4 group hover:border-blue-400 transition-all">
+                        <img
+                          src={cand.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl}
+                          alt={cand.name}
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-blue-600 shadow-md bg-zinc-200 shrink-0"
+                        />
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <p className="font-bold text-sm text-[var(--text-primary)] truncate">{cand.name}</p>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-[10px] font-bold rounded-full">
+                            {cand.title}
+                          </span>
+                          {cand.bio && (
+                            <p className="text-[11px] text-[var(--text-secondary)] line-clamp-2 mt-1">{cand.bio}</p>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2 shrink-0">
+                          <button
+                            onClick={() => {
+                              setCandidateForm({ ...cand });
+                              setEditingCandidateId(cand.id);
+                              setIsCandidateModalOpen(true);
+                            }}
+                            className="p-2 rounded-xl bg-[var(--bg-tertiary)] hover:bg-blue-50 dark:hover:bg-blue-950/40 text-[var(--text-secondary)] hover:text-blue-600 border border-[var(--border-color)] transition-all cursor-pointer"
+                            title="Editar candidato"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (!cand.id) return;
+                              if (!window.confirm(`Remover o candidato "${cand.name}" (${cand.title})?`)) return;
+                              const newList = await candidateService.deleteCandidate(cand.id, user?.uid, coordinatorId);
+                              setCandidatesList(newList);
+                            }}
+                            className="p-2 rounded-xl bg-[var(--bg-tertiary)] hover:bg-red-50 dark:hover:bg-red-950/30 text-[var(--text-secondary)] hover:text-red-600 border border-[var(--border-color)] transition-all cursor-pointer"
+                            title="Remover candidato"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Nota informativa */}
+                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl p-4 flex items-start gap-3">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">
+                    <strong>Regra:</strong> Não é permitido cadastrar dois candidatos para o mesmo cargo. Cada cargo da chapa deve ter apenas um candidato representante.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
                       />
                       <div className="overflow-hidden space-y-0.5">
                         <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Pré-visualização do Candidato</p>
