@@ -2186,14 +2186,27 @@ export default function CoordinatorDashboard({
     <div className="flex h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans overflow-hidden transition-colors duration-300">
       {/* SIDEBAR - DESKTOP */}
       <aside className="hidden lg:flex w-72 flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-color)] py-8 px-6 overflow-y-auto shrink-0 relative z-40 shadow-[2px_0_10px_rgba(0,0,0,0.02)] dark:shadow-none">
-        <div className="mb-6 px-1 flex justify-center">
-          <div className="flex items-center justify-center bg-transparent w-full">
-            <img 
-              src={logoImg} 
-              onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }} 
-              alt="Logo Nexus Política" 
-              className="max-h-28 md:max-h-32 w-full max-w-[240px] object-contain transition-all" 
-            />
+        <div className="mb-6 px-1 flex flex-col items-center gap-4">
+          <img 
+            src={logoImg} 
+            onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }} 
+            alt="Logo Nexus Política" 
+            className="max-h-24 w-full max-w-[220px] object-contain transition-all" 
+          />
+
+          <div className="w-full bg-[var(--bg-tertiary)] rounded-xl p-3.5 border border-[var(--border-color)] space-y-1 text-left">
+            <span className="text-[10px] font-semibold text-[var(--text-secondary)] block">Perfil ativo</span>
+            <p className="text-xs font-bold text-[var(--text-primary)] truncate">
+              {profileData?.name || user?.displayName || user?.email?.split('@')[0] || 'Joadson Rocha'}
+            </p>
+            <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+              {(profileData?.role === 'coordenador_regional' || isRegional) 
+                ? 'Coordenador Regional' 
+                : 'Coordenador Geral'}
+            </p>
+            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+              {profileData?.zone || 'Setor Geral da Campanha'}
+            </p>
           </div>
         </div>
 
