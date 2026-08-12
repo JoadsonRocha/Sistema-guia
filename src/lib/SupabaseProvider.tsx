@@ -94,20 +94,70 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
 
     // Fetch user profile from Supabase
     let profile: any = await supabaseDataService.getDocument('users', uid);
+    let preRegDoc: any = email ? await supabaseDataService.getDocument('pre_registrations', email) : null;
+
+    if (!preRegDoc && email) {
+      try {
+        const allPreRegs = await supabaseDataService.getCollection<any>('pre_registrations');
+        preRegDoc = allPreRegs.find(pr => pr.email && pr.email.toLowerCase() === email);
+      } catch (e) {}
+    }
 
     if (!profile) {
-      const defaultRole: UserRole = isAntonio ? 'coordenador_regional' : 'coordenador_geral';
-      profile = {
-        id: uid,
-        uid,
-        email,
-        role: defaultRole,
-        name: authUser.user_metadata?.full_name || authUser.displayName || (isJoadson ? 'Joadson Rocha' : isAntonio ? 'ANTONIO FURTADO' : 'Coordenador Geral'),
-        region: isAntonio ? 'REGIÃO 1 - BV' : null,
-        coordinatorId: uid,
-        createdAt: Date.now()
-      };
+      if (preRegDoc) {
+        profile = {
+          id: uid,
+          uid,
+          email,
+          role: preRegDoc.role || 'lider',
+          name: preRegDoc.name || authUser.user_metadata?.full_name || authUser.displayName || email.split('@')[0],
+          phone: preRegDoc.phone || '',
+          region: preRegDoc.region || null,
+          coordinatorId: preRegDoc.coordinatorId || uid,
+          teamId: preRegDoc.teamId || null,
+          teamName: preRegDoc.teamName || null,
+          forcePasswordChange: true,
+          createdAt: Date.now()
+        };
+      } else {
+        const defaultRole: UserRole = isAntonio ? 'coordenador_regional' : 'coordenador_geral';
+        profile = {
+          id: uid,
+          uid,
+          email,
+          role: defaultRole,
+          name: authUser.user_metadata?.full_name || authUser.displayName || (isJoadson ? 'Joadson Rocha' : isAntonio ? 'ANTONIO FURTADO' : 'Coordenador Geral'),
+          region: isAntonio ? 'REGIÃO 1 - BV' : null,
+          coordinatorId: uid,
+          createdAt: Date.now()
+        };
+      }
       await supabaseDataService.setDocument('users', uid, profile, true);
+    } else if (preRegDoc) {
+      let updated = false;
+      if (preRegDoc.coordinatorId && (profile.coordinatorId === uid || !profile.coordinatorId) && !isJoadson && profile.role !== 'coordenador_geral') {
+        profile.coordinatorId = preRegDoc.coordinatorId;
+        updated = true;
+      }
+      if (preRegDoc.role && profile.role !== preRegDoc.role && !isJoadson) {
+        profile.role = preRegDoc.role;
+        updated = true;
+      }
+      if (preRegDoc.teamId && !profile.teamId) {
+        profile.teamId = preRegDoc.teamId;
+        updated = true;
+      }
+      if (preRegDoc.teamName && !profile.teamName) {
+        profile.teamName = preRegDoc.teamName;
+        updated = true;
+      }
+      if (preRegDoc.region && !profile.region) {
+        profile.region = preRegDoc.region;
+        updated = true;
+      }
+      if (updated) {
+        await supabaseDataService.setDocument('users', uid, profile, true);
+      }
     }
 
     let currentRole: UserRole = profile.role || (isAntonio ? 'coordenador_regional' : 'coordenador_geral');
@@ -121,6 +171,8 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     const geralCheck = (currentRole === 'coordenador_geral' || currentRole === 'coordenador') && !regionalCheck;
     const leaderCheck = currentRole === 'lider';
     const adminCheck = geralCheck || regionalCheck;
+
+    const effectiveCoordId = geralCheck ? uid : (profile.coordinatorId || uid);
 
     setUser({
       uid,
@@ -136,7 +188,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     setIsAdmin(adminCheck);
     setUserRegion(profile.region || (isAntonio ? 'REGIÃO 1 - BV' : null));
     setForcePasswordChange(!!profile.forcePasswordChange);
-    setCoordinatorId(adminCheck ? uid : (profile.coordinatorId || uid));
+    setCoordinatorId(effectiveCoordId);
     setLoading(false);
   };
 
