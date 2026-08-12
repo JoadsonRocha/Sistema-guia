@@ -237,7 +237,7 @@ async function startServer() {
       if (req.path !== '/' && req.path !== '/index.html') {
         const publicDir = path.resolve(process.cwd(), 'public');
         const publicFile = path.resolve(publicDir, req.path.replace(/^\/+/, ''));
-        if (publicFile.startsWith(publicDir) && fs.existsSync(publicFile) && fs.statSync(publicFile).isFile()) {
+        if ((publicFile.startsWith(publicDir + path.sep) || publicFile === publicDir) && fs.existsSync(publicFile) && fs.statSync(publicFile).isFile()) {
           return next();
         }
       }

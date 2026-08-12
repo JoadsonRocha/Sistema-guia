@@ -493,11 +493,16 @@ export const supabaseDataService = {
     const client = getSupabaseClient();
     if (client) {
       try {
-        const { data, error } = await client
+        let query = client
           .from('campaign_records')
           .select('record_id, payload')
-          .eq('record_type', path)
-          .or(`coordinator_id.eq.${coordinatorId},payload->>coordinatorId.eq.${coordinatorId}`);
+          .eq('record_type', path);
+
+        if (coordinatorId && coordinatorId.trim()) {
+          query = query.or(`coordinator_id.eq.${coordinatorId},payload->>coordinatorId.eq.${coordinatorId}`);
+        }
+
+        const { data, error } = await query;
 
         if (!error && data) {
           const items = data.map(row => ({
@@ -512,7 +517,10 @@ export const supabaseDataService = {
     }
 
     const all = getLocalList<any>(path);
-    return all.filter(item => item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId) as T[];
+    if (coordinatorId && coordinatorId.trim()) {
+      return all.filter(item => item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId) as T[];
+    }
+    return all as T[];
   },
 
   async getCollectionPaginated<T>(path: string, coordinatorId: string, options: { page: number; pageSize: number; filters?: any }): Promise<{ data: T[], total: number }> {

@@ -26,6 +26,9 @@ class WhatsAppService {
     let cleaned = (phone || '').replace(/\D/g, '');
     if (!cleaned) return '';
     
+    // Strip leading zero if present (e.g. 095991234567 -> 95991234567)
+    cleaned = cleaned.replace(/^0+/, '');
+    
     // Se não tiver DDD (ex: 991234567), adiciona DDD padrão 95 (Roraima)
     if (cleaned.length === 8 || cleaned.length === 9) {
       cleaned = '95' + cleaned;

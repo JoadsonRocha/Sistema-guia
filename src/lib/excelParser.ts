@@ -22,23 +22,23 @@ export function parseCSVText(text: string): string[][] {
   }
 
   return lines.map(line => {
-    // Handle quoted fields
+    // Handle quoted fields (RFC 4180 uses double quotes)
     const row: string[] = [];
     let inQuotes = false;
     let currentCell = '';
 
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
-      if (char === '"' || char === "'") {
+      if (char === '"') {
         inQuotes = !inQuotes;
       } else if (char === delimiter && !inQuotes) {
-        row.push(currentCell.replace(/^["']|["']$/g, '').trim());
+        row.push(currentCell.replace(/^"+|"$/g, '').trim());
         currentCell = '';
       } else {
         currentCell += char;
       }
     }
-    row.push(currentCell.replace(/^["']|["']$/g, '').trim());
+    row.push(currentCell.replace(/^"+|"$/g, '').trim());
     return row;
   });
 }

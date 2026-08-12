@@ -59,8 +59,11 @@ export interface AgendaItem {
  * @param hora Horário em formato HH:mm
  * @returns Minutos decorridos desde a meia-noite
  */
-const aMinutos = (hora: string) => {
-  const [h, m] = hora.split(':').map(Number);
+const aMinutos = (hora: string | null | undefined): number => {
+  if (!hora || typeof hora !== 'string') return 0;
+  const parts = hora.split(':');
+  const h = parseInt(parts[0], 10) || 0;
+  const m = parseInt(parts[1], 10) || 0;
   return h * 60 + m;
 };
 

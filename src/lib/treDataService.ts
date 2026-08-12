@@ -154,7 +154,7 @@ export function setTreLocationsForCoordinator(coordinatorId: string, locations: 
   keys.forEach(k => {
     cachedLocationsByCoord.set(k, items);
     if (items.length > 0) {
-      eleitoralStorage.saveLocations(k, locations);
+      eleitoralStorage.saveLocations(k, locations).catch(() => {});
     }
   });
 }
@@ -165,7 +165,7 @@ export function clearTreLocationsCache(coordinatorId?: string) {
     cachedLocationsByCoord.delete(coordinatorId);
     cachedLocationsByCoord.delete(cleanId);
     cachedLocationsByCoord.delete(`coord_${cleanId}`);
-    eleitoralStorage.clearLocations(coordinatorId);
+    eleitoralStorage.clearLocations(coordinatorId).catch(() => {});
   } else {
     cachedLocationsByCoord.clear();
   }

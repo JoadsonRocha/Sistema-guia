@@ -65,6 +65,42 @@ export const PLAN_CONFIGS: Record<PlanType, {
 
 export async function getSubscriptionInfo(coordinatorId?: string): Promise<SubscriptionInfo> {
   try {
+    if (coordinatorId) {
+      const subCoord = await supabaseService.getDocument<any>('settings', `subscription_${coordinatorId}`);
+      if (subCoord) {
+        const plan: PlanType = (subCoord.plan as PlanType) || 'free';
+        const status = subCoord.status || 'active';
+        const config = PLAN_CONFIGS[plan] || PLAN_CONFIGS.free;
+
+        return {
+          plan,
+          status: status === 'active' ? 'active' : 'none',
+          coordinatorEmail: subCoord.coordinatorEmail || '',
+          maxVoters: config.maxVoters ?? Infinity,
+          maxLeaders: config.maxLeaders ?? Infinity,
+          maxRegionals: config.maxRegionals ?? Infinity,
+          maxGeneralCoordinators: config.maxGeneralCoordinators ?? Infinity,
+          expiresAt: subCoord.expiresAt,
+        };
+      }
+
+      const candCoord = await supabaseService.getDocument<any>('settings', `candidate_${coordinatorId}`);
+      if (candCoord && candCoord.plan) {
+        const plan: PlanType = (candCoord.plan as PlanType) || 'free';
+        const status = candCoord.subscriptionStatus || 'active';
+        const config = PLAN_CONFIGS[plan] || PLAN_CONFIGS.free;
+        return {
+          plan,
+          status: status === 'active' ? 'active' : 'none',
+          coordinatorEmail: candCoord.coordinatorEmail || '',
+          maxVoters: config.maxVoters ?? Infinity,
+          maxLeaders: config.maxLeaders ?? Infinity,
+          maxRegionals: config.maxRegionals ?? Infinity,
+          maxGeneralCoordinators: config.maxGeneralCoordinators ?? Infinity,
+        };
+      }
+    }
+
     const subDoc = await supabaseService.getDocument<any>('settings', 'subscription');
     if (subDoc) {
       const plan: PlanType = (subDoc.plan as PlanType) || 'free';
