@@ -2112,7 +2112,7 @@ export default function CoordinatorDashboard({
           createdAt: Date.now()
         });
         
-        const accessLink = `${window.location.origin}/?email=${encodeURIComponent(newTeam.leaderEmail)}&access_token=${btoa(defaultPassword)}`;
+        const accessLink = `${window.location.origin}/?email=${encodeURIComponent(newTeam.leaderEmail)}&access_token=${btoa(defaultPassword)}&role=lider`;
         setCreatedTeamLink(accessLink);
         setTeamCreationStep('success');
       } else {
@@ -2131,7 +2131,7 @@ export default function CoordinatorDashboard({
   const handleCopyAccessLink = (team: any) => {
     const email = team.leaderEmail;
     const pass = team.tempPassword || 'urna1234'; 
-    const link = `${window.location.origin}/?email=${encodeURIComponent(email)}&access_token=${btoa(pass)}`;
+    const link = `${window.location.origin}/?email=${encodeURIComponent(email)}&access_token=${btoa(pass)}&role=lider`;
     navigator.clipboard.writeText(link);
     alert(`Link de acesso copiado para ${team.leader}!\nEnvie via WhatsApp.`);
   };

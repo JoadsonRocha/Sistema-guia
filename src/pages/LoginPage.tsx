@@ -31,8 +31,14 @@ export function LoginPage() {
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get('email');
     const tokenParam = params.get('access_token');
+    const roleParam = params.get('role');
+
     if (emailParam) {
       setEmail(emailParam);
+    }
+
+    if (roleParam && (roleParam === 'coordenador_regional' || roleParam === 'lider' || roleParam === 'coordenador_geral')) {
+      setUserRole(roleParam as any);
     }
     
     if (tokenParam) {
@@ -58,14 +64,26 @@ export function LoginPage() {
     setAuthError('');
     try {
       if (isRegistering) {
-        if (userRole === 'coordenador_geral') {
+        const preRegDoc = await supabaseService.getDocument('pre_registrations', email.toLowerCase()) as any;
+        const effectiveRole = preRegDoc?.role || userRole;
+
+        if (effectiveRole === 'coordenador_geral') {
           const validation = await validateGeneralCoordinatorRegistration();
           if (!validation.allowed) {
             triggerUpgradeRedirect(validation.reason!, true);
             return;
           }
         }
-        await signupWithEmail(email, password, userRole);
+        await signupWithEmail(email, password, effectiveRole, preRegDoc ? {
+          name: preRegDoc.name || '',
+          phone: preRegDoc.phone || '',
+          address: preRegDoc.address || '',
+          region: preRegDoc.region || '',
+          teamName: preRegDoc.teamName || '',
+          teamId: preRegDoc.teamId || '',
+          coordinatorId: preRegDoc.coordinatorId || '',
+          forcePasswordChange: true
+        } : undefined);
       } else {
         try {
           await loginWithEmail(email, password);
