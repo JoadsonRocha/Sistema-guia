@@ -792,6 +792,8 @@ export default function CoordinatorDashboard({
           region: editingRegCoord.region || '',
           subLocations: editingRegCoord.subLocations || '',
           role: 'coordenador_regional',
+          coordinatorId: editingRegCoord.coordinatorId || coordinatorId || user?.uid || '',
+          tempPassword: editingRegCoord.tempPassword || '',
           updatedAt: Date.now()
         });
       }

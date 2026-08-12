@@ -114,6 +114,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
           phone: preRegDoc.phone || '',
           region: preRegDoc.region || null,
           coordinatorId: preRegDoc.coordinatorId || uid,
+          regionalCoordId: preRegDoc.regionalCoordId || null,
           teamId: preRegDoc.teamId || null,
           teamName: preRegDoc.teamName || null,
           forcePasswordChange: true,
@@ -137,6 +138,10 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       let updated = false;
       if (preRegDoc.coordinatorId && (profile.coordinatorId === uid || !profile.coordinatorId) && !isJoadson && profile.role !== 'coordenador_geral') {
         profile.coordinatorId = preRegDoc.coordinatorId;
+        updated = true;
+      }
+      if (preRegDoc.regionalCoordId && !profile.regionalCoordId) {
+        profile.regionalCoordId = preRegDoc.regionalCoordId;
         updated = true;
       }
       if (preRegDoc.role && profile.role !== preRegDoc.role && !isJoadson) {

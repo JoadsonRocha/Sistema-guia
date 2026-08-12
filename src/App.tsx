@@ -28,11 +28,17 @@ function SalesLandingWrapper() {
   // Check if URL search params contain voter registration link parameters
   const searchParams = new URLSearchParams(window.location.search);
   const hasRegisterParams = searchParams.has('leaderId') || searchParams.has('liderId') || searchParams.has('teamId') || searchParams.has('coordinatorId') || searchParams.has('inviter');
+  const hasAccessParams = searchParams.has('email') && (searchParams.has('access_token') || searchParams.has('role'));
 
   if (hasRegisterParams) {
     const leaderId = searchParams.get('leaderId') || searchParams.get('liderId') || searchParams.get('coordinatorId') || undefined;
     const teamId = searchParams.get('teamId') || undefined;
     return <PublicVoterRegister leaderId={leaderId} teamId={teamId} />;
+  }
+
+  // Redirecionar links de acesso de regionais/líderes (email+access_token) para /login
+  if (hasAccessParams && !isLoggedIn) {
+    return <Navigate to={`/login?${searchParams.toString()}`} replace />;
   }
 
   if (isLoggedIn) {
