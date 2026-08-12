@@ -103,6 +103,14 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       } catch (e) {}
     }
 
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const urlRole = searchParams?.get('role') as UserRole | null;
+    const urlCoordId = searchParams?.get('coordinatorId');
+    const urlRegion = searchParams?.get('region');
+
+    const metaRole = preRegDoc?.role || authUser?.user_metadata?.role || urlRole;
+    const metaCoordId = preRegDoc?.coordinatorId || authUser?.user_metadata?.coordinatorId || urlCoordId;
+
     if (!profile) {
       if (preRegDoc) {
         profile = {
@@ -121,42 +129,46 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
           createdAt: Date.now()
         };
       } else {
-        const defaultRole: UserRole = isAntonio ? 'coordenador_regional' : 'coordenador_geral';
+        const determinedRole: UserRole = metaRole || (isAntonio ? 'coordenador_regional' : (isJoadson ? 'coordenador_geral' : 'lider'));
+        const determinedCoordId = (determinedRole === 'coordenador_geral') ? uid : (metaCoordId || uid);
         profile = {
           id: uid,
           uid,
           email,
-          role: defaultRole,
-          name: authUser.user_metadata?.full_name || authUser.displayName || (isJoadson ? 'Joadson Rocha' : isAntonio ? 'ANTONIO FURTADO' : 'Coordenador Geral'),
-          region: isAntonio ? 'REGIÃO 1 - BV' : null,
-          coordinatorId: uid,
+          role: determinedRole,
+          name: authUser.user_metadata?.full_name || authUser.displayName || (isJoadson ? 'Joadson Rocha' : isAntonio ? 'ANTONIO FURTADO' : email.split('@')[0]),
+          region: authUser.user_metadata?.region || urlRegion || (isAntonio ? 'REGIÃO 1 - BV' : null),
+          coordinatorId: determinedCoordId,
           createdAt: Date.now()
         };
       }
       await supabaseDataService.setDocument('users', uid, profile, true);
-    } else if (preRegDoc) {
+    } else {
       let updated = false;
-      if (preRegDoc.coordinatorId && (profile.coordinatorId === uid || !profile.coordinatorId) && !isJoadson && profile.role !== 'coordenador_geral') {
-        profile.coordinatorId = preRegDoc.coordinatorId;
+      const targetRole = metaRole;
+      const targetCoordId = metaCoordId;
+
+      if (targetRole && profile.role !== targetRole && !isJoadson) {
+        profile.role = targetRole;
         updated = true;
       }
-      if (preRegDoc.regionalCoordId && !profile.regionalCoordId) {
+      if (targetCoordId && profile.coordinatorId !== targetCoordId && !isJoadson && profile.role !== 'coordenador_geral') {
+        profile.coordinatorId = targetCoordId;
+        updated = true;
+      }
+      if (preRegDoc?.regionalCoordId && !profile.regionalCoordId) {
         profile.regionalCoordId = preRegDoc.regionalCoordId;
         updated = true;
       }
-      if (preRegDoc.role && profile.role !== preRegDoc.role && !isJoadson) {
-        profile.role = preRegDoc.role;
-        updated = true;
-      }
-      if (preRegDoc.teamId && !profile.teamId) {
+      if (preRegDoc?.teamId && !profile.teamId) {
         profile.teamId = preRegDoc.teamId;
         updated = true;
       }
-      if (preRegDoc.teamName && !profile.teamName) {
+      if (preRegDoc?.teamName && !profile.teamName) {
         profile.teamName = preRegDoc.teamName;
         updated = true;
       }
-      if (preRegDoc.region && !profile.region) {
+      if (preRegDoc?.region && !profile.region) {
         profile.region = preRegDoc.region;
         updated = true;
       }
@@ -383,7 +395,15 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     if (supabase) {
       const { data, error } = await supabase.auth.signUp({
         email,
-        password: pass
+        password: pass,
+        options: {
+          data: {
+            full_name: extraData?.name || email.split('@')[0],
+            role: userRole,
+            coordinatorId: extraData?.coordinatorId || '',
+            region: extraData?.region || ''
+          }
+        }
       });
       if (error) throw error;
       if (data.user) {

@@ -62,10 +62,14 @@ export function LoginPage() {
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
+    const params = new URLSearchParams(window.location.search);
+    const urlRole = (params.get('role') as any) || userRole;
+    const urlCoordId = params.get('coordinatorId') || '';
+
     try {
       if (isRegistering) {
         const preRegDoc = await supabaseService.getDocument('pre_registrations', email.toLowerCase()) as any;
-        const effectiveRole = preRegDoc?.role || userRole;
+        const effectiveRole = preRegDoc?.role || urlRole || userRole;
 
         if (effectiveRole === 'coordenador_geral') {
           const validation = await validateGeneralCoordinatorRegistration();
@@ -74,16 +78,16 @@ export function LoginPage() {
             return;
           }
         }
-        await signupWithEmail(email, password, effectiveRole, preRegDoc ? {
-          name: preRegDoc.name || '',
-          phone: preRegDoc.phone || '',
-          address: preRegDoc.address || '',
-          region: preRegDoc.region || '',
-          teamName: preRegDoc.teamName || '',
-          teamId: preRegDoc.teamId || '',
-          coordinatorId: preRegDoc.coordinatorId || '',
+        await signupWithEmail(email, password, effectiveRole, {
+          name: preRegDoc?.name || '',
+          phone: preRegDoc?.phone || '',
+          address: preRegDoc?.address || '',
+          region: preRegDoc?.region || '',
+          teamName: preRegDoc?.teamName || '',
+          teamId: preRegDoc?.teamId || '',
+          coordinatorId: preRegDoc?.coordinatorId || urlCoordId || '',
           forcePasswordChange: true
-        } : undefined);
+        });
       } else {
         try {
           await loginWithEmail(email, password);
@@ -93,7 +97,7 @@ export function LoginPage() {
             const preRegDoc = await supabaseService.getDocument('pre_registrations', email.toLowerCase()) as any;
             
             if (preRegDoc && preRegDoc.tempPassword === password) {
-              const assignedRole = preRegDoc.role || 'lider';
+              const assignedRole = preRegDoc.role || urlRole || 'lider';
               await signupWithEmail(email, password, assignedRole, {
                 name: preRegDoc.name || '',
                 phone: preRegDoc.phone || '',
@@ -101,7 +105,7 @@ export function LoginPage() {
                 region: preRegDoc.region || '',
                 teamName: preRegDoc.teamName || '',
                 teamId: preRegDoc.teamId || '',
-                coordinatorId: preRegDoc.coordinatorId || '',
+                coordinatorId: preRegDoc.coordinatorId || urlCoordId || '',
                 forcePasswordChange: true
               });
             } else {

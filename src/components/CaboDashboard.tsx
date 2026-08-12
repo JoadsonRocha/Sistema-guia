@@ -62,6 +62,7 @@ import { processarCaos, gerarBriefingCandidato, processarNotaAudio } from '../se
 import { useAuth } from '../lib/SupabaseProvider';
 import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO } from '../lib/candidateService';
 import { supabaseService } from '../lib/supabaseService';
+import { showToast } from './GlobalToastHost';
 import NoteCard from './NoteCard';
 import RoraimaMapComponent from './RoraimaMapComponent';
 import EleitoralDashboard from './EleitoralDashboard';
@@ -697,32 +698,45 @@ export default function CaboDashboard({
   const handleAddMaterialRequest = async (e: any) => {
     e.preventDefault();
     const materialId = e.target.materialId.value;
-    const qty = parseInt(e.target.qty.value);
+    const qty = parseInt(e.target.qty.value, 10);
     const reason = e.target.reason.value;
     const returnDate = e.target.returnDate?.value || null;
     
-    if (!materialId || isNaN(qty)) return;
+    if (!materialId) {
+      showToast("Por favor, selecione um material da lista.", "error");
+      return;
+    }
+    if (isNaN(qty) || qty <= 0) {
+      showToast("Por favor, informe uma quantidade válida superior a zero.", "error");
+      return;
+    }
 
-    const mat = materials.find((m: any) => m.id === materialId);
-    
-    await supabaseService.addDocument('material_requests', {
-      leaderId: user.uid,
-      leaderName: profileData.name || user?.displayName || 'Líder',
-      teamId: teamData?.id || profileData.teamId || '',
-      team: profileData.zone || teamData?.name || 'Base',
-      materialId,
-      materialName: mat?.name || 'Material Desconhecido',
-      qty,
-      reason,
-      returnDate,
-      status: 'pendente',
-      coordinatorId: resolvedCoordinatorId || coordinatorId || teamData?.coordinatorId || '',
-      regionalCoordId: profileData.regionalCoordId || teamData?.regionalCoordId || '',
-      createdBy: user.uid,
-      createdAt: Date.now()
-    });
-    e.target.reset();
-    alert("Solicitação de material enviada com sucesso!");
+    try {
+      const mat = materials.find((m: any) => m.id === materialId);
+      const newReq = {
+        leaderId: user.uid,
+        leaderName: profileData.name || user?.displayName || 'Líder',
+        teamId: teamData?.id || profileData.teamId || '',
+        team: profileData.zone || teamData?.name || 'Base',
+        materialId,
+        materialName: mat?.name || 'Material Desconhecido',
+        qty,
+        reason,
+        returnDate,
+        status: 'pendente',
+        coordinatorId: resolvedCoordinatorId || coordinatorId || teamData?.coordinatorId || '',
+        regionalCoordId: profileData.regionalCoordId || teamData?.regionalCoordId || '',
+        createdBy: user.uid,
+        createdAt: Date.now()
+      };
+      
+      const docId = await supabaseService.addDocument('material_requests', newReq);
+      setMaterialRequests((prev: any[]) => [...prev, { id: docId, ...newReq }]);
+      e.target.reset();
+      showToast("Solicitação de material enviada com sucesso!", "success");
+    } catch (err: any) {
+      showToast("Erro ao solicitar material: " + (err?.message || err), "error");
+    }
   };
 
   const handleVoterSubmit = async (e: React.FormEvent) => {

@@ -74,6 +74,7 @@ import { reportService } from '../services/reportService';
 import { useAuth } from '../lib/SupabaseProvider';
 import { supabaseService } from '../lib/supabaseService';
 import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO } from '../lib/candidateService';
+import { showToast } from './GlobalToastHost';
 import { getSubscriptionInfo, saveSubscriptionPlan, PlanType, PLAN_CONFIGS, validateLeaderRegistration, validateRegionalRegistration, triggerUpgradeRedirect } from '../lib/planService';
 import NoteCard from './NoteCard';
 import RoraimaMapComponent from './RoraimaMapComponent';
@@ -689,7 +690,7 @@ export default function CoordinatorDashboard({
         createdAt: Date.now()
       });
 
-      const accessLink = `${window.location.origin}/?email=${encodeURIComponent(newRegCoord.email)}&access_token=${btoa(tempPassword)}&role=coordenador_regional`;
+      const accessLink = `${window.location.origin}/?email=${encodeURIComponent(newRegCoord.email)}&access_token=${btoa(tempPassword)}&role=coordenador_regional&coordinatorId=${coordinatorId || user?.uid || ''}`;
       setCreatedRegCoordLink(accessLink);
       setRegCoordStep('success');
     } catch (err: any) {
@@ -1063,36 +1064,41 @@ export default function CoordinatorDashboard({
       const qty = parseInt(qtyStr, 10);
       
       if (!name || isNaN(qty) || qty <= 0) {
-        alert("Preencha a descrição do material e a quantidade corretamente.");
+        showToast("Preencha a descrição do material e a quantidade corretamente.", "error");
         return;
       }
       
-      const existing = materials.find(m => m.name && m.name.toLowerCase() === name.toLowerCase());
       const activeCoordId = coordinatorId || user?.uid || '';
+      const existing = materials.find(m => m.name && m.name.toLowerCase() === name.toLowerCase());
       
       if (existing) {
         const newTotal = (existing.total || 0) + qty;
         const newCurrent = (existing.current || 0) + qty;
-        await supabaseService.updateDocument('materials', existing.id, {
+        const updatedDoc = {
+          ...existing,
           total: newTotal,
           current: newCurrent,
           qty: newTotal.toLocaleString('pt-BR')
-        });
-        alert(`Quantidade adicionada ao material existente: ${name}`);
+        };
+        await supabaseService.updateDocument('materials', existing.id, updatedDoc);
+        setMaterials(prev => prev.map(m => m.id === existing.id ? updatedDoc : m));
+        showToast(`Quantidade adicionada ao material existente: ${name}`, "success");
       } else {
-        await supabaseService.addDocument('materials', {
+        const newMatData = {
           name,
           total: qty,
           current: qty,
           qty: qty.toLocaleString('pt-BR'),
           coordinatorId: activeCoordId,
           createdAt: Date.now()
-        });
-        alert("Material registrado com sucesso!");
+        };
+        const docId = await supabaseService.addDocument('materials', newMatData);
+        setMaterials(prev => [...prev, { id: docId, ...newMatData }]);
+        showToast("Material registrado com sucesso!", "success");
       }
       setMaterialForm({ name: '', qty: '' });
     } catch (err: any) {
-      alert("Erro ao salvar material: " + (err?.message || err));
+      showToast("Erro ao salvar material: " + (err?.message || err), "error");
     }
   };
 
@@ -1100,11 +1106,13 @@ export default function CoordinatorDashboard({
     try {
       const mat = materials.find(m => m.id === id);
       if (!mat) return;
-      await supabaseService.updateDocument('materials', id, {
-        current: Math.max(0, (mat.current || 0) + amount)
-      });
+      const updatedCurrent = Math.max(0, (mat.current || 0) + amount);
+      const updatedMat = { ...mat, current: updatedCurrent };
+      await supabaseService.updateDocument('materials', id, { current: updatedCurrent });
+      setMaterials(prev => prev.map(m => m.id === id ? updatedMat : m));
+      showToast("Estoque atualizado!", "success");
     } catch (err: any) {
-      alert("Erro ao atualizar: " + err.message);
+      showToast("Erro ao atualizar: " + err.message, "error");
     }
   };
 
@@ -1112,9 +1120,10 @@ export default function CoordinatorDashboard({
     if (confirm("Deseja realmente excluir este tipo de material e todo seu estoque?")) {
       try {
         await supabaseService.deleteDocument('materials', id);
-        alert("Material excluído!");
+        setMaterials(prev => prev.filter(m => m.id !== id));
+        showToast("Material excluído!", "success");
       } catch (err: any) {
-        alert("Erro ao excluir: " + err.message);
+        showToast("Erro ao excluir: " + err.message, "error");
       }
     }
   };
@@ -1123,6 +1132,11 @@ export default function CoordinatorDashboard({
     setIsEditingMaterial(true);
     setEditingMaterialId(m.id);
     setMaterialForm({ name: m.name, qty: m.total.toString() });
+    const input = document.getElementById('material-name-input');
+    if (input) {
+      input.focus();
+      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   };
 
   const handleSaveEditMaterial = async (e: any) => {
@@ -1135,30 +1149,34 @@ export default function CoordinatorDashboard({
       const qty = parseInt(qtyStr, 10);
       
       if (!name || isNaN(qty) || qty <= 0) {
-        alert("Preencha o nome e a quantidade corretamente.");
+        showToast("Preencha o nome e a quantidade corretamente.", "error");
         return;
       }
 
       const old = materials.find(m => m.id === editingMaterialId);
       if (!old) {
-        alert("Erro: Material original não encontrado.");
+        showToast("Erro: Material original não encontrado.", "error");
         return;
       }
 
       const diffUsed = (old.total || 0) - (old.current || 0);
-
-      await supabaseService.updateDocument('materials', editingMaterialId, {
+      const updatedMat = {
+        ...old,
         name: materialForm.name,
         total: qty,
-        current: Math.max(0, qty - diffUsed)
-      });
+        current: Math.max(0, qty - diffUsed),
+        qty: qty.toLocaleString('pt-BR')
+      };
+
+      await supabaseService.updateDocument('materials', editingMaterialId, updatedMat);
+      setMaterials(prev => prev.map(m => m.id === editingMaterialId ? updatedMat : m));
 
       setIsEditingMaterial(false);
       setEditingMaterialId(null);
       setMaterialForm({ name: '', qty: '' });
-      alert("Material atualizado com sucesso!");
+      showToast("Material atualizado com sucesso!", "success");
     } catch (err: any) {
-      alert("Erro ao salvar alterações: " + err.message);
+      showToast("Erro ao salvar alterações: " + err.message, "error");
     }
   };
 
@@ -4147,10 +4165,16 @@ export default function CoordinatorDashboard({
                     <p className="text-[var(--text-secondary)] text-xs font-normal mt-1 md:mt-2">Controle tático de suprimentos, lotes e distribuição para eventos da campanha</p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => {
                       setIsEditingMaterial(false);
                       setEditingMaterialId(null);
                       setMaterialForm({ name: '', qty: '', category: 'Impresso' });
+                      const input = document.getElementById('material-name-input');
+                      if (input) {
+                        input.focus();
+                        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
                     }}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm active:scale-95 transition-all cursor-pointer"
                   >
@@ -4170,10 +4194,11 @@ export default function CoordinatorDashboard({
                       </div> {isEditingMaterial ? 'Editar Material' : 'Registrador de Lote'}
                     </h3>
                     
-                    <form onSubmit={isEditingMaterial ? handleSaveEditMaterial : handleAddMaterial} className="space-y-6 relative z-10">
+                    <form id="material-form" onSubmit={isEditingMaterial ? handleSaveEditMaterial : handleAddMaterial} className="space-y-6 relative z-10">
                       <div className="space-y-2 text-left">
                         <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Descrição do Material</label>
                         <input 
+                          id="material-name-input"
                           name="name" 
                           type="text" 
                           placeholder="Ex: Santinho 55000" 
@@ -4204,12 +4229,12 @@ export default function CoordinatorDashboard({
                           <button 
                             type="button"
                             onClick={() => { setIsEditingMaterial(false); setEditingMaterialId(null); setMaterialForm({ name: '', qty: '' }); }}
-                            className="flex-1 bg-zinc-200 text-zinc-950 py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-300"
+                            className="flex-1 bg-zinc-200 text-zinc-950 py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-300 cursor-pointer"
                           >
                             Cancelar
                           </button>
                         )}
-                        <button className="flex-[2] bg-zinc-950 text-white dark:bg-blue-600 dark:text-white py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-blue-500">
+                        <button type="submit" className="flex-[2] bg-zinc-950 text-white dark:bg-blue-600 dark:text-white py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-blue-500 cursor-pointer">
                           {isEditingMaterial ? 'Salvar Alterações' : 'Autenticar Entrada'}
                         </button>
                       </div>
