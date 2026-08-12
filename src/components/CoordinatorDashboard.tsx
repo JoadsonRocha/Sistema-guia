@@ -589,6 +589,7 @@ export default function CoordinatorDashboard({
 
   const [isEditingMaterial, setIsEditingMaterial] = useState(false);
   const [editingMaterialId, setEditingMaterialId] = useState<string | null>(null);
+  const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);
   const [materialForm, setMaterialForm] = useState({ name: '', qty: '' });
   
   // Digital signature states for material requests
@@ -1097,6 +1098,7 @@ export default function CoordinatorDashboard({
         showToast("Material registrado com sucesso!", "success");
       }
       setMaterialForm({ name: '', qty: '' });
+      setIsMaterialModalOpen(false);
     } catch (err: any) {
       showToast("Erro ao salvar material: " + (err?.message || err), "error");
     }
@@ -1132,11 +1134,7 @@ export default function CoordinatorDashboard({
     setIsEditingMaterial(true);
     setEditingMaterialId(m.id);
     setMaterialForm({ name: m.name, qty: m.total.toString() });
-    const input = document.getElementById('material-name-input');
-    if (input) {
-      input.focus();
-      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    setIsMaterialModalOpen(true);
   };
 
   const handleSaveEditMaterial = async (e: any) => {
@@ -1174,6 +1172,7 @@ export default function CoordinatorDashboard({
       setIsEditingMaterial(false);
       setEditingMaterialId(null);
       setMaterialForm({ name: '', qty: '' });
+      setIsMaterialModalOpen(false);
       showToast("Material atualizado com sucesso!", "success");
     } catch (err: any) {
       showToast("Erro ao salvar alterações: " + err.message, "error");

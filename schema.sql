@@ -433,15 +433,22 @@ CREATE TRIGGER set_updated_at_campaign_records BEFORE UPDATE ON public.campaign_
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name, role, created_at)
+  INSERT INTO public.profiles (id, email, full_name, role, coordinator_id, created_at)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
-    'lider',
+    COALESCE((NEW.raw_user_meta_data->>'role')::public.user_role, 'lider'),
+    CASE 
+      WHEN NEW.raw_user_meta_data->>'coordinatorId' IS NOT NULL AND NEW.raw_user_meta_data->>'coordinatorId' != '' AND NEW.raw_user_meta_data->>'coordinatorId' != NEW.id::text
+      THEN (NEW.raw_user_meta_data->>'coordinatorId')::uuid 
+      ELSE NULL 
+    END,
     NOW()
   )
-  ON CONFLICT (id) DO NOTHING;
+  ON CONFLICT (id) DO UPDATE SET
+    role = EXCLUDED.role,
+    coordinator_id = COALESCE(EXCLUDED.coordinator_id, public.profiles.coordinator_id);
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
