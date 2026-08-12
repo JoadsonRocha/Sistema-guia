@@ -38,7 +38,8 @@ CREATE TABLE IF NOT EXISTS campaign_records (
   record_type TEXT NOT NULL, -- 'eleitor', 'lider', 'demanda', 'material', 'equipe'
   record_id TEXT NOT NULL,
   payload JSONB NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT unique_record_type_id UNIQUE (record_type, record_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_campaign_coordinator ON campaign_records(coordinator_id);
@@ -50,6 +51,10 @@ ALTER TABLE coordinator_campaigns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE campaign_records ENABLE ROW LEVEL SECURITY;
 
 -- Políticas de acesso livre via Anon Key (Chave Pública da sua campanha)
+DROP POLICY IF EXISTS "Permite leitura e escrita publica tre_locations" ON tre_locations;
+DROP POLICY IF EXISTS "Permite leitura e escrita publica coordinator_campaigns" ON coordinator_campaigns;
+DROP POLICY IF EXISTS "Permite leitura e escrita publica campaign_records" ON campaign_records;
+
 CREATE POLICY "Permite leitura e escrita publica tre_locations" ON tre_locations FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Permite leitura e escrita publica coordinator_campaigns" ON coordinator_campaigns FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Permite leitura e escrita publica campaign_records" ON campaign_records FOR ALL USING (true) WITH CHECK (true);
