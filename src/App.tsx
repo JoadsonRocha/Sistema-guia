@@ -25,6 +25,16 @@ function SalesLandingWrapper() {
   const { user } = useAuth();
   const isLoggedIn = !!user;
 
+  // Check if URL search params contain voter registration link parameters
+  const searchParams = new URLSearchParams(window.location.search);
+  const hasRegisterParams = searchParams.has('leaderId') || searchParams.has('liderId') || searchParams.has('teamId') || searchParams.has('coordinatorId') || searchParams.has('inviter');
+
+  if (hasRegisterParams) {
+    const leaderId = searchParams.get('leaderId') || searchParams.get('liderId') || searchParams.get('coordinatorId') || undefined;
+    const teamId = searchParams.get('teamId') || undefined;
+    return <PublicVoterRegister leaderId={leaderId} teamId={teamId} />;
+  }
+
   if (isLoggedIn) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -43,7 +53,7 @@ function SalesLandingWrapper() {
 // Wrapper to handle external registration URL parameters vs route params
 function PublicRegisterWrapper() {
   const searchParams = new URLSearchParams(window.location.search);
-  const leaderId = searchParams.get('leaderId') || searchParams.get('liderId') || undefined;
+  const leaderId = searchParams.get('leaderId') || searchParams.get('liderId') || searchParams.get('coordinatorId') || undefined;
   const teamId = searchParams.get('teamId') || undefined;
   
   return <PublicVoterRegister leaderId={leaderId} teamId={teamId} />;
