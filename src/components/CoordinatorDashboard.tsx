@@ -2131,7 +2131,7 @@ export default function CoordinatorDashboard({
           createdAt: Date.now()
         });
         
-        const accessLink = `${window.location.origin}/?email=${encodeURIComponent(newTeam.leaderEmail)}&access_token=${btoa(defaultPassword)}&role=lider`;
+        const accessLink = `${window.location.origin}/?email=${encodeURIComponent(newTeam.leaderEmail)}&access_token=${btoa(defaultPassword)}&role=lider&coordinatorId=${coordinatorId || user?.uid || ''}&regionalCoordId=${newTeam.regionalCoordId || (isRegional ? (user?.uid || '') : '')}&teamId=${teamId}`;
         setCreatedTeamLink(accessLink);
         setTeamCreationStep('success');
       } else {
@@ -2150,7 +2150,7 @@ export default function CoordinatorDashboard({
   const handleCopyAccessLink = (team: any) => {
     const email = team.leaderEmail;
     const pass = team.tempPassword || 'urna1234'; 
-    const link = `${window.location.origin}/?email=${encodeURIComponent(email)}&access_token=${btoa(pass)}&role=lider`;
+    const link = `${window.location.origin}/?email=${encodeURIComponent(email)}&access_token=${btoa(pass)}&role=lider&coordinatorId=${coordinatorId || user?.uid || ''}&regionalCoordId=${team.regionalCoordId || ''}&teamId=${team.id}`;
     navigator.clipboard.writeText(link);
     alert(`Link de acesso copiado para ${team.leader}!\nEnvie via WhatsApp.`);
   };
@@ -2325,9 +2325,9 @@ export default function CoordinatorDashboard({
 
         <nav className="flex-1 space-y-1">
           {[
-            { id: 'overview', label: 'Dashboard Geral', icon: <LayoutDashboard className="w-4 h-4" /> },
+            { id: 'overview', label: isRegional ? 'Painel Regional' : 'Dashboard Geral', icon: <LayoutDashboard className="w-4 h-4" /> },
             { id: 'metas', label: 'Metas Eleitorais', icon: <Target className="w-4 h-4" /> },
-            { id: 'regional_coords', label: 'Coord. Regionais', icon: <ShieldCheck className="w-4 h-4" /> },
+            ...(isGeral ? [{ id: 'regional_coords', label: 'Coord. Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
             { id: 'teams', label: 'Equipes & Líderes', icon: <Users className="w-4 h-4" /> },
             { id: 'voters', label: 'Eleitores Geral', icon: <UserPlus className="w-4 h-4" /> },
             { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
@@ -3332,7 +3332,7 @@ export default function CoordinatorDashboard({
                 {/* List of Regional Coordinators */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {regionalCoordinators.map(coord => {
-                    const link = `${window.location.origin}/?email=${encodeURIComponent(coord.email)}&access_token=${btoa(coord.tempPassword || '123456')}&role=coordenador_regional`;
+                    const link = `${window.location.origin}/?email=${encodeURIComponent(coord.email)}&access_token=${btoa(coord.tempPassword || '123456')}&role=coordenador_regional&coordinatorId=${coordinatorId || user?.uid || ''}`;
                     return (
                       <div key={coord.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative group hover:border-blue-500/50 transition-all flex flex-col justify-between">
                         <div>
@@ -5071,16 +5071,48 @@ export default function CoordinatorDashboard({
                   </div>
                   
                   <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 text-left block">Responsável Regional</label>
+                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 text-left block">Nome do Líder da Equipe *</label>
                     <input 
                       required
                       type="text" 
                       value={newTeam.leader}
                       onChange={(e) => setNewTeam({...newTeam, leader: e.target.value})}
-                      placeholder="Nome Completo"
+                      placeholder="Nome do Líder de Equipe"
                       className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300"
                     />
                   </div>
+
+                  {/* Subordinação da Equipe */}
+                  {isGeral ? (
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Coordenador Regional Subordinado (Opcional)</label>
+                      <select
+                        value={newTeam.regionalCoordId || ''}
+                        onChange={(e) => {
+                          const selected = regionalCoordinators.find(r => r.id === e.target.value || r.email === e.target.value);
+                          setNewTeam({
+                            ...newTeam,
+                            regionalCoordId: e.target.value,
+                            region: selected?.region || newTeam.region || ''
+                          });
+                        }}
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-3.5 font-bold text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
+                      >
+                        <option value="">Direto com a Coordenação Geral</option>
+                        {regionalCoordinators.map(r => (
+                          <option key={r.id} value={r.id || r.email}>
+                            {r.name} — {r.region || 'Sem Região'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="bg-blue-50 border border-blue-100 rounded-sm p-3 text-left">
+                      <p className="text-[9px] font-black text-blue-700 uppercase tracking-wider">
+                        Subordinação: Sua Coordenação Regional ({userRegion || profileData?.region || 'Regional'})
+                      </p>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
                     <div className="space-y-1.5">

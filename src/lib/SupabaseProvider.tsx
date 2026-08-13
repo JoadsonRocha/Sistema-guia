@@ -92,7 +92,14 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     const isAntonio = email.includes('antonio');
     const isJoadson = email.includes('joadsonrocharr') || email.includes('joadson');
 
-    // Fetch user profile from Supabase
+    // Retrieve pending invite metadata if available
+    let pendingInvite: any = null;
+    try {
+      const rawInvite = sessionStorage.getItem('nexus_pending_invite') || localStorage.getItem('nexus_pending_invite');
+      if (rawInvite) pendingInvite = JSON.parse(rawInvite);
+    } catch (e) {}
+
+    // Fetch user profile and pre-registration from Supabase
     let profile: any = await supabaseDataService.getDocument('users', uid);
     let preRegDoc: any = email ? await supabaseDataService.getDocument('pre_registrations', email) : null;
 
@@ -103,28 +110,61 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       } catch (e) {}
     }
 
-    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const urlRole = searchParams?.get('role') as UserRole | null;
-    const urlCoordId = searchParams?.get('coordinatorId');
-    const urlRegion = searchParams?.get('region');
+    // Check regional_coordinators collection as a direct source of truth
+    let regionalCoordDoc: any = null;
+    if (email) {
+      try {
+        const allRegs = await supabaseDataService.getCollection<any>('regional_coordinators');
+        regionalCoordDoc = allRegs.find(rc => rc.email && rc.email.toLowerCase() === email);
+      } catch (e) {}
+    }
 
-    const metaRole = preRegDoc?.role || authUser?.user_metadata?.role || urlRole;
-    const metaCoordId = preRegDoc?.coordinatorId || authUser?.user_metadata?.coordinatorId || urlCoordId;
+    // Check teams collection for team leader registration
+    let teamDoc: any = null;
+    if (email) {
+      try {
+        const allTeams = await supabaseDataService.getCollection<any>('teams');
+        teamDoc = allTeams.find(t => (t.leaderEmail && t.leaderEmail.toLowerCase() === email) || (t.email && t.email.toLowerCase() === email));
+      } catch (e) {}
+    }
+
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const urlRole = (searchParams?.get('role') || (pendingInvite?.email?.toLowerCase() === email ? pendingInvite?.role : null)) as UserRole | null;
+    const urlCoordId = searchParams?.get('coordinatorId') || pendingInvite?.coordinatorId;
+    const urlRegionalCoordId = searchParams?.get('regionalCoordId') || pendingInvite?.regionalCoordId;
+    const urlRegion = searchParams?.get('region') || pendingInvite?.region || regionalCoordDoc?.region;
+    const urlTeamId = searchParams?.get('teamId') || pendingInvite?.teamId || teamDoc?.id;
+
+    // Determine target role based on verified registry
+    let metaRole: UserRole | null = null;
+    if (isJoadson) {
+      metaRole = 'coordenador_geral';
+    } else if (regionalCoordDoc || preRegDoc?.role === 'coordenador_regional' || urlRole === 'coordenador_regional' || authUser?.user_metadata?.role === 'coordenador_regional' || isAntonio) {
+      metaRole = 'coordenador_regional';
+    } else if (preRegDoc?.role === 'lider' || teamDoc || urlRole === 'lider' || authUser?.user_metadata?.role === 'lider') {
+      metaRole = 'lider';
+    } else if (preRegDoc?.role || authUser?.user_metadata?.role || urlRole) {
+      metaRole = (preRegDoc?.role || authUser?.user_metadata?.role || urlRole) as UserRole;
+    }
+
+    const metaCoordId = preRegDoc?.coordinatorId || regionalCoordDoc?.coordinatorId || teamDoc?.coordinatorId || authUser?.user_metadata?.coordinatorId || urlCoordId;
 
     if (!profile) {
-      if (preRegDoc) {
+      if (preRegDoc || regionalCoordDoc || teamDoc) {
+        const sourceDoc = preRegDoc || regionalCoordDoc || teamDoc;
+        const assignedRole: UserRole = metaRole || (sourceDoc.role as UserRole) || (regionalCoordDoc ? 'coordenador_regional' : 'lider');
         profile = {
           id: uid,
           uid,
           email,
-          role: preRegDoc.role || 'lider',
-          name: preRegDoc.name || authUser.user_metadata?.full_name || authUser.displayName || email.split('@')[0],
-          phone: preRegDoc.phone || '',
-          region: preRegDoc.region || null,
-          coordinatorId: preRegDoc.coordinatorId || uid,
-          regionalCoordId: preRegDoc.regionalCoordId || null,
-          teamId: preRegDoc.teamId || null,
-          teamName: preRegDoc.teamName || null,
+          role: assignedRole,
+          name: sourceDoc.name || sourceDoc.leader || authUser.user_metadata?.full_name || authUser.displayName || email.split('@')[0],
+          phone: sourceDoc.phone || sourceDoc.leaderPhone || '',
+          region: sourceDoc.region || urlRegion || null,
+          coordinatorId: metaCoordId || uid,
+          regionalCoordId: sourceDoc.regionalCoordId || urlRegionalCoordId || null,
+          teamId: sourceDoc.teamId || teamDoc?.id || urlTeamId || null,
+          teamName: sourceDoc.teamName || teamDoc?.name || null,
           forcePasswordChange: true,
           createdAt: Date.now()
         };
@@ -148,6 +188,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       const targetRole = metaRole;
       const targetCoordId = metaCoordId;
 
+      // Auto-correct role if the user is registered as a regional coordinator but profile was erroneously saved as 'lider'
       if (targetRole && profile.role !== targetRole && !isJoadson) {
         profile.role = targetRole;
         updated = true;
@@ -156,20 +197,20 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
         profile.coordinatorId = targetCoordId;
         updated = true;
       }
-      if (preRegDoc?.regionalCoordId && !profile.regionalCoordId) {
-        profile.regionalCoordId = preRegDoc.regionalCoordId;
+      if ((preRegDoc?.regionalCoordId || urlRegionalCoordId) && !profile.regionalCoordId) {
+        profile.regionalCoordId = preRegDoc?.regionalCoordId || urlRegionalCoordId;
         updated = true;
       }
-      if (preRegDoc?.teamId && !profile.teamId) {
-        profile.teamId = preRegDoc.teamId;
+      if ((preRegDoc?.teamId || teamDoc?.id || urlTeamId) && !profile.teamId) {
+        profile.teamId = preRegDoc?.teamId || teamDoc?.id || urlTeamId;
         updated = true;
       }
-      if (preRegDoc?.teamName && !profile.teamName) {
-        profile.teamName = preRegDoc.teamName;
+      if ((preRegDoc?.teamName || teamDoc?.name) && !profile.teamName) {
+        profile.teamName = preRegDoc?.teamName || teamDoc?.name;
         updated = true;
       }
-      if (preRegDoc?.region && !profile.region) {
-        profile.region = preRegDoc.region;
+      if ((preRegDoc?.region || regionalCoordDoc?.region || urlRegion) && !profile.region) {
+        profile.region = preRegDoc?.region || regionalCoordDoc?.region || urlRegion;
         updated = true;
       }
       if (updated) {
@@ -401,6 +442,8 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
             full_name: extraData?.name || email.split('@')[0],
             role: userRole,
             coordinatorId: extraData?.coordinatorId || '',
+            regionalCoordId: extraData?.regionalCoordId || '',
+            teamId: extraData?.teamId || '',
             region: extraData?.region || ''
           }
         }
@@ -420,7 +463,25 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       ...extraData
     };
 
+    // 1. Gravar no cache virtual offline-first de registros de campanha (users)
     await supabaseDataService.setDocument('users', userId, profileData, true);
+
+    // 2. Sincronizar na tabela física 'profiles' relacional no Supabase para garantir consistência de RLS
+    if (supabase && userId) {
+      try {
+        await supabase.from('profiles').update({
+          full_name: extraData?.name || email.split('@')[0],
+          role: userRole,
+          region: extraData?.region || null,
+          coordinator_id: extraData?.coordinatorId ? extraData.coordinatorId : null,
+          team_id: extraData?.teamId ? extraData.teamId : null,
+          force_password_change: extraData?.forcePasswordChange !== undefined ? extraData.forcePasswordChange : false
+        }).eq('id', userId);
+      } catch (err) {
+        console.warn("Aviso ao persistir dados adicionais na tabela física profiles:", err);
+      }
+    }
+
     localStorage.setItem('nexus_auth_user', JSON.stringify(profileData));
     await syncUserProfile(profileData);
   };

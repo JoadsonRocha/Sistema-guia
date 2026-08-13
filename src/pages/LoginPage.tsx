@@ -20,18 +20,41 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userRole, setUserRole] = useState<'coordenador_geral' | 'coordenador_regional' | 'lider'>('coordenador_geral');
+  const [inviteParams, setInviteParams] = useState<{
+    role?: string | null;
+    coordinatorId?: string | null;
+    regionalCoordId?: string | null;
+    teamId?: string | null;
+    region?: string | null;
+    email?: string | null;
+  }>({});
   const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState('');
   const [showDomainGuide, setShowDomainGuide] = useState(false);
   const [copiedDomain, setCopiedDomain] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Handle URL Params for Easy Access
+  // Handle URL Params for Easy Access and store them safely
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get('email');
     const tokenParam = params.get('access_token');
     const roleParam = params.get('role');
+    const coordParam = params.get('coordinatorId');
+    const regCoordParam = params.get('regionalCoordId');
+    const teamParam = params.get('teamId');
+    const regionParam = params.get('region');
+
+    const inviteData = {
+      role: roleParam,
+      coordinatorId: coordParam,
+      regionalCoordId: regCoordParam,
+      teamId: teamParam,
+      region: regionParam,
+      email: emailParam
+    };
+
+    setInviteParams(inviteData);
 
     if (emailParam) {
       setEmail(emailParam);
@@ -50,12 +73,10 @@ export function LoginPage() {
       }
     }
 
-    if (emailParam || tokenParam) {
-       try {
-         window.history.replaceState({}, document.title, window.location.pathname);
-       } catch (e) {
-         console.warn("Navegação/Histórico restrito no iframe:", e);
-       }
+    if (emailParam || roleParam || coordParam) {
+      try {
+        sessionStorage.setItem('nexus_pending_invite', JSON.stringify(inviteData));
+      } catch (e) {}
     }
   }, []);
 
@@ -63,13 +84,67 @@ export function LoginPage() {
     e.preventDefault();
     setAuthError('');
     const params = new URLSearchParams(window.location.search);
-    const urlRole = (params.get('role') as any) || userRole;
-    const urlCoordId = params.get('coordinatorId') || '';
+    const urlRole = (params.get('role') || inviteParams.role || userRole) as any;
+    const urlCoordId = params.get('coordinatorId') || inviteParams.coordinatorId || '';
+    const urlRegionalCoordId = params.get('regionalCoordId') || inviteParams.regionalCoordId || '';
+    const urlTeamId = params.get('teamId') || inviteParams.teamId || '';
+    const urlRegion = params.get('region') || inviteParams.region || '';
 
     try {
+      // 1. Procurar pré-registro em 'pre_registrations'
+      let preRegDoc = await supabaseService.getDocument('pre_registrations', email.toLowerCase()) as any;
+      
+      // 2. Se não encontrou, verificar na coleção de coordenadores regionais
+      if (!preRegDoc) {
+        try {
+          const allRegs = await supabaseService.getCollection<any>('regional_coordinators');
+          const foundReg = allRegs.find(rc => rc.email && rc.email.toLowerCase() === email.toLowerCase());
+          if (foundReg) {
+            preRegDoc = {
+              ...foundReg,
+              role: 'coordenador_regional'
+            };
+          }
+        } catch (e) {}
+      }
+
+      // 3. Se não encontrou, verificar na coleção de equipes
+      if (!preRegDoc) {
+        try {
+          const allTeams = await supabaseService.getCollection<any>('teams');
+          const foundTeam = allTeams.find(t => (t.leaderEmail && t.leaderEmail.toLowerCase() === email.toLowerCase()) || (t.email && t.email.toLowerCase() === email.toLowerCase()));
+          if (foundTeam) {
+            preRegDoc = {
+              ...foundTeam,
+              name: foundTeam.leader,
+              phone: foundTeam.leaderPhone,
+              address: foundTeam.leaderAddress,
+              role: 'lider',
+              teamId: foundTeam.id,
+              teamName: foundTeam.name
+            };
+          }
+        } catch (e) {}
+      }
+
+      // Definir o papel garantido
+      let effectiveRole = preRegDoc?.role || urlRole || userRole;
+      if (urlRole === 'coordenador_regional' || preRegDoc?.role === 'coordenador_regional') {
+        effectiveRole = 'coordenador_regional';
+      }
+
       if (isRegistering) {
-        const preRegDoc = await supabaseService.getDocument('pre_registrations', email.toLowerCase()) as any;
-        const effectiveRole = preRegDoc?.role || urlRole || userRole;
+        // Impedir que cadastros abertos ganhem direitos administrativos
+        if ((effectiveRole === 'coordenador_geral' || effectiveRole === 'admin' || effectiveRole === 'coordenador') && !preRegDoc) {
+          setAuthError('Erro de Segurança: Não é permitido criar contas administrativas ou de Coordenador Geral sem pré-registro autorizado no comitê.');
+          return;
+        }
+
+        // Subordinação consistente baseada no convidador
+        const effectiveCoordinatorId = preRegDoc?.coordinatorId || urlCoordId;
+        const effectiveRegionalCoordId = preRegDoc?.regionalCoordId || urlRegionalCoordId;
+        const effectiveTeamId = preRegDoc?.teamId || urlTeamId;
+        const effectiveRegion = preRegDoc?.region || urlRegion || '';
 
         if (effectiveRole === 'coordenador_geral') {
           const validation = await validateGeneralCoordinatorRegistration();
@@ -78,34 +153,47 @@ export function LoginPage() {
             return;
           }
         }
+        
         await signupWithEmail(email, password, effectiveRole, {
-          name: preRegDoc?.name || '',
+          name: preRegDoc?.name || email.split('@')[0],
           phone: preRegDoc?.phone || '',
           address: preRegDoc?.address || '',
-          region: preRegDoc?.region || '',
+          region: effectiveRegion,
           teamName: preRegDoc?.teamName || '',
-          teamId: preRegDoc?.teamId || '',
-          coordinatorId: preRegDoc?.coordinatorId || urlCoordId || '',
+          teamId: effectiveTeamId,
+          coordinatorId: effectiveCoordinatorId,
+          regionalCoordId: effectiveRegionalCoordId,
           forcePasswordChange: true
         });
       } else {
         try {
           await loginWithEmail(email, password);
         } catch (err: any) {
-          // Se falhou o login padrão, verificar se é um pré-registro
-          if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || (err.message && err.message.includes('INVALID_LOGIN_CREDENTIALS'))) {
-            const preRegDoc = await supabaseService.getDocument('pre_registrations', email.toLowerCase()) as any;
-            
-            if (preRegDoc && preRegDoc.tempPassword === password) {
-              const assignedRole = preRegDoc.role || urlRole || 'lider';
-              await signupWithEmail(email, password, assignedRole, {
-                name: preRegDoc.name || '',
+          const errStr = (err.message || '').toLowerCase();
+          const errCode = (err.code || '').toLowerCase();
+          // Se falhou o login padrão (ex: conta ainda não existe no auth do Supabase), tentar criar/ativar conta via credencial temporária
+          const isCredentialIssue = errCode.includes('user-not-found') || 
+                                   errCode.includes('invalid-credential') || 
+                                   errStr.includes('invalid login credentials') ||
+                                   errStr.includes('invalid_grant') ||
+                                   errStr.includes('user not found');
+
+          if (isCredentialIssue) {
+            if (preRegDoc) {
+              const effectiveCoordinatorId = preRegDoc.coordinatorId || urlCoordId;
+              const effectiveRegionalCoordId = preRegDoc.regionalCoordId || urlRegionalCoordId;
+              const effectiveTeamId = preRegDoc.teamId || urlTeamId;
+              const effectiveRegion = preRegDoc.region || urlRegion || '';
+
+              await signupWithEmail(email, password, effectiveRole, {
+                name: preRegDoc.name || email.split('@')[0],
                 phone: preRegDoc.phone || '',
                 address: preRegDoc.address || '',
-                region: preRegDoc.region || '',
+                region: effectiveRegion,
                 teamName: preRegDoc.teamName || '',
-                teamId: preRegDoc.teamId || '',
-                coordinatorId: preRegDoc.coordinatorId || urlCoordId || '',
+                teamId: effectiveTeamId,
+                coordinatorId: effectiveCoordinatorId,
+                regionalCoordId: effectiveRegionalCoordId,
                 forcePasswordChange: true
               });
             } else {

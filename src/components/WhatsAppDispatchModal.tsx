@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Send, CheckCircle2, Copy, X, MessageSquare, ShieldCheck, Sparkles, Users, ExternalLink, ArrowRight, Check, Search, Filter } from 'lucide-react';
+import { Send, CheckCircle2, Copy, X, MessageSquare, ShieldCheck, Sparkles, Users, ExternalLink, ArrowRight, Check, Search, Filter, RefreshCw } from 'lucide-react';
 import { whatsappService, WaMeRecipientLink } from '../services/whatsappService';
 
 interface WhatsAppDispatchModalProps {
@@ -23,10 +23,35 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
     'Olá {nome}! Gostaria de lembrar você da nossa importante reunião de campanha no bairro {bairro}. Contamos com a sua presença e apoio! 🚀'
   );
 
+  // Modo de disparo: wame (manual) ou api (automático via Evolution)
+  const [dispatchMode, setDispatchMode] = useState<'wame' | 'api'>('wame');
+  const [showApiConfig, setShowApiConfig] = useState<boolean>(false);
+  const [apiUrl, setApiUrl] = useState<string>('');
+  const [apiKey, setApiKey] = useState<string>('');
+  const [apiInstance, setApiInstance] = useState<string>('');
+  const [isBulkSending, setIsBulkSending] = useState<boolean>(false);
+  const [failedMap, setFailedMap] = useState<Record<string, string>>({});
+
   // Status de envio individual
   const [sentMap, setSentMap] = useState<Record<string, boolean>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeQueueIndex, setActiveQueueIndex] = useState<number>(0);
+
+  // Carregar configurações da Evolution API ao abrir
+  React.useEffect(() => {
+    if (isOpen) {
+      const creds = whatsappService.getEvolutionCredentials();
+      setApiUrl(creds.url);
+      setApiKey(creds.apiKey);
+      setApiInstance(creds.instance);
+    }
+  }, [isOpen]);
+
+  const handleSaveApiConfig = () => {
+    whatsappService.setEvolutionCredentials(apiUrl, apiKey, apiInstance);
+    alert('Configurações da Evolution API salvas com sucesso!');
+    setShowApiConfig(false);
+  };
 
   if (!isOpen) return null;
 
@@ -95,6 +120,66 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
     }
   };
 
+  const handleSendViaApi = async (item: WaMeRecipientLink) => {
+    if (!apiUrl || !apiKey || !apiInstance) {
+      alert('Configurações da Evolution API incompletas. Por favor, clique em "Configurar API" primeiro!');
+      setShowApiConfig(true);
+      return;
+    }
+    const res = await whatsappService.sendEvolutionMessage(item.phone, item.interpolatedText);
+    if (res.success) {
+      setSentMap(prev => ({ ...prev, [item.id]: true }));
+      setFailedMap(prev => {
+        const copy = { ...prev };
+        delete copy[item.id];
+        return copy;
+      });
+      whatsappService.logDispatch(item.name, item.phone, item.interpolatedText);
+    } else {
+      setFailedMap(prev => ({ ...prev, [item.id]: res.message || 'Erro desconhecido' }));
+    }
+  };
+
+  const handleBulkSendViaApi = async () => {
+    if (!apiUrl || !apiKey || !apiInstance) {
+      alert('Configurações da Evolution API incompletas. Por favor, clique em "Configurar API" primeiro!');
+      setShowApiConfig(true);
+      return;
+    }
+
+    const pendingList = preparedBatch.filter(item => !sentMap[item.id]);
+    if (pendingList.length === 0) {
+      alert('Nenhuma mensagem pendente na fila para disparar!');
+      return;
+    }
+
+    if (!confirm(`Deseja disparar automaticamente ${pendingList.length} mensagens com intervalo de segurança de 1.5s?`)) {
+      return;
+    }
+
+    setIsBulkSending(true);
+
+    for (const item of pendingList) {
+      const res = await whatsappService.sendEvolutionMessage(item.phone, item.interpolatedText);
+      if (res.success) {
+        setSentMap(prev => ({ ...prev, [item.id]: true }));
+        setFailedMap(prev => {
+          const copy = { ...prev };
+          delete copy[item.id];
+          return copy;
+        });
+        whatsappService.logDispatch(item.name, item.phone, item.interpolatedText);
+      } else {
+        setFailedMap(prev => ({ ...prev, [item.id]: res.message || 'Erro desconhecido' }));
+      }
+      // Intervalo de segurança anti-bloqueio
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    }
+
+    setIsBulkSending(false);
+    alert('Disparo automático em lote finalizado!');
+  };
+
   const sentCount = Object.keys(sentMap).filter(k => preparedBatch.some(p => p.id === k)).length;
 
   return (
@@ -130,9 +215,108 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
           <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-start gap-3 text-xs text-emerald-300">
             <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
             <div>
-              <strong>Estratégia de Disparo Assistido (Zero Custo):</strong> Como a mensagem é enviada diretamente do seu WhatsApp para cada eleitor com dados personalizados (<code className="text-emerald-400 font-mono">{'{nome}'}</code>, <code className="text-emerald-400 font-mono">{'{bairro}'}</code>), o custo é <strong>R$ 0,00</strong>, o recebimento é garantido e a campanha tem total controle de quem já foi contatado.
+              <strong>Estratégia de Disparos Integrados:</strong> Controle absoluto e personalização automática de variáveis como <code className="text-emerald-400 font-mono">{'{nome}'}</code> e <code className="text-emerald-400 font-mono">{'{bairro}'}</code>. Alterne entre o envio manual gratuito ou a automação profissional instantânea.
             </div>
           </div>
+
+          {/* Seleção do Modo de Disparo */}
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-4 bg-zinc-900/60 border border-zinc-850 rounded-lg">
+            <div className="space-y-1">
+              <span className="text-xs font-black uppercase text-zinc-300 tracking-wider">Canal de Disparos</span>
+              <p className="text-xs text-zinc-500">Escolha a mecânica de envio da campanha de acordo com a sua infraestrutura</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setDispatchMode('wame')}
+                className={`px-3.5 py-2 text-xs font-bold rounded-lg border transition-all ${
+                  dispatchMode === 'wame'
+                    ? 'bg-emerald-600/15 border-emerald-500 text-emerald-400'
+                    : 'bg-zinc-950/40 border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                }`}
+              >
+                📱 wa.me Grátis
+              </button>
+              <button
+                type="button"
+                onClick={() => setDispatchMode('api')}
+                className={`px-3.5 py-2 text-xs font-bold rounded-lg border transition-all flex items-center gap-2 ${
+                  dispatchMode === 'api'
+                    ? 'bg-blue-600/15 border-blue-500 text-blue-400'
+                    : 'bg-zinc-950/40 border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                }`}
+              >
+                🤖 Evolution API
+              </button>
+              {dispatchMode === 'api' && (
+                <button
+                  type="button"
+                  onClick={() => setShowApiConfig(!showApiConfig)}
+                  className="px-3 py-2 text-xs font-bold rounded-lg border bg-zinc-850 border-zinc-750 text-zinc-300 hover:bg-zinc-800 transition-colors"
+                >
+                  ⚙️ {showApiConfig ? 'Fechar Config' : 'Configurar API'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Configuração da Evolution API */}
+          {dispatchMode === 'api' && showApiConfig && (
+            <div className="p-4 bg-zinc-950 border border-blue-500/20 rounded-lg space-y-3 animate-in slide-in-from-top-2 duration-150">
+              <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+                <span className="text-xs font-black text-blue-400 uppercase tracking-wider">Parâmetros da Evolution API</span>
+                <span className="text-[10px] text-zinc-500">Credenciais criptografadas localmente</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-zinc-400 uppercase block">URL da API</label>
+                  <input
+                    type="text"
+                    placeholder="https://api.meuservidor.com"
+                    value={apiUrl}
+                    onChange={(e) => setApiUrl(e.target.value)}
+                    className="w-full bg-zinc-900 border border-zinc-800 text-xs p-2 rounded-lg text-zinc-200 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-zinc-400 uppercase block">apikey Global</label>
+                  <input
+                    type="password"
+                    placeholder="Sua Global Apikey"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    className="w-full bg-zinc-900 border border-zinc-800 text-xs p-2 rounded-lg text-zinc-200 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-zinc-400 uppercase block">Nome da Instância</label>
+                  <input
+                    type="text"
+                    placeholder="instancia_campanha"
+                    value={apiInstance}
+                    onChange={(e) => setApiInstance(e.target.value)}
+                    className="w-full bg-zinc-900 border border-zinc-800 text-xs p-2 rounded-lg text-zinc-200 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowApiConfig(false)}
+                  className="px-3 py-1.5 text-xs font-bold text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveApiConfig}
+                  className="px-4 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+                >
+                  Salvar
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
@@ -235,18 +419,42 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
               {/* Ação Rapida: Disparar Próximo da Fila */}
               <div className="p-3 bg-zinc-900/90 border border-zinc-800 rounded-lg space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold">
-                  <span className="text-zinc-300">Fila de Envios Sequencial</span>
+                  <span className="text-zinc-300">
+                    {dispatchMode === 'api' ? 'Automação Evolution API' : 'Fila de Envios Sequencial'}
+                  </span>
                   <span className="text-emerald-400">{sentCount} / {preparedBatch.length} Enviados</span>
                 </div>
                 
-                <button
-                  onClick={handleLaunchNextInQueue}
-                  disabled={preparedBatch.length === 0 || sentCount === preparedBatch.length}
-                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-lg font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all"
-                >
-                  <Send className="w-4 h-4" />
-                  🚀 Disparar Próximo Eleitor ({preparedBatch.length - sentCount} Restantes)
-                </button>
+                {dispatchMode === 'api' ? (
+                  <button
+                    type="button"
+                    onClick={handleBulkSendViaApi}
+                    disabled={preparedBatch.length === 0 || sentCount === preparedBatch.length || isBulkSending}
+                    className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
+                  >
+                    {isBulkSending ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        Enviando em Lote...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        🚀 Iniciar Disparo em Lote ({preparedBatch.length - sentCount} Pendentes)
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleLaunchNextInQueue}
+                    disabled={preparedBatch.length === 0 || sentCount === preparedBatch.length}
+                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-lg font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all"
+                  >
+                    <Send className="w-4 h-4" />
+                    🚀 Disparar Próximo Eleitor ({preparedBatch.length - sentCount} Restantes)
+                  </button>
+                )}
               </div>
 
             </div>
@@ -282,21 +490,27 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
                 ) : (
                   preparedBatch.map((item, idx) => {
                     const isSent = sentMap[item.id];
+                    const errorMsg = failedMap[item.id];
                     return (
                       <div 
                         key={item.id} 
                         className={`p-3 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3 ${
-                          isSent ? 'bg-emerald-950/20' : 'hover:bg-zinc-900/60'
+                          isSent ? 'bg-emerald-950/20' : errorMsg ? 'bg-rose-950/25 border-l-2 border-rose-500' : 'hover:bg-zinc-900/60'
                         }`}
                       >
                         <div className="space-y-1 min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <span className="text-[10px] text-zinc-500 font-mono">#{idx + 1}</span>
                             <span className="text-xs font-bold text-zinc-200 truncate">{item.name}</span>
                             <span className="text-[10px] text-zinc-400 font-mono">({item.phone})</span>
                             {isSent && (
                               <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold flex items-center gap-1">
-                                <Check className="w-2.5 h-2.5" /> Enviado
+                                <Check className="w-2.5 h-2.5" /> {dispatchMode === 'api' ? 'Enviado API' : 'Enviado'}
+                              </span>
+                            )}
+                            {errorMsg && (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold max-w-[200px] truncate" title={errorMsg}>
+                                ⚠️ Erro: {errorMsg}
                               </span>
                             )}
                           </div>
@@ -309,6 +523,7 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
                         {/* Botões de Ação por Eleitor */}
                         <div className="flex items-center gap-1.5 shrink-0">
                           <button
+                            type="button"
                             onClick={() => handleCopyMessage(item)}
                             title="Copiar mensagem individual"
                             className="p-2 text-zinc-400 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 rounded transition-colors text-xs flex items-center gap-1"
@@ -316,17 +531,34 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
                             {copiedId === item.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                           </button>
 
-                          <button
-                            onClick={() => handleOpenWaMe(item)}
-                            className={`px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow ${
-                              isSent
-                                ? 'bg-zinc-800 text-emerald-400 hover:bg-zinc-700'
-                                : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20'
-                            }`}
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                            {isSent ? 'Reenviar WhatsApp' : 'Abrir no WhatsApp'}
-                          </button>
+                          {dispatchMode === 'api' ? (
+                            <button
+                              type="button"
+                              onClick={() => handleSendViaApi(item)}
+                              disabled={isBulkSending}
+                              className={`px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow ${
+                                isSent
+                                  ? 'bg-zinc-800 text-blue-400 hover:bg-zinc-700'
+                                  : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20'
+                              }`}
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              {isSent ? 'Reenviar API' : 'Enviar via API'}
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenWaMe(item)}
+                              className={`px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow ${
+                                isSent
+                                  ? 'bg-zinc-800 text-emerald-400 hover:bg-zinc-700'
+                                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20'
+                              }`}
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              {isSent ? 'Reenviar WhatsApp' : 'Abrir no WhatsApp'}
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
