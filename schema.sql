@@ -459,5 +459,24 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ==============================================================================
+-- 8. HABILITAR REALTIME
+-- ==============================================================================
+
+BEGIN;
+  DROP PUBLICATION IF EXISTS supabase_realtime;
+  CREATE PUBLICATION supabase_realtime;
+COMMIT;
+
+ALTER PUBLICATION supabase_realtime ADD TABLE public.campaign_records;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.voters;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.urgencies;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.transactions;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.tre_locations;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.materials;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.material_requests;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.notes;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.coordinator_campaigns;
+
+-- ==============================================================================
 -- FIM DO SCRIPT DDL SUPABASE PROD HARDENED
 -- ==============================================================================

@@ -453,8 +453,26 @@ export const supabaseDataService = {
             schema: 'public',
             table: 'campaign_records',
             filter: `record_type=eq.${path}`
-          }, () => {
-            (this as any).getCollection(path).then(callback);
+          }, (payload) => {
+            const currentList = getLocalList<any>(path);
+            let updatedList = [...currentList];
+
+            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+               const record = payload.new;
+               const item = { id: record.record_id, ...(record.payload || {}) };
+               const idx = updatedList.findIndex(i => i.id === item.id);
+               if (idx >= 0) {
+                 updatedList[idx] = item;
+               } else {
+                 updatedList.push(item);
+               }
+            } else if (payload.eventType === 'DELETE') {
+               const recordId = payload.old.record_id;
+               updatedList = updatedList.filter(i => i.id !== recordId);
+            }
+
+            setLocalList(path, updatedList);
+            callback(updatedList as T[]);
           })
           .subscribe();
 
@@ -485,8 +503,33 @@ export const supabaseDataService = {
             schema: 'public',
             table: 'campaign_records',
             filter: `record_type=eq.${path}`
-          }, () => {
-            (this as any).getCollectionFiltered(path, coordinatorId).then(callback);
+          }, (payload) => {
+            const currentList = getLocalList<any>(path);
+            let updatedList = [...currentList];
+
+            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+               const record = payload.new;
+               const recordCoordId = record.coordinator_id || (record.payload && record.payload.coordinatorId) || (record.payload && record.payload.coordinator_id);
+               
+               if (!coordinatorId || !coordinatorId.trim() || recordCoordId === coordinatorId) {
+                 const item = { id: record.record_id, ...(record.payload || {}) };
+                 const idx = updatedList.findIndex(i => i.id === item.id);
+                 if (idx >= 0) {
+                   updatedList[idx] = item;
+                 } else {
+                   updatedList.push(item);
+                 }
+               }
+            } else if (payload.eventType === 'DELETE') {
+               const recordId = payload.old.record_id;
+               updatedList = updatedList.filter(i => i.id !== recordId);
+            }
+
+            setLocalList(path, updatedList);
+            const filteredFinal = updatedList.filter(item => {
+               return !coordinatorId || !coordinatorId.trim() || item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId;
+            });
+            callback(filteredFinal as T[]);
           })
           .subscribe();
 
