@@ -25,24 +25,26 @@ function SalesLandingWrapper() {
   const { user } = useAuth();
   const isLoggedIn = !!user;
 
-  // Check if URL search params contain voter registration link parameters
+  // Check URL search params
   const searchParams = new URLSearchParams(window.location.search);
-  const hasRegisterParams = searchParams.has('leaderId') || searchParams.has('liderId') || searchParams.has('teamId') || searchParams.has('coordinatorId') || searchParams.has('inviter');
-  const hasAccessParams = searchParams.has('email') && (searchParams.has('access_token') || searchParams.has('role'));
+  const hasAccessParams = searchParams.has('email') || searchParams.has('access_token') || searchParams.has('role');
+  const hasVoterRegisterParams = !hasAccessParams && (searchParams.has('leaderId') || searchParams.has('liderId') || searchParams.has('inviter'));
 
-  if (hasRegisterParams) {
-    const leaderId = searchParams.get('leaderId') || searchParams.get('liderId') || searchParams.get('coordinatorId') || undefined;
-    const teamId = searchParams.get('teamId') || undefined;
-    return <PublicVoterRegister leaderId={leaderId} teamId={teamId} />;
-  }
-
-  // Redirecionar links de acesso de regionais/líderes (email+access_token) para /login
+  // 1. Redirecionar links de acesso operacional (coordenadores / líderes) diretamente para /login
   if (hasAccessParams && !isLoggedIn) {
     return <Navigate to={`/login?${searchParams.toString()}`} replace />;
   }
 
+  // 2. Se já estiver logado, ir para o dashboard
   if (isLoggedIn) {
     return <Navigate to="/dashboard" replace />;
+  }
+
+  // 3. Se for link exclusivo de cadastro de eleitor na raiz, renderizar cadastro público
+  if (hasVoterRegisterParams) {
+    const leaderId = searchParams.get('leaderId') || searchParams.get('liderId') || searchParams.get('coordinatorId') || undefined;
+    const teamId = searchParams.get('teamId') || undefined;
+    return <PublicVoterRegister leaderId={leaderId} teamId={teamId} />;
   }
 
   const handleAccessSystem = () => {
@@ -59,6 +61,13 @@ function SalesLandingWrapper() {
 // Wrapper to handle external registration URL parameters vs route params
 function PublicRegisterWrapper() {
   const searchParams = new URLSearchParams(window.location.search);
+  const hasAccessParams = searchParams.has('email') && (searchParams.has('access_token') || searchParams.has('role'));
+
+  // Se alguém acessar /cadastro com link de coordenador/líder, redirecionar para /login
+  if (hasAccessParams) {
+    return <Navigate to={`/login?${searchParams.toString()}`} replace />;
+  }
+
   const leaderId = searchParams.get('leaderId') || searchParams.get('liderId') || searchParams.get('coordinatorId') || undefined;
   const teamId = searchParams.get('teamId') || undefined;
   
