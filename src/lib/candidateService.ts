@@ -6,6 +6,11 @@ export interface CandidateInfo {
   title: string; // Cargo / Função (Deputado Estadual, Deputado Federal, Senador, Governador, etc.)
   photoUrl: string;
   bio: string;
+  number?: string; // Número de Urna
+  party?: string; // Partido ou Coligação
+  slogan?: string; // Slogan de Campanha
+  instagram?: string;
+  whatsapp?: string;
   proposals?: string;
   badgeTitle?: string;
   subtitle?: string;

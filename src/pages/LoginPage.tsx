@@ -157,6 +157,8 @@ export function LoginPage() {
           }
         }
         
+        const shouldForce = preRegDoc?.forcePasswordChange !== false && !preRegDoc?.passwordChangedAt;
+        
         await signupWithEmail(email, password, effectiveRole, {
           name: preRegDoc?.name || email.split('@')[0],
           phone: preRegDoc?.phone || '',
@@ -166,7 +168,7 @@ export function LoginPage() {
           teamId: effectiveTeamId,
           coordinatorId: effectiveCoordinatorId,
           regionalCoordId: effectiveRegionalCoordId,
-          forcePasswordChange: true
+          forcePasswordChange: shouldForce
         });
       } else {
         try {
@@ -187,6 +189,7 @@ export function LoginPage() {
               const effectiveRegionalCoordId = preRegDoc.regionalCoordId || urlRegionalCoordId;
               const effectiveTeamId = preRegDoc.teamId || urlTeamId;
               const effectiveRegion = preRegDoc.region || urlRegion || '';
+              const shouldForce = preRegDoc?.forcePasswordChange !== false && !preRegDoc?.passwordChangedAt;
 
               await signupWithEmail(email, password, effectiveRole, {
                 name: preRegDoc.name || email.split('@')[0],
@@ -197,7 +200,7 @@ export function LoginPage() {
                 teamId: effectiveTeamId,
                 coordinatorId: effectiveCoordinatorId,
                 regionalCoordId: effectiveRegionalCoordId,
-                forcePasswordChange: true
+                forcePasswordChange: shouldForce
               });
             } else {
               throw err;

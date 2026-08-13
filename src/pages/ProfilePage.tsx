@@ -197,11 +197,13 @@ export function ProfilePage() {
       };
       await supabaseService.setDocument('users', user.uid, updates, true);
 
-      // 2. Save candidate info if Coordenador Geral or user has candidate info
-      const activeCoordId = user.coordinatorId || user.uid;
-      await candidateService.saveCandidateInfo(candidateForm, user.uid, activeCoordId);
+      // 2. Save candidate info ONLY if Coordenador Geral
+      if (isGeral) {
+        const activeCoordId = user.coordinatorId || user.uid;
+        await candidateService.saveCandidateInfo(candidateForm, user.uid, activeCoordId);
+      }
 
-      alert("✅ Perfil e dados do candidato atualizados com sucesso!");
+      alert("✅ Perfil atualizado com sucesso!");
     } catch (err: any) {
       alert("Erro ao salvar alterações: " + (err.message || err));
     } finally {

@@ -258,6 +258,7 @@ export default function CoordinatorDashboard({
 
   // Cadastro do Candidato State e Licença
   const [isCandidateModalOpen, setIsCandidateModalOpen] = useState(false);
+  const [candidateModalTab, setCandidateModalTab] = useState<'identificacao' | 'apresentacao' | 'publico'>('identificacao');
   const [candidateForm, setCandidateForm] = useState<CandidateInfo>(DEFAULT_CANDIDATE_INFO);
   const [candidatesList, setCandidatesList] = useState<CandidateInfo[]>([DEFAULT_CANDIDATE_INFO]);
   const [editingCandidateId, setEditingCandidateId] = useState<string | undefined>(undefined);
@@ -2382,7 +2383,7 @@ export default function CoordinatorDashboard({
               onClick={() => { setActiveTab('candidato'); setIsCandidateModalOpen(true); }}
               className="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all cursor-pointer"
             >
-              <UserPlus className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Cadastrar Candidato
+              <UserPlus className="w-4 h-4 text-blue-600 dark:text-blue-400" /> {isGeral ? 'Cadastrar Candidato' : 'Ver Candidato Oficial'}
             </button>
             <button 
               onClick={() => navigate('/perfil')}
@@ -2588,7 +2589,8 @@ export default function CoordinatorDashboard({
             {activeTab === 'overview' && (
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-5 md:space-y-8">
               
-              {/* BANNER EM DESTAQUE DE CADASTRO DO CANDIDATO */}
+            {/* BANNER EM DESTAQUE DE CADASTRO DO CANDIDATO */}
+            {isGeral && (
               <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-2xl p-5 shadow-lg border border-blue-700/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shrink-0">
@@ -2606,6 +2608,7 @@ export default function CoordinatorDashboard({
                   Cadastrar Candidato Agora
                 </button>
               </div>
+            )}
 
               <div className="flex-col gap-1 flex">
                 <h2 className="text-base md:text-lg font-bold text-[var(--text-primary)] leading-none">Painel de Operações</h2>
@@ -2821,9 +2824,9 @@ export default function CoordinatorDashboard({
                       </div>
                       <button
                         onClick={() => { setActiveTab('candidato'); setIsCandidateModalOpen(true); }}
-                        className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold text-xs transition-all shadow-sm cursor-pointer text-center"
+                        className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold text-xs transition-all shadow-sm cursor-pointer text-center flex items-center justify-center gap-1.5"
                       >
-                        Editar Informações do Candidato
+                        {isGeral ? 'Editar Informações do Candidato' : 'Visualizar Detalhes do Candidato'}
                       </button>
                     </div>
 
@@ -3077,14 +3080,31 @@ export default function CoordinatorDashboard({
                       />
                     </div>
                     <div>
-                      <label className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Meta Geral de Eleitores</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Meta Geral de Eleitores</label>
+                        <div className="flex gap-1">
+                          {[500, 1000, 2500, 5000].map(val => (
+                            <button
+                              key={val}
+                              type="button"
+                              onClick={() => setNewGoal({ ...newGoal, targetVoters: val })}
+                              className="text-[9px] font-bold px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 transition-colors"
+                            >
+                              {val >= 1000 ? `${val/1000}k` : val}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                       <input 
                         required
-                        type="number" 
-                        min="10"
-                        value={newGoal.targetVoters}
-                        onChange={(e) => setNewGoal({ ...newGoal, targetVoters: Number(e.target.value) })}
-                        placeholder="Ex: 5000"
+                        type="text" 
+                        inputMode="numeric"
+                        value={newGoal.targetVoters === '' ? '' : (typeof newGoal.targetVoters === 'number' ? newGoal.targetVoters.toLocaleString('pt-BR') : newGoal.targetVoters)}
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, '');
+                          setNewGoal({ ...newGoal, targetVoters: digits === '' ? '' : parseInt(digits, 10) });
+                        }}
+                        placeholder="Ex: 5.000"
                         className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
                       />
                     </div>
@@ -4198,140 +4218,237 @@ export default function CoordinatorDashboard({
             )}
 
             {activeTab === 'materials' && (
-              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 md:space-y-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4 md:pb-6">
+              <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 md:space-y-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4">
                   <div>
-                    <h2 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] leading-none font-sans">Gestão de Materiais</h2>
-                    <p className="text-[var(--text-secondary)] text-xs font-normal mt-1 md:mt-2">Controle tático de suprimentos, lotes e distribuição para eventos da campanha</p>
+                    <h2 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] leading-none font-sans">Gestão de Materiais e Estoque</h2>
+                    <p className="text-[var(--text-secondary)] text-xs font-normal mt-1">Controle de lotes, distribuição e reposição para equipes de campo</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => {
                       setIsEditingMaterial(false);
                       setEditingMaterialId(null);
-                      setMaterialForm({ name: '', qty: '', category: 'Impresso' });
+                      setMaterialForm({ name: '', qty: '' });
                       const input = document.getElementById('material-name-input');
                       if (input) {
                         input.focus();
                         input.scrollIntoView({ behavior: 'smooth', block: 'center' });
                       }
                     }}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm active:scale-95 transition-all cursor-pointer"
+                    className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm active:scale-95 transition-all cursor-pointer"
                   >
-                    <Plus className="w-4 h-4" /> Cadastrar Novo Material
+                    <Plus className="w-4 h-4" /> Novo Material
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                   {/* FORM ADD/EDIT MATERIAL */}
-                  <div className="lg:col-span-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-8 shadow-[var(--shadow-sm)] h-fit relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-                      <Package className="w-32 h-32" />
-                    </div>
-                    <h3 className="text-xs font-black uppercase text-[var(--text-primary)] mb-5 md:mb-8 flex items-center gap-3 relative z-10">
-                      <div className="p-2 bg-blue-600 rounded-sm shadow-lg shadow-blue-600/20">
-                        {isEditingMaterial ? <Edit3 className="w-4 h-4 text-zinc-950" /> : <Plus className="w-4 h-4 text-white" />}
-                      </div> {isEditingMaterial ? 'Editar Material' : 'Registrador de Lote'}
+                  <div className="lg:col-span-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm h-fit relative">
+                    <h3 className="text-xs font-black uppercase text-[var(--text-primary)] mb-4 flex items-center gap-2.5">
+                      <div className="p-1.5 bg-blue-600 rounded-lg text-white">
+                        {isEditingMaterial ? <Edit3 className="w-3.5 h-3.5" /> : <Package className="w-3.5 h-3.5" />}
+                      </div>
+                      {isEditingMaterial ? 'Editar Material' : 'Cadastrar Material / Lote'}
                     </h3>
                     
-                    <form id="material-form" onSubmit={isEditingMaterial ? handleSaveEditMaterial : handleAddMaterial} className="space-y-6 relative z-10">
-                      <div className="space-y-2 text-left">
-                        <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Descrição do Material</label>
+                    <form id="material-form" onSubmit={isEditingMaterial ? handleSaveEditMaterial : handleAddMaterial} className="space-y-3.5 text-left">
+                      {/* Categoria Rápida */}
+                      <div>
+                        <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block mb-1.5">
+                          Atalhos de Tipo / Categoria
+                        </label>
+                        <div className="flex flex-wrap gap-1">
+                          {[
+                            'Santinho',
+                            'Adesivo',
+                            'Praguinha',
+                            'Bandeira',
+                            'Camisa',
+                            'Placa',
+                            'Faixa'
+                          ].map((cat) => (
+                            <button
+                              type="button"
+                              key={cat}
+                              onClick={() => {
+                                const currentName = materialForm.name.trim();
+                                if (!currentName || ['Santinho', 'Adesivo', 'Praguinha', 'Bandeira', 'Camisa', 'Placa', 'Faixa'].includes(currentName)) {
+                                  setMaterialForm({ ...materialForm, name: cat });
+                                } else if (!currentName.toLowerCase().includes(cat.toLowerCase())) {
+                                  setMaterialForm({ ...materialForm, name: `${cat} - ${currentName}` });
+                                }
+                              }}
+                              className="px-2 py-1 bg-[var(--bg-tertiary)] hover:bg-blue-500/10 hover:text-blue-600 text-[var(--text-secondary)] border border-[var(--border-color)] rounded-lg text-[10px] font-semibold transition-all"
+                            >
+                              + {cat}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block mb-1">
+                          Descrição do Material *
+                        </label>
                         <input 
                           id="material-name-input"
                           name="name" 
                           type="text" 
-                          placeholder="Ex: Santinho 55000" 
+                          required
+                          placeholder="Ex: Santinho Oficial 55000" 
                           value={materialForm.name}
                           onChange={(e) => setMaterialForm({...materialForm, name: e.target.value})}
-                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-blue-600 transition-colors" 
+                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3.5 font-bold text-xs text-[var(--text-primary)] outline-none focus:border-blue-600 transition-colors" 
                         />
                       </div>
-                      <div className="space-y-2 text-left">
-                        <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">
-                          {isEditingMaterial ? 'Quantidade Total Original' : 'Quantidade Total'}
-                        </label>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
+                            {isEditingMaterial ? 'Quantidade Total' : 'Quantidade do Lote *'}
+                          </label>
+                          <div className="flex gap-1">
+                            {[500, 1000, 5000, 10000, 50000].map((inc) => (
+                              <button
+                                key={inc}
+                                type="button"
+                                onClick={() => {
+                                  const cur = parseInt(materialForm.qty.replace(/\D/g, '') || '0', 10);
+                                  const next = cur + inc;
+                                  setMaterialForm({ ...materialForm, qty: next.toLocaleString('pt-BR') });
+                                }}
+                                className="text-[9px] font-bold px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 transition-colors"
+                              >
+                                +{inc >= 1000 ? `${inc / 1000}k` : inc}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                         <input 
                           name="qty" 
                           type="text" 
+                          inputMode="numeric"
+                          required
                           placeholder="Ex: 50.000" 
                           value={materialForm.qty}
                           onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, '');
-                            const formatted = val ? parseInt(val).toLocaleString('pt-BR') : '';
-                            setMaterialForm({...materialForm, qty: formatted});
+                            const digits = e.target.value.replace(/\D/g, '');
+                            setMaterialForm({...materialForm, qty: digits ? parseInt(digits, 10).toLocaleString('pt-BR') : ''});
                           }}
-                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-blue-600 transition-colors" 
+                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3.5 font-bold text-xs text-[var(--text-primary)] outline-none focus:border-blue-600 transition-colors" 
                         />
                       </div>
-                      <div className="flex gap-3">
+
+                      <div className="flex gap-2 pt-2">
                         {isEditingMaterial && (
                           <button 
                             type="button"
                             onClick={() => { setIsEditingMaterial(false); setEditingMaterialId(null); setMaterialForm({ name: '', qty: '' }); }}
-                            className="flex-1 bg-zinc-200 text-zinc-950 py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-300 cursor-pointer"
+                            className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[var(--bg-primary)] transition-all cursor-pointer"
                           >
                             Cancelar
                           </button>
                         )}
-                        <button type="submit" className="flex-[2] bg-zinc-950 text-white dark:bg-blue-600 dark:text-white py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-blue-500 cursor-pointer">
-                          {isEditingMaterial ? 'Salvar Alterações' : 'Autenticar Entrada'}
+                        <button type="submit" className="flex-[2] bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-all cursor-pointer">
+                          {isEditingMaterial ? 'Salvar Alterações' : 'Cadastrar Material'}
                         </button>
                       </div>
                     </form>
                   </div>
 
                   {/* MATERIAL LIST */}
-                  <div className="lg:col-span-2 space-y-3 md:space-y-4">
-                    {materials.length > 0 ? materials.sort((a, b) => b.createdAt - a.createdAt).map(m => (
-                      <div key={m.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:border-blue-600/30 transition-all shadow-[var(--shadow-sm)]">
-                        <div className="flex items-center gap-3 md:gap-5">
-                          <div className="w-11 h-11 md:w-14 md:h-14 bg-[var(--bg-tertiary)] rounded-sm flex items-center justify-center border border-[var(--border-color)] shadow-inner group-hover/mat:border-blue-600/30">
-                            <Package className={`w-5 h-5 md:w-6 md:h-6 ${(m.current / m.total) < 0.2 ? 'text-red-500 animate-pulse' : 'text-[var(--text-secondary)]'} group-hover:text-blue-600 transition-colors`} />
-                          </div>
-                          <div>
-                            <h4 className="font-black text-[var(--text-primary)] text-xs md:text-sm uppercase tracking-tight font-sans leading-none">{m.name}</h4>
-                            <div className="mt-2 flex items-center gap-2 md:gap-4">
-                              <div className="h-1.5 w-24 md:w-40 bg-[var(--bg-tertiary)] rounded-full overflow-hidden border border-[var(--border-color)]">
-                                <motion.div 
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${Math.min(100, (m.current / m.total) * 100)}%` }}
-                                  className={`h-full ${(m.current / m.total) < 0.2 ? 'bg-red-500' : 'bg-blue-600'}`} 
-                                />
+                  <div className="lg:col-span-2 space-y-3">
+                    {materials.length > 0 ? materials.sort((a, b) => b.createdAt - a.createdAt).map(m => {
+                      const total = m.total || 1;
+                      const current = m.current ?? 0;
+                      const percent = Math.min(100, Math.max(0, Math.round((current / total) * 100)));
+                      const isZero = current <= 0;
+                      const isLow = !isZero && percent < 20;
+
+                      return (
+                        <div key={m.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:border-blue-600/30 transition-all shadow-sm">
+                          <div className="flex items-center gap-3.5 min-w-0">
+                            <div className={`w-11 h-11 rounded-xl flex items-center justify-center border border-[var(--border-color)] shrink-0 ${
+                              isZero ? 'bg-zinc-100 text-zinc-400 dark:bg-zinc-800' :
+                              isLow ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400' :
+                              'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400'
+                            }`}>
+                              <Package className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="font-bold text-[var(--text-primary)] text-sm leading-tight truncate">{m.name}</h4>
+                                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                                  isZero ? 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400' :
+                                  isLow ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300' :
+                                  'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                                }`}>
+                                  {isZero ? 'Esgotado' : isLow ? `Baixo (${percent}%)` : `Em Estoque (${percent}%)`}
+                                </span>
                               </div>
-                              <span className="text-[8px] md:text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest leading-none">
-                                {m.current.toLocaleString('pt-BR')} <span className="opacity-40">/ {m.total.toLocaleString('pt-BR')}</span>
-                              </span>
+                              <div className="mt-2 flex items-center gap-3">
+                                <div className="h-2 w-28 sm:w-36 bg-[var(--bg-tertiary)] rounded-full overflow-hidden border border-[var(--border-color)]">
+                                  <motion.div 
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${percent}%` }}
+                                    className={`h-full ${
+                                      isZero ? 'bg-zinc-400' : isLow ? 'bg-amber-500' : 'bg-emerald-500'
+                                    }`} 
+                                  />
+                                </div>
+                                <span className="text-[11px] font-bold text-[var(--text-secondary)]">
+                                  <strong className="text-[var(--text-primary)]">{current.toLocaleString('pt-BR')}</strong> / {total.toLocaleString('pt-BR')} un
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          
+                          <div className="flex items-center gap-1.5 flex-wrap justify-end shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[var(--border-color)]">
+                            <button 
+                              onClick={() => handleStartEditMaterial(m)} 
+                              className="p-2 rounded-lg border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all cursor-pointer"
+                              title="Editar Material"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteMaterial(m.id)} 
+                              className="p-2 rounded-lg border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all cursor-pointer"
+                              title="Excluir Material"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                            <div className="h-4 w-px bg-[var(--border-color)] mx-1" />
+                            <button 
+                              onClick={() => handleUpdateMaterial(m.id, 100)} 
+                              className="px-2 py-1.5 rounded-lg border border-[var(--border-color)] text-[10px] font-bold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all cursor-pointer"
+                              title="Adicionar 100 unidades"
+                            >
+                              +100
+                            </button>
+                            <button 
+                              onClick={() => handleUpdateMaterial(m.id, 500)} 
+                              className="px-2 py-1.5 rounded-lg border border-[var(--border-color)] text-[10px] font-bold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all cursor-pointer"
+                              title="Adicionar 500 unidades"
+                            >
+                              +500
+                            </button>
+                            <button 
+                              onClick={() => handleUpdateMaterial(m.id, 1000)} 
+                              className="px-2 py-1.5 rounded-lg border border-[var(--border-color)] text-[10px] font-bold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all cursor-pointer"
+                              title="Adicionar 1.000 unidades"
+                            >
+                              +1k
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1.5 md:gap-2 flex-wrap justify-end w-full sm:w-auto">
-                          <button 
-                            onClick={() => handleStartEditMaterial(m)} 
-                            className="w-8.5 h-8.5 md:w-10 md:h-10 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-zinc-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all active:scale-95"
-                            title="Editar"
-                          >
-                            <Edit3 className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteMaterial(m.id)} 
-                            className="w-8.5 h-8.5 md:w-10 md:h-10 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all active:scale-95"
-                            title="Excluir"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                          </button>
-                          <button onClick={() => handleUpdateMaterial(m.id, 100)} className="px-2.5 h-8.5 md:w-14 md:h-11 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-emerald-500 hover:bg-emerald-500/10 transition-all active:scale-95 text-[9px] md:text-[10px] font-black">
-                            +100
-                          </button>
-                          <button onClick={() => handleUpdateMaterial(m.id, 1000)} className="px-2.5 h-8.5 md:w-14 md:h-11 border border-[var(--border-color)] rounded-sm flex items-center justify-center text-emerald-500 hover:bg-emerald-500/10 transition-all active:scale-95 text-[9px] md:text-[10px] font-black">
-                            +1k
-                          </button>
-                        </div>
-                      </div>
-                    )) : (
-                      <div className="py-24 text-center bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-sm grayscale opacity-30">
-                        <Package className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
-                        <p className="text-[var(--text-secondary)] font-black uppercase tracking-[0.2em] text-[10px]">Estoque Vazio: Aguardando remessa.</p>
+                      );
+                    }) : (
+                      <div className="py-16 text-center bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-2xl">
+                        <Package className="w-10 h-10 text-[var(--text-secondary)] mx-auto mb-3 opacity-40" />
+                        <p className="text-[var(--text-secondary)] font-bold text-xs">Nenhum material cadastrado no estoque.</p>
+                        <p className="text-[var(--text-secondary)] text-[10px] mt-1 opacity-60">Use o formulário ao lado para cadastrar santinhos, adesivos e bandeiras.</p>
                       </div>
                     )}
                   </div>
@@ -6674,11 +6791,30 @@ export default function CoordinatorDashboard({
                   </div>
 
                   <div>
-                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Meta de Eleitores Cadastrados</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Meta de Eleitores Cadastrados</label>
+                      <div className="flex gap-1">
+                        {[250, 500, 1000, 2500].map(val => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setNewRegCoord({ ...newRegCoord, targetVoters: val })}
+                            className="text-[9px] font-bold px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 transition-colors"
+                          >
+                            {val >= 1000 ? `${val/1000}k` : val}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <input 
-                      type="number" 
-                      value={newRegCoord.targetVoters}
-                      onChange={(e) => setNewRegCoord({ ...newRegCoord, targetVoters: Number(e.target.value) })}
+                      type="text" 
+                      inputMode="numeric"
+                      value={newRegCoord.targetVoters === '' ? '' : (typeof newRegCoord.targetVoters === 'number' ? newRegCoord.targetVoters.toLocaleString('pt-BR') : newRegCoord.targetVoters)}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, '');
+                        setNewRegCoord({ ...newRegCoord, targetVoters: digits === '' ? '' : parseInt(digits, 10) });
+                      }}
+                      placeholder="Ex: 500"
                       className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
                     />
                   </div>
@@ -6822,183 +6958,403 @@ export default function CoordinatorDashboard({
       <AnimatePresence>
         {isCandidateModalOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto">
-            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl relative my-8">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl relative my-6">
               <button onClick={() => setIsCandidateModalOpen(false)} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-[var(--text-primary)] cursor-pointer z-10">
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="p-6 bg-gradient-to-r from-blue-700 to-blue-900 border-b border-blue-600 text-left text-white">
+              <div className="p-5 bg-gradient-to-r from-blue-700 to-blue-900 border-b border-blue-600 text-left text-white">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white font-black border border-white/20">
-                    <UserPlus className="w-6 h-6" />
+                  <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white font-black border border-white/20">
+                    <UserPlus className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-black uppercase tracking-tight text-white">Cadastrar Candidato</h2>
+                    <h2 className="text-lg font-black uppercase tracking-tight text-white">
+                      {isGeral ? 'Cadastro do Candidato Oficial' : 'Informações do Candidato'}
+                    </h2>
                     <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest">
-                      Cadastre a foto, nome, cargo e apresentação exibidos nos links externos de cadastro
+                      {isGeral 
+                        ? 'Identificação, foto, propostas e personalização da página pública' 
+                        : 'Visualização oficial definida pelo Coordenador Geral da Campanha'}
                     </p>
                   </div>
                 </div>
-              </div>
 
-              <form onSubmit={handleSaveCandidateInfo} className="p-6 space-y-5 text-left max-h-[75vh] overflow-y-auto">
-                
-                {/* Live Preview */}
-                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 p-4 rounded-xl flex items-center gap-4">
-                  <img 
-                    src={candidateForm.photoUrl} 
-                    alt="Preview" 
-                    className="w-16 h-16 rounded-full object-cover border-2 border-blue-600 shadow-md bg-zinc-200 shrink-0"
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
-                  />
-                  <div className="overflow-hidden">
-                    <p className="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-wider">Pré-visualização da Apresentação</p>
-                    <p className="text-sm font-black text-[var(--text-primary)] truncate">{candidateForm.name || 'Nome do Candidato'}</p>
-                    <p className="text-[10px] font-bold text-[var(--text-secondary)] truncate">{candidateForm.title || 'Cargo do Candidato'}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Nome do Candidato *</label>
-                    <input 
-                      required
-                      type="text" 
-                      value={candidateForm.name} 
-                      onChange={e => setCandidateForm({...candidateForm, name: e.target.value})} 
-                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600" 
-                      placeholder="Ex: Soldado Sampaio" 
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Cargo / Função * (Eleições 2026)</label>
-                    <input 
-                      required
-                      type="text" 
-                      value={candidateForm.title} 
-                      onChange={e => setCandidateForm({...candidateForm, title: e.target.value})} 
-                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600" 
-                      placeholder="Ex: Deputado Estadual / Governador" 
-                    />
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {[
-                        'Deputado Estadual',
-                        'Deputado Federal',
-                        'Senador',
-                        'Governador'
-                      ].map((cargo) => (
-                        <button
-                          type="button"
-                          key={cargo}
-                          onClick={() => setCandidateForm({...candidateForm, title: cargo})}
-                          className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase transition-all border ${
-                            candidateForm.title.toLowerCase().includes(cargo.toLowerCase())
-                              ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                              : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-blue-500'
-                          }`}
-                        >
-                          {cargo}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Foto do Candidato com upload padrão do dispositivo */}
-                <div className="space-y-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-4 rounded-xl">
-                  <label className="text-xs font-semibold text-[var(--text-secondary)] block">
-                    Foto Oficial do Candidato *
-                  </label>
-                  
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <label className={`flex-1 flex items-center justify-center gap-2 p-3 ${isUploadingPhoto ? 'bg-zinc-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 cursor-pointer'} text-white rounded-xl font-semibold text-xs transition-all shadow-md active:scale-95`}>
-                      <Upload className="w-4 h-4" /> {isUploadingPhoto ? 'Enviando...' : 'Escolher Foto Oficial do Candidato (Computador ou Celular)'}
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={handleCandidatePhotoUpload} 
-                        className="hidden" 
-                        disabled={isUploadingPhoto}
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-[var(--text-secondary)] block">
-                    Biografia / Texto de Apresentação *
-                  </label>
-                  <textarea 
-                    required
-                    rows={3}
-                    value={candidateForm.bio} 
-                    onChange={e => setCandidateForm({...candidateForm, bio: e.target.value})} 
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-medium text-xs outline-none focus:border-blue-600 resize-none" 
-                    placeholder="Escreva uma breve biografia ou mensagem de apresentação do candidato..." 
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-[var(--text-secondary)] block">
-                    Propostas de Campanha / Plano de Governo
-                  </label>
-                  <textarea 
-                    rows={4}
-                    value={candidateForm.proposals || ''} 
-                    onChange={e => setCandidateForm({...candidateForm, proposals: e.target.value})} 
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-medium text-xs outline-none focus:border-blue-600 resize-none" 
-                    placeholder="Liste as principais propostas da campanha (ex: Saúde, Educação, Segurança, Emprego)..." 
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Título do Projeto no Formulário</label>
-                    <input 
-                      type="text" 
-                      value={candidateForm.badgeTitle} 
-                      onChange={e => setCandidateForm({...candidateForm, badgeTitle: e.target.value})} 
-                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600" 
-                      placeholder="Faça Parte do Nosso Projeto! 🎉" 
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Subtítulo Explicativo</label>
-                    <input 
-                      type="text" 
-                      value={candidateForm.subtitle} 
-                      onChange={e => setCandidateForm({...candidateForm, subtitle: e.target.value})} 
-                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600" 
-                      placeholder="Preencha o formulário e ajude..." 
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-[var(--border-color)] flex justify-end gap-3">
+                {/* Sub-tabs for candidate modal */}
+                <div className="flex gap-1.5 mt-4 pt-3 border-t border-blue-500/30">
                   <button
                     type="button"
-                    onClick={() => setIsCandidateModalOpen(false)}
-                    className="px-5 py-3 bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-xl font-black text-xs uppercase tracking-wider hover:bg-zinc-300 transition-all cursor-pointer"
+                    onClick={() => setCandidateModalTab('identificacao')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      candidateModalTab === 'identificacao'
+                        ? 'bg-white text-blue-900 shadow-sm'
+                        : 'text-blue-100 hover:bg-white/10'
+                    }`}
                   >
-                    Cancelar
+                    1. Identificação & Foto
                   </button>
                   <button
-                    type="submit"
-                    disabled={isSavingCandidate}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-blue-600/30 flex items-center gap-2 cursor-pointer"
+                    type="button"
+                    onClick={() => setCandidateModalTab('apresentacao')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      candidateModalTab === 'apresentacao'
+                        ? 'bg-white text-blue-900 shadow-sm'
+                        : 'text-blue-100 hover:bg-white/10'
+                    }`}
                   >
-                    {isSavingCandidate ? (
-                      <>
-                        <Loader2 className="w-4 h-4 text-white animate-spin" /> Salvando...
-                      </>
-                    ) : (
-                      <>
-                        <Check className="w-4 h-4" /> Salvar Candidato
-                      </>
-                    )}
+                    2. Apresentação & Biografia
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setCandidateModalTab('publico')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      candidateModalTab === 'publico'
+                        ? 'bg-white text-blue-900 shadow-sm'
+                        : 'text-blue-100 hover:bg-white/10'
+                    }`}
+                  >
+                    3. Página Pública & Links
+                  </button>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveCandidateInfo} className="p-5 space-y-4 text-left max-h-[72vh] overflow-y-auto">
+                
+                {!isGeral && (
+                  <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl flex items-center gap-3 text-amber-600 dark:text-amber-400">
+                    <ShieldCheck className="w-5 h-5 shrink-0" />
+                    <p className="text-xs font-semibold">
+                      Modo somente leitura. Apenas o <strong>Coordenador Geral</strong> pode cadastrar ou modificar as informações e fotos do candidato.
+                    </p>
+                  </div>
+                )}
+
+                {/* TAB 1: IDENTIFICAÇÃO & FOTO */}
+                {candidateModalTab === 'identificacao' && (
+                  <div className="space-y-4">
+                    {/* Live Preview Card */}
+                    <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 p-3.5 rounded-xl flex items-center gap-4">
+                      <img 
+                        src={candidateForm.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
+                        alt="Preview" 
+                        className="w-16 h-16 rounded-full object-cover border-2 border-blue-600 shadow-md bg-zinc-200 shrink-0"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+                      />
+                      <div className="overflow-hidden min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                          <span className="bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
+                            {candidateForm.number ? `Nº ${candidateForm.number}` : 'Candidato Oficial'}
+                          </span>
+                          {candidateForm.party && (
+                            <span className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-secondary)] text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+                              {candidateForm.party}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm font-black text-[var(--text-primary)] truncate">{candidateForm.name || 'Nome do Candidato'}</p>
+                        <p className="text-[11px] font-bold text-[var(--text-secondary)] truncate">{candidateForm.title || 'Cargo do Candidato'}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">Nome de Urna / Completo {isGeral && '*'}</label>
+                        <input 
+                          required={isGeral}
+                          disabled={!isGeral}
+                          type="text" 
+                          value={candidateForm.name} 
+                          onChange={e => isGeral && setCandidateForm({...candidateForm, name: e.target.value})} 
+                          className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3.5 font-bold text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'}`} 
+                          placeholder="Ex: Soldado Sampaio" 
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">Número de Urna</label>
+                        <input 
+                          disabled={!isGeral}
+                          type="text" 
+                          inputMode="numeric"
+                          value={candidateForm.number || ''} 
+                          onChange={e => {
+                            if (!isGeral) return;
+                            const digits = e.target.value.replace(/\D/g, '');
+                            setCandidateForm({...candidateForm, number: digits});
+                          }} 
+                          className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3.5 font-bold text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'}`} 
+                          placeholder="Ex: 55000" 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">Cargo / Função (Eleições 2026) {isGeral && '*'}</label>
+                        <input 
+                          required={isGeral}
+                          disabled={!isGeral}
+                          type="text" 
+                          value={candidateForm.title} 
+                          onChange={e => isGeral && setCandidateForm({...candidateForm, title: e.target.value})} 
+                          className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3.5 font-bold text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'}`} 
+                          placeholder="Ex: Deputado Estadual" 
+                        />
+                        {isGeral && (
+                          <div className="flex flex-wrap gap-1 pt-1">
+                            {[
+                              'Deputado Estadual',
+                              'Deputado Federal',
+                              'Senador',
+                              'Governador',
+                              'Prefeito',
+                              'Vereador'
+                            ].map((cargo) => (
+                              <button
+                                type="button"
+                                key={cargo}
+                                onClick={() => setCandidateForm({...candidateForm, title: cargo})}
+                                className={`px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase transition-all border ${
+                                  candidateForm.title.toLowerCase().includes(cargo.toLowerCase())
+                                    ? 'bg-blue-600 text-white border-blue-600'
+                                    : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-blue-500'
+                                }`}
+                              >
+                                {cargo}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">Partido / Coligação</label>
+                        <input 
+                          disabled={!isGeral}
+                          type="text" 
+                          value={candidateForm.party || ''} 
+                          onChange={e => isGeral && setCandidateForm({...candidateForm, party: e.target.value})} 
+                          className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3.5 font-bold text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'}`} 
+                          placeholder="Ex: União Brasil / Coligação Pelo Povo" 
+                        />
+                      </div>
+                    </div>
+
+                    {/* Foto do Candidato */}
+                    {isGeral ? (
+                      <div className="space-y-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-3.5 rounded-xl">
+                        <label className="text-xs font-semibold text-[var(--text-secondary)] block">
+                          Foto Oficial do Candidato (Alta Resolução)
+                        </label>
+                        
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                          <label className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3.5 ${isUploadingPhoto ? 'bg-zinc-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 cursor-pointer'} text-white rounded-xl font-bold text-xs transition-all shadow-sm active:scale-95`}>
+                            <Upload className="w-4 h-4" /> {isUploadingPhoto ? 'Enviando Foto...' : 'Escolher Foto do Candidato'}
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              onChange={handleCandidatePhotoUpload} 
+                              className="hidden" 
+                              disabled={isUploadingPhoto}
+                            />
+                          </label>
+                          <input 
+                            type="text"
+                            placeholder="Ou cole a URL da imagem aqui..."
+                            value={candidateForm.photoUrl}
+                            onChange={(e) => setCandidateForm({ ...candidateForm, photoUrl: e.target.value })}
+                            className="flex-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3 text-xs font-medium outline-none focus:border-blue-600"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-3 rounded-xl">
+                        <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
+                          URL da Foto Oficial
+                        </label>
+                        <p className="text-xs font-medium text-[var(--text-primary)] truncate">
+                          {candidateForm.photoUrl}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* TAB 2: APRESENTAÇÃO & BIOGRAFIA */}
+                {candidateModalTab === 'apresentacao' && (
+                  <div className="space-y-3.5">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
+                        Slogan de Campanha / Lema
+                      </label>
+                      <input 
+                        disabled={!isGeral}
+                        type="text" 
+                        value={candidateForm.slogan || ''} 
+                        onChange={e => isGeral && setCandidateForm({...candidateForm, slogan: e.target.value})} 
+                        className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3.5 font-bold text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'}`} 
+                        placeholder="Ex: Trabalho, Coragem e Compromisso com as Pessoas" 
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-[var(--text-secondary)] block">
+                        Biografia / Mensagem de Apresentação {isGeral && '*'}
+                      </label>
+                      <textarea 
+                        required={isGeral}
+                        disabled={!isGeral}
+                        rows={3}
+                        value={candidateForm.bio} 
+                        onChange={e => isGeral && setCandidateForm({...candidateForm, bio: e.target.value})} 
+                        className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-medium text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'} resize-none`} 
+                        placeholder="Biografia ou mensagem de apresentação do candidato..." 
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-[var(--text-secondary)] block">
+                        Principais Eixos e Propostas de Campanha
+                      </label>
+                      <textarea 
+                        disabled={!isGeral}
+                        rows={4}
+                        value={candidateForm.proposals || ''} 
+                        onChange={e => isGeral && setCandidateForm({...candidateForm, proposals: e.target.value})} 
+                        className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-medium text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'} resize-none`} 
+                        placeholder="• Saúde: Ampliação do atendimento especializado&#10;• Educação: Escolas em tempo integral&#10;• Segurança: Valorização profissional" 
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 3: PÁGINA PÚBLICA & LINKS */}
+                {candidateModalTab === 'publico' && (
+                  <div className="space-y-3.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">Título da Página de Cadastro</label>
+                        <input 
+                          disabled={!isGeral}
+                          type="text" 
+                          value={candidateForm.badgeTitle} 
+                          onChange={e => isGeral && setCandidateForm({...candidateForm, badgeTitle: e.target.value})} 
+                          className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3.5 font-bold text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'}`} 
+                          placeholder="FAÇA PARTE DO NOSSO TIME! 🗳️" 
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">Subtítulo de Chamada</label>
+                        <input 
+                          disabled={!isGeral}
+                          type="text" 
+                          value={candidateForm.subtitle} 
+                          onChange={e => isGeral && setCandidateForm({...candidateForm, subtitle: e.target.value})} 
+                          className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3.5 font-bold text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'}`} 
+                          placeholder="Preencha o formulário e apoie nossa caminhada..." 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">Instagram Oficial (@)</label>
+                        <input 
+                          disabled={!isGeral}
+                          type="text" 
+                          value={candidateForm.instagram || ''} 
+                          onChange={e => isGeral && setCandidateForm({...candidateForm, instagram: e.target.value})} 
+                          className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3.5 font-bold text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'}`} 
+                          placeholder="Ex: @soldadosampaio" 
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">WhatsApp de Campanha</label>
+                        <input 
+                          disabled={!isGeral}
+                          type="text" 
+                          value={candidateForm.whatsapp || ''} 
+                          onChange={e => isGeral && setCandidateForm({...candidateForm, whatsapp: e.target.value})} 
+                          className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3.5 font-bold text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'}`} 
+                          placeholder="Ex: (95) 99123-4567" 
+                        />
+                      </div>
+                    </div>
+
+                    {/* Preview box */}
+                    <div className="p-3 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl">
+                      <p className="text-[10px] font-black uppercase text-[var(--text-secondary)] tracking-wider mb-2">
+                        Prévia da Chamada de Adesão
+                      </p>
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-3 rounded-lg flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-black text-[var(--text-primary)]">{candidateForm.badgeTitle || 'FAÇA PARTE DO NOSSO TIME! 🗳️'}</p>
+                          <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">{candidateForm.subtitle || 'Apoie nosso projeto e multiplique votos.'}</p>
+                        </div>
+                        <span className="text-[10px] font-bold px-2 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 rounded">
+                          Link Ativo
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-3 border-t border-[var(--border-color)] flex justify-between items-center gap-3">
+                  <div className="flex gap-1.5">
+                    {candidateModalTab !== 'identificacao' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (candidateModalTab === 'publico') setCandidateModalTab('apresentacao');
+                          else if (candidateModalTab === 'apresentacao') setCandidateModalTab('identificacao');
+                        }}
+                        className="px-3 py-2 bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[var(--bg-primary)] transition-all cursor-pointer"
+                      >
+                        Voltar
+                      </button>
+                    )}
+                    {candidateModalTab !== 'publico' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (candidateModalTab === 'identificacao') setCandidateModalTab('apresentacao');
+                          else if (candidateModalTab === 'apresentacao') setCandidateModalTab('publico');
+                        }}
+                        className="px-3 py-2 bg-[var(--bg-tertiary)] text-blue-600 dark:text-blue-400 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all cursor-pointer"
+                      >
+                        Avançar &rarr;
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsCandidateModalOpen(false)}
+                      className="px-4 py-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[var(--bg-primary)] transition-all cursor-pointer"
+                    >
+                      {isGeral ? 'Cancelar' : 'Fechar'}
+                    </button>
+                    {isGeral && (
+                      <button
+                        type="submit"
+                        disabled={isSavingCandidate}
+                        className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                      >
+                        {isSavingCandidate ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 text-white animate-spin" /> Salvando...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-3.5 h-3.5" /> Salvar Candidato
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
 
               </form>
@@ -7040,13 +7396,31 @@ export default function CoordinatorDashboard({
                 </div>
 
                 <div>
-                  <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Meta Geral de Eleitores</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Meta Geral de Eleitores</label>
+                    <div className="flex gap-1">
+                      {[500, 1000, 2500, 5000].map(val => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => setEditingGoal({ ...editingGoal, targetVoters: val })}
+                          className="text-[9px] font-bold px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 transition-colors"
+                        >
+                          {val >= 1000 ? `${val/1000}k` : val}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <input 
                     required
-                    type="number" 
-                    min="1"
-                    value={editingGoal.targetVoters || 0}
-                    onChange={(e) => setEditingGoal({ ...editingGoal, targetVoters: Number(e.target.value) })}
+                    type="text" 
+                    inputMode="numeric"
+                    value={editingGoal.targetVoters === '' ? '' : (typeof editingGoal.targetVoters === 'number' ? editingGoal.targetVoters.toLocaleString('pt-BR') : editingGoal.targetVoters)}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, '');
+                      setEditingGoal({ ...editingGoal, targetVoters: digits === '' ? '' : parseInt(digits, 10) });
+                    }}
+                    placeholder="Ex: 5.000"
                     className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
                   />
                 </div>
@@ -7138,13 +7512,31 @@ export default function CoordinatorDashboard({
                 </div>
 
                 <div>
-                  <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Meta de Eleitores Alocada</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Meta de Eleitores Alocada</label>
+                    <div className="flex gap-1">
+                      {[250, 500, 1000, 2500].map(val => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => setEditingRegCoord({ ...editingRegCoord, targetVoters: val })}
+                          className="text-[9px] font-bold px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 transition-colors"
+                        >
+                          {val >= 1000 ? `${val/1000}k` : val}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <input 
                     required
-                    type="number" 
-                    min="10"
-                    value={editingRegCoord.targetVoters || 0}
-                    onChange={(e) => setEditingRegCoord({ ...editingRegCoord, targetVoters: Number(e.target.value) })}
+                    type="text" 
+                    inputMode="numeric"
+                    value={editingRegCoord.targetVoters === '' ? '' : (typeof editingRegCoord.targetVoters === 'number' ? editingRegCoord.targetVoters.toLocaleString('pt-BR') : editingRegCoord.targetVoters)}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, '');
+                      setEditingRegCoord({ ...editingRegCoord, targetVoters: digits === '' ? '' : parseInt(digits, 10) });
+                    }}
+                    placeholder="Ex: 500"
                     className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
                   />
                 </div>

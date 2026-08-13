@@ -176,6 +176,13 @@ export default function CaboDashboard({
   const [isFuelModalOpen, setIsFuelModalOpen] = useState(false);
   const [fuelForm, setFuelForm] = useState({ amount: '', reason: '' });
 
+  const [matRequestForm, setMatRequestForm] = useState({
+    materialId: '',
+    qty: '',
+    returnDate: '',
+    reason: ''
+  });
+
   const [isDemandModalOpen, setIsDemandModalOpen] = useState(false);
   const [demandForm, setDemandForm] = useState({ title: '', description: '' });
 
@@ -697,10 +704,11 @@ export default function CaboDashboard({
 
   const handleAddMaterialRequest = async (e: any) => {
     e.preventDefault();
-    const materialId = e.target.materialId.value;
-    const qty = parseInt(e.target.qty.value, 10);
-    const reason = e.target.reason.value;
-    const returnDate = e.target.returnDate?.value || null;
+    const materialId = matRequestForm.materialId;
+    const qtyDigits = matRequestForm.qty.replace(/\D/g, '');
+    const qty = parseInt(qtyDigits, 10);
+    const reason = matRequestForm.reason;
+    const returnDate = matRequestForm.returnDate || null;
     
     if (!materialId) {
       showToast("Por favor, selecione um material da lista.", "error");
@@ -732,7 +740,7 @@ export default function CaboDashboard({
       
       const docId = await supabaseService.addDocument('material_requests', newReq);
       setMaterialRequests((prev: any[]) => [...prev, { id: docId, ...newReq }]);
-      e.target.reset();
+      setMatRequestForm({ materialId: '', qty: '', returnDate: '', reason: '' });
       showToast("Solicitação de material enviada com sucesso!", "success");
     } catch (err: any) {
       showToast("Erro ao solicitar material: " + (err?.message || err), "error");
@@ -1987,19 +1995,38 @@ export default function CaboDashboard({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* REQUEST FORM */}
-              <div className="lg:col-span-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-8 shadow-[var(--shadow-sm)] h-fit relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-                  <Package className="w-32 h-32" />
+              <div className="lg:col-span-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-5 shadow-sm h-fit relative">
+                <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[var(--border-color)]">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-blue-600/10 text-blue-600 rounded-lg">
+                      <Package className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-black uppercase text-[var(--text-primary)] tracking-wide">
+                        Solicitar Material
+                      </h3>
+                      <p className="text-[10px] text-[var(--text-secondary)] font-medium">
+                        Preencha a requisição de suprimentos
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-xs font-black uppercase text-[var(--text-primary)] mb-8 flex items-center gap-3 relative z-10">
-                  <div className="p-2 bg-blue-600 rounded-sm shadow-lg shadow-blue-600/20"><Plus className="w-4 h-4 text-white" /></div> Solicitar Material
-                </h3>
-                <form onSubmit={handleAddMaterialRequest} className="space-y-6 relative z-10">
-                  <div className="space-y-2 text-left">
-                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Tipo de Material</label>
-                    <select name="materialId" required className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-blue-600 transition-colors cursor-pointer">
+
+                <form onSubmit={handleAddMaterialRequest} className="space-y-4">
+                  {/* TIPO DE MATERIAL */}
+                  <div className="space-y-1.5 text-left">
+                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider block">
+                      Material Disponível
+                    </label>
+                    <select 
+                      name="materialId" 
+                      value={matRequestForm.materialId}
+                      onChange={(e) => setMatRequestForm(prev => ({ ...prev, materialId: e.target.value }))}
+                      required 
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg py-2.5 px-3 font-semibold text-xs text-[var(--text-primary)] outline-none focus:border-blue-600 transition-colors cursor-pointer"
+                    >
                       <option value="">Selecione o Material</option>
                       {(() => {
                         const filtered = materials.filter(m => !resolvedCoordinatorId || m.coordinatorId === resolvedCoordinatorId);
@@ -2012,63 +2039,144 @@ export default function CaboDashboard({
                       })()}
                     </select>
                   </div>
-                  <div className="space-y-2 text-left">
-                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Quantidade Desejada</label>
-                    <input name="qty" type="number" required placeholder="Ex: 500" className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-blue-600 transition-colors" />
+
+                  {/* QUANTIDADE COM ATALHOS */}
+                  <div className="space-y-1.5 text-left">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider">
+                        Quantidade
+                      </label>
+                      <span className="text-[10px] font-semibold text-zinc-400">unidades</span>
+                    </div>
+                    <input 
+                      name="qty" 
+                      type="text" 
+                      inputMode="numeric"
+                      required 
+                      value={matRequestForm.qty}
+                      onChange={(e) => {
+                        const sanitized = e.target.value.replace(/\D/g, '');
+                        setMatRequestForm(prev => ({ ...prev, qty: sanitized }));
+                      }}
+                      placeholder="Ex: 500" 
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg py-2.5 px-3 font-black text-sm text-[var(--text-primary)] outline-none focus:border-blue-600 transition-colors" 
+                    />
+                    
+                    {/* Chips de incremento rápido */}
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {[50, 100, 250, 500, 1000].map(amt => (
+                        <button
+                          key={amt}
+                          type="button"
+                          onClick={() => {
+                            const cur = parseInt(matRequestForm.qty.replace(/\D/g, '') || '0', 10);
+                            setMatRequestForm(prev => ({ ...prev, qty: String(cur + amt) }));
+                          }}
+                          className="px-2 py-1 text-[10px] font-bold rounded-md bg-[var(--bg-tertiary)] hover:bg-blue-600 hover:text-white text-[var(--text-secondary)] border border-[var(--border-color)] transition-all active:scale-95"
+                        >
+                          +{amt >= 1000 ? `${amt / 1000}k` : amt}
+                        </button>
+                      ))}
+                      {matRequestForm.qty && (
+                        <button
+                          type="button"
+                          onClick={() => setMatRequestForm(prev => ({ ...prev, qty: '' }))}
+                          className="px-2 py-1 text-[10px] font-bold rounded-md bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all ml-auto"
+                        >
+                          Limpar
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="space-y-2 text-left">
-                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Previsão de Devolução (Se aplicável)</label>
-                    <input name="returnDate" type="date" className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-blue-600 transition-colors cursor-pointer" />
+
+                  {/* PREVISÃO DE DEVOLUÇÃO */}
+                  <div className="space-y-1.5 text-left">
+                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider block">
+                      Previsão de Devolução (Opcional)
+                    </label>
+                    <input 
+                      name="returnDate" 
+                      type="date" 
+                      value={matRequestForm.returnDate}
+                      onChange={(e) => setMatRequestForm(prev => ({ ...prev, returnDate: e.target.value }))}
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg py-2 px-3 font-medium text-xs text-[var(--text-primary)] outline-none focus:border-blue-600 transition-colors cursor-pointer" 
+                    />
                   </div>
-                  <div className="space-y-2 text-left">
-                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 opacity-70">Finalidade / Observação</label>
-                    <textarea name="reason" placeholder="Para distribuição no bairro..." className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-4 px-4 font-bold text-xs text-[var(--text-primary)] shadow-inner outline-none focus:border-blue-600 transition-colors min-h-[100px]" />
+
+                  {/* FINALIDADE */}
+                  <div className="space-y-1.5 text-left">
+                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider block">
+                      Finalidade / Justificativa
+                    </label>
+                    <textarea 
+                      name="reason" 
+                      value={matRequestForm.reason}
+                      onChange={(e) => setMatRequestForm(prev => ({ ...prev, reason: e.target.value }))}
+                      placeholder="Descreva o uso planejado (ex: panfletagem no bairro X)..." 
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg py-2 px-3 font-normal text-xs text-[var(--text-primary)] outline-none focus:border-blue-600 transition-colors min-h-[70px] resize-none" 
+                    />
                   </div>
-                  <button className="w-full bg-zinc-950 text-white dark:bg-blue-600 dark:text-white py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-zinc-800 dark:hover:bg-blue-500">
+
+                  <button 
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-black text-xs uppercase tracking-widest shadow-md shadow-blue-600/20 active:scale-[0.99] transition-all"
+                  >
                     Enviar Solicitação
                   </button>
                 </form>
               </div>
 
               {/* REQUEST LIST */}
-              <div className="lg:col-span-2 space-y-4">
-                <h3 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] mb-4">Minhas Solicitações</h3>
+              <div className="lg:col-span-2 space-y-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider">
+                    Minhas Solicitações
+                  </h3>
+                  <span className="text-[10px] font-bold text-[var(--text-secondary)] bg-[var(--bg-tertiary)] px-2 py-0.5 rounded-full border border-[var(--border-color)]">
+                    {materialRequests.filter(r => r.leaderId === user.uid).length} registradas
+                  </span>
+                </div>
+
                 {materialRequests.filter(r => r.leaderId === user.uid).length > 0 ? (
                   materialRequests.filter(r => r.leaderId === user.uid).sort((a, b) => b.createdAt - a.createdAt).map(req => (
-                    <div key={req.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:border-blue-600/30 transition-all shadow-[var(--shadow-sm)]">
-                      <div className="flex items-start gap-5">
-                        <div className={`w-14 h-14 bg-[var(--bg-tertiary)] rounded-sm flex items-center justify-center border border-[var(--border-color)] shadow-inner flex-shrink-0 ${
-                          req.status === 'aprovado' ? 'text-emerald-500' : 
-                          req.status === 'devolucao_pendente' ? 'text-blue-500 animate-pulse' :
-                          req.status === 'devolvido' ? 'text-zinc-500' :
-                          req.status === 'negado' ? 'text-red-500' : 'text-blue-600'
+                    <div key={req.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-blue-600/30 transition-all shadow-sm">
+                      <div className="flex items-center gap-3.5">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center border flex-shrink-0 ${
+                          req.status === 'aprovado' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 
+                          req.status === 'devolucao_pendente' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 animate-pulse' :
+                          req.status === 'devolvido' ? 'bg-zinc-500/10 border-zinc-500/20 text-zinc-500' :
+                          req.status === 'negado' ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-blue-500/10 border-blue-500/20 text-blue-600'
                         }`}>
-                          <Package className="w-6 h-6" />
+                          <Package className="w-5 h-5" />
                         </div>
                         <div className="text-left">
-                          <h4 className="font-black text-[var(--text-primary)] text-sm uppercase tracking-tight font-sans">{req.materialName} ({req.qty} un)</h4>
-                          <div className="mt-1 flex flex-wrap items-center gap-3">
-                            <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">{new Date(req.createdAt).toLocaleDateString()}</span>
-                            <div className="w-1 h-1 bg-zinc-300 rounded-full"></div>
-                            <span className={`text-[9px] font-black uppercase tracking-widest ${
-                              req.status === 'aprovado' ? 'text-emerald-600' : 
-                              req.status === 'devolucao_pendente' ? 'text-blue-600' :
-                              req.status === 'devolvido' ? 'text-zinc-500' :
-                              req.status === 'negado' ? 'text-red-600' : 'text-blue-600'
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-[var(--text-primary)] text-xs uppercase tracking-tight">
+                              {req.materialName}
+                            </h4>
+                            <span className="text-xs font-black text-blue-600 bg-blue-500/10 px-1.5 py-0.5 rounded-md">
+                              {Number(req.qty).toLocaleString('pt-BR')} un
+                            </span>
+                          </div>
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px]">
+                            <span className="text-zinc-400 font-medium">{new Date(req.createdAt).toLocaleDateString('pt-BR')}</span>
+                            <span className="text-zinc-300 dark:text-zinc-700">•</span>
+                            <span className={`font-black uppercase tracking-wider px-2 py-0.5 rounded-md text-[9px] ${
+                              req.status === 'aprovado' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 
+                              req.status === 'devolucao_pendente' ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20' :
+                              req.status === 'devolvido' ? 'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20' :
+                              req.status === 'negado' ? 'bg-red-500/10 text-red-600 border border-red-500/20' : 'bg-blue-500/10 text-blue-600 border border-blue-500/20'
                             }`}>
-                              {req.status === 'devolucao_pendente' ? 'Devolução Pendente' : req.status}
+                              {req.status === 'devolucao_pendente' ? 'Devolução Pendente' : req.status === 'aprovado' ? 'Aprovado' : req.status === 'negado' ? 'Negado' : 'Pendente'}
                             </span>
                             {req.receivedByLeader && (
-                              <>
-                                <div className="w-1 h-1 bg-zinc-300 rounded-full"></div>
-                                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-500/10 px-1.5 py-0.5 rounded-sm">
-                                  ✓ RECEBIDO
-                                </span>
-                              </>
+                              <span className="font-black text-emerald-600 uppercase tracking-wider bg-emerald-500/10 px-1.5 py-0.5 rounded-md text-[9px]">
+                                ✓ Recebido
+                              </span>
                             )}
                           </div>
                           {req.returnDate && (
-                            <p className="mt-1.5 text-[10px] font-black text-blue-600 dark:text-blue-600 uppercase tracking-wider">
+                            <p className="mt-1.5 text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider">
                               Previsão de Devolução: {new Date(req.returnDate + 'T12:00:00').toLocaleDateString('pt-BR')}
                             </p>
                           )}
@@ -2082,7 +2190,11 @@ export default function CaboDashboard({
                               Devolução Confirmada em: {new Date(req.returnApprovedAt).toLocaleString('pt-BR')}
                             </p>
                           )}
-                          {req.reason && <p className="mt-2 text-[10px] font-bold text-zinc-500 italic opacity-70">"{req.reason}"</p>}
+                          {req.reason && (
+                            <p className="text-[11px] text-[var(--text-secondary)] mt-1.5 italic line-clamp-1">
+                              "{req.reason}"
+                            </p>
+                          )}
                           
                           {req.signedBy && (
                             <div className="mt-3 p-2.5 bg-emerald-500/5 border border-emerald-500/10 rounded-sm flex items-center gap-2.5 w-fit">
@@ -2909,8 +3021,34 @@ export default function CaboDashboard({
               </div>
               <form onSubmit={handleFuelSubmit} className="p-6 space-y-4 text-left">
                 <div className="space-y-1.5">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Volume Necessário (Operação em Litros)</label>
-                  <input required type="number" value={fuelForm.amount} onChange={e => setFuelForm({...fuelForm, amount: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-2xl text-zinc-900 outline-none focus:border-blue-500 transition-all placeholder:text-zinc-300" placeholder="0" />
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-wider ml-1 block">Volume Necessário (Litros)</label>
+                  <input 
+                    required 
+                    type="text" 
+                    inputMode="numeric"
+                    value={fuelForm.amount} 
+                    onChange={e => {
+                      const sanitized = e.target.value.replace(/\D/g, '');
+                      setFuelForm({...fuelForm, amount: sanitized});
+                    }} 
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-lg p-3 font-black text-xl text-zinc-900 outline-none focus:border-blue-500 transition-all placeholder:text-zinc-300" 
+                    placeholder="Ex: 50" 
+                  />
+                  <div className="flex gap-2 pt-1">
+                    {[10, 20, 50, 100].map(amt => (
+                      <button
+                        key={amt}
+                        type="button"
+                        onClick={() => {
+                          const cur = parseInt(fuelForm.amount.replace(/\D/g, '') || '0', 10);
+                          setFuelForm(prev => ({ ...prev, amount: String(cur + amt) }));
+                        }}
+                        className="px-2.5 py-1 text-[10px] font-bold rounded-md bg-zinc-100 hover:bg-blue-600 hover:text-white text-zinc-700 border border-zinc-200 transition-all active:scale-95"
+                      >
+                        +{amt}L
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Roteiro Planejado e Justificativa</label>

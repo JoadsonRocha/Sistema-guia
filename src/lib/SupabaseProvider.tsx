@@ -232,6 +232,13 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
 
     const effectiveCoordId = geralCheck ? uid : (profile.coordinatorId || uid);
 
+    const alreadyChanged = localStorage.getItem(`nexus_pwd_changed_${uid}`) === 'true' || 
+                           sessionStorage.getItem(`nexus_pwd_changed_${uid}`) === 'true' ||
+                           profile?.forcePasswordChange === false ||
+                           profile?.passwordChangedAt;
+
+    const mustForcePassword = !alreadyChanged && !!profile?.forcePasswordChange;
+
     setUser({
       uid,
       id: uid,
@@ -245,7 +252,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     setIsLeader(leaderCheck);
     setIsAdmin(adminCheck);
     setUserRegion(profile.region || (isAntonio ? 'REGIÃO 1 - BV' : null));
-    setForcePasswordChange(!!profile.forcePasswordChange);
+    setForcePasswordChange(mustForcePassword);
     setCoordinatorId(effectiveCoordId);
     setLoading(false);
   };
@@ -503,9 +510,34 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.updateUser({ password: newPass });
       if (error) throw error;
     }
-    if (user?.uid) {
-      await supabaseDataService.setDocument('users', user.uid, { forcePasswordChange: false }, true);
+    const uid = user?.uid || user?.id;
+    if (uid) {
+      const now = Date.now();
+      localStorage.setItem(`nexus_pwd_changed_${uid}`, 'true');
+      sessionStorage.setItem(`nexus_pwd_changed_${uid}`, 'true');
       setForcePasswordChange(false);
+      
+      await supabaseDataService.setDocument('users', uid, { 
+        forcePasswordChange: false,
+        passwordChangedAt: now 
+      }, true);
+
+      if (user?.email) {
+        try {
+          await supabaseDataService.setDocument('pre_registrations', user.email.toLowerCase(), { 
+            forcePasswordChange: false,
+            passwordChangedAt: now 
+          }, true);
+        } catch (e) {}
+      }
+
+      if (supabase) {
+        try {
+          await supabase.from('profiles').update({
+            force_password_change: false
+          }).eq('id', uid);
+        } catch (e) {}
+      }
     }
   };
 
