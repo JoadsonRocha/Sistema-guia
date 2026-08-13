@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { ShieldCheck, Eye, EyeOff, Lock, Mail, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/SupabaseProvider';
@@ -33,6 +33,7 @@ export function LoginPage() {
   const [showDomainGuide, setShowDomainGuide] = useState(false);
   const [copiedDomain, setCopiedDomain] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Handle URL Params for Easy Access and store them safely
   useEffect(() => {
@@ -69,7 +70,7 @@ export function LoginPage() {
         const decodedPass = atob(tokenParam);
         setPassword(decodedPass);
       } catch (e) {
-        console.error("Token inválido");
+        setPassword(tokenParam);
       }
     }
 
@@ -83,6 +84,7 @@ export function LoginPage() {
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
+    setIsLoading(true);
     const params = new URLSearchParams(window.location.search);
     const urlRole = (params.get('role') || inviteParams.role || userRole) as any;
     const urlCoordId = params.get('coordinatorId') || inviteParams.coordinatorId || '';
@@ -137,10 +139,10 @@ export function LoginPage() {
         // Impedir que cadastros abertos ganhem direitos administrativos
         if ((effectiveRole === 'coordenador_geral' || effectiveRole === 'admin' || effectiveRole === 'coordenador') && !preRegDoc) {
           setAuthError('Erro de Segurança: Não é permitido criar contas administrativas ou de Coordenador Geral sem pré-registro autorizado no comitê.');
+          setIsLoading(false);
           return;
         }
 
-        // Subordinação consistente baseada no convidador
         const effectiveCoordinatorId = preRegDoc?.coordinatorId || urlCoordId;
         const effectiveRegionalCoordId = preRegDoc?.regionalCoordId || urlRegionalCoordId;
         const effectiveTeamId = preRegDoc?.teamId || urlTeamId;
@@ -150,6 +152,7 @@ export function LoginPage() {
           const validation = await validateGeneralCoordinatorRegistration();
           if (!validation.allowed) {
             triggerUpgradeRedirect(validation.reason!, true);
+            setIsLoading(false);
             return;
           }
         }
@@ -210,16 +213,18 @@ export function LoginPage() {
       const errorCode = err.code || '';
 
       if (errorCode === 'auth/email-already-in-use' || errorMsg.includes('email-already-in-use')) {
-        setAuthError('Este e-mail já possui uma conta activa no Supabase. Se você é o líder João Cardoso e já criou uma senha personalizada anteriormente, por favor faça o login usando a SUA SENHA cadastrada. Caso tenha esquecido, clique em "Esqueceu a senha?" abaixo para redefinir.');
+        setAuthError('Este e-mail já possui uma conta ativa. Faça o login usando sua senha cadastrada.');
       } else if (errorCode === 'auth/invalid-credential' || errorMsg.includes('invalid-credential') || errorMsg.includes('INVALID_LOGIN_CREDENTIALS')) {
-        setAuthError('Chave de acesso (senha) incorreta para este operador. Se você recebeu uma senha temporária por WhatsApp, verifique se digitou as letras e números exatamente iguais.');
+        setAuthError('Chave de acesso incorreta. Verifique os dados digitados ou a senha temporária.');
       } else if (errorCode === 'auth/user-not-found' || errorMsg.includes('user-not-found')) {
-        setAuthError('Operador não encontrado. Se você é um líder novo, certifique-se de que o coordenador cadastrou o seu e-mail corretamente.');
+        setAuthError('Operador não encontrado. Certifique-se de que seu e-mail foi cadastrado pela coordenação.');
       } else if (errorCode === 'auth/too-many-requests' || errorMsg.includes('too-many-requests')) {
-        setAuthError('Acesso bloqueado temporariamente por excesso de tentativas incorretas. Aguarde alguns instantes ou mude sua senha.');
+        setAuthError('Muitas tentativas incorretas. Aguarde alguns instantes ou redefina sua senha.');
       } else {
         setAuthError(errorMsg || 'Erro na autenticação. Verifique suas credenciais.');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -234,76 +239,97 @@ export function LoginPage() {
       const errorCode = err.code || '';
       
       if (errorCode === 'auth/cancelled-popup-request' || errorMsg.includes('cancelled-popup-request')) {
-        setAuthError('Requisição de login cancelada ou já em andamento. Clique novamente se necessário.');
+        setAuthError('Requisição de login cancelada.');
       } else if (errorCode === 'auth/popup-closed-by-user' || errorMsg.includes('popup-closed-by-user')) {
         setAuthError('Janela de autenticação fechada antes de concluir o login.');
       } else if (errorCode === 'auth/unauthorized-domain' || errorMsg.includes('unauthorized-domain')) {
         setAuthError('Domínio de visualização não autorizado no Supabase.');
         setShowDomainGuide(true);
       } else if (errorCode === 'auth/popup-blocked' || errorMsg.includes('popup-blocked')) {
-        setAuthError('O popup de login foi bloqueado pelo navegador. Ative as permissões de popups para este domínio.');
-      } else if (errorCode === 'auth/operation-not-allowed' || errorMsg.includes('operation-not-allowed')) {
-        setAuthError('O login do Google não está ativado no Supabase. Ative o Google em "Authentication > Sign-in method" no Console.');
+        setAuthError('O popup de login foi bloqueado pelo navegador.');
       } else {
-        setAuthError(errorMsg || 'Erro na autenticação com Google. Verifique o console do navegador.');
+        setAuthError(errorMsg || 'Erro na autenticação com Google.');
       }
     }
   };
 
-  return (
-    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 md:p-12 text-center selection:bg-blue-600 selection:text-white transition-colors duration-500 relative overflow-hidden">
-      {/* Abstract Background Accents */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
-      <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px]"></div>
-      <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px]"></div>
+  const roleBadgeLabel = inviteParams.role === 'coordenador_regional' 
+    ? 'Convite: Coordenação Regional' 
+    : inviteParams.role === 'lider' 
+    ? 'Convite: Liderança de Equipe' 
+    : null;
 
+  return (
+    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center px-4 py-8 sm:px-6 relative overflow-hidden transition-colors duration-300 selection:bg-blue-600 selection:text-white">
+      {/* Dynamic Ambient Background Highlights */}
+      <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 via-cyan-500 to-indigo-600"></div>
+      <div className="absolute top-1/4 -right-24 w-72 h-72 sm:w-96 sm:h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 -left-24 w-72 h-72 sm:w-96 sm:h-96 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+      {/* Main Login Card */}
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }} 
-        animate={{ opacity: 1, scale: 1 }}
-        className="max-w-md w-full bg-[var(--bg-secondary)] p-10 md:p-14 rounded-[28px] shadow-[0_25px_85px_-30px_rgba(2,132,199,0.45)] border border-[var(--border-color)] relative z-20 backdrop-blur-sm"
+        initial={{ opacity: 0, y: 16 }} 
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="w-full max-w-[420px] bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-6 sm:p-8 shadow-xl shadow-blue-950/5 relative z-20 backdrop-blur-md"
       >
-        <div className="flex items-center justify-center gap-3 mb-6 text-[var(--text-primary)]">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-600/10 text-blue-600">
-            <ShieldCheck className="h-6 w-6" />
-          </div>
-          <div className="text-left">
-            <p className="text-[10px] font-black uppercase tracking-[0.35em] text-blue-600">Acesso restrito</p>
-            <p className="text-sm font-semibold text-[var(--text-secondary)]">Painel operacional Nexus Política</p>
-          </div>
-        </div>
-        <div className="flex justify-center mb-6 text-[var(--text-primary)]">
-          <div className="flex items-center justify-center bg-transparent w-full">
+        {/* Header / Logo */}
+        <div className="text-center space-y-3.5 mb-6">
+          <div className="flex justify-center items-center">
             <img 
               src={logoImg} 
               onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }} 
               alt="Logo Nexus Política" 
-              className="max-h-56 md:max-h-72 w-full max-w-[300px] md:max-w-[360px] object-contain transition-all" 
+              className="h-11 sm:h-12 w-auto max-w-[190px] object-contain drop-shadow-sm transition-all" 
             />
+          </div>
+
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider">
+              <ShieldCheck className="w-3 h-3" />
+              <span>Painel Eleitoral 2026</span>
+            </div>
+            <h1 className="text-base sm:text-lg font-black tracking-tight text-[var(--text-primary)]">
+              {isRegistering ? 'Criar Acesso Operacional' : 'Acesso Seguro ao Sistema'}
+            </h1>
+            <p className="text-xs text-[var(--text-secondary)] opacity-80">
+              {roleBadgeLabel ? (
+                <span className="font-semibold text-blue-600 dark:text-blue-400">{roleBadgeLabel}</span>
+              ) : (
+                'Entre com suas credenciais para continuar'
+              )}
+            </p>
           </div>
         </div>
         
-        <form onSubmit={handleEmailAuth} className="space-y-6 text-left relative z-10">
-          {isRegistering && (
-            <div className="bg-[var(--bg-tertiary)] p-1 rounded-sm flex mb-6 border border-[var(--border-color)] shadow-inner">
-              <div className="flex-1 py-3 rounded-sm font-black text-[10px] tracking-widest bg-blue-600 text-white shadow-lg text-center uppercase">
-                Somente Coordenador
+        {/* Auth Form */}
+        <form onSubmit={handleEmailAuth} className="space-y-3.5 text-left">
+          {/* Email Field */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
+              E-mail Operacional
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-secondary)] opacity-50">
+                <Mail className="w-4 h-4" />
               </div>
+              <input 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-semibold text-xs sm:text-sm placeholder:[var(--text-secondary)] placeholder:opacity-40"
+                placeholder="nome@campanha.com"
+              />
             </div>
-          )}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 block opacity-60">Credencial de E-mail</label>
-            <input 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-4.5 rounded-sm focus:outline-none focus:border-blue-600 transition-all font-bold text-sm shadow-inner placeholder:[var(--text-secondary)] placeholder:opacity-30"
-              placeholder="operador@sistema.com"
-            />
           </div>
-          <div className="space-y-2">
+
+          {/* Password Field */}
+          <div className="space-y-1.5">
             <div className="flex justify-between items-center">
-              <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1 block opacity-60">Chave de Acesso</label>
+              <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
+                Chave de Acesso (Senha)
+              </label>
               {!isRegistering && (
                 <button
                   type="button"
@@ -317,29 +343,32 @@ export function LoginPage() {
                         await resetPassword(email);
                         alert(`E-mail de redefinição enviado com sucesso para ${email}! Verifique sua caixa de entrada.`);
                       } catch (err: any) {
-                        alert(`Erro ao enviar e-mail de redefinição: ${err.message || err}`);
+                        alert(`Erro ao enviar e-mail: ${err.message || err}`);
                       }
                     }
                   }}
-                  className="text-[9px] font-black text-blue-600 hover:text-blue-500 uppercase tracking-widest transition-colors focus:outline-none"
+                  className="text-[10px] font-bold text-blue-600 hover:text-blue-500 transition-colors focus:outline-none"
                 >
                   Esqueceu a senha?
                 </button>
               )}
             </div>
             <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-secondary)] opacity-50">
+                <Lock className="w-4 h-4" />
+              </div>
               <input 
                 type={showPassword ? 'text' : 'password'} 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-4.5 pr-12 rounded-sm focus:outline-none focus:border-blue-600 transition-all font-bold text-sm shadow-inner placeholder:[var(--text-secondary)] placeholder:opacity-30"
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] pl-10 pr-10 py-2.5 sm:py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-semibold text-xs sm:text-sm placeholder:[var(--text-secondary)] placeholder:opacity-40"
                 placeholder="••••••••"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-blue-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-blue-600 transition-colors p-1"
                 aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -347,102 +376,104 @@ export function LoginPage() {
             </div>
           </div>
 
+          {/* Error Message */}
           {authError && (
-            <div className="space-y-3">
-              <p className="text-red-500 text-[10px] font-black uppercase text-center bg-red-500/10 py-3 rounded-sm border border-red-500/20 tracking-wider">
+            <div className="space-y-2 pt-1">
+              <p className="text-red-500 text-xs font-semibold text-center bg-red-500/10 py-2 px-3 rounded-xl border border-red-500/20">
                 {authError}
               </p>
               
               {showDomainGuide && (
-                <div className="bg-blue-600/5 border border-blue-600/20 rounded-sm p-4 text-left space-y-3 animate-fadeIn">
-                  <h4 className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-                    ⚠️ Passo a Passo de Configuração do Firebase (Nova Interface):
+                <div className="bg-blue-600/5 border border-blue-600/20 rounded-xl p-3 text-left space-y-2 text-xs">
+                  <h4 className="font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider text-[10px]">
+                    Configuração de Domínio no Firebase:
                   </h4>
-                  <p className="text-[10px] font-bold text-[var(--text-secondary)] leading-relaxed uppercase opacity-80">
-                    O login com Google exige autorização do domínio nas configurações do seu projeto no Firebase Console.
-                  </p>
-                  
-                  <div className="space-y-2 mt-2">
-                    <span className="text-[8px] font-black uppercase tracking-wider text-[var(--text-secondary)]">1. Copie o domínio do seu aplicativo:</span>
-                    
-                    {[
-                      window.location.hostname,
-                    ].filter((val, idx, self) => self.indexOf(val) === idx).map((dom) => (
-                      <div key={dom} className="flex items-center justify-between bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-2 rounded-sm gap-2">
-                        <code className="text-[9px] font-mono select-all truncate text-[var(--text-primary)]">{dom}</code>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(dom);
-                            setCopiedDomain(dom);
-                            setTimeout(() => setCopiedDomain(null), 2000);
-                          }}
-                          className="px-2 py-1 text-[8px] font-black uppercase tracking-wider bg-blue-600 text-white rounded-sm hover:bg-blue-500 active:scale-95 transition-all shrink-0"
-                        >
-                          {copiedDomain === dom ? 'Copiado!' : 'Copiar'}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="text-[9px] text-[var(--text-secondary)] leading-relaxed space-y-2 pt-2 border-t border-[var(--border-color)]">
-                    <p className="font-bold uppercase"><span className="text-blue-600 dark:text-blue-400 font-black">2.</span> Acesse o <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="underline text-blue-600 dark:text-blue-400 font-black">Firebase Console</a> e abra o seu projeto.</p>
-                    <p className="font-bold uppercase"><span className="text-blue-600 dark:text-blue-400 font-black">3.</span> No menu esquerdo, clique em <strong className="text-[var(--text-primary)]">Authentication</strong>.</p>
-                    <p className="font-bold uppercase"><span className="text-blue-600 dark:text-blue-400 font-black">4.</span> Clique em <strong className="text-[var(--text-primary)]">Configurações</strong>.</p>
-                    <p className="font-bold uppercase"><span className="text-blue-600 dark:text-blue-400 font-black">5.</span> Acesse <strong className="text-[var(--text-primary)]">Domínios autorizados</strong>.</p>
-                    <p className="font-bold uppercase"><span className="text-blue-600 dark:text-blue-400 font-black">6.</span> Clique em <strong className="text-[var(--text-primary)]">Adicionar domínio</strong>, cole o endereço copiado e confirme.</p>
+                  <div className="flex items-center justify-between bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-2 rounded-lg gap-2">
+                    <code className="text-[10px] font-mono select-all truncate text-[var(--text-primary)]">{window.location.hostname}</code>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(window.location.hostname);
+                        setCopiedDomain(window.location.hostname);
+                        setTimeout(() => setCopiedDomain(null), 2000);
+                      }}
+                      className="px-2.5 py-1 text-[9px] font-bold bg-blue-600 text-white rounded-md hover:bg-blue-500 active:scale-95 transition-all shrink-0"
+                    >
+                      {copiedDomain === window.location.hostname ? 'Copiado!' : 'Copiar'}
+                    </button>
                   </div>
                 </div>
               )}
             </div>
           )}
 
+          {/* Submit Button */}
           <button 
             type="submit"
-            className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:from-blue-700 hover:to-cyan-600 py-5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl transition-all active:scale-95"
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-2.5 sm:py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 mt-2"
           >
-            {isRegistering ? 'Solicitar Cadastro' : 'Autenticar Unidade'}
+            {isLoading ? (
+              <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            ) : (
+              <>
+                <span>{isRegistering ? 'Concluir Cadastro' : 'Entrar no Painel'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
 
-        <div className="relative my-10 z-10">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-[var(--border-color)]"></div></div>
-          <div className="relative flex justify-center text-[8px] uppercase font-black text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-4 tracking-[0.4em] opacity-40">LOGIN CORPORATIVO</div>
+        {/* Divider */}
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-[var(--border-color)]"></div>
+          </div>
+          <div className="relative flex justify-center text-[9px] uppercase font-bold text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-3 tracking-widest opacity-60">
+            ou acesse com
+          </div>
         </div>
 
+        {/* Google Auth Button */}
         <button 
+          type="button"
           onClick={handleGoogleAuth}
-          className="w-full bg-[var(--bg-tertiary)] text-[var(--text-primary)] py-4.5 rounded-sm font-black text-[10px] uppercase flex items-center justify-center gap-4 border border-[var(--border-color)] hover:bg-[var(--bg-secondary)] transition-all shadow-sm relative z-10"
+          className="w-full bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] text-[var(--text-primary)] py-2.5 px-4 rounded-xl font-semibold text-xs flex items-center justify-center gap-2.5 border border-[var(--border-color)] transition-all shadow-sm active:scale-[0.98] cursor-pointer"
         >
-          <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-blue-600 shrink-0" viewBox="0 0 24 24">
              <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
              <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
              <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
              <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
           </svg>
-          Google Cloud Auth
+          <span>Google Account</span>
         </button>
 
-        <div className="flex items-center justify-between mt-8 pt-4 border-t border-[var(--border-color)] relative z-10 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">
+        {/* Footer Nav */}
+        <div className="flex items-center justify-between mt-5 pt-3.5 border-t border-[var(--border-color)] text-xs text-[var(--text-secondary)]">
           <button 
+            type="button"
             onClick={() => setIsRegistering(!isRegistering)}
-            className="hover:text-blue-600 transition-colors opacity-70"
+            className="hover:text-blue-600 transition-colors font-medium cursor-pointer"
           >
-            {isRegistering ? 'Efetuar Login' : 'Registrar Operador'}
+            {isRegistering ? 'Já possui conta? Entrar' : 'Registrar Operador'}
           </button>
 
-
-
           <button 
+            type="button"
             onClick={() => navigate('/')}
-            className="text-blue-600 hover:text-blue-500 transition-colors flex items-center gap-1 font-extrabold"
+            className="text-blue-600 hover:text-blue-500 font-bold transition-colors flex items-center gap-1 cursor-pointer"
           >
-            Página de Vendas &rarr;
+            <span>Início</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </motion.div>
       
-      <p className="mt-12 text-[10px] font-black text-[var(--text-secondary)] opacity-20 uppercase tracking-[0.5em] relative z-20">Eagle Intelligence Systems • 2026</p>
+      {/* Clean Footer Branding */}
+      <p className="mt-5 text-[11px] font-medium text-[var(--text-secondary)] opacity-50 tracking-wider">
+        Nexus Política • Sistema de Inteligência Eleitoral
+      </p>
     </div>
   );
 }

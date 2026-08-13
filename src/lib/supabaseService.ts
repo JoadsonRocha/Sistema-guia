@@ -444,21 +444,28 @@ export const supabaseDataService = {
 
     const client = getSupabaseClient();
     if (client) {
-      const channel = client
-        .channel(`public:campaign_records:${path}`)
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'campaign_records',
-          filter: `record_type=eq.${path}`
-        }, () => {
-          (this as any).getCollection(path).then(callback);
-        })
-        .subscribe();
+      const channelId = `pub_rec_${path}_${Math.random().toString(36).slice(2, 8)}_${Date.now()}`;
+      try {
+        const channel = client
+          .channel(channelId)
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'campaign_records',
+            filter: `record_type=eq.${path}`
+          }, () => {
+            (this as any).getCollection(path).then(callback);
+          })
+          .subscribe();
 
-      return () => {
-        client.removeChannel(channel);
-      };
+        return () => {
+          try {
+            client.removeChannel(channel);
+          } catch (e) {}
+        };
+      } catch (err) {
+        console.warn('Realtime subscription error for path:', path, err);
+      }
     }
 
     return () => {};
@@ -469,21 +476,28 @@ export const supabaseDataService = {
 
     const client = getSupabaseClient();
     if (client) {
-      const channel = client
-        .channel(`public:campaign_records:${path}:${coordinatorId}`)
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'campaign_records',
-          filter: `record_type=eq.${path}`
-        }, () => {
-          (this as any).getCollectionFiltered(path, coordinatorId).then(callback);
-        })
-        .subscribe();
+      const channelId = `pub_rec_filt_${path}_${Math.random().toString(36).slice(2, 8)}_${Date.now()}`;
+      try {
+        const channel = client
+          .channel(channelId)
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'campaign_records',
+            filter: `record_type=eq.${path}`
+          }, () => {
+            (this as any).getCollectionFiltered(path, coordinatorId).then(callback);
+          })
+          .subscribe();
 
-      return () => {
-        client.removeChannel(channel);
-      };
+        return () => {
+          try {
+            client.removeChannel(channel);
+          } catch (e) {}
+        };
+      } catch (err) {
+        console.warn('Realtime filtered subscription error for path:', path, err);
+      }
     }
 
     return () => {};
