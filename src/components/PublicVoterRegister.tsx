@@ -96,18 +96,18 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
   // Escutar dados do candidato cadastrados do Supabase
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const activeCoordId = leaderInfo?.coordinatorId || urlParams.get('coordinatorId') || urlParams.get('leaderId') || undefined;
+    const activeCoordId = leaderInfo?.coordinatorId || urlParams.get('coordinatorId') || undefined;
 
     // Busca inicial imediata
     candidateService.getCandidateInfo(activeCoordId).then((info) => {
-      setCandidateInfo(info);
+      if (info) setCandidateInfo(info);
     }).catch((err) => {
       console.warn("Erro ao buscar candidate info:", err);
     });
 
     // Subscrição em tempo real
     const unsub = candidateService.subscribeCandidateInfo((info) => {
-      setCandidateInfo(info);
+      if (info) setCandidateInfo(info);
     }, activeCoordId);
 
     return () => unsub();

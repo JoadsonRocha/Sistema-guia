@@ -2321,6 +2321,27 @@ export default function CoordinatorDashboard({
               {profileData?.zone || 'Setor Geral da Campanha'}
             </p>
           </div>
+
+          {/* Cartão Oficial do Candidato */}
+          <div className="w-full bg-gradient-to-br from-blue-900/60 via-slate-900/70 to-blue-950/60 rounded-xl p-3.5 border border-blue-500/30 space-y-2 text-left shadow-md">
+            <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest block">Candidato da Campanha</span>
+            <div className="flex items-center gap-2.5">
+              <img 
+                src={candidateForm?.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
+                alt="Candidato" 
+                className="w-10 h-10 rounded-full object-cover border-2 border-blue-500 shadow-sm shrink-0 bg-slate-800"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+              />
+              <div className="overflow-hidden min-w-0">
+                <p className="text-xs font-black text-white truncate">
+                  {candidateForm?.name || 'Candidato Oficial'}
+                </p>
+                <p className="text-[10px] font-bold text-blue-300 truncate">
+                  {candidateForm?.title || 'Campanha 2026'}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <nav className="flex-1 space-y-1">
@@ -2469,13 +2490,33 @@ export default function CoordinatorDashboard({
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <button 
-              onClick={() => { setActiveTab('candidato'); setIsCandidateModalOpen(true); }}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-md text-xs font-bold transition-all active:scale-95 cursor-pointer whitespace-nowrap"
-              title="Cadastrar foto, biografia e informações do candidato para o link de cadastro"
-            >
-              <UserPlus className="w-4 h-4" /> Cadastrar Candidato
-            </button>
+            {/* Badge de Identificação do Político / Candidato */}
+            <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 bg-blue-600/10 dark:bg-blue-900/30 border border-blue-500/30 rounded-xl">
+              <img 
+                src={candidateForm?.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
+                alt="Candidato" 
+                className="w-7 h-7 rounded-full object-cover border border-blue-500 shrink-0 bg-slate-800" 
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+              />
+              <div className="text-left">
+                <p className="text-[11px] font-black text-[var(--text-primary)] leading-none truncate max-w-[170px]">
+                  {candidateForm?.name || 'Candidato Oficial'}
+                </p>
+                <p className="text-[9px] font-bold text-blue-600 dark:text-blue-400 leading-none mt-0.5 truncate max-w-[170px]">
+                  {candidateForm?.title || 'Campanha 2026'}
+                </p>
+              </div>
+            </div>
+
+            {isGeral && (
+              <button 
+                onClick={() => { setActiveTab('candidato'); setIsCandidateModalOpen(true); }}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-md text-xs font-bold transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+                title="Cadastrar foto, biografia e informações do candidato para o link de cadastro"
+              >
+                <UserPlus className="w-4 h-4" /> Cadastrar Candidato
+              </button>
+            )}
 
             <button 
               onClick={() => setIsWaModalOpen(true)}

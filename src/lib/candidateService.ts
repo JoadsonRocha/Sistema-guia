@@ -26,12 +26,20 @@ export const DEFAULT_CANDIDATE_INFO: CandidateInfo = {
 
 const CACHE_KEY_LIST = 'nexus_candidates_list_cache';
 
+function isRealCandidate(c?: Partial<CandidateInfo> | null): boolean {
+  if (!c || !c.name) return false;
+  const name = c.name.trim().toLowerCase();
+  return name !== '' && name !== 'seu candidato' && name !== 'candidato oficial' && name !== 'candidato cadastrado' && name !== 'nome do candidato';
+}
+
 function getLocalCacheList(): CandidateInfo[] {
   try {
     const item = localStorage.getItem(CACHE_KEY_LIST);
     if (item) {
       const parsed = JSON.parse(item);
       if (Array.isArray(parsed) && parsed.length > 0) {
+        const realCandidates = parsed.filter(c => isRealCandidate(c));
+        if (realCandidates.length > 0) return realCandidates;
         return parsed;
       }
     }
@@ -59,21 +67,66 @@ export const candidateService = {
    */
   async getCandidatesList(coordinatorId?: string): Promise<CandidateInfo[]> {
     try {
+      // 1. Verificar lista associada ao coordinatorId específico
       if (coordinatorId) {
         const docCoord = await supabaseService.getDocument<any>('settings', `candidates_${coordinatorId}`);
         if (docCoord && Array.isArray(docCoord.list) && docCoord.list.length > 0) {
-          setLocalCacheList(docCoord.list);
-          return docCoord.list;
+          const valid = docCoord.list.filter((c: any) => isRealCandidate(c));
+          if (valid.length > 0) {
+            setLocalCacheList(docCoord.list);
+            return docCoord.list;
+          }
+        }
+        const singleCoord = await supabaseService.getDocument<any>('settings', `candidate_${coordinatorId}`);
+        if (isRealCandidate(singleCoord)) {
+          setLocalCacheList([singleCoord]);
+          return [singleCoord];
         }
       }
 
+      // 2. Verificar lista global 'candidates_list'
       const docGlobal = await supabaseService.getDocument<any>('settings', 'candidates_list');
       if (docGlobal && Array.isArray(docGlobal.list) && docGlobal.list.length > 0) {
-        setLocalCacheList(docGlobal.list);
-        return docGlobal.list;
+        const valid = docGlobal.list.filter((c: any) => isRealCandidate(c));
+        if (valid.length > 0) {
+          setLocalCacheList(docGlobal.list);
+          return docGlobal.list;
+        }
       }
 
+      // 3. Verificar documento único global 'candidate'
+      const singleGlobal = await supabaseService.getDocument<any>('settings', 'candidate');
+      if (isRealCandidate(singleGlobal)) {
+        const list = [singleGlobal];
+        setLocalCacheList(list);
+        return list;
+      }
+
+      // 4. Buscar em todos os registros de settings por qualquer candidato registrado
+      try {
+        const allSettings = await supabaseService.getCollection<any>('settings');
+        for (const doc of allSettings) {
+          if (doc && Array.isArray(doc.list) && doc.list.length > 0) {
+            const valid = doc.list.filter((c: any) => isRealCandidate(c));
+            if (valid.length > 0) {
+              setLocalCacheList(doc.list);
+              return doc.list;
+            }
+          }
+          if (isRealCandidate(doc)) {
+            const list = [doc];
+            setLocalCacheList(list);
+            return list;
+          }
+        }
+      } catch (e) {}
+
+      // 5. Verificar cache local caso possua candidato real
       const cached = getLocalCacheList();
+      const realCached = cached.filter(c => isRealCandidate(c));
+      if (realCached.length > 0) return realCached;
+
+      // 6. Se nada encontrado no servidor ainda, retornar cache ou fallback
       if (cached && cached.length > 0) return cached;
     } catch (error) {
       console.warn("Aviso ao buscar lista de candidatos:", error);

@@ -1307,6 +1307,27 @@ export default function CaboDashboard({
               {profileData.zone || 'Setor Geral da Campanha'}
             </p>
           </div>
+
+          {/* Cartão Oficial do Candidato para Líderes de Equipe */}
+          <div className="mt-3 w-full bg-gradient-to-br from-blue-900/60 via-slate-900/70 to-blue-950/60 rounded-xl p-3.5 border border-blue-500/30 space-y-2 text-left shadow-md">
+            <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest block">Trabalhando pela Campanha:</span>
+            <div className="flex items-center gap-2.5">
+              <img 
+                src={candidateInfo?.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
+                alt="Candidato" 
+                className="w-10 h-10 rounded-full object-cover border-2 border-blue-500 shadow-sm shrink-0 bg-slate-800"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+              />
+              <div className="overflow-hidden min-w-0">
+                <p className="text-xs font-black text-white truncate">
+                  {candidateInfo?.name || 'Candidato Oficial'}
+                </p>
+                <p className="text-[10px] font-bold text-blue-300 truncate">
+                  {candidateInfo?.title || 'Campanha 2026'}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <nav className="flex-1 p-5 space-y-1 overflow-y-auto custom-scrollbar">
@@ -1355,6 +1376,24 @@ export default function CaboDashboard({
              <div className="bg-blue-600/10 text-blue-600 px-4 py-2 rounded-sm border border-blue-600/20 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></div>
                 Setor: {profileData.zone || 'Identificando...'}
+             </div>
+
+             {/* Badge Oficial do Candidato */}
+             <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-600/10 dark:bg-blue-900/30 border border-blue-500/30 rounded-xl">
+               <img 
+                 src={candidateInfo?.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
+                 alt="Candidato" 
+                 className="w-7 h-7 rounded-full object-cover border border-blue-500 shrink-0 bg-slate-800" 
+                 onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+               />
+               <div className="text-left">
+                 <p className="text-[11px] font-black text-[var(--text-primary)] leading-none truncate max-w-[180px]">
+                   {candidateInfo?.name || 'Candidato Oficial'}
+                 </p>
+                 <p className="text-[9px] font-bold text-blue-600 dark:text-blue-400 leading-none mt-0.5 truncate max-w-[180px]">
+                   {candidateInfo?.title || 'Campanha 2026'}
+                 </p>
+               </div>
              </div>
           </div>
 
