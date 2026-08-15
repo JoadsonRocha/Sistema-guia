@@ -579,8 +579,10 @@ export default function CoordinatorDashboard({
   const [collapsedRequests, setCollapsedRequests] = useState<Record<string, boolean>>({});
   const [demandsSummary, setDemandsSummary] = useState<any[]>([]);
   const [dailyOrder, setDailyOrder] = useState<any>(null);
+  const [dailyOrders, setDailyOrders] = useState<any[]>([]);
   const [isEditingDailyOrder, setIsEditingDailyOrder] = useState(false);
   const [newDailyOrder, setNewDailyOrder] = useState('');
+  const [showOrderHistory, setShowOrderHistory] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isWaModalOpen, setIsWaModalOpen] = useState(false);
   const [isManualOpen, setIsManualOpen] = useState(false);
@@ -1041,18 +1043,59 @@ export default function CoordinatorDashboard({
   }, [urgencies]);
 
   const handleUpdateDailyOrder = async () => {
+    if (!newDailyOrder.trim()) {
+      alert('Digite o texto da diretiva antes de transmitir.');
+      return;
+    }
     try {
       const activeCoordId = coordinatorId || user?.uid || '';
-      await supabaseService.setDocument('config', `dailyOrder_${activeCoordId}`, {
-        text: newDailyOrder,
-        updatedAt: Date.now(),
-        updatedBy: profileData?.name || user?.email,
+      const now = Date.now();
+      const newId = `order_${activeCoordId}_${now}`;
+
+      // Fechar a diretiva ativa anterior (se existir)
+      const activeOrders = dailyOrders.filter(o => o.status === 'active');
+      for (const prev of activeOrders) {
+        await supabaseService.setDocument('daily_orders', prev.id, {
+          ...prev,
+          status: 'closed',
+          closedAt: now
+        });
+      }
+
+      // Criar nova diretiva ativa
+      await supabaseService.setDocument('daily_orders', newId, {
+        id: newId,
+        text: newDailyOrder.trim(),
+        status: 'active',
+        createdAt: now,
+        updatedAt: now,
+        createdBy: profileData?.name || user?.email || 'Comando',
         coordinatorId: activeCoordId
       });
+
       setIsEditingDailyOrder(false);
-      alert("Ordem do Dia enviada para todas as unidades da sua campanha!");
+      setNewDailyOrder('');
+      showToast('📢 Diretiva transmitida para todas as unidades!', 'success');
     } catch (err) {
-      alert("Erro ao enviar ordem: " + err);
+      alert('Erro ao enviar ordem: ' + err);
+    }
+  };
+
+  const handleCloseActiveOrder = async () => {
+    if (!window.confirm('Encerrar a diretiva ativa? Ela será movida para o histórico.')) return;
+    try {
+      const activeCoordId = coordinatorId || user?.uid || '';
+      const activeOrders = dailyOrders.filter(o => o.status === 'active');
+      for (const prev of activeOrders) {
+        await supabaseService.setDocument('daily_orders', prev.id, {
+          ...prev,
+          status: 'closed',
+          closedAt: Date.now()
+        });
+      }
+      showToast('Diretiva encerrada e arquivada.', 'success');
+    } catch (err) {
+      alert('Erro ao encerrar diretiva: ' + err);
     }
   };
 
@@ -1696,12 +1739,11 @@ export default function CoordinatorDashboard({
       });
     }
 
-    const unsubDailyOrder = supabaseService.subscribeToCollection<any>('config', (data) => {
-      const found = data.find(c => c.id === `dailyOrder_${coordinatorId}`);
-      if (found) {
-        setDailyOrder(found);
-        setNewDailyOrder(found.text || '');
-      }
+    const unsubDailyOrder = supabaseService.subscribeToCollectionFiltered<any>('daily_orders', coordinatorId, (data) => {
+      const sorted = [...data].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      setDailyOrders(sorted);
+      const active = sorted.find(o => o.status === 'active');
+      setDailyOrder(active || null);
     });
 
     const unsubMaterials = supabaseService.subscribeToCollectionFiltered('materials', coordinatorId, (data) => setMaterials(data));
@@ -2623,8 +2665,9 @@ export default function CoordinatorDashboard({
                 <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none text-zinc-400 group-hover:scale-110 transition-transform duration-700">
                   <ShieldCheck className="w-40 h-40" />
                 </div>
-                
-                <div className="flex items-center justify-between mb-4 relative z-10 transition-transform">
+
+                {/* Cabeçalho */}
+                <div className="flex items-center justify-between mb-4 relative z-10">
                   <div className="flex items-center gap-3">
                     <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 rounded-md border border-blue-100 dark:border-blue-900/40">
                       <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -2635,44 +2678,98 @@ export default function CoordinatorDashboard({
                     </div>
                   </div>
                   {isAdmin && (
-                    <button 
-                      onClick={() => setIsEditingDailyOrder(!isEditingDailyOrder)}
-                      className="text-[9px] font-bold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider hover:text-blue-600 transition-colors border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                    >
-                      {isEditingDailyOrder ? 'Cancelar' : 'Editar Diretiva'}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {dailyOrder && !isEditingDailyOrder && (
+                        <button
+                          onClick={handleCloseActiveOrder}
+                          className="text-[9px] font-bold text-red-500 uppercase tracking-wider hover:text-red-600 transition-colors border border-red-200 dark:border-red-900/50 px-3 py-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-950/30"
+                        >
+                          Encerrar
+                        </button>
+                      )}
+                      <button
+                        onClick={() => { setIsEditingDailyOrder(!isEditingDailyOrder); setNewDailyOrder(''); }}
+                        className="text-[9px] font-bold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider hover:text-blue-600 transition-colors border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                      >
+                        {isEditingDailyOrder ? 'Cancelar' : '+ Nova Diretiva'}
+                      </button>
+                    </div>
                   )}
                 </div>
 
-                {isEditingDailyOrder ? (
-                  <div className="space-y-4 relative z-10">
-                    <textarea 
+                {/* Formulário de nova diretiva */}
+                {isEditingDailyOrder && (
+                  <div className="space-y-3 relative z-10 mb-4">
+                    <textarea
                       value={newDailyOrder}
                       onChange={(e) => setNewDailyOrder(e.target.value)}
                       placeholder="Digite a diretiva central para todas as equipes..."
-                      className="w-full bg-zinc-50 dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-sm p-4 text-xs font-bold text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none focus:border-blue-600 min-h-[120px] transition-colors"
+                      className="w-full bg-zinc-50 dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-sm p-4 text-xs font-bold text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none focus:border-blue-600 min-h-[100px] transition-colors"
+                      autoFocus
                     />
-                    <button 
+                    <button
                       onClick={handleUpdateDailyOrder}
                       className="bg-blue-600 text-white px-6 py-2.5 rounded-sm font-black text-[10px] uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-all hover:bg-blue-500"
                     >
-                      Transmitir para Unidades
+                      📢 Transmitir para Unidades
                     </button>
                   </div>
-                ) : (
-                  <div className="relative z-10">
-                    {dailyOrder?.text ? (
+                )}
+
+                {/* Diretiva Ativa */}
+                <div className="relative z-10">
+                  {dailyOrder ? (
+                    <div className="border-l-4 border-blue-600 pl-4 py-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 px-2 py-0.5 rounded-full">
+                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                          Em Vigor
+                        </span>
+                      </div>
                       <p className="text-base md:text-lg font-bold text-zinc-900 dark:text-white tracking-tight leading-relaxed max-w-3xl">
-                        "{dailyOrder.text}"
+                        &ldquo;{dailyOrder.text}&rdquo;
                       </p>
-                    ) : (
-                      <p className="text-zinc-400 text-xs font-medium italic">Nenhuma diretiva emitida para hoje.</p>
-                    )}
-                    <div className="mt-5 flex items-center gap-4 text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider bg-slate-50 dark:bg-zinc-800/60 w-fit px-3.5 py-1.5 rounded-md border border-slate-200 dark:border-zinc-700">
-                      <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> {dailyOrder?.updatedAt ? new Date(dailyOrder.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '---'}</span>
-                      <span className="w-1.5 h-1.5 bg-zinc-300 dark:bg-zinc-600 rounded-full"></span>
-                      <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> {dailyOrder?.updatedBy || 'Comando'}</span>
+                      <div className="mt-3 flex items-center gap-4 text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                        <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> {dailyOrder.createdAt ? new Date(dailyOrder.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '---'}</span>
+                        <span className="w-1.5 h-1.5 bg-zinc-300 dark:bg-zinc-600 rounded-full"></span>
+                        <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> {dailyOrder.createdBy || 'Comando'}</span>
+                      </div>
                     </div>
+                  ) : !isEditingDailyOrder && (
+                    <p className="text-zinc-400 text-xs font-medium italic">Nenhuma diretiva ativa no momento.</p>
+                  )}
+                </div>
+
+                {/* Histórico de Diretivas */}
+                {dailyOrders.filter(o => o.status === 'closed').length > 0 && (
+                  <div className="relative z-10 mt-4 border-t border-zinc-100 dark:border-zinc-800 pt-3">
+                    <button
+                      onClick={() => setShowOrderHistory(!showOrderHistory)}
+                      className="flex items-center gap-2 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
+                    >
+                      <span className="inline-block w-3.5 h-3.5 text-center leading-none">{showOrderHistory ? '▾' : '▸'}</span>
+                      Histórico ({dailyOrders.filter(o => o.status === 'closed').length} encerradas)
+                    </button>
+                    {showOrderHistory && (
+                      <div className="mt-3 space-y-2 max-h-60 overflow-y-auto pr-1">
+                        {dailyOrders.filter(o => o.status === 'closed').map(order => (
+                          <div key={order.id} className="flex items-start gap-3 py-2 px-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-md border border-zinc-100 dark:border-zinc-700/50">
+                            <div className="flex-shrink-0 mt-0.5">
+                              <span className="inline-block w-2 h-2 bg-zinc-300 dark:bg-zinc-600 rounded-full mt-1"></span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 line-through leading-snug truncate">
+                                &ldquo;{order.text}&rdquo;
+                              </p>
+                              <p className="text-[9px] text-zinc-400 dark:text-zinc-500 mt-0.5 uppercase tracking-wider font-bold">
+                                {order.createdAt ? new Date(order.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''} · {order.createdBy || 'Comando'}
+                              </p>
+                            </div>
+                            <span className="flex-shrink-0 text-[8px] font-black text-zinc-400 uppercase bg-zinc-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded">Encerrada</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </motion.section>
