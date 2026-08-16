@@ -48,29 +48,29 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
   const tseTotal = tseData.reduce((acc, curr) => acc + curr.totalEleitores, 0);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-      <div className="p-5 border-b border-gray-100 bg-slate-50 flex items-center justify-between">
+    <div className="bg-white dark:bg-zinc-950 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 overflow-hidden mb-6 transition-colors">
+      <div className="p-5 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="bg-indigo-100 p-2 rounded-lg">
-            <BarChart3 className="w-5 h-5 text-indigo-600" />
+          <div className="bg-indigo-100 dark:bg-indigo-900/40 p-2.5 rounded-xl border border-indigo-200 dark:border-indigo-800/60 shadow-sm">
+            <BarChart3 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-slate-800">Inteligência Eleitoral (TSE x Base)</h2>
-            <p className="text-sm text-slate-500">Cruzamento demográfico e geográfico com dados oficiais</p>
+            <h2 className="text-lg font-bold text-zinc-800 dark:text-white tracking-tight">Inteligência Eleitoral (TSE x Base)</h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Cruzamento demográfico e geográfico com dados oficiais</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <a 
             href="https://dadosabertos.tse.jus.br/dataset/eleitorado-atual" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-sm text-slate-500 hover:text-indigo-600 transition-colors"
+            className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors bg-white dark:bg-zinc-800 px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-sm"
           >
             <ExternalLink className="w-4 h-4" />
-            <span>Baixar Dados Oficiais</span>
+            <span>Baixar Dados (TSE)</span>
           </a>
           <button 
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 dark:bg-indigo-500 text-white hover:bg-indigo-700 dark:hover:bg-indigo-600 rounded-lg text-sm font-bold tracking-tight transition-colors shadow-sm shadow-indigo-500/20"
             title="Importar novo CSV do TSE"
           >
             <FileDown className="w-4 h-4" />
@@ -83,64 +83,88 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
         
         {/* Painel de Comparação */}
         <div className="lg:col-span-2 space-y-6">
+          
+          <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl p-4 flex gap-3">
+            <AlertTriangle className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5" />
+            <p className="text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
+              <strong>Como funciona:</strong> Baixe o arquivo CSV do seu estado no portal do TSE usando o botão acima. Depois, clique em "Atualizar CSV" para cruzar os dados oficiais com a base real cadastrada pelas suas equipes.
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
-             <div className="p-4 rounded-xl border border-gray-100 bg-gray-50 flex flex-col justify-center">
-                <span className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Universo TSE (Mock)</span>
-                <span className="text-3xl font-bold text-slate-800">{tseTotal.toLocaleString('pt-BR')}</span>
+             <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 flex flex-col justify-center relative overflow-hidden shadow-sm">
+                <div className="absolute -right-4 -top-4 w-16 h-16 bg-zinc-200/50 dark:bg-zinc-800/50 rounded-full blur-xl"></div>
+                <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1">Universo TSE (Público-Alvo)</span>
+                <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{tseTotal.toLocaleString('pt-BR')}</span>
              </div>
-             <div className="p-4 rounded-xl border border-indigo-100 bg-indigo-50 flex flex-col justify-center">
-                <span className="text-xs text-indigo-500 uppercase tracking-wider font-semibold mb-1">Nossa Base Real</span>
-                <span className="text-3xl font-bold text-indigo-700">{baseData?.totalCadastrados.toLocaleString('pt-BR')}</span>
+             <div className="p-5 rounded-xl border border-indigo-200 dark:border-indigo-800/50 bg-indigo-50 dark:bg-indigo-900/20 flex flex-col justify-center relative overflow-hidden shadow-sm">
+                <div className="absolute -right-4 -top-4 w-16 h-16 bg-indigo-300/30 dark:bg-indigo-700/30 rounded-full blur-xl"></div>
+                <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">Nossa Base (Captados)</span>
+                <span className="text-3xl font-black text-indigo-700 dark:text-indigo-300 tracking-tight">{baseData?.totalCadastrados.toLocaleString('pt-BR')}</span>
              </div>
           </div>
 
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-            <h3 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2">
-              <Search className="w-4 h-4 text-slate-400" />
-              Desvio Demográfico Detectado
+          <div className="bg-zinc-50 dark:bg-zinc-900 p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <h3 className="text-sm font-bold text-zinc-800 dark:text-white mb-4 flex items-center gap-2">
+              <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+              Diagnóstico Demográfico Rápido
             </h3>
             
             <div className="space-y-3">
-               <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Mulheres (TSE: {(tseData.reduce((a,b)=>a+b.mulheres,0) / tseTotal * 100).toFixed(1)}%)</span>
-                  <span className="font-medium text-amber-600">Base: {((baseData?.mulheres || 0) / (baseData?.totalCadastrados || 1) * 100).toFixed(1)}%</span>
+               <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
+                  <span className="text-zinc-500 dark:text-zinc-400">Mulheres (TSE: {(tseData.reduce((a,b)=>a+b.mulheres,0) / (tseTotal || 1) * 100).toFixed(1)}%)</span>
+                  <span className="text-amber-600 dark:text-amber-500">Base: {((baseData?.mulheres || 0) / (baseData?.totalCadastrados || 1) * 100).toFixed(1)}%</span>
                </div>
-               <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-amber-500 h-2 rounded-full" style={{ width: `${((baseData?.mulheres || 0) / (baseData?.totalCadastrados || 1) * 100)}%` }}></div>
+               <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2">
+                  <div className="bg-amber-500 dark:bg-amber-400 h-2 rounded-full transition-all duration-1000" style={{ width: `${((baseData?.mulheres || 0) / (baseData?.totalCadastrados || 1) * 100)}%` }}></div>
                </div>
 
-               <div className="flex justify-between text-sm pt-2">
-                  <span className="text-slate-600">Homens (TSE: {(tseData.reduce((a,b)=>a+b.homens,0) / tseTotal * 100).toFixed(1)}%)</span>
-                  <span className="font-medium text-emerald-600">Base: {((baseData?.homens || 0) / (baseData?.totalCadastrados || 1) * 100).toFixed(1)}%</span>
+               <div className="flex justify-between text-xs font-bold uppercase tracking-wider pt-2">
+                  <span className="text-zinc-500 dark:text-zinc-400">Homens (TSE: {(tseData.reduce((a,b)=>a+b.homens,0) / (tseTotal || 1) * 100).toFixed(1)}%)</span>
+                  <span className="text-emerald-600 dark:text-emerald-500">Base: {((baseData?.homens || 0) / (baseData?.totalCadastrados || 1) * 100).toFixed(1)}%</span>
                </div>
-               <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-emerald-500 h-2 rounded-full" style={{ width: `${((baseData?.homens || 0) / (baseData?.totalCadastrados || 1) * 100)}%` }}></div>
+               <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2">
+                  <div className="bg-emerald-500 dark:bg-emerald-400 h-2 rounded-full transition-all duration-1000" style={{ width: `${((baseData?.homens || 0) / (baseData?.totalCadastrados || 1) * 100)}%` }}></div>
                </div>
             </div>
-            <p className="text-xs text-slate-500 mt-4 flex items-center gap-1">
-              <AlertTriangle className="w-3 h-3 text-amber-500" />
-              Sua base tem proporção desequilibrada de mulheres em relação à realidade.
-            </p>
+            
+            {(tseTotal === 0 || !baseData?.totalCadastrados) ? (
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-5 flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/50 p-3 rounded-lg">
+                <CheckCircle className="w-4 h-4 text-zinc-400" />
+                Aguardando importação do TSE e/ou cadastro de eleitores para gerar diagnóstico.
+              </p>
+            ) : (
+              <p className="text-xs font-medium text-amber-600 dark:text-amber-400 mt-5 flex items-center gap-2 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 p-3 rounded-lg">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                Os dados podem indicar uma discrepância na captação por gênero. Considere redirecionar o foco das equipes.
+              </p>
+            )}
           </div>
         </div>
 
         {/* Painel da Inteligência Artificial */}
-        <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-xl p-5 text-white flex flex-col">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-indigo-500/30 p-2 rounded-lg">
-              <Brain className="w-5 h-5 text-indigo-300" />
+        <div className="bg-zinc-950 dark:bg-[#09090b] rounded-xl p-6 text-white flex flex-col relative overflow-hidden border border-zinc-800 shadow-xl shadow-zinc-900/20">
+          {/* Subtle gradient background for AI feel */}
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 via-transparent to-blue-600/10 pointer-events-none"></div>
+          
+          <div className="flex items-center gap-3 mb-5 relative z-10">
+            <div className="bg-indigo-500/20 p-2.5 rounded-xl border border-indigo-500/30">
+              <Brain className="w-5 h-5 text-indigo-400" />
             </div>
-            <h3 className="font-semibold text-lg">IA Estratégica</h3>
+            <div>
+              <h3 className="font-black tracking-tight text-lg leading-none">IA Estratégica</h3>
+              <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">Análise Cruzada Automática</p>
+            </div>
           </div>
           
-          <p className="text-indigo-200 text-sm mb-6 flex-1">
-            Cruze os dados demográficos do TSE com a sua base atual para encontrar oportunidades ocultas e gerar planos de ação automáticos para sua equipe.
+          <p className="text-zinc-300 text-xs leading-relaxed mb-6 flex-1 relative z-10 font-medium">
+            Solicite que a Inteligência Artificial cruze os dados demográficos do TSE com a sua base para descobrir oportunidades ocultas e gerar planos de ação sob medida para a equipe.
           </p>
 
           {!insights && !isAiLoading && (
             <button 
               onClick={handleGenerateInsights}
-              className="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20 flex justify-center items-center gap-2"
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold tracking-tight transition-all shadow-lg shadow-indigo-600/20 flex justify-center items-center gap-2 border border-indigo-500 relative z-10"
             >
               <Brain className="w-4 h-4" />
               Gerar Diagnóstico
@@ -148,16 +172,16 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
           )}
 
           {isAiLoading && (
-            <div className="w-full py-3 bg-indigo-800/50 rounded-lg text-indigo-300 text-sm text-center animate-pulse border border-indigo-700/50">
-              Analisando cruzamentos de dados...
+            <div className="w-full py-3 bg-indigo-950/50 rounded-xl text-indigo-400 text-xs font-bold tracking-tight text-center animate-pulse border border-indigo-800/50 relative z-10">
+              Processando matriz cruzada...
             </div>
           )}
 
           {insights && !isAiLoading && (
-             <div className="mt-2 text-sm text-indigo-100 bg-black/20 p-4 rounded-lg overflow-y-auto max-h-64 custom-scrollbar">
+             <div className="mt-2 text-xs text-zinc-300 bg-black/40 p-4 rounded-xl overflow-y-auto max-h-64 custom-scrollbar border border-zinc-800 relative z-10">
                 <div className="prose prose-invert prose-sm max-w-none">
-                  {insights.split('\\n').map((paragraph, i) => (
-                    <p key={i} className="mb-2 whitespace-pre-wrap">{paragraph}</p>
+                  {insights.split('\n').map((paragraph, i) => (
+                    <p key={i} className="mb-2 whitespace-pre-wrap leading-relaxed">{paragraph}</p>
                   ))}
                 </div>
                 <button 
