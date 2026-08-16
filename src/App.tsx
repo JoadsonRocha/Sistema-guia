@@ -7,6 +7,7 @@ import { LoginPage } from './pages/LoginPage';
 import { ForcePasswordChangePage } from './pages/ForcePasswordChangePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { AdvancedDashboardPage } from './pages/AdvancedDashboardPage';
 
 // Lazy loading heavy components
 const PublicVoterRegister = lazy(() => import('./components/PublicVoterRegister'));
@@ -105,6 +106,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/perfil" element={<ProfilePage />} />
+            <Route path="/powerbi" element={<AdvancedDashboardPage />} />
           </Route>
         </Route>
       </Routes>

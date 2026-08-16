@@ -89,3 +89,17 @@ export async function sugerirMetaInteligente(municipio: string, targetVoters: st
   
   return callGroq(systemPrompt, userMessage, 300);
 }
+
+export async function analisarDashboard(dashboardData: any) {
+  const systemPrompt = `Você é um Analista de Dados e Estrategista Político Sênior. 
+Sua tarefa é ler os dados numéricos consolidados de um painel de inteligência eleitoral e extrair as conclusões mais valiosas.
+Regras:
+1. Comece com um resumo executivo de 1 frase.
+2. Crie 3 bullet points com os principais insights numéricos (onde estamos bem, onde precisamos melhorar).
+3. Termine com 1 recomendação estratégica clara.
+4. Formate a resposta usando Markdown limpo (negritos, bullets). Não use jargões difíceis, seja claro e tático.`;
+
+  const userMessage = `Dados do Dashboard Atual:\n${JSON.stringify(dashboardData, null, 2)}\n\nPor favor, analise estes dados e gere os insights estratégicos.`;
+
+  return callGroq(systemPrompt, userMessage, 800);
+}
