@@ -1927,8 +1927,8 @@ export default function CoordinatorDashboard({
   const stats = [
     { 
       label: 'Metas Atingidas', 
-      value: goals.filter(g => g.progress >= 100).length || 0, 
-      sub: `${goals.length} Cadastradas`, 
+      value: goalsList.filter(g => g.progress >= 100).length || 0, 
+      sub: `${goalsList.length} Cadastradas`, 
       color: 'text-[var(--text-primary)]',
       iconColor: 'bg-zinc-100 dark:bg-zinc-800',
       action: () => setActiveTab('metas')
