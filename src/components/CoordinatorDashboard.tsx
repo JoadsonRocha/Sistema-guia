@@ -2416,19 +2416,16 @@ export default function CoordinatorDashboard({
           ))}
         </nav>
 
-        <div className="mt-8 space-y-2">
-          <div className="pt-6 border-t border-[var(--border-color)] space-y-1">
-            <button 
-              onClick={() => { setActiveTab('candidato'); setIsCandidateModalOpen(true); }}
-              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all cursor-pointer"
-            >
-              <UserPlus className="w-4 h-4 text-blue-600 dark:text-blue-400" /> {isGeral ? 'Cadastrar Candidato' : 'Ver Candidato Oficial'}
-            </button>
+        <div className="mt-8">
+          <div className="pt-4 border-t border-[var(--border-color)]">
             <button 
               onClick={() => navigate('/perfil')}
-              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all cursor-pointer"
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100/70 dark:hover:bg-zinc-800/50 transition-all group cursor-pointer"
             >
-              <Settings className="w-4 h-4" /> Configurações
+              <div className="text-zinc-400 dark:text-zinc-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <Settings className="w-4 h-4" />
+              </div>
+              Configurações
             </button>
           </div>
         </div>
