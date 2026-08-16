@@ -1000,18 +1000,6 @@ export default function CoordinatorDashboard({
 
 
 
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
 
   // Briefing State
   const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
@@ -2585,14 +2573,7 @@ export default function CoordinatorDashboard({
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
-            <div className="hidden sm:flex items-center gap-2.5 px-3 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-sm border border-zinc-200 dark:border-zinc-700">
-               <div className={`w-2 h-2 rounded-sm ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
-               <span className="font-semibold text-xs">
-                 {isOnline ? 'Conectado' : 'Modo offline'}
-               </span>
-               {!isOnline && <CloudOff className="ml-1 w-3 h-3 text-red-500" />}
-            </div>
-            
+
             <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-800 hidden sm:block"></div>
 
             <button 
