@@ -2787,30 +2787,6 @@ export default function CoordinatorDashboard({
                   {/* COLUNA LATERAL DIREITA (CARDS DE SUPORTE & CANDIDATO) */}
                   <div className="w-full lg:w-80 space-y-6">
 
-                    {/* CARTÃO EM DESTAQUE DO CANDIDATO */}
-                    <div className="bg-gradient-to-br from-blue-700 via-blue-900 to-slate-900 text-white rounded-2xl p-6 shadow-xl border border-blue-500/30 space-y-4 relative overflow-hidden group">
-                      <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 blur-3xl rounded-full pointer-events-none transition-all group-hover:scale-150"></div>
-                      <span className="text-[10px] font-black text-blue-300 block uppercase tracking-[0.2em] relative z-10">Candidato Oficial da Campanha</span>
-                      <div className="flex flex-col items-center text-center gap-3 relative z-10">
-                        <img 
-                          src={candidateForm?.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
-                          alt="Candidato" 
-                          className="w-24 h-24 rounded-full object-cover border-4 border-white/90 shadow-[0_0_15px_rgba(255,255,255,0.2)] shrink-0 bg-slate-800 transition-transform group-hover:scale-105"
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
-                        />
-                        <div className="overflow-hidden w-full">
-                          <h4 className="text-xl font-black text-white truncate">{candidateForm?.name || 'Candidato da Campanha'}</h4>
-                          <p className="text-sm font-semibold text-blue-200 mt-0.5 truncate">{candidateForm?.title || 'Eleições 2026'}</p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => { setActiveTab('candidato'); setIsCandidateModalOpen(true); }}
-                        className="w-full py-2.5 mt-2 bg-white hover:bg-blue-50 text-blue-900 rounded-xl font-bold text-xs transition-all shadow-[0_4px_10px_rgba(255,255,255,0.1)] active:scale-95 cursor-pointer text-center flex items-center justify-center gap-2 relative z-10"
-                      >
-                        <UserPlus className="w-4 h-4" /> {isGeral ? 'Editar Informações' : 'Visualizar Detalhes'}
-                      </button>
-                    </div>
-
                     {/* ORDEM DO DIA (MOVIDA PARA CÁ) */}
                     <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm border border-[var(--border-color)] overflow-hidden relative">
                       <div className="flex items-center justify-between mb-4">
@@ -2882,6 +2858,30 @@ export default function CoordinatorDashboard({
                           )}
                         </div>
                       )}
+                    </div>
+
+                    {/* CARTÃO EM DESTAQUE DO CANDIDATO */}
+                    <div className="bg-gradient-to-br from-blue-700 via-blue-900 to-slate-900 text-white rounded-2xl p-6 shadow-xl border border-blue-500/30 space-y-4 relative overflow-hidden group">
+                      <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 blur-3xl rounded-full pointer-events-none transition-all group-hover:scale-150"></div>
+                      <span className="text-[10px] font-black text-blue-300 block uppercase tracking-[0.2em] relative z-10">Candidato Oficial da Campanha</span>
+                      <div className="flex flex-col items-center text-center gap-3 relative z-10">
+                        <img 
+                          src={candidateForm?.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
+                          alt="Candidato" 
+                          className="w-24 h-24 rounded-full object-cover border-4 border-white/90 shadow-[0_0_15px_rgba(255,255,255,0.2)] shrink-0 bg-slate-800 transition-transform group-hover:scale-105"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+                        />
+                        <div className="overflow-hidden w-full">
+                          <h4 className="text-xl font-black text-white truncate">{candidateForm?.name || 'Candidato da Campanha'}</h4>
+                          <p className="text-sm font-semibold text-blue-200 mt-0.5 truncate">{candidateForm?.title || 'Eleições 2026'}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => { setActiveTab('candidato'); setIsCandidateModalOpen(true); }}
+                        className="w-full py-2.5 mt-2 bg-white hover:bg-blue-50 text-blue-900 rounded-xl font-bold text-xs transition-all shadow-[0_4px_10px_rgba(255,255,255,0.1)] active:scale-95 cursor-pointer text-center flex items-center justify-center gap-2 relative z-10"
+                      >
+                        <UserPlus className="w-4 h-4" /> {isGeral ? 'Editar Informações' : 'Visualizar Detalhes'}
+                      </button>
                     </div>
 
                     {/* ATIVIDADE E MOBILIZAÇÃO DAS EQUIPES */}
