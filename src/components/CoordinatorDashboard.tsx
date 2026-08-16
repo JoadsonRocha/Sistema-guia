@@ -2628,12 +2628,12 @@ export default function CoordinatorDashboard({
                     {(() => {
                       const todayStart = new Date();
                       todayStart.setHours(0,0,0,0);
-                      const todayVoters = voters.filter(v => v.createdAt >= todayStart.getTime()).length;
+                      const todayVoters = allVoters.filter(v => v.createdAt >= todayStart.getTime()).length;
                       
                       const teamStats = teams.map(t => ({
                         name: t.name,
                         leader: t.leader || t.name,
-                        count: voters.filter(v => isVoterInTeam(v, t)).length
+                        count: allVoters.filter(v => isVoterInTeam(v, t)).length
                       })).sort((a,b) => b.count - a.count).slice(0, 3);
 
                       const demandsByZone = urgencies.filter(u => u.type === 'demanda').reduce((acc, curr) => {
