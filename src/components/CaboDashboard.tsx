@@ -71,6 +71,7 @@ import { parseExcelOrCSVBuffer } from '../lib/excelParser';
 import { maskCurrency, parseCurrencyToNumber } from '../utils/currency';
 import { safeLocalStorage } from '../utils/safeStorage';
 import { validateVoterRegistration, triggerUpgradeRedirect } from '../lib/planService';
+import { getGPSLocation } from '../lib/geoService';
 
 interface GeoLocation {
   lat: number;
@@ -1037,6 +1038,23 @@ export default function CaboDashboard({
   const handleDemandSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    
+    setIsLocating(true);
+    let lat = null;
+    let lng = null;
+    let addressInfo = '';
+
+    try {
+      const geo = await getGPSLocation();
+      lat = geo.lat;
+      lng = geo.lng;
+      addressInfo = geo.address || '';
+    } catch (err: any) {
+      alert("Aviso: " + err.message + "\nA demanda será enviada sem a localização exata, mas o registro do GPS é altamente recomendado para o mapa da coordenação.");
+    } finally {
+      setIsLocating(false);
+    }
+
     try {
       await supabaseService.setDocument('urgencies', `demand_${Date.now()}`, {
         type: 'demanda',
@@ -1047,6 +1065,9 @@ export default function CaboDashboard({
         leaderName: profileData.name || user.displayName || 'Líder',
         team: profileData.zone || 'Pacaraima',
         coordinatorId: resolvedCoordinatorId || coordinatorId || '',
+        latitude: lat,
+        longitude: lng,
+        address: addressInfo,
         createdAt: Date.now()
       });
       setIsDemandModalOpen(false);
