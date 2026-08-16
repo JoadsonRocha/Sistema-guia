@@ -19,14 +19,14 @@ export interface CandidateInfo {
 }
 
 export const DEFAULT_CANDIDATE_INFO: CandidateInfo = {
-  id: 'default_deputado',
-  name: 'Seu Candidato',
-  title: 'Deputado Estadual',
-  photoUrl: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=600',
-  bio: 'Seja bem-vindo à nossa campanha eleitoral.',
-  proposals: '• Saúde com atendimento ágil e exames zerados\n• Educação estruturada e valorização dos professores\n• Apoio ao comércio, empreendedorismo e geração de empregos\n• Segurança comunitária e infraestrutura nos bairros',
-  badgeTitle: 'Faça Parte do Nosso Projeto! 🎉',
-  subtitle: 'Preencha o formulário abaixo e ajude a construir o nosso projeto. Seus dados estão seguros e protegidos.'
+  id: '',
+  name: 'Candidato Pendente',
+  title: 'Aguardando Cadastro',
+  photoUrl: '',
+  bio: 'Os dados do candidato ainda não foram preenchidos.',
+  proposals: '',
+  badgeTitle: 'Campanha em Estruturação',
+  subtitle: 'Configure sua campanha no painel.'
 };
 
 const CACHE_KEY_LIST = 'nexus_candidates_list_cache';
