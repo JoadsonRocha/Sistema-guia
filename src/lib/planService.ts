@@ -332,15 +332,15 @@ export async function validateGeneralCoordinatorRegistration(): Promise<{
     const users = await supabaseService.getCollection<any>('users');
     const totalGeneral = users.filter(u => u.role === 'coordenador_geral' || u.role === 'coordenador').length;
 
-    if (totalGeneral >= sub.maxGeneralCoordinators) {
-      return {
-        allowed: false,
-        reason: `A campanha já possui ${totalGeneral} Coordenador Geral cadastrado.`,
-        currentCount: totalGeneral,
-        limit: sub.maxGeneralCoordinators,
-        planName: PLAN_CONFIGS[sub.plan].name,
-      };
-    }
+    // Como cada cadastro orgânico inicia uma nova campanha, não limitamos a criação
+    // de novos Coordenadores Gerais no momento do registro.
+    // (Limitações de plano se aplicam à criação de *outros* usuários dentro da campanha)
+    return {
+      allowed: true,
+      currentCount: totalGeneral,
+      limit: sub.maxGeneralCoordinators,
+      planName: PLAN_CONFIGS[sub.plan].name,
+    };
 
     return {
       allowed: true,

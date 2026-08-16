@@ -200,9 +200,9 @@ export function LoginPage() {
             if (preRegDoc || effectiveRole === 'coordenador_geral') {
               setAuthInfo('Primeiro acesso detectado. Estamos criando seu ambiente seguro, aguarde...');
               
-              const effectiveCoordinatorId = preRegDoc?.coordinatorId || urlCoordId;
-              const effectiveRegionalCoordId = preRegDoc?.regionalCoordId || urlRegionalCoordId;
-              const effectiveTeamId = preRegDoc?.teamId || urlTeamId;
+              const effectiveCoordinatorId = sanitizeId(preRegDoc?.coordinatorId) || sanitizeId(urlCoordId) || undefined;
+              const effectiveRegionalCoordId = sanitizeId(preRegDoc?.regionalCoordId) || sanitizeId(urlRegionalCoordId) || undefined;
+              const effectiveTeamId = sanitizeId(preRegDoc?.teamId) || sanitizeId(urlTeamId) || undefined;
               const effectiveRegion = preRegDoc?.region || urlRegion || '';
               const shouldForce = preRegDoc?.forcePasswordChange !== false && !preRegDoc?.passwordChangedAt;
 
