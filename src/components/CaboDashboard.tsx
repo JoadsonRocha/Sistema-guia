@@ -492,7 +492,7 @@ export default function CaboDashboard({
           
           await supabaseService.setDocument('attendance', `checkin_${Date.now()}`, checkinData);
           setIsLocating(false);
-          alert('✅ Ponto registrado com sucesso!');
+          alert('📍 Posição de GPS confirmada no mapa tático!');
         }, (err) => {
           setIsLocating(false);
           alert("Erro ao capturar GPS. Verifique as permissões.");
@@ -739,7 +739,7 @@ export default function CaboDashboard({
           updatedAt: Date.now()
         }, true);
         await fetchServerCounts();
-        alert("✅ CADASTRO ATUALIZADO COM SUCESSO!");
+        alert("✅ FICHA DO APOIADOR ATUALIZADA COM SUCESSO!");
       } else {
         const payload = {
           ...voterForm,
@@ -755,7 +755,7 @@ export default function CaboDashboard({
         };
         await supabaseService.setDocument('voters', `voter_${Date.now()}`, payload);
         await fetchServerCounts();
-        alert("✅ CADASTRO REALIZADO COM SUCESSO!");
+        alert("✅ APOIADOR MOBILIZADO! Ficha registrada com sucesso na base.");
       }
       
       setIsVoterModalOpen(false);
@@ -1073,7 +1073,7 @@ export default function CaboDashboard({
       });
       setIsDemandModalOpen(false);
       setDemandForm({ title: '', description: '' });
-      alert("Demanda registrada e enviada!");
+      alert("🚨 Demanda tática enviada para a central de comando!");
     } catch (err: any) {
       alert("Erro ao registrar: " + err.message);
     }
@@ -1234,7 +1234,7 @@ export default function CaboDashboard({
       setNoteText('');
       setIsNoteModalOpen(false);
       if (activeTab === 'feed') {
-        alert("Nota postada no Feed Tático!");
+        alert("📢 Informativo disparado no Feed Tático!");
       } else {
         alert("Anotação salva na sua agenda pessoal!");
       }
@@ -2910,7 +2910,7 @@ export default function CaboDashboard({
                         onClick={() => {
                           const caboUrl = `${window.location.origin}/cadastro?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`;
                           const candName = candidateInfo.name || 'nosso candidato';
-                          const messageText = `*FAÇA PARTE DO NOSSO TIME!* 🗳️\n\nOlá! Gostaria de convidar você para fazer parte da nossa caminhada e apoiar a campanha de *${candName}*.\n\nRealize seu cadastro de forma simples e rápida no link abaixo:\n${caboUrl}`;
+                          const messageText = `*JUNTE-SE À NOSSA FORÇA-TAREFA!* 🗳️\n\nOlá! A campanha de *${candName}* está crescendo e precisamos de pessoas como você na nossa base de apoio.\n\nConfirme seu apoio oficial e entre para a nossa rede de mobilização acessando o link seguro abaixo:\n${caboUrl}`;
                           window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`, '_blank');
                         }}
                         className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-sm font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer"

@@ -7201,7 +7201,7 @@ export default function CoordinatorDashboard({
                     onClick={() => {
                       const finalUrl = `${window.location.origin}/cadastro?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`;
                       const candName = candidateForm.name || 'nosso candidato';
-                      const messageText = `*FAÇA PARTE DO NOSSO TIME!* 🗳️\n\nOlá! Gostaria de convidar você para fazer parte da nossa caminhada e apoiar a campanha de *${candName}*.\n\nRealize seu cadastro de forma simples e rápida no link abaixo:\n${finalUrl}`;
+                      const messageText = `*JUNTE-SE À NOSSA FORÇA-TAREFA!* 🗳️\n\nOlá! A campanha de *${candName}* está crescendo e precisamos de pessoas como você na nossa base de apoio.\n\nConfirme seu apoio oficial e entre para a nossa rede de mobilização acessando o link seguro abaixo:\n${finalUrl}`;
                       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`, '_blank');
                     }}
                     className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer"

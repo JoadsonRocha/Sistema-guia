@@ -301,7 +301,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
         const voters = await supabaseService.getCollectionFiltered<any>('voters', leaderInfo.coordinatorId);
         const existing = voters.find(v => v.phone === voterForm.phone);
         if (existing) {
-          showToast('⚠️ Este número de telefone já está cadastrado nesta coordenação.', 'error');
+          showToast('⚠️ Este número já consta na nossa base de apoiadores mobilizados!', 'error');
           setIsSubmitting(false);
           return;
         }
@@ -324,7 +324,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
 
       await supabaseService.setDocument('voters', `voter_${Date.now()}`, payload);
       setSuccess(true);
-      showToast('Cadastro realizado com sucesso!', 'success');
+      showToast('✅ Apoio Confirmado! Bem-vindo(a) à nossa base de mobilização!', 'success');
     } catch (err: any) {
       showToast(`Erro ao realizar cadastro: ${err.message}`, 'error');
     } finally {
