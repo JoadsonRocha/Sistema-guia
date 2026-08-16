@@ -1,10 +1,9 @@
 /**
  * supabaseService
  *
- * Lightweight data service wrapper around Supabase client providing:
- * - Local caching in `localStorage` for offline-first behavior
+ * Data service wrapper around Supabase client providing:
  * - Helpers to persist and load campaign state and TRE locations
- * - Batch sync and upsert convenience methods used by the UI sync bar
+ * - CRUD and real-time subscription convenience methods used by the UI
  */
 import { getSupabaseClient, isSupabaseConfigured } from './supabase';
 import { TreLocationItem, parseSecoes, extractZonaNum } from './treDataService';
@@ -15,36 +14,6 @@ export interface CampaignRecord {
   type: 'eleitor' | 'lider' | 'demanda' | 'material' | 'equipe';
   data: any;
   created_at?: string;
-}
-
-export interface OfflineAction {
-  action: 'set' | 'delete';
-  path: string;
-  id: string;
-  data?: any;
-  timestamp: number;
-}
-
-function getOfflineQueue(): OfflineAction[] {
-  try {
-    const raw = localStorage.getItem('nexus_offline_queue');
-    if (raw) return JSON.parse(raw);
-  } catch (e) {}
-  return [];
-}
-
-function pushToOfflineQueue(action: OfflineAction) {
-  const queue = getOfflineQueue();
-  // Se for set, substituir sets anteriores do mesmo doc
-  const filtered = queue.filter(q => !(q.path === action.path && q.id === action.id));
-  filtered.push(action);
-  localStorage.setItem('nexus_offline_queue', JSON.stringify(filtered));
-  window.dispatchEvent(new Event('offline_queue_updated'));
-}
-
-function clearOfflineQueue() {
-  localStorage.removeItem('nexus_offline_queue');
-  window.dispatchEvent(new Event('offline_queue_updated'));
 }
 
 /**
@@ -386,16 +355,11 @@ export const supabaseDataService = {
           record_id: id,
           payload: payload
         }, { onConflict: 'record_type,record_id' });
-        
+
         if (error) throw error;
       } catch (e: any) {
         console.warn(`Supabase setDocument error for ${path}/${id}:`, e);
-        if (!window.navigator.onLine || e.message?.includes('fetch') || e.message?.includes('Network')) {
-          pushToOfflineQueue({ action: 'set', path, id, data: payload, timestamp: Date.now() });
-        }
       }
-    } else {
-      pushToOfflineQueue({ action: 'set', path, id, data: payload, timestamp: Date.now() });
     }
   },
 
@@ -420,16 +384,11 @@ export const supabaseDataService = {
           .delete()
           .eq('record_type', path)
           .eq('record_id', id);
-          
+
         if (error) throw error;
       } catch (e: any) {
         console.warn(`Supabase deleteDocument error for ${path}/${id}:`, e);
-        if (!window.navigator.onLine || e.message?.includes('fetch') || e.message?.includes('Network')) {
-          pushToOfflineQueue({ action: 'delete', path, id, timestamp: Date.now() });
-        }
       }
-    } else {
-       pushToOfflineQueue({ action: 'delete', path, id, timestamp: Date.now() });
     }
   },
 
@@ -543,7 +502,7 @@ export const supabaseDataService = {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    if (client && window.navigator.onLine) {
+    if (client) {
       try {
         let query = client.from('campaign_records').select('record_id, payload', { count: 'exact' }).eq('record_type', path);
         if (coordinatorId) {
@@ -574,27 +533,7 @@ export const supabaseDataService = {
       }
     }
 
-    // Fallback offline (local storage)
-    let all = getLocalList<any>(path);
-    if (coordinatorId) {
-       all = all.filter(item => item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId);
-    }
-    
-    if (filters?.search) {
-      const s = filters.search.toLowerCase();
-      all = all.filter(item => item.name?.toLowerCase().includes(s));
-    }
-    if (filters?.intention) {
-      all = all.filter(item => item.sentiment === filters.intention);
-    }
-    if (filters?.voted !== undefined) {
-      all = all.filter(item => !!item.voted === filters.voted);
-    }
-
-    const total = all.length;
-    const paginated = all.slice(from, to + 1);
-    
-    return { data: paginated as T[], total };
+    return { data: [], total: 0 };
   },
 
   async uploadImage(file: File, bucket: string = 'public_assets'): Promise<string | null> {
@@ -623,12 +562,7 @@ export const supabaseDataService = {
     }
   },
 
-  getQueue() {
-    return getOfflineQueue();
-  },
-
   clearAllLocalDemoData() {
-    clearOfflineQueue();
     try {
       Object.keys(localStorage).forEach(key => {
         if (key.startsWith('nexus_sb_') || key.startsWith('urna360_') || key.startsWith('sistema_urna360_')) {
@@ -638,50 +572,6 @@ export const supabaseDataService = {
     } catch (e) {}
   },
 
-  async processSyncQueue() {
-    const queue = getOfflineQueue();
-    if (queue.length === 0) return true;
-
-    const client = getSupabaseClient();
-    if (!client || !window.navigator.onLine) return false;
-
-    let allSuccess = true;
-    for (const action of queue) {
-      try {
-        if (action.action === 'set' && action.data) {
-          const coordinatorId = action.data.coordinatorId || action.data.coordinator_id || action.data.userId || 'default';
-          const { error } = await client.from('campaign_records').upsert({
-            coordinator_id: coordinatorId,
-            record_type: action.path,
-            record_id: action.id,
-            payload: action.data
-          }, { onConflict: 'record_type,record_id' });
-          if (error) throw error;
-        } else if (action.action === 'delete') {
-          const { error } = await client.from('campaign_records')
-            .delete()
-            .eq('record_type', action.path)
-            .eq('record_id', action.id);
-          if (error) throw error;
-        }
-      } catch (err) {
-        console.error(`Falha ao sincronizar item da fila (${action.action} ${action.path}/${action.id}):`, err);
-        allSuccess = false;
-      }
-    }
-
-    if (allSuccess) {
-      clearOfflineQueue();
-    }
-    return allSuccess;
-  }
-
 };
 
 export const supabaseService = supabaseDataService;
-
-if (typeof window !== 'undefined') {
-  window.addEventListener('online', () => {
-    supabaseService.processSyncQueue().catch(console.error);
-  });
-}

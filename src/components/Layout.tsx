@@ -4,7 +4,7 @@ import { useAuth } from '../lib/SupabaseProvider';
 import { FileText } from 'lucide-react';
 import { motion } from 'motion/react';
 import { DocDownloadModal } from './DocDownloadModal';
-import { OfflineSyncBar } from './OfflineSyncBar';
+
 
 export function Layout() {
   const { user } = useAuth();
@@ -23,8 +23,7 @@ export function Layout() {
 
       <Outlet />
 
-      {/* Connectivity & Offline Sync Status Bar */}
-      <OfflineSyncBar coordinatorId={user?.uid} />
+
     </>
   );
 }
