@@ -136,9 +136,9 @@ export function LoginPage() {
       }
 
       if (isRegistering) {
-        // Impedir que cadastros abertos ganhem direitos administrativos
-        if ((effectiveRole === 'coordenador_geral' || effectiveRole === 'admin' || effectiveRole === 'coordenador') && !preRegDoc) {
-          setAuthError('Erro de Segurança: Não é permitido criar contas administrativas ou de Coordenador Geral sem pré-registro autorizado no comitê.');
+        // Impedir que cadastros abertos ganhem direitos administrativos (exceto Coordenador Geral, que inicia a campanha)
+        if ((effectiveRole === 'admin' || effectiveRole === 'coordenador') && !preRegDoc) {
+          setAuthError('Erro de Segurança: Não é permitido criar contas administrativas sem pré-registro autorizado no comitê.');
           setIsLoading(false);
           return;
         }
