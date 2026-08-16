@@ -17,7 +17,6 @@ import {
   Camera,
   UserPlus,
   StickyNote,
-  CloudOff,
   RefreshCcw,
   User,
   Brain,
