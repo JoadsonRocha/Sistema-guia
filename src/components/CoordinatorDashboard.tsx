@@ -2338,7 +2338,7 @@ export default function CoordinatorDashboard({
             src={logoImg} 
             onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }} 
             alt="Logo Nexus Política" 
-            className="max-h-24 w-full max-w-[220px] object-contain transition-all" 
+            className="max-h-12 w-full max-w-[160px] object-contain transition-all" 
           />
 
           <div className="w-full bg-[var(--bg-tertiary)] rounded-xl p-3.5 border border-[var(--border-color)] space-y-1 text-left">
@@ -2354,27 +2354,6 @@ export default function CoordinatorDashboard({
             <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
               {profileData?.zone || 'Setor Geral da Campanha'}
             </p>
-          </div>
-
-          {/* Cartão Oficial do Candidato */}
-          <div className="w-full bg-gradient-to-br from-blue-900/60 via-slate-900/70 to-blue-950/60 rounded-xl p-3.5 border border-blue-500/30 space-y-2 text-left shadow-md">
-            <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest block">Candidato da Campanha</span>
-            <div className="flex items-center gap-2.5">
-              <img 
-                src={candidateForm?.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
-                alt="Candidato" 
-                className="w-10 h-10 rounded-full object-cover border-2 border-blue-500 shadow-sm shrink-0 bg-slate-800"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
-              />
-              <div className="overflow-hidden min-w-0">
-                <p className="text-xs font-black text-white truncate">
-                  {candidateForm?.name || 'Candidato Oficial'}
-                </p>
-                <p className="text-[10px] font-bold text-blue-300 truncate">
-                  {candidateForm?.title || 'Campanha 2026'}
-                </p>
-              </div>
-            </div>
           </div>
         </div>
 
