@@ -2617,117 +2617,7 @@ export default function CoordinatorDashboard({
                 <p className="text-xs text-[var(--text-secondary)] font-normal">Monitoramento estratégico em tempo real</p>
               </div>
 
-              <motion.section 
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-white dark:bg-zinc-900 rounded-xl p-3 md:p-4 shadow-xs border border-zinc-200 dark:border-zinc-800 overflow-hidden relative group transition-colors"
-              >
-                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none text-zinc-400 group-hover:scale-110 transition-transform duration-700">
-                  <ShieldCheck className="w-24 h-24" />
-                </div>
-
-                {/* Cabeçalho */}
-                <div className="flex items-center justify-between mb-3 relative z-10">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-1.5 bg-blue-50 dark:bg-blue-950/50 rounded-md border border-blue-100 dark:border-blue-900/40">
-                      <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-xs font-black text-zinc-900 dark:text-white uppercase tracking-tighter leading-none mb-0.5">Ordem do Dia</h3>
-                      <p className="text-[8px] font-bold text-[var(--text-secondary)] uppercase tracking-wider leading-none">Diretiva Central</p>
-                    </div>
-                  </div>
-                  {isAdmin && (
-                    <div className="flex items-center gap-2">
-                      {dailyOrder && !isEditingDailyOrder && (
-                        <button
-                          onClick={handleCloseActiveOrder}
-                          className="btn-danger !px-2.5 !py-1 !text-[9px] !min-h-0 !h-auto rounded-md"
-                        >
-                          Encerrar
-                        </button>
-                      )}
-                      <button
-                        onClick={() => { setIsEditingDailyOrder(!isEditingDailyOrder); setNewDailyOrder(''); }}
-                        className="btn-secondary !px-2.5 !py-1 !text-[9px] !min-h-0 !h-auto rounded-md"
-                      >
-                        {isEditingDailyOrder ? 'Cancelar' : '+ Nova'}
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Formulário de nova diretiva */}
-                {isEditingDailyOrder && (
-                  <div className="space-y-2 relative z-10 mb-3">
-                    <textarea
-                      value={newDailyOrder}
-                      onChange={(e) => setNewDailyOrder(e.target.value)}
-                      placeholder="Digite a diretiva central..."
-                      className="w-full bg-zinc-50 dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-xl p-3 text-xs font-bold text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none focus:border-blue-600 min-h-[60px] transition-colors"
-                      autoFocus
-                    />
-                    <button
-                      onClick={handleUpdateDailyOrder}
-                      className="btn-primary w-full !py-2 !text-[10px]"
-                    >
-                      📢 Transmitir
-                    </button>
-                  </div>
-                )}
-
-                {/* Diretiva Ativa */}
-                <div className="relative z-10">
-                  {dailyOrder ? (
-                    <div className="border-l-2 border-blue-600 pl-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="inline-flex items-center gap-1 text-[8px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                          <span className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></span>
-                          Em Vigor
-                        </span>
-                      </div>
-                      <p className="text-sm font-semibold text-zinc-900 dark:text-white tracking-tight leading-snug">
-                        &ldquo;{dailyOrder.text}&rdquo;
-                      </p>
-                      <div className="mt-1.5 flex items-center gap-3 text-[8px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-blue-600 dark:text-blue-400" /> {dailyOrder.createdAt ? new Date(dailyOrder.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '---'}</span>
-                        <span className="flex items-center gap-1"><User className="w-3 h-3 text-blue-600 dark:text-blue-400" /> {dailyOrder.createdBy || 'Comando'}</span>
-                      </div>
-                    </div>
-                  ) : !isEditingDailyOrder && (
-                    <p className="text-zinc-400 text-[10px] font-medium italic py-1">Nenhuma diretiva ativa.</p>
-                  )}
-                </div>
-
-                {/* Histórico de Diretivas */}
-                {dailyOrders.filter(o => o.status === 'closed').length > 0 && (
-                  <div className="relative z-10 mt-3 border-t border-[var(--border-color)] pt-2">
-                    <button
-                      onClick={() => setShowOrderHistory(!showOrderHistory)}
-                      className="flex items-center gap-1.5 text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider hover:text-blue-600 transition-colors"
-                    >
-                      <span className="inline-block w-3 h-3 text-center leading-none">{showOrderHistory ? '▾' : '▸'}</span>
-                      Histórico ({dailyOrders.filter(o => o.status === 'closed').length})
-                    </button>
-                    {showOrderHistory && (
-                      <div className="mt-2 space-y-1.5 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
-                        {dailyOrders.filter(o => o.status === 'closed').map(order => (
-                          <div key={order.id} className="flex items-start gap-2 py-1.5 px-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-100 dark:border-zinc-700/50">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[10px] font-semibold text-[var(--text-secondary)] line-through leading-snug truncate">
-                                &ldquo;{order.text}&rdquo;
-                              </p>
-                              <p className="text-[8px] text-zinc-400 dark:text-zinc-500 mt-0.5 uppercase tracking-wider font-bold">
-                                {order.createdAt ? new Date(order.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''} · {order.createdBy || 'Comando'}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </motion.section>
+              {/* Ordem do Dia movida para a lateral direita */}
 
               {/* AÇÕES RÁPIDAS (QUICK ACTIONS) */}
               <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl shadow-xs">
@@ -2899,26 +2789,100 @@ export default function CoordinatorDashboard({
                   <div className="w-full lg:w-80 space-y-6">
 
                     {/* CARTÃO EM DESTAQUE DO CANDIDATO */}
-                    <div className="bg-gradient-to-br from-blue-900 to-slate-900 text-white rounded-2xl p-5 shadow-md border border-blue-700/40 space-y-3">
-                      <span className="text-[10px] font-semibold text-blue-200 block uppercase tracking-wider">Candidato Oficial da Campanha</span>
-                      <div className="flex items-center gap-3">
+                    <div className="bg-gradient-to-br from-blue-700 via-blue-900 to-slate-900 text-white rounded-2xl p-6 shadow-xl border border-blue-500/30 space-y-4 relative overflow-hidden group">
+                      <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 blur-3xl rounded-full pointer-events-none transition-all group-hover:scale-150"></div>
+                      <span className="text-[10px] font-black text-blue-300 block uppercase tracking-[0.2em] relative z-10">Candidato Oficial da Campanha</span>
+                      <div className="flex flex-col items-center text-center gap-3 relative z-10">
                         <img 
                           src={candidateForm?.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
                           alt="Candidato" 
-                          className="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-md shrink-0 bg-slate-800"
+                          className="w-24 h-24 rounded-full object-cover border-4 border-white/90 shadow-[0_0_15px_rgba(255,255,255,0.2)] shrink-0 bg-slate-800 transition-transform group-hover:scale-105"
                           onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
                         />
-                        <div className="overflow-hidden">
-                          <h4 className="text-sm font-bold text-white truncate">{candidateForm?.name || 'Candidato da Campanha'}</h4>
-                          <p className="text-xs text-blue-200 truncate">{candidateForm?.title || 'Eleições 2026'}</p>
+                        <div className="overflow-hidden w-full">
+                          <h4 className="text-xl font-black text-white truncate">{candidateForm?.name || 'Candidato da Campanha'}</h4>
+                          <p className="text-sm font-semibold text-blue-200 mt-0.5 truncate">{candidateForm?.title || 'Eleições 2026'}</p>
                         </div>
                       </div>
                       <button
                         onClick={() => { setActiveTab('candidato'); setIsCandidateModalOpen(true); }}
-                        className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold text-xs transition-all shadow-sm cursor-pointer text-center flex items-center justify-center gap-1.5"
+                        className="w-full py-2.5 mt-2 bg-white hover:bg-blue-50 text-blue-900 rounded-xl font-bold text-xs transition-all shadow-[0_4px_10px_rgba(255,255,255,0.1)] active:scale-95 cursor-pointer text-center flex items-center justify-center gap-2 relative z-10"
                       >
-                        {isGeral ? 'Editar Informações do Candidato' : 'Visualizar Detalhes do Candidato'}
+                        <UserPlus className="w-4 h-4" /> {isGeral ? 'Editar Informações' : 'Visualizar Detalhes'}
                       </button>
+                    </div>
+
+                    {/* ORDEM DO DIA (MOVIDA PARA CÁ) */}
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm border border-[var(--border-color)] overflow-hidden relative">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 bg-blue-50 dark:bg-blue-950/50 rounded-lg text-blue-600 dark:text-blue-400">
+                            <Zap className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-bold text-[var(--text-primary)] leading-none">Ordem do Dia</h3>
+                            <p className="text-[9px] font-medium text-[var(--text-secondary)] uppercase mt-0.5">Diretiva Central</p>
+                          </div>
+                        </div>
+                        {isAdmin && (
+                          <div className="flex gap-1.5">
+                            {dailyOrder && !isEditingDailyOrder && (
+                              <button onClick={handleCloseActiveOrder} className="px-2 py-1 text-[9px] font-bold rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Fim</button>
+                            )}
+                            <button onClick={() => { setIsEditingDailyOrder(!isEditingDailyOrder); setNewDailyOrder(''); }} className="px-2 py-1 text-[9px] font-bold rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+                              {isEditingDailyOrder ? 'Cancelar' : '+ Nova'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {isEditingDailyOrder && (
+                        <div className="space-y-2 mb-4">
+                          <textarea
+                            value={newDailyOrder}
+                            onChange={(e) => setNewDailyOrder(e.target.value)}
+                            placeholder="Digite a diretiva..."
+                            className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 text-xs font-medium text-[var(--text-primary)] min-h-[70px] outline-none focus:border-blue-500"
+                            autoFocus
+                          />
+                          <button onClick={handleUpdateDailyOrder} className="w-full py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-500 transition-colors">
+                            Transmitir
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="mb-2">
+                        {dailyOrder ? (
+                          <div className="border-l-2 border-blue-600 pl-3 py-1">
+                            <span className="flex items-center gap-1.5 text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1.5">
+                              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Em Vigor
+                            </span>
+                            <p className="text-sm font-medium text-[var(--text-primary)] leading-snug">&ldquo;{dailyOrder.text}&rdquo;</p>
+                            <p className="text-[9px] text-[var(--text-secondary)] font-medium mt-2">
+                              {dailyOrder.createdAt ? new Date(dailyOrder.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''} · {dailyOrder.createdBy || 'Comando'}
+                            </p>
+                          </div>
+                        ) : !isEditingDailyOrder && (
+                          <p className="text-xs text-[var(--text-secondary)] italic">Nenhuma diretiva ativa no momento.</p>
+                        )}
+                      </div>
+
+                      {dailyOrders.filter(o => o.status === 'closed').length > 0 && (
+                        <div className="mt-4 pt-3 border-t border-[var(--border-color)]">
+                          <button onClick={() => setShowOrderHistory(!showOrderHistory)} className="text-[10px] font-bold text-[var(--text-secondary)] uppercase hover:text-blue-600 flex items-center gap-1">
+                            {showOrderHistory ? '▾' : '▸'} Histórico ({dailyOrders.filter(o => o.status === 'closed').length})
+                          </button>
+                          {showOrderHistory && (
+                            <div className="mt-2 space-y-2 max-h-32 overflow-y-auto custom-scrollbar pr-1">
+                              {dailyOrders.filter(o => o.status === 'closed').map(order => (
+                                <div key={order.id} className="p-2 bg-[var(--bg-tertiary)] rounded-lg text-[10px] text-[var(--text-secondary)] border border-[var(--border-color)]">
+                                  <p className="line-through font-medium leading-snug">&ldquo;{order.text}&rdquo;</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* ATIVIDADE E MOBILIZAÇÃO DAS EQUIPES */}
