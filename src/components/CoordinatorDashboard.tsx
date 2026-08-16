@@ -2613,7 +2613,7 @@ export default function CoordinatorDashboard({
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-5 md:space-y-8">
               
             {/* BANNER EM DESTAQUE DE CADASTRO DO CANDIDATO */}
-            {isGeral && (
+            {isGeral && candidatesList.length === 0 && (
               <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-2xl p-5 shadow-lg border border-blue-700/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shrink-0">
