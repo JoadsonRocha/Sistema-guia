@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useAuth } from '../../lib/SupabaseProvider';
-import { supabaseService } from '../../lib/supabaseService';
-import { KpiGrid } from '../dashboard/organisms/KpiGrid';
-import { KpiCard } from '../dashboard/molecules/KpiCard';
-import { ChartWidget } from '../dashboard/organisms/ChartWidget';
-import { FilterBar } from '../dashboard/organisms/FilterBar';
-import { AiInsightsWidget } from '../dashboard/organisms/AiInsightsWidget';
+import { useAuth } from '../lib/SupabaseProvider';
+import { supabaseService } from '../lib/supabaseService';
+import { KpiGrid } from '../components/dashboard/organisms/KpiGrid';
+import { KpiCard } from '../components/dashboard/molecules/KpiCard';
+import { ChartWidget } from '../components/dashboard/organisms/ChartWidget';
+import { FilterBar } from '../components/dashboard/organisms/FilterBar';
+import { AiInsightsWidget } from '../components/dashboard/organisms/AiInsightsWidget';
 import { Users, Target, TrendingUp, Trophy } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie
 } from 'recharts';
-import { ChartTooltip } from '../dashboard/atoms/ChartTooltip';
-import { reportService } from '../../services/reportService';
+import { ChartTooltip } from '../components/dashboard/atoms/ChartTooltip';
+import { reportService } from '../services/reportService';
 
 export const AdvancedDashboardPage: React.FC = () => {
   const { user, coordinatorId } = useAuth();
