@@ -2341,20 +2341,6 @@ export default function CoordinatorDashboard({
             className="max-h-12 w-full max-w-[160px] object-contain transition-all" 
           />
 
-          <div className="w-full bg-[var(--bg-tertiary)] rounded-xl p-3.5 border border-[var(--border-color)] space-y-1 text-left">
-            <span className="text-[10px] font-semibold text-[var(--text-secondary)] block">Perfil ativo</span>
-            <p className="text-xs font-bold text-[var(--text-primary)] truncate">
-              {profileData?.name || user?.displayName || user?.email?.split('@')[0] || 'Joadson Rocha'}
-            </p>
-            <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-              {(profileData?.role === 'coordenador_regional' || isRegional) 
-                ? 'Coordenador Regional' 
-                : 'Coordenador Geral'}
-            </p>
-            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-              {profileData?.zone || 'Setor Geral da Campanha'}
-            </p>
-          </div>
         </div>
 
         <nav className="flex-1 space-y-0.5 overflow-y-auto custom-scrollbar pr-1">
@@ -2393,12 +2379,25 @@ export default function CoordinatorDashboard({
           <div className="pt-4 border-t border-[var(--border-color)]">
             <button 
               onClick={() => navigate('/perfil')}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100/70 dark:hover:bg-zinc-800/50 transition-all group cursor-pointer"
+              className="w-full flex items-center gap-3 p-2 rounded-xl text-left hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50 transition-all group cursor-pointer"
+              title="Configurações e Perfil"
             >
-              <div className="text-zinc-400 dark:text-zinc-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                <Settings className="w-4 h-4" />
+              <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-sm text-white overflow-hidden shadow-sm shrink-0 border border-zinc-200 dark:border-zinc-700">
+                {profileData?.photoURL ? (
+                  <img src={profileData.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  (profileData?.name || user?.email || 'A').charAt(0).toUpperCase()
+                )}
               </div>
-              Configurações
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-[var(--text-primary)] truncate group-hover:text-blue-600 transition-colors">
+                  {profileData?.name || user?.displayName || user?.email?.split('@')[0] || 'Usuário'}
+                </p>
+                <p className="text-[10px] font-semibold text-[var(--text-secondary)] truncate">
+                  {(profileData?.role === 'coordenador_regional' || isRegional) ? 'Coord. Regional' : 'Coord. Geral'}
+                </p>
+              </div>
+              <Settings className="w-4 h-4 text-zinc-400 group-hover:text-blue-600 shrink-0 transition-colors" />
             </button>
           </div>
         </div>
