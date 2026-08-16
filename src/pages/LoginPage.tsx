@@ -184,19 +184,19 @@ export function LoginPage() {
                                    errStr.includes('user not found');
 
           if (isCredentialIssue) {
-            if (preRegDoc) {
-              const effectiveCoordinatorId = preRegDoc.coordinatorId || urlCoordId;
-              const effectiveRegionalCoordId = preRegDoc.regionalCoordId || urlRegionalCoordId;
-              const effectiveTeamId = preRegDoc.teamId || urlTeamId;
-              const effectiveRegion = preRegDoc.region || urlRegion || '';
+            if (preRegDoc || effectiveRole === 'coordenador_geral') {
+              const effectiveCoordinatorId = preRegDoc?.coordinatorId || urlCoordId;
+              const effectiveRegionalCoordId = preRegDoc?.regionalCoordId || urlRegionalCoordId;
+              const effectiveTeamId = preRegDoc?.teamId || urlTeamId;
+              const effectiveRegion = preRegDoc?.region || urlRegion || '';
               const shouldForce = preRegDoc?.forcePasswordChange !== false && !preRegDoc?.passwordChangedAt;
 
               await signupWithEmail(email, password, effectiveRole, {
-                name: preRegDoc.name || email.split('@')[0],
-                phone: preRegDoc.phone || '',
-                address: preRegDoc.address || '',
+                name: preRegDoc?.name || email.split('@')[0],
+                phone: preRegDoc?.phone || '',
+                address: preRegDoc?.address || '',
                 region: effectiveRegion,
-                teamName: preRegDoc.teamName || '',
+                teamName: preRegDoc?.teamName || '',
                 teamId: effectiveTeamId,
                 coordinatorId: effectiveCoordinatorId,
                 regionalCoordId: effectiveRegionalCoordId,
