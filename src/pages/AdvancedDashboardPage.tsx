@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { ChartTooltip } from '../components/dashboard/atoms/ChartTooltip';
 import { reportService } from '../services/reportService';
+import { TseAnalyticsPanel } from '../components/TseAnalyticsPanel';
 
 export const AdvancedDashboardPage: React.FC = () => {
   const { user, coordinatorId } = useAuth();
@@ -160,6 +161,8 @@ export const AdvancedDashboardPage: React.FC = () => {
       />
 
       <AiInsightsWidget dashboardData={dashboardDataForAi} />
+
+      <TseAnalyticsPanel coordinatorId={coordinatorId || user?.uid} />
 
       <KpiGrid>
         <KpiCard 
