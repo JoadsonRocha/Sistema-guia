@@ -33,6 +33,7 @@ interface RoraimaMapComponentProps {
   allVoters: any[];
   theme: 'light' | 'dark';
   coordinatorId?: string;
+  demands?: any[];
 }
 
 const MUNICIPALITIES = [
@@ -227,7 +228,7 @@ export function resolveTeamMunicipality(location?: string | null, availableMunic
   return location.trim() || availableMunicipalities[0] || "Sede";
 }
 
-export default function RoraimaMapComponent({ teams = [], allVoters = [], theme, coordinatorId }: RoraimaMapComponentProps) {
+export default function RoraimaMapComponent({ teams = [], allVoters = [], demands = [], theme, coordinatorId }: RoraimaMapComponentProps) {
   // Fetch official TRE locations for this specific coordinator
   const treLocations = useMemo(() => getAllTreLocations(coordinatorId), [coordinatorId]);
 
@@ -503,9 +504,9 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
 
   // Aggregate stats per municipality for overall dashboard
   const munStats = useMemo(() => {
-    const stats: Record<string, { voters: number; teams: number; leaders: string[]; supporters: number }> = {};
+    const stats: Record<string, { voters: number; teams: number; leaders: string[]; supporters: number; demands: number }> = {};
     dynamicMunicipalities.forEach(m => {
-      stats[m] = { voters: 0, teams: 0, leaders: [], supporters: 0 };
+      stats[m] = { voters: 0, teams: 0, leaders: [], supporters: 0, demands: 0 };
     });
 
     mappedVoters.forEach(v => {
@@ -526,8 +527,15 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
       }
     });
 
+    (demands || []).forEach(d => {
+      const m = resolveTeamMunicipality(d.team || d.location, dynamicMunicipalities);
+      if (stats[m]) {
+        stats[m].demands++;
+      }
+    });
+
     return stats;
-  }, [dynamicMunicipalities, mappedVoters, teams]);
+  }, [dynamicMunicipalities, mappedVoters, teams, demands]);
 
   // Filter current active municipality data
   const municipalTeams = useMemo(() => {
@@ -772,7 +780,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
                       <div className="space-y-1">
                         {group.municipalities.map((mun) => {
                           const isSelected = selectedMun === mun;
-                          const stats = munStats[mun] || { voters: 0, teams: 0 };
+                          const stats = munStats[mun] || { voters: 0, teams: 0, demands: 0 };
                           return (
                             <button
                               type="button"
@@ -799,10 +807,14 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], theme,
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-2 text-[9px] font-mono text-zinc-500 dark:text-zinc-400 shrink-0">
+                              <div className="flex gap-3 mt-1.5 text-xs text-zinc-500 font-bold tracking-tight">
                                 <span>👥 {stats.voters}</span>
-                                <span className="opacity-40">|</span>
                                 <span>🚩 {stats.teams}</span>
+                                {stats.demands > 0 && (
+                                  <span className="text-red-500 flex items-center gap-1">
+                                    <AlertTriangle className="w-3 h-3" /> {stats.demands}
+                                  </span>
+                                )}
                               </div>
                             </button>
                           );

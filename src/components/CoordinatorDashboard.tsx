@@ -4309,6 +4309,7 @@ export default function CoordinatorDashboard({
                 <RoraimaMapComponent 
                   teams={teams}
                   allVoters={allVoters}
+                  demands={urgencies.filter(u => u.type === 'demanda')}
                   theme={theme}
                   coordinatorId={coordinatorId || user?.uid}
                 />
