@@ -4211,74 +4211,94 @@ export default function CoordinatorDashboard({
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Solicitações Pendentes */}
                   <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white border border-zinc-200 rounded-sm p-6 lg:p-8 shadow-sm">
-                      <h3 className="text-lg font-black uppercase text-zinc-950 tracking-tighter mb-6 flex items-center gap-3">
-                        Solicitações
-                      </h3>
+                    <div className="bg-white border border-[var(--border-color)] rounded-2xl p-6 lg:p-8 shadow-sm">
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-black uppercase text-[var(--text-primary)] tracking-tighter flex items-center gap-3">
+                          <Clock className="w-5 h-5 text-amber-500" /> Solicitações Pendentes
+                        </h3>
+                        <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-black">
+                          {agendas.filter(a => a.status === 'pendente').length} aguardando
+                        </span>
+                      </div>
                       
                       <div className="space-y-4">
-                        {agendas.filter(a => a.status === 'pendente').length > 0 ? agendas.filter(a => a.status === 'pendente').map((item) => (
-                          <motion.div key={item.id} layout className="bg-zinc-50 border border-zinc-100 rounded-sm p-5 lg:p-6 flex flex-col md:flex-row justify-between items-center gap-6 group">
-                            <div className="flex items-center gap-6">
-                              <div className="bg-white px-4 py-3 rounded-sm shadow-sm border border-zinc-100 flex flex-col items-center min-w-[70px]">
-                                <span className="text-[8px] font-black uppercase text-zinc-400 mb-0.5">{new Date(item.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
-                                <span className="text-2xl font-black text-zinc-950 leading-none">{new Date(item.data).getDate()}</span>
+                        {agendas.filter(a => a.status === 'pendente').length > 0 ? agendas.filter(a => a.status === 'pendente').map((item) => {
+                          const itemDate = new Date(item.data);
+                          itemDate.setMinutes(itemDate.getMinutes() + itemDate.getTimezoneOffset());
+                          const isToday = itemDate.toDateString() === new Date().toDateString();
+                          
+                          return (
+                          <motion.div key={item.id} layout className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-5 lg:p-6 flex flex-col md:flex-row justify-between items-center gap-6 group hover:border-blue-500/30 hover:shadow-md transition-all relative overflow-hidden">
+                            {isToday && <div className="absolute top-0 left-0 w-1 h-full bg-red-500" title="Evento Hoje!" />}
+                            <div className="flex items-center gap-5 w-full md:w-auto">
+                              <div className={`flex flex-col items-center justify-center min-w-[70px] h-[70px] rounded-xl shrink-0 shadow-sm ${isToday ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}>
+                                <span className="text-[10px] font-black uppercase leading-none mb-1">{itemDate.toLocaleDateString('pt-BR', { month: 'short' })}</span>
+                                <span className="text-3xl font-black leading-none">{itemDate.getDate()}</span>
                               </div>
-                              <div className="space-y-1.5">
-                                <h3 className="text-base font-bold tracking-tight text-[var(--text-primary)] group-hover:text-blue-600 transition-colors">{item.municipio}</h3>
-                                <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-[var(--text-secondary)]">
-                                  <span className="flex items-center gap-1.5"><Clock className="w-3 h-3 text-blue-600" /> {item.hora_inicio} - {item.hora_fim}</span>
-                                  <span className="flex items-center gap-1.5"><User className="w-3 h-3 text-blue-600" /> <span>{item.team || 'Equipe Geral'}</span> • {item.sugeridoPor || 'Coordenador'}</span>
+                              <div className="space-y-1.5 flex-1">
+                                <h3 className="text-base font-black tracking-tight text-[var(--text-primary)] group-hover:text-blue-600 transition-colors">{item.municipio}</h3>
+                                <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-[var(--text-secondary)]">
+                                  <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md ${isToday ? 'bg-red-100 text-red-700' : 'bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border-color)]'}`}>
+                                    <Clock className="w-3 h-3" /> {item.hora_inicio}
+                                  </span>
+                                  <span className="flex items-center gap-1.5 bg-[var(--bg-tertiary)] px-2 py-0.5 rounded-md border border-[var(--border-color)] text-[var(--text-primary)]"><User className="w-3 h-3 text-blue-500" /> {item.sugeridoPor || 'Coordenador'}</span>
                                 </div>
                                 {item.allocatedMaterials && (
-                                  <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 font-semibold pt-1">
+                                  <div className="flex items-center gap-1.5 text-[11px] text-blue-600 font-bold pt-1">
                                     <Package className="w-3.5 h-3.5 shrink-0" />
-                                    <span>Materiais do evento: {item.allocatedMaterials}</span>
+                                    <span>Materiais: {item.allocatedMaterials}</span>
                                   </div>
                                 )}
-                                {item.motivo && <p className="text-xs text-[var(--text-secondary)] bg-[var(--bg-tertiary)] px-2.5 py-1 rounded-md inline-block font-normal mt-1">{item.motivo}</p>}
+                                {item.motivo && <p className="text-[11px] text-[var(--text-secondary)] bg-[var(--bg-tertiary)] px-3 py-1.5 rounded-lg border border-[var(--border-color)] inline-block font-medium mt-1.5">{item.motivo}</p>}
                               </div>
                             </div>
-                            <div className="flex gap-2.5 w-full md:w-auto">
+                            <div className="flex gap-2 w-full md:w-auto shrink-0 mt-4 md:mt-0">
                               <button 
                                 onClick={async () => {
                                   await supabaseService.updateDocument('agenda', item.id, { status: 'negado' });
                                 }}
-                                className="flex-1 md:flex-none px-6 py-3 bg-red-50 text-red-600 font-black text-[9px] uppercase rounded-sm hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                                className="flex-1 md:flex-none px-5 py-2.5 bg-white border border-red-200 text-red-600 font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-red-50 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-1.5"
                               >
-                                Negar
+                                <X className="w-3.5 h-3.5" /> Negar
                               </button>
                               <button 
                                 onClick={async () => {
                                   await supabaseService.updateDocument('agenda', item.id, { status: 'confirmado' });
                                 }}
-                                className="flex-1 md:flex-none px-6 py-3 bg-green-600 text-white font-black text-[9px] uppercase rounded-sm shadow-xl shadow-green-100 hover:bg-green-700 transition-all border-b-2 border-green-800 active:border-b-0 active:translate-y-0.5"
+                                className="flex-1 md:flex-none px-5 py-2.5 bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest rounded-lg shadow-[0_4px_15px_rgba(16,185,129,0.3)] hover:bg-emerald-500 active:scale-95 transition-all flex items-center justify-center gap-1.5"
                               >
-                                Confirmar
+                                <Check className="w-3.5 h-3.5" /> Confirmar
                               </button>
                             </div>
                           </motion.div>
-                        )) : (
-                          <div className="p-12 border border-dashed border-zinc-200 rounded-sm text-center">
-                            <CheckCircle2 className="w-8 h-8 text-green-200 mx-auto mb-3" />
-                            <p className="font-black text-zinc-300 uppercase tracking-[0.15em] text-[9px]">Nenhuma solicitação pendente.</p>
+                        );}) : (
+                          <div className="p-16 bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-2xl text-center grayscale opacity-60">
+                            <CheckCircle2 className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
+                            <p className="font-black text-[var(--text-secondary)] uppercase tracking-[0.15em] text-[10px]">Agenda Zerada. Nenhuma solicitação pendente.</p>
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
 
+                  {/* Cronograma Confirmado (Timeline Vertical) */}
                   <div className="space-y-6">
-                    <div className="bg-zinc-950 rounded-sm p-6 lg:p-8 text-white shadow-2xl min-h-[500px] relative overflow-hidden">
-                      <div className="absolute top-0 right-0 p-6 opacity-5">
-                         <Calendar className="w-32 h-32" />
+                    <div className="bg-white border border-[var(--border-color)] rounded-2xl p-6 lg:p-8 shadow-sm h-full relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-bl-full -mr-8 -mt-8 pointer-events-none" />
+                      <div className="flex items-center justify-between mb-8 relative z-10">
+                        <h3 className="text-lg font-black uppercase text-[var(--text-primary)] tracking-tighter flex items-center gap-3">
+                           Timeline Oficial
+                        </h3>
                       </div>
-                      <h3 className="text-lg font-black uppercase tracking-tighter mb-6 flex items-center gap-3">
-                         Cronograma Confirmado
-                      </h3>
-                      <div className="space-y-4 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
-                        {agendas.filter(a => a.status === 'confirmado').sort((a, b) => new Date(`${a.data}T${a.hora_inicio}`).getTime() - new Date(`${b.data}T${b.hora_inicio}`).getTime()).map(item => (
+                      
+                      <div className="relative space-y-6 before:absolute before:inset-0 before:left-[11px] before:h-full before:w-0.5 before:bg-gradient-to-b before:from-blue-500 before:via-blue-200 before:to-transparent z-10 overflow-y-auto max-h-[500px] custom-scrollbar pr-2 pb-8">
+                        {agendas.filter(a => a.status === 'confirmado').sort((a, b) => new Date(`${a.data}T${a.hora_inicio}`).getTime() - new Date(`${b.data}T${b.hora_inicio}`).getTime()).map((item, idx) => {
+                          const itemDate = new Date(item.data);
+                          itemDate.setMinutes(itemDate.getMinutes() + itemDate.getTimezoneOffset());
+                          
+                          return (
                           <motion.div 
                             key={item.id} 
                             layout
@@ -4286,21 +4306,23 @@ export default function CoordinatorDashboard({
                               setSelectedAgenda(item);
                               setIsAgendaDetailModalOpen(true);
                             }}
-                            className="bg-zinc-900 border border-zinc-800 p-4 rounded-sm flex items-center gap-5 group cursor-pointer hover:border-blue-600/50 transition-all"
+                            className="relative flex items-start group cursor-pointer"
                           >
-                            <div className="flex flex-col items-center justify-center bg-zinc-800 w-12 h-12 rounded-sm shrink-0 group-hover:bg-blue-600 transition-colors">
-                              <span className="text-[8px] font-black uppercase text-zinc-500 group-hover:text-white leading-none mb-0.5">{new Date(item.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
-                              <span className="text-xl font-black text-white group-hover:text-white leading-none">{new Date(item.data).getDate()}</span>
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full border-4 border-white bg-blue-500 shadow shrink-0 absolute left-0 z-10 group-hover:scale-125 transition-transform" />
+                            <div className="ml-10 w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] p-4 rounded-2xl shadow-sm group-hover:border-blue-500/50 group-hover:shadow-md transition-all relative overflow-hidden">
+                               <div className="absolute top-0 right-0 w-16 h-16 bg-blue-50/30 rounded-bl-full -mr-4 -mt-4 pointer-events-none" />
+                               <div className="flex justify-between items-start mb-2 relative z-10">
+                                 <span className="text-[10px] font-black text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1"><Clock className="w-3 h-3" /> {item.hora_inicio}</span>
+                                 <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase bg-[var(--bg-tertiary)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">{itemDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
+                               </div>
+                               <h4 className="text-sm font-black uppercase text-[var(--text-primary)] truncate group-hover:text-blue-600 transition-colors leading-tight mb-1 relative z-10">{item.municipio}</h4>
+                               {item.motivo && <p className="text-[11px] text-[var(--text-secondary)] font-medium line-clamp-2 leading-snug relative z-10">{item.motivo}</p>}
                             </div>
-                            <div className="flex-1 overflow-hidden">
-                              <h4 className="text-base font-black uppercase text-white truncate group-hover:text-blue-600 transition-colors leading-none">{item.municipio}</h4>
-                              <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mt-1.5 flex items-center gap-2">
-                                <Clock className="w-2.5 h-2.5" /> {item.hora_inicio}
-                              </p>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-blue-600 transition-all" />
                           </motion.div>
-                        ))}
+                        )})}
+                        {agendas.filter(a => a.status === 'confirmado').length === 0 && (
+                          <div className="text-center text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest mt-12 w-full relative z-20">Nenhum evento oficializado.</div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -5578,144 +5600,150 @@ export default function CoordinatorDashboard({
         {isAgendaCreateModalOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[250] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+            className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto"
           >
             <motion.div 
-              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-zinc-200"
+              initial={{ scale: 0.95, y: 15 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 15 }}
+              className="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-2xl relative"
             >
-              <button 
-                onClick={() => setIsAgendaCreateModalOpen(false)}
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
-              >
-                <X className="w-4 h-4" />
-              </button>
-
-              <div className="bg-blue-600 p-6">
-                <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none">
-                  {editingAgenda ? 'Editar Evento' : 'Novo Evento Estratégico'}
-                </h2>
-                <p className="text-zinc-900 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Cronograma Oficial de Campanha</p>
+              <div className="flex items-center justify-between p-5 border-b border-zinc-100 bg-zinc-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                    <Calendar className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-black text-zinc-900 uppercase tracking-tight">
+                      {editingAgenda ? 'Editar Evento' : 'Novo Evento Estratégico'}
+                    </h2>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setIsAgendaCreateModalOpen(false)}
+                  className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors active:scale-95"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              <form onSubmit={handleCreateOrUpdateAgenda} className="p-6 space-y-4 text-left">
+              <form onSubmit={handleCreateOrUpdateAgenda} className="p-5 space-y-4 text-left">
+                {/* Localidade com GPS Embutido */}
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold text-zinc-600 block">Localidade / Município *</label>
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1 block">Localidade / Endereço *</label>
+                  <div className="relative flex items-center">
+                    <input 
+                      required
+                      type="text" 
+                      value={agendaForm.municipio}
+                      onChange={(e) => setAgendaForm({...agendaForm, municipio: e.target.value})}
+                      placeholder="Ex: Ponto de Encontro..."
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2.5 pl-3 pr-12 text-sm font-medium text-zinc-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    />
                     <button
                       type="button"
                       disabled={isLocatingAgendaGPS}
                       onClick={handleGetAgendaGPS}
-                      className="text-[11px] text-blue-600 hover:text-blue-500 font-semibold flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200/50 cursor-pointer active:scale-95 transition-all"
+                      title="Usar GPS Atual"
+                      className="absolute right-2 p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors disabled:opacity-50"
                     >
-                      <MapPin className="w-3.5 h-3.5" />
-                      {isLocatingAgendaGPS ? 'Capturando GPS...' : 'Usar Localização Atual (GPS)'}
+                      {isLocatingAgendaGPS ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
                     </button>
                   </div>
-                  <input 
-                    required
-                    type="text" 
-                    value={agendaForm.municipio}
-                    onChange={(e) => setAgendaForm({...agendaForm, municipio: e.target.value})}
-                    placeholder="Ex: Boa Vista / Centro ou Ponto GPS..."
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs font-medium text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:italic"
-                  />
                 </div>
                 
-                <div className="space-y-1.5">
-                  <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Data da Operação</label>
-                  <input 
-                    required
-                    type="date" 
-                    value={agendaForm.data}
-                    onChange={(e) => setAgendaForm({...agendaForm, data: e.target.value})}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                {/* Data e Hora (Compactos) */}
+                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Início</label>
-                    <input 
-                      required
-                      type="time" 
-                      value={agendaForm.hora_inicio}
-                      onChange={(e) => setAgendaForm({...agendaForm, hora_inicio: e.target.value})}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
-                    />
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1 block">Data *</label>
+                    <div className="relative">
+                      <Calendar className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                      <input 
+                        required
+                        type="date" 
+                        value={agendaForm.data}
+                        onChange={(e) => setAgendaForm({...agendaForm, data: e.target.value})}
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2.5 pl-9 pr-3 text-sm font-medium text-zinc-900 outline-none focus:border-blue-500 transition-all"
+                      />
+                    </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Fim</label>
-                    <input 
-                      required
-                      type="time" 
-                      value={agendaForm.hora_fim}
-                      onChange={(e) => setAgendaForm({...agendaForm, hora_fim: e.target.value})}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
-                    />
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1 block">Horário *</label>
+                    <div className="relative">
+                      <Clock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                      <input 
+                        required
+                        type="time" 
+                        value={agendaForm.hora_inicio}
+                        onChange={(e) => setAgendaForm({...agendaForm, hora_inicio: e.target.value, hora_fim: ''})} 
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2.5 pl-9 pr-3 text-sm font-medium text-zinc-900 outline-none focus:border-blue-500 transition-all"
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                   <label className="text-xs font-semibold text-zinc-600 block">Objetivo / Atividade</label>
+                   <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider ml-1 block">Objetivo (Opcional)</label>
                    <textarea 
                      value={agendaForm.motivo}
                      onChange={(e) => setAgendaForm({...agendaForm, motivo: e.target.value})}
-                     placeholder="Breve descrição do objetivo da caminhada, reunião ou comício..."
-                     className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs font-medium text-zinc-900 outline-none focus:border-blue-600 transition-all h-20 resize-none placeholder:italic"
+                     placeholder="Breve descrição da atividade..."
+                     className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-sm font-medium text-zinc-900 outline-none focus:border-blue-500 transition-all h-16 resize-none"
                    />
                 </div>
 
-                {/* VINCULAÇÃO DE MATERIAIS PARA O EVENTO DA AGENDA */}
-                <div className="space-y-2 pt-2 border-t border-zinc-200">
-                  <label className="text-xs font-semibold text-blue-600 block flex items-center gap-1.5">
-                    <Package className="w-4 h-4" /> Materiais Necessários para o Evento
-                  </label>
-                  
-                  {materials && materials.length > 0 ? (
-                    <div className="space-y-2">
-                      <select
-                        onChange={(e) => {
-                          const selectedName = e.target.value;
-                          if (!selectedName) return;
-                          const current = agendaForm.allocatedMaterials;
-                          const updated = current ? `${current}, 100x ${selectedName}` : `100x ${selectedName}`;
-                          setAgendaForm({ ...agendaForm, allocatedMaterials: updated });
-                        }}
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs font-medium text-zinc-900 outline-none focus:border-blue-600 transition-all"
-                      >
-                        <option value="">Selecione um material cadastrado para adicionar...</option>
-                        {materials.map(m => (
-                          <option key={m.id} value={m.name}>{m.name} (Estoque: {m.qty})</option>
-                        ))}
-                      </select>
-                      
+                {/* VINCULAÇÃO DE MATERIAIS - EXPANSÍVEL */}
+                <style>{`details > summary { list-style: none; } details > summary::-webkit-details-marker { display: none; }`}</style>
+                <details className="group border border-zinc-200 rounded-xl bg-zinc-50 overflow-hidden">
+                  <summary className="flex items-center justify-between p-3 cursor-pointer text-[10px] font-black text-blue-600 uppercase tracking-wider outline-none">
+                    <span className="flex items-center gap-2"><Package className="w-3.5 h-3.5" /> Adicionar Materiais</span>
+                    <ChevronRight className="w-4 h-4 group-open:rotate-90 transition-transform" />
+                  </summary>
+                  <div className="p-3 pt-0 space-y-2 border-t border-zinc-200/50 mt-1">
+                    {materials && materials.length > 0 ? (
+                      <>
+                        <select
+                          onChange={(e) => {
+                            const selectedName = e.target.value;
+                            if (!selectedName) return;
+                            const current = agendaForm.allocatedMaterials;
+                            const updated = current ? `${current}, 100x ${selectedName}` : `100x ${selectedName}`;
+                            setAgendaForm({ ...agendaForm, allocatedMaterials: updated });
+                          }}
+                          className="w-full bg-white border border-zinc-200 rounded-lg p-2.5 text-xs font-medium text-zinc-900 outline-none focus:border-blue-500"
+                        >
+                          <option value="">Selecione do Estoque...</option>
+                          {materials.map(m => (
+                            <option key={m.id} value={m.name}>{m.name} ({m.qty})</option>
+                          ))}
+                        </select>
+                        <input 
+                          type="text" 
+                          value={agendaForm.allocatedMaterials}
+                          onChange={(e) => setAgendaForm({ ...agendaForm, allocatedMaterials: e.target.value })}
+                          placeholder="Ou digite manualmente..."
+                          className="w-full bg-white border border-zinc-200 rounded-lg p-2.5 text-xs font-medium text-zinc-900 outline-none focus:border-blue-500"
+                        />
+                      </>
+                    ) : (
                       <input 
                         type="text" 
                         value={agendaForm.allocatedMaterials}
                         onChange={(e) => setAgendaForm({ ...agendaForm, allocatedMaterials: e.target.value })}
-                        placeholder="Ex: 500x Santinho 55000, 20x Camisas, 10x Bandeiras"
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs font-medium text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:italic"
+                        placeholder="Ex: 500x Santinhos..."
+                        className="w-full bg-white border border-zinc-200 rounded-lg p-2.5 text-xs font-medium text-zinc-900 outline-none focus:border-blue-500"
                       />
-                    </div>
-                  ) : (
-                    <input 
-                      type="text" 
-                      value={agendaForm.allocatedMaterials}
-                      onChange={(e) => setAgendaForm({ ...agendaForm, allocatedMaterials: e.target.value })}
-                      placeholder="Ex: 500x Santinho 55000, 20x Camisas da Campanha"
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs font-medium text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:italic"
-                    />
-                  )}
-                </div>
+                    )}
+                  </div>
+                </details>
                 
-                <button 
-                  type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-semibold text-xs shadow-md transition-all mt-2 cursor-pointer flex items-center justify-center gap-2 active:scale-95"
-                >
-                  <Check className="w-4 h-4" />
-                  {editingAgenda ? 'Atualizar Cronograma' : 'Publicar Evento'}
-                </button>
+                <div className="pt-3">
+                  <button 
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-[0_4px_15px_rgba(37,99,235,0.2)] active:scale-95 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Check className="w-4 h-4" />
+                    {editingAgenda ? 'Salvar Edição' : 'Agendar Evento'}
+                  </button>
+                </div>
               </form>
             </motion.div>
           </motion.div>
