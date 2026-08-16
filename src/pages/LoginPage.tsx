@@ -307,7 +307,7 @@ export function LoginPage() {
               <span>Painel Eleitoral 2026</span>
             </div>
             <h1 className="text-base sm:text-lg font-black tracking-tight text-[var(--text-primary)]">
-              {isRegistering ? 'Criar Acesso Operacional' : 'Acesso Seguro ao Sistema'}
+              {isRegistering ? 'Criar uma Conta' : 'Fazer Login'}
             </h1>
             <p className="text-xs text-[var(--text-secondary)] opacity-80">
               {roleBadgeLabel ? (
@@ -324,7 +324,7 @@ export function LoginPage() {
           {/* Email Field */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
-              E-mail Operacional
+              E-mail
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-secondary)] opacity-50">
@@ -345,7 +345,7 @@ export function LoginPage() {
           <div className="space-y-1.5">
             <div className="flex justify-between items-center">
               <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
-                Chave de Acesso (Senha)
+                Senha
               </label>
               {!isRegistering && (
                 <button
@@ -462,7 +462,7 @@ export function LoginPage() {
               <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
             ) : (
               <>
-                <span>{isRegistering ? 'Concluir Cadastro' : 'Entrar no Painel'}</span>
+                <span>{isRegistering ? 'Criar Conta' : 'Entrar'}</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -501,7 +501,7 @@ export function LoginPage() {
             onClick={() => setIsRegistering(!isRegistering)}
             className="hover:text-blue-600 transition-colors font-medium cursor-pointer"
           >
-            {isRegistering ? 'Já possui conta? Entrar' : 'Registrar Operador'}
+            {isRegistering ? 'Já possui conta? Entrar' : 'Criar uma conta'}
           </button>
 
           <button 
