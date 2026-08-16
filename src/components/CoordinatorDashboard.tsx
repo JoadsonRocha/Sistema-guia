@@ -203,13 +203,7 @@ export default function CoordinatorDashboard({
   // Restaurar a última aba visitada ao recarregar a página (persiste no localStorage)
   const ACTIVE_TAB_KEY = 'nexus_coordinator_active_tab';
   type ActiveTabType = 'overview' | 'candidato' | 'regional_coords' | 'metas' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral';
-  const [activeTab, setActiveTabState] = useState<ActiveTabType>(() => {
-    try {
-      const saved = localStorage.getItem(ACTIVE_TAB_KEY);
-      if (saved) return saved as ActiveTabType;
-    } catch (_) {}
-    return 'overview';
-  });
+  const [activeTab, setActiveTabState] = useState<ActiveTabType>('overview');
 
   // Função que salva a aba ativa no localStorage antes de mudar o estado
   const setActiveTab = (tab: ActiveTabType) => {
@@ -1932,36 +1926,36 @@ export default function CoordinatorDashboard({
 
   const stats = [
     { 
-      label: 'Equipes Ativas', 
-      value: teams.length, 
-      sub: 'Gestão de Líderes', 
+      label: 'Metas Atingidas', 
+      value: goals.filter(g => g.progress >= 100).length || 0, 
+      sub: `${goals.length} Cadastradas`, 
       color: 'text-[var(--text-primary)]',
       iconColor: 'bg-zinc-100 dark:bg-zinc-800',
-      action: () => isGeral ? setActiveTab('regional_coords') : setActiveTab('teams')
+      action: () => setActiveTab('metas')
     },
     { 
-      label: 'Contatos Base', 
-      value: totalVotersCount || allVoters.length, 
-      sub: 'Monitoramento Real', 
+      label: 'Base Eleitoral', 
+      value: totalVotersCount || allVoters.length || 0, 
+      sub: 'Cadastros Reais', 
       color: 'text-emerald-600 dark:text-emerald-500',
       iconColor: 'bg-emerald-50 dark:bg-emerald-500/10',
       action: () => isGeral ? setActiveTab('reports') : setActiveTab('voters')
     },
     { 
-      label: 'Agenda Pendente', 
-      value: agendas.filter(a => a.status === 'pendente').length, 
-      sub: 'Compromissos Hoje', 
+      label: 'Agenda de Eventos', 
+      value: agendas.filter(a => a.status === 'confirmado').length || 0, 
+      sub: `${agendas.filter(a => a.status === 'pendente').length} Pendentes`, 
       color: 'text-blue-600 dark:text-blue-400',
       iconColor: 'bg-blue-50 dark:bg-blue-500/10',
       action: () => setActiveTab('agenda')
     },
     { 
-      label: 'Dia D (Votaram)', 
-      value: votedVotersCount, 
-      sub: `${((votedVotersCount / ((totalVotersCount || allVoters.length) || 1)) * 100).toFixed(1)}% de Metas`, 
-      color: 'text-emerald-700 dark:text-emerald-400',
-      iconColor: 'bg-emerald-100 dark:bg-emerald-500/20',
-      action: () => isGeral ? setActiveTab('reports') : setActiveTab('voters')
+      label: 'Estoque Material', 
+      value: materials.reduce((acc, m) => acc + (m.current || 0), 0) || 0, 
+      sub: 'Unidades Disponíveis', 
+      color: 'text-indigo-600 dark:text-indigo-400',
+      iconColor: 'bg-indigo-50 dark:bg-indigo-500/10',
+      action: () => setActiveTab('materials')
     },
   ];
 
@@ -2760,6 +2754,45 @@ export default function CoordinatorDashboard({
                   </div>
                 )}
               </motion.section>
+
+              {/* AÇÕES RÁPIDAS (QUICK ACTIONS) */}
+              <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl shadow-xs">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-amber-500" /> Ações Rápidas
+                  </h3>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <button 
+                    onClick={() => { setActiveTab('agenda'); setTimeout(() => { setAgendaForm(DEFAULT_AGENDA_INFO); setEditingAgenda(null); setIsAgendaCreateModalOpen(true); }, 100); }}
+                    className="btn-primary !py-3 flex-col gap-1 hover:shadow-lg transition-all"
+                  >
+                    <Calendar className="w-5 h-5 mb-1" />
+                    <span>Novo Evento</span>
+                  </button>
+                  <button 
+                    onClick={() => { setActiveTab('materials'); setTimeout(() => { setEditingMaterial(null); setIsMaterialModalOpen(true); }, 100); }}
+                    className="btn-secondary !bg-indigo-50 !text-indigo-600 !border-indigo-200 hover:!bg-indigo-600 hover:!text-white !py-3 flex-col gap-1 transition-all"
+                  >
+                    <Package className="w-5 h-5 mb-1" />
+                    <span>Estoque</span>
+                  </button>
+                  <button 
+                    onClick={() => { setActiveTab('metas'); setTimeout(() => setIsEditGoalModalOpen(true), 100); }}
+                    className="btn-secondary !bg-emerald-50 !text-emerald-600 !border-emerald-200 hover:!bg-emerald-600 hover:!text-white !py-3 flex-col gap-1 transition-all"
+                  >
+                    <Target className="w-5 h-5 mb-1" />
+                    <span>Nova Meta</span>
+                  </button>
+                  <button 
+                    onClick={() => { setActiveTab('voters'); setTimeout(() => { setVoterForm(DEFAULT_VOTER_INFO); setEditingVoterId(null); setIsVoterEditModalOpen(true); }, 100); }}
+                    className="btn-secondary !py-3 flex-col gap-1 transition-all"
+                  >
+                    <UserPlus className="w-5 h-5 mb-1 text-[var(--text-secondary)]" />
+                    <span>Eleitor</span>
+                  </button>
+                </div>
+              </section>
 
               {/* STATS GRID */}
               <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
