@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Send, CheckCircle2, Copy, X, MessageSquare, ShieldCheck, Sparkles, Users, ExternalLink, ArrowRight, Check, Search, Filter, RefreshCw } from 'lucide-react';
+import { Send, CheckCircle2, Copy, X, MessageSquare, ShieldCheck, Sparkles, Users, ExternalLink, ArrowRight, Check, Search, Filter, RefreshCw, Settings2 } from 'lucide-react';
 import { whatsappService, WaMeRecipientLink } from '../services/whatsappService';
 
 interface WhatsAppDispatchModalProps {
@@ -122,7 +122,7 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
 
   const handleSendViaApi = async (item: WaMeRecipientLink) => {
     if (!apiUrl || !apiKey || !apiInstance) {
-      alert('Configurações da Evolution API incompletas. Por favor, clique em "Configurar API" primeiro!');
+      alert('Configurações da Evolution API incompletas. Por favor, clique no ícone de engrenagem para configurar.');
       setShowApiConfig(true);
       return;
     }
@@ -142,7 +142,7 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
 
   const handleBulkSendViaApi = async () => {
     if (!apiUrl || !apiKey || !apiInstance) {
-      alert('Configurações da Evolution API incompletas. Por favor, clique em "Configurar API" primeiro!');
+      alert('Configurações da Evolution API incompletas. Por favor, clique no ícone de engrenagem para configurar.');
       setShowApiConfig(true);
       return;
     }
@@ -183,264 +183,286 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
   const sentCount = Object.keys(sentMap).filter(k => preparedBatch.some(p => p.id === k)).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 md:p-4 animate-in fade-in duration-200">
-      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-3 md:p-4 animate-in fade-in duration-200">
+      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
         
         {/* Modal Header */}
-        <div className="px-6 py-4 bg-emerald-600/10 border-b border-emerald-500/20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold shadow-md shadow-emerald-600/20 shrink-0">
+        <div className="px-5 md:px-6 py-4 border-b border-[var(--border-color)] flex items-center justify-between bg-[var(--bg-tertiary)]">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200 dark:border-emerald-900/50 shadow-sm shrink-0">
               <MessageSquare className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-black uppercase text-[var(--text-primary)] tracking-wide flex items-center gap-2">
-                Disparo Assistido via WhatsApp (Gratuito / wa.me)
-                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold">100% GRATUITO</span>
+              <h3 className="text-sm font-black uppercase text-[var(--text-primary)] tracking-wide flex items-center gap-2">
+                Centro de Disparo Estratégico
               </h3>
-              <p className="text-xs text-[var(--text-secondary)]">Envio direto sem custo de API, sem risco de bloqueio e com personalização por eleitor</p>
+              <p className="text-xs text-[var(--text-secondary)]">Envio manual e automático para bases da campanha</p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-zinc-100 rounded-lg transition-colors hover:bg-zinc-800"
+            className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] border border-transparent hover:border-[var(--border-color)] rounded-xl transition-all shadow-sm"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Modal Content */}
-        <div className="p-5 md:p-6 space-y-5 overflow-y-auto flex-1">
+        <div className="p-5 md:p-6 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
 
           {/* Banner Estratégico */}
-          <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-start gap-3 text-xs text-emerald-300">
-            <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-            <div>
-              <strong>Estratégia de Disparos Integrados:</strong> Controle absoluto e personalização automática de variáveis como <code className="text-emerald-400 font-mono">{'{nome}'}</code> e <code className="text-emerald-400 font-mono">{'{bairro}'}</code>. Alterne entre o envio manual gratuito ou a automação profissional instantânea.
+          <div className="px-4 py-3 bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400 rounded-xl flex items-start md:items-center gap-3 text-xs shadow-sm">
+            <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5 md:mt-0" />
+            <div className="flex-1 font-medium leading-relaxed">
+              <strong>Controle Total:</strong> Personalização instantânea de variáveis como <code className="font-mono bg-emerald-100 dark:bg-emerald-500/20 px-1 py-0.5 rounded text-emerald-800 dark:text-emerald-300">{'{nome}'}</code> e <code className="font-mono bg-emerald-100 dark:bg-emerald-500/20 px-1 py-0.5 rounded text-emerald-800 dark:text-emerald-300">{'{bairro}'}</code>. Alterne livremente entre o modo de envio manual 100% gratuito (wa.me) e a automação de alta velocidade (Evolution API).
             </div>
           </div>
 
-          {/* Seleção do Modo de Disparo */}
-          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-4 bg-zinc-900/60 border border-zinc-850 rounded-lg">
-            <div className="space-y-1">
-              <span className="text-xs font-black uppercase text-zinc-300 tracking-wider">Canal de Disparos</span>
-              <p className="text-xs text-zinc-500">Escolha a mecânica de envio da campanha de acordo com a sua infraestrutura</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setDispatchMode('wame')}
-                className={`px-3.5 py-2 text-xs font-bold rounded-lg border transition-all ${
-                  dispatchMode === 'wame'
-                    ? 'bg-emerald-600/15 border-emerald-500 text-emerald-400'
-                    : 'bg-zinc-950/40 border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
-                }`}
-              >
-                📱 wa.me Grátis
-              </button>
-              <button
-                type="button"
-                onClick={() => setDispatchMode('api')}
-                className={`px-3.5 py-2 text-xs font-bold rounded-lg border transition-all flex items-center gap-2 ${
-                  dispatchMode === 'api'
-                    ? 'bg-blue-600/15 border-blue-500 text-blue-400'
-                    : 'bg-zinc-950/40 border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
-                }`}
-              >
-                🤖 Evolution API
-              </button>
-              {dispatchMode === 'api' && (
-                <button
-                  type="button"
-                  onClick={() => setShowApiConfig(!showApiConfig)}
-                  className="px-3 py-2 text-xs font-bold rounded-lg border bg-zinc-850 border-zinc-750 text-zinc-300 hover:bg-zinc-800 transition-colors"
-                >
-                  ⚙️ {showApiConfig ? 'Fechar Config' : 'Configurar API'}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Configuração da Evolution API */}
-          {dispatchMode === 'api' && showApiConfig && (
-            <div className="p-4 bg-zinc-950 border border-blue-500/20 rounded-lg space-y-3 animate-in slide-in-from-top-2 duration-150">
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-                <span className="text-xs font-black text-blue-400 uppercase tracking-wider">Parâmetros da Evolution API</span>
-                <span className="text-[10px] text-zinc-500">Credenciais criptografadas localmente</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-zinc-400 uppercase block">URL da API</label>
-                  <input
-                    type="text"
-                    placeholder="https://api.meuservidor.com"
-                    value={apiUrl}
-                    onChange={(e) => setApiUrl(e.target.value)}
-                    className="w-full bg-zinc-900 border border-zinc-800 text-xs p-2 rounded-lg text-zinc-200 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-zinc-400 uppercase block">apikey Global</label>
-                  <input
-                    type="password"
-                    placeholder="Sua Global Apikey"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    className="w-full bg-zinc-900 border border-zinc-800 text-xs p-2 rounded-lg text-zinc-200 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-zinc-400 uppercase block">Nome da Instância</label>
-                  <input
-                    type="text"
-                    placeholder="instancia_campanha"
-                    value={apiInstance}
-                    onChange={(e) => setApiInstance(e.target.value)}
-                    className="w-full bg-zinc-900 border border-zinc-800 text-xs p-2 rounded-lg text-zinc-200 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center justify-end gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setShowApiConfig(false)}
-                  className="px-3 py-1.5 text-xs font-bold text-zinc-500 hover:text-zinc-300 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveApiConfig}
-                  className="px-4 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
-                >
-                  Salvar
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
             {/* Painel Esquerdo: Configuração da Mensagem */}
-            <div className="lg:col-span-5 space-y-4 border-r border-[var(--border-color)] lg:pr-5">
+            <div className="lg:col-span-5 flex flex-col gap-5">
               
-              {/* Público-Alvo */}
-              <div>
-                <label className="text-xs font-bold uppercase text-[var(--text-secondary)] flex items-center gap-2 mb-2">
-                  <Users className="w-4 h-4 text-blue-400" /> 1. Público-Alvo
-                </label>
+              {/* Seleção do Modo de Disparo */}
+              <div className="p-4 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-[10px] font-black uppercase text-[var(--text-secondary)] tracking-widest flex items-center gap-2">
+                    Mecânica de Disparo
+                  </label>
+                  {dispatchMode === 'api' && (
+                    <button
+                      type="button"
+                      onClick={() => setShowApiConfig(!showApiConfig)}
+                      className="text-[10px] uppercase font-bold text-blue-600 hover:text-blue-500 flex items-center gap-1 transition-colors"
+                      title="Configurar Evolution API"
+                    >
+                      <Settings2 className="w-3.5 h-3.5" /> API
+                    </button>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    onClick={() => setTargetAudience('voters')}
-                    className={`p-2.5 rounded-lg border text-left transition-all ${
-                      targetAudience === 'voters'
-                        ? 'bg-blue-600/15 border-blue-500 text-blue-400 font-bold'
-                        : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                    type="button"
+                    onClick={() => setDispatchMode('wame')}
+                    className={`py-2.5 px-2 text-xs font-bold rounded-xl border transition-all flex flex-col items-center justify-center gap-1 ${
+                      dispatchMode === 'wame'
+                        ? 'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-950/30 dark:border-emerald-500/50 dark:text-emerald-400 shadow-sm'
+                        : 'bg-[var(--bg-secondary)] border-[var(--border-color)] text-[var(--text-secondary)] hover:border-emerald-300 hover:text-[var(--text-primary)]'
                     }`}
                   >
-                    <div className="text-xs">Base Eleitores</div>
-                    <div className="text-[10px] text-zinc-500">{voters.filter(v => v.phone).length} cadastrados</div>
+                    <span>📱 wa.me Seguro</span>
+                    <span className="text-[9px] font-medium opacity-80">Manual / Grátis</span>
                   </button>
-
                   <button
-                    onClick={() => setTargetAudience('leaders')}
-                    className={`p-2.5 rounded-lg border text-left transition-all ${
-                      targetAudience === 'leaders'
-                        ? 'bg-emerald-600/15 border-emerald-500 text-emerald-400 font-bold'
-                        : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                    type="button"
+                    onClick={() => setDispatchMode('api')}
+                    className={`py-2.5 px-2 text-xs font-bold rounded-xl border transition-all flex flex-col items-center justify-center gap-1 ${
+                      dispatchMode === 'api'
+                        ? 'bg-blue-50 border-blue-500 text-blue-700 dark:bg-blue-950/30 dark:border-blue-500/50 dark:text-blue-400 shadow-sm'
+                        : 'bg-[var(--bg-secondary)] border-[var(--border-color)] text-[var(--text-secondary)] hover:border-blue-300 hover:text-[var(--text-primary)]'
                     }`}
                   >
-                    <div className="text-xs">Líderes / Cabos</div>
-                    <div className="text-[10px] text-zinc-500">{leaders.filter(l => l.phone).length} cadastrados</div>
+                    <span>🤖 Evolution API</span>
+                    <span className="text-[9px] font-medium opacity-80">Automático em Lote</span>
                   </button>
                 </div>
+
+                {/* Configuração da Evolution API */}
+                {dispatchMode === 'api' && showApiConfig && (
+                  <div className="mt-4 p-3.5 bg-[var(--bg-secondary)] border border-blue-200 dark:border-blue-900/50 rounded-xl space-y-3 animate-in slide-in-from-top-2 duration-150 shadow-inner">
+                    <div className="grid grid-cols-1 gap-2.5">
+                      <div>
+                        <label className="text-[9px] font-bold text-[var(--text-secondary)] uppercase block mb-1">URL da API</label>
+                        <input
+                          type="text"
+                          placeholder="https://api.servidor.com"
+                          value={apiUrl}
+                          onChange={(e) => setApiUrl(e.target.value)}
+                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-xs p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-500 transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-bold text-[var(--text-secondary)] uppercase block mb-1">Global API Key</label>
+                        <input
+                          type="password"
+                          placeholder="Sua Global Apikey"
+                          value={apiKey}
+                          onChange={(e) => setApiKey(e.target.value)}
+                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-xs p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-500 transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-bold text-[var(--text-secondary)] uppercase block mb-1">Instância (Session)</label>
+                        <input
+                          type="text"
+                          placeholder="instancia_campanha"
+                          value={apiInstance}
+                          onChange={(e) => setApiInstance(e.target.value)}
+                          className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-xs p-2.5 rounded-xl font-medium focus:outline-none focus:border-blue-500 transition-all"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end pt-1">
+                      <button
+                        type="button"
+                        onClick={handleSaveApiConfig}
+                        className="px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all shadow-sm active:scale-95"
+                      >
+                        Salvar Credenciais
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Filtro por Bairro (se eleitores) */}
-              {targetAudience === 'voters' && neighborhoods.length > 0 && (
+              {/* Público-Alvo e Filtros */}
+              <div className="p-4 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl shadow-sm space-y-4">
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-[var(--text-secondary)] block mb-1">Filtrar por Bairro / Região</label>
-                  <select
-                    value={selectedNeighborhood}
-                    onChange={(e) => setSelectedNeighborhood(e.target.value)}
-                    className="w-full bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 p-2 rounded-lg focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="ALL">Todos os Bairros ({voters.length})</option>
-                    {neighborhoods.map((n: string) => (
-                      <option key={n} value={n}>
-                        {n} ({voters.filter(v => v.neighborhood === n).length})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Modelos de Mensagem */}
-              <div>
-                <label className="text-xs font-bold uppercase text-[var(--text-secondary)] flex items-center gap-2 mb-2">
-                  <Sparkles className="w-4 h-4 text-amber-400" /> 2. Modelo de Mensagem
-                </label>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {[
-                    { id: 'convocacao', label: '📢 Convocação' },
-                    { id: 'dia_d', label: '🗳️ Dia D Eleição' },
-                    { id: 'demanda', label: '📋 Status Demanda' },
-                    { id: 'cadastro', label: '✅ Boas-vindas' },
-                  ].map(t => (
+                  <label className="text-[10px] font-black uppercase text-[var(--text-secondary)] tracking-widest flex items-center gap-2 mb-2.5">
+                    <Users className="w-3.5 h-3.5 text-blue-500" /> Público-Alvo
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
                     <button
-                      key={t.id}
-                      onClick={() => handleTemplateChange(t.id)}
-                      className={`p-2 text-[11px] rounded border text-center transition-all ${
-                        templateType === t.id
-                          ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold'
-                          : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                      onClick={() => setTargetAudience('voters')}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        targetAudience === 'voters'
+                          ? 'bg-[var(--bg-secondary)] border-blue-500 text-blue-600 dark:text-blue-400 shadow-sm'
+                          : 'bg-[var(--bg-secondary)] border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--text-primary)]'
                       }`}
                     >
-                      {t.label}
+                      <div className="text-xs font-bold">Eleitores</div>
+                      <div className="text-[10px] opacity-70 font-medium">{voters.filter(v => v.phone).length} Contatos</div>
                     </button>
-                  ))}
+                    <button
+                      onClick={() => setTargetAudience('leaders')}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        targetAudience === 'leaders'
+                          ? 'bg-[var(--bg-secondary)] border-emerald-500 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                          : 'bg-[var(--bg-secondary)] border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--text-primary)]'
+                      }`}
+                    >
+                      <div className="text-xs font-bold">Lideranças</div>
+                      <div className="text-[10px] opacity-70 font-medium">{leaders.filter(l => l.phone).length} Contatos</div>
+                    </button>
+                  </div>
+                </div>
+
+                {targetAudience === 'voters' && neighborhoods.length > 0 && (
+                  <div>
+                    <label className="text-[9px] font-bold uppercase text-[var(--text-secondary)] tracking-wider block mb-1.5">Recorte Geográfico</label>
+                    <select
+                      value={selectedNeighborhood}
+                      onChange={(e) => setSelectedNeighborhood(e.target.value)}
+                      className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[11px] font-bold text-[var(--text-primary)] p-2.5 rounded-xl focus:outline-none focus:border-blue-500 transition-all shadow-sm"
+                    >
+                      <option value="ALL">Todos os Bairros ({voters.length})</option>
+                      {neighborhoods.map((n: string) => (
+                        <option key={n} value={n}>
+                          {n} ({voters.filter(v => v.neighborhood === n).length})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* Construtor de Mensagem */}
+              <div className="p-4 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl shadow-sm space-y-4">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-[var(--text-secondary)] tracking-widest flex items-center gap-2 mb-2.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Estrutura da Mensagem
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {[
+                      { id: 'convocacao', label: '📢 Convocação' },
+                      { id: 'dia_d', label: '🗳️ Dia D Eleição' },
+                      { id: 'demanda', label: '📋 Status Demanda' },
+                      { id: 'cadastro', label: '✅ Boas-vindas' },
+                    ].map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => handleTemplateChange(t.id)}
+                        className={`p-2 text-[10px] font-bold rounded-lg border text-center transition-all ${
+                          templateType === t.id
+                            ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-950/30 dark:border-amber-500/50 dark:text-amber-400'
+                            : 'bg-[var(--bg-secondary)] border-[var(--border-color)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]'
+                        }`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[9px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">Conteúdo</label>
+                    <span className="text-[9px] text-[var(--text-secondary)]">Variáveis: <code className="text-emerald-600 dark:text-emerald-400 font-bold">{`{nome}`}</code>, <code className="text-emerald-600 dark:text-emerald-400 font-bold">{`{bairro}`}</code></span>
+                  </div>
+                  <textarea
+                    rows={4}
+                    value={customMessage}
+                    onChange={(e) => setCustomMessage(e.target.value)}
+                    className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] text-xs text-[var(--text-primary)] font-medium p-3 rounded-xl focus:outline-none focus:border-emerald-500 transition-all shadow-inner resize-none"
+                    placeholder="Escreva a mensagem personalizada..."
+                  />
                 </div>
               </div>
 
-              {/* Editor de Texto com Tags */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-bold uppercase text-[var(--text-secondary)]">Texto do Template</label>
-                  <span className="text-[9px] text-zinc-400">Tags: <code className="text-emerald-400">{`{nome}`}</code>, <code className="text-emerald-400">{`{bairro}`}</code></span>
+            </div>
+
+            {/* Painel Direito: Fila de Disparo e Destinatários */}
+            <div className="lg:col-span-7 flex flex-col h-full gap-4">
+              
+              {/* Header da Fila */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                    <Filter className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-[13px] font-bold uppercase tracking-wide text-[var(--text-primary)] flex items-center gap-2">
+                      Fila de Destinatários
+                      <span className="bg-[var(--bg-tertiary)] px-2 py-0.5 rounded-full text-[10px] border border-[var(--border-color)] text-[var(--text-secondary)]">
+                        {preparedBatch.length}
+                      </span>
+                    </h4>
+                    <p className="text-[10px] font-medium text-[var(--text-secondary)]">
+                      Progresso: {sentCount} enviados ({Math.round((sentCount / Math.max(1, preparedBatch.length)) * 100)}%)
+                    </p>
+                  </div>
                 </div>
-                <textarea
-                  rows={4}
-                  value={customMessage}
-                  onChange={(e) => setCustomMessage(e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 p-2.5 rounded-lg focus:outline-none focus:border-emerald-500 font-sans"
-                  placeholder="Escreva a mensagem personalizada..."
-                />
+
+                <div className="relative max-w-[200px] w-full">
+                  <Search className="w-3.5 h-3.5 text-[var(--text-secondary)] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Buscar contato..."
+                    value={searchFilter}
+                    onChange={(e) => setSearchFilter(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[11px] font-medium text-[var(--text-primary)] rounded-xl focus:outline-none focus:border-blue-500 transition-all shadow-sm"
+                  />
+                </div>
               </div>
 
-              {/* Ação Rapida: Disparar Próximo da Fila */}
-              <div className="p-3 bg-zinc-900/90 border border-zinc-800 rounded-lg space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold">
-                  <span className="text-zinc-300">
-                    {dispatchMode === 'api' ? 'Automação Evolution API' : 'Fila de Envios Sequencial'}
-                  </span>
-                  <span className="text-emerald-400">{sentCount} / {preparedBatch.length} Enviados</span>
-                </div>
-                
+              {/* Botão de Disparo Geral / Automação */}
+              <div className="p-1">
                 {dispatchMode === 'api' ? (
                   <button
                     type="button"
                     onClick={handleBulkSendViaApi}
                     disabled={preparedBatch.length === 0 || sentCount === preparedBatch.length || isBulkSending}
-                    className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
+                    className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-400 text-white rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98] transition-all"
                   >
                     {isBulkSending ? (
                       <>
                         <RefreshCw className="w-4 h-4 animate-spin" />
-                        Enviando em Lote...
+                        Disparando Lote...
                       </>
                     ) : (
                       <>
                         <Send className="w-4 h-4" />
-                        🚀 Iniciar Disparo em Lote ({preparedBatch.length - sentCount} Pendentes)
+                        Iniciar Automação API ({preparedBatch.length - sentCount} Pendentes)
                       </>
                     )}
                   </button>
@@ -449,142 +471,141 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
                     type="button"
                     onClick={handleLaunchNextInQueue}
                     disabled={preparedBatch.length === 0 || sentCount === preparedBatch.length}
-                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-lg font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all"
+                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-400 text-white rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98] transition-all"
                   >
                     <Send className="w-4 h-4" />
-                    🚀 Disparar Próximo Eleitor ({preparedBatch.length - sentCount} Restantes)
+                    Disparar Próximo da Fila Manualmente ({preparedBatch.length - sentCount} Restantes)
                   </button>
                 )}
               </div>
 
-            </div>
-
-            {/* Painel Direito: Lista Individualizada de Eleitores */}
-            <div className="lg:col-span-7 space-y-3 flex flex-col">
-              
-              <div className="flex items-center justify-between gap-2">
-                <label className="text-xs font-bold uppercase text-[var(--text-secondary)] flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-emerald-400" />
-                  3. Destinatários Personalizados ({preparedBatch.length})
-                </label>
-
-                {/* Search Bar */}
-                <div className="relative w-48">
-                  <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-2.5" />
-                  <input
-                    type="text"
-                    placeholder="Buscar eleitor/fone..."
-                    value={searchFilter}
-                    onChange={(e) => setSearchFilter(e.target.value)}
-                    className="w-full pl-8 pr-2 py-1 bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-200 rounded focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-              </div>
-
-              {/* Lista Scrollável */}
-              <div className="border border-[var(--border-color)] rounded-lg bg-zinc-950/50 divide-y divide-zinc-800/60 max-h-[380px] overflow-y-auto flex-1">
+              {/* Lista Scrollável com Cards Reais */}
+              <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-2xl p-3 flex-1 overflow-y-auto custom-scrollbar shadow-inner min-h-[300px]">
                 {preparedBatch.length === 0 ? (
-                  <div className="p-8 text-center text-zinc-500 text-xs">
-                    Nenhum eleitor ou líder com WhatsApp cadastrado para os filtros selecionados.
+                  <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-3 opacity-60">
+                    <Users className="w-10 h-10 text-[var(--text-secondary)]" />
+                    <p className="text-xs font-semibold text-[var(--text-secondary)]">
+                      Nenhum contato encontrado para o público ou filtros selecionados.
+                    </p>
                   </div>
                 ) : (
-                  preparedBatch.map((item, idx) => {
-                    const isSent = sentMap[item.id];
-                    const errorMsg = failedMap[item.id];
-                    return (
-                      <div 
-                        key={item.id} 
-                        className={`p-3 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3 ${
-                          isSent ? 'bg-emerald-950/20' : errorMsg ? 'bg-rose-950/25 border-l-2 border-rose-500' : 'hover:bg-zinc-900/60'
-                        }`}
-                      >
-                        <div className="space-y-1 min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-[10px] text-zinc-500 font-mono">#{idx + 1}</span>
-                            <span className="text-xs font-bold text-zinc-200 truncate">{item.name}</span>
-                            <span className="text-[10px] text-zinc-400 font-mono">({item.phone})</span>
-                            {isSent && (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold flex items-center gap-1">
-                                <Check className="w-2.5 h-2.5" /> {dispatchMode === 'api' ? 'Enviado API' : 'Enviado'}
+                  <div className="space-y-2">
+                    {preparedBatch.map((item, idx) => {
+                      const isSent = sentMap[item.id];
+                      const errorMsg = failedMap[item.id];
+                      
+                      let cardStyle = "bg-[var(--bg-secondary)] border border-[var(--border-color)] hover:border-blue-400";
+                      if (isSent) cardStyle = "bg-emerald-50/50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-900/50";
+                      if (errorMsg) cardStyle = "bg-rose-50/50 border-rose-200 dark:bg-rose-950/20 dark:border-rose-900/50";
+
+                      return (
+                        <div key={item.id} className={`p-3.5 rounded-xl transition-all shadow-sm flex flex-col gap-3 group ${cardStyle}`}>
+                          
+                          {/* Topo do Card: Info e Status */}
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="w-6 h-6 rounded-md bg-[var(--bg-tertiary)] flex items-center justify-center text-[9px] font-black text-[var(--text-secondary)] shrink-0 border border-[var(--border-color)]">
+                                {idx + 1}
                               </span>
-                            )}
-                            {errorMsg && (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold max-w-[200px] truncate" title={errorMsg}>
-                                ⚠️ Erro: {errorMsg}
-                              </span>
+                              <div className="min-w-0">
+                                <h5 className="text-[11px] font-bold text-[var(--text-primary)] truncate">{item.name}</h5>
+                                <p className="text-[10px] font-mono text-[var(--text-secondary)]">{item.phone}</p>
+                              </div>
+                            </div>
+                            
+                            {/* Badges de Status */}
+                            <div className="flex items-center gap-2 shrink-0">
+                              {isSent && (
+                                <span className="text-[9px] px-2 py-1 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 font-bold flex items-center gap-1 uppercase tracking-wider">
+                                  <CheckCircle2 className="w-3 h-3" /> OK
+                                </span>
+                              )}
+                              {errorMsg && (
+                                <span className="text-[9px] px-2 py-1 rounded-md bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 font-bold flex items-center gap-1 max-w-[120px] truncate uppercase tracking-wider" title={errorMsg}>
+                                  ⚠️ ERRO
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Meio: Preview da Mensagem Renderizada */}
+                          <div className="px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-[10px] text-[var(--text-secondary)] font-medium leading-relaxed italic line-clamp-2">
+                            {item.interpolatedText}
+                          </div>
+
+                          {/* Base: Ações do Card */}
+                          <div className="flex items-center justify-end gap-2 pt-1 border-t border-[var(--border-color)] mt-1">
+                            <button
+                              type="button"
+                              onClick={() => handleCopyMessage(item)}
+                              title="Copiar texto gerado"
+                              className="px-2.5 py-1.5 bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-blue-600 border border-[var(--border-color)] rounded-lg transition-colors text-[10px] font-bold flex items-center gap-1.5"
+                            >
+                              {copiedId === item.id ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                              <span>Copiar</span>
+                            </button>
+
+                            {dispatchMode === 'api' ? (
+                              <button
+                                type="button"
+                                onClick={() => handleSendViaApi(item)}
+                                disabled={isBulkSending}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1.5 transition-all active:scale-95 border ${
+                                  isSent
+                                    ? 'bg-[var(--bg-tertiary)] border-[var(--border-color)] text-[var(--text-secondary)] hover:text-blue-600'
+                                    : 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/30 dark:border-blue-900/50 dark:text-blue-400 hover:bg-blue-100 shadow-sm'
+                                }`}
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                {isSent ? 'Reenviar' : 'Enviar via API'}
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenWaMe(item)}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1.5 transition-all active:scale-95 border ${
+                                  isSent
+                                    ? 'bg-[var(--bg-tertiary)] border-[var(--border-color)] text-[var(--text-secondary)] hover:text-emerald-600'
+                                    : 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/30 dark:border-emerald-900/50 dark:text-emerald-400 hover:bg-emerald-100 shadow-sm'
+                                }`}
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                {isSent ? 'Reenviar wa.me' : 'Abrir App'}
+                              </button>
                             )}
                           </div>
 
-                          <div className="p-2 bg-zinc-900/80 border border-zinc-800/80 rounded text-[11px] text-zinc-300 font-sans line-clamp-2">
-                            "{item.interpolatedText}"
-                          </div>
                         </div>
-
-                        {/* Botões de Ação por Eleitor */}
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => handleCopyMessage(item)}
-                            title="Copiar mensagem individual"
-                            className="p-2 text-zinc-400 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 rounded transition-colors text-xs flex items-center gap-1"
-                          >
-                            {copiedId === item.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                          </button>
-
-                          {dispatchMode === 'api' ? (
-                            <button
-                              type="button"
-                              onClick={() => handleSendViaApi(item)}
-                              disabled={isBulkSending}
-                              className={`px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow ${
-                                isSent
-                                  ? 'bg-zinc-800 text-blue-400 hover:bg-zinc-700'
-                                  : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20'
-                              }`}
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                              {isSent ? 'Reenviar API' : 'Enviar via API'}
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleOpenWaMe(item)}
-                              className={`px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow ${
-                                isSent
-                                  ? 'bg-zinc-800 text-emerald-400 hover:bg-zinc-700'
-                                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20'
-                              }`}
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                              {isSent ? 'Reenviar WhatsApp' : 'Abrir no WhatsApp'}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })
+                      );
+                    })}
+                  </div>
                 )}
               </div>
 
             </div>
 
           </div>
-
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-3.5 bg-zinc-900/90 border-t border-zinc-800 flex items-center justify-between">
-          <div className="text-xs text-zinc-400 flex items-center gap-3">
-            <span>Destinatários: <strong className="text-zinc-200">{preparedBatch.length}</strong></span>
-            <span>Contatados: <strong className="text-emerald-400">{sentCount}</strong></span>
-            <span>Custo Total: <strong className="text-emerald-400">R$ 0,00</strong></span>
+        <div className="px-5 md:px-6 py-4 border-t border-[var(--border-color)] bg-[var(--bg-secondary)] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center flex-wrap gap-2 md:gap-4 text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">
+            <span className="flex items-center gap-1.5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] px-2.5 py-1 rounded-lg">
+              Fila: <strong className="text-[var(--text-primary)]">{preparedBatch.length}</strong>
+            </span>
+            <span className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-900/50 px-2.5 py-1 rounded-lg text-emerald-700 dark:text-emerald-400">
+              Concluídos: <strong>{sentCount}</strong>
+            </span>
+            <span className="flex items-center gap-1.5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] px-2.5 py-1 rounded-lg">
+              Custo Estimado: <strong className="text-[var(--text-primary)]">R$ 0,00</strong>
+            </span>
           </div>
 
           <button
             onClick={onClose}
-            className="px-5 py-2 text-xs font-bold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg transition-colors"
+            className="w-full sm:w-auto px-5 py-2.5 text-xs font-bold bg-[var(--bg-tertiary)] hover:bg-zinc-200 dark:hover:bg-zinc-800 text-[var(--text-primary)] border border-[var(--border-color)] rounded-xl transition-all shadow-sm active:scale-95"
           >
-            Fechar Janela
+            Fechar Ferramenta
           </button>
         </div>
 
