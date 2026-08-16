@@ -22,8 +22,8 @@ function SyncIndicator() {
 
 function SalesLandingWrapper() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const isLoggedIn = !!user;
+  const { user, sessionLocked } = useAuth();
+  const isLoggedIn = !!user && !sessionLocked;
 
   // Check URL search params
   const searchParams = new URLSearchParams(window.location.search);
