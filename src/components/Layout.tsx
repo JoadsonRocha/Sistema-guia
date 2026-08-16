@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/SupabaseProvider';
-import { FileText } from 'lucide-react';
 import { motion } from 'motion/react';
 import { DocDownloadModal } from './DocDownloadModal';
 

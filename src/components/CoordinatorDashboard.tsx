@@ -69,6 +69,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { processarCaos, gerarBriefingCandidato, processarNotaAudio } from '../services/geminiService';
+import { sugerirMetaInteligente } from '../services/groqService';
 import { reportService } from '../services/reportService';
 import { useAuth } from '../lib/SupabaseProvider';
 import { supabaseService } from '../lib/supabaseService';
@@ -242,6 +243,7 @@ export default function CoordinatorDashboard({
     targetVoters: 1000,
     category: 'municipio' as 'bairro' | 'municipio' | 'regiao'
   });
+  const [isGroqLoading, setIsGroqLoading] = useState(false);
 
   // Edit Goal State
   const [editingGoal, setEditingGoal] = useState<any | null>(null);
@@ -3185,7 +3187,31 @@ export default function CoordinatorDashboard({
                         className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
                       />
                     </div>
-                    <div className="flex items-end">
+                    <div className="flex flex-col sm:flex-row items-end gap-2">
+                      <button 
+                        type="button"
+                        disabled={isGroqLoading}
+                        onClick={async () => {
+                          if (!newGoal.locationName) {
+                            showToast('Digite o nome do local primeiro.', 'error');
+                            return;
+                          }
+                          setIsGroqLoading(true);
+                          try {
+                            const res = await sugerirMetaInteligente(newGoal.locationName, newGoal.targetVoters, { goalCategory });
+                            setNewGoal({ ...newGoal, targetVoters: res.sugestao_votos || newGoal.targetVoters });
+                            showToast(`✨ IA Tática: ${res.justificativa || 'Meta sugerida com sucesso.'}`, 'success');
+                          } catch (err: any) {
+                            showToast(err.message || 'Erro ao chamar IA', 'error');
+                          } finally {
+                            setIsGroqLoading(false);
+                          }
+                        }}
+                        className="bg-purple-600 hover:bg-purple-500 text-white font-black text-xs px-4 py-3 rounded-sm uppercase tracking-wider shadow-md shadow-purple-600/20 disabled:opacity-50 flex items-center justify-center shrink-0"
+                        title="Usar Inteligência Artificial para sugerir Meta Matemática"
+                      >
+                        {isGroqLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : '✨ IA Groq'}
+                      </button>
                       <button 
                         type="submit"
                         className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-sm uppercase tracking-wider shadow-md shadow-blue-600/20 active:scale-95 transition-all"
@@ -3343,11 +3369,13 @@ export default function CoordinatorDashboard({
 
                           <div>
                             <div className="flex justify-between items-center text-[8.5px] font-black uppercase tracking-wider mb-1">
-                              <span className="text-[var(--text-secondary)]">Eleitores Mapeados no Banco ({registeredCount} / {target})</span>
-                              <span className={reachPct >= 100 ? 'text-purple-500 font-bold' : 'text-blue-500 font-bold'}>{reachPct}% Alcançado</span>
+                              <span className="text-[var(--text-secondary)]">Eleitores Mapeados ({registeredCount} / {target})</span>
+                              <span className={reachPct >= 100 ? 'text-emerald-500 font-black' : reachPct < 30 ? 'text-red-500 font-black animate-pulse' : 'text-blue-500 font-bold'}>
+                                {reachPct >= 100 ? '🏆 100% (BATEU A META!)' : reachPct < 30 ? `⚠️ ${reachPct}% (CRÍTICO)` : `${reachPct}% Alcançado`}
+                              </span>
                             </div>
                             <div className="w-full bg-[var(--bg-tertiary)] h-2 rounded-sm overflow-hidden border border-[var(--border-color)]">
-                              <div className="h-full bg-purple-500 transition-all duration-500" style={{ width: `${reachPct}%` }} />
+                              <div className={`h-full transition-all duration-500 ${reachPct >= 100 ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]' : reachPct < 30 ? 'bg-red-500' : 'bg-purple-500'}`} style={{ width: `${Math.min(reachPct, 100)}%` }} />
                             </div>
                           </div>
                         </div>

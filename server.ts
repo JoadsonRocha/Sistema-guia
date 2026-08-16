@@ -210,6 +210,43 @@ async function startServer() {
     }
   });
 
+  app.post('/api/groq/process', async (req, res) => {
+    const { municipio, targetVoters, context } = req.body;
+    const apiKey = process.env.GROQ_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ error: 'GROQ_API_KEY não configurada no servidor.' });
+    }
+
+    try {
+      // Dynamic import to avoid breaking if not installed globally yet
+      const Groq = (await import('groq-sdk')).default;
+      const groq = new Groq({ apiKey });
+
+      const prompt = `Atue como o melhor estrategista eleitoral do Brasil. O Coordenador Geral está configurando as Metas da Campanha.
+Município/Região: ${municipio}
+Meta Anterior Sugerida/Buscada: ${targetVoters || 'N/A'}
+Contexto Demográfico/Electoral: ${JSON.stringify(context || {})}
+
+Seu objetivo: Sugerir um NÚMERO REALISTA E MATEMÁTICO de eleitores que a equipe deve cadastrar/mapear nesta região, e escrever uma breve justificativa estratégica (máx 3 linhas).
+Responda EXATAMENTE neste formato JSON, sem Markdown ou texto adicional fora do JSON:
+{"sugestao_votos": 5000, "justificativa": "Sua justificativa tática aqui."}`;
+
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: 'llama-3.1-70b-versatile',
+        temperature: 0.3,
+        response_format: { type: 'json_object' }
+      });
+
+      const result = chatCompletion.choices[0]?.message?.content || '{}';
+      res.status(200).json(JSON.parse(result));
+    } catch (err: any) {
+      console.error('Erro na API do Groq:', err);
+      res.status(500).json({ error: 'Erro ao processar Groq IA', details: err.message });
+    }
+  });
+
   // Rota com sanitização contra Path Traversal
   app.get('/download/arquitetura-doc', (req, res) => {
     const publicDir = path.resolve(process.cwd(), 'public');
