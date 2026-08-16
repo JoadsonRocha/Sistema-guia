@@ -80,15 +80,6 @@ interface GeoLocation {
   timestamp: number;
 }
 
-interface OfflineQueueItem {
-  id: string;
-  type: 'ponto' | 'eleitor' | 'combustivel' | 'demanda';
-  data: any;
-  location: GeoLocation;
-  timestamp: number;
-  fraudFlag?: boolean;
-  fraudReason?: string;
-}
 
 export default function CaboDashboard({ 
   theme, 
@@ -99,8 +90,6 @@ export default function CaboDashboard({
 }) {
   const navigate = useNavigate();
   const { user, logout, isAdmin, isGeral, coordinatorId } = useAuth();
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [queueCount, setQueueCount] = useState(0);
   const [isLocating, setIsLocating] = useState(false);
   // Restaurar a última aba visitada ao recarregar a página (persiste no localStorage)
   const CABO_TAB_KEY = 'nexus_cabo_active_tab';
@@ -475,33 +464,6 @@ export default function CaboDashboard({
     return () => unsub();
   }, [resolvedCoordinatorId, isVoterModalOpen]);
 
-  // Monitor de Conectividade
-  useEffect(() => {
-    const handleStatusChange = () => {
-      setIsOnline(navigator.onLine);
-    };
-    window.addEventListener('online', handleStatusChange);
-    window.addEventListener('offline', handleStatusChange);
-    
-    const queue = JSON.parse(safeLocalStorage.getItem('urna360_offline_queue') || '[]');
-    setQueueCount(queue.length);
-
-    return () => {
-      window.removeEventListener('online', handleStatusChange);
-      window.removeEventListener('offline', handleStatusChange);
-    };
-  }, []);
-
-  const syncOfflineQueue = async () => {
-    const queue = JSON.parse(safeLocalStorage.getItem('urna360_offline_queue') || '[]');
-    if (queue.length === 0) return;
-    
-    setTimeout(() => {
-      safeLocalStorage.setItem('urna360_offline_queue', '[]');
-      setQueueCount(0);
-      alert('✅ Sincronização Concluída!');
-    }, 1500);
-  };
 
   const processAction = async (type: string) => {
     switch(type) {
@@ -527,16 +489,7 @@ export default function CaboDashboard({
             coordinatorId: resolvedCoordinatorId || coordinatorId || ''
           };
           
-          const queue = JSON.parse(safeLocalStorage.getItem('urna360_offline_queue') || '[]');
-          const newQueue = [...queue, { ...checkinData, id: Date.now() }];
-          safeLocalStorage.setItem('urna360_offline_queue', JSON.stringify(newQueue));
-          setQueueCount(newQueue.length);
-          
-          // Se online, já tenta salvar
-          if (navigator.onLine) {
-            await supabaseService.setDocument('attendance', `checkin_${Date.now()}`, checkinData);
-          }
-          
+          await supabaseService.setDocument('attendance', `checkin_${Date.now()}`, checkinData);
           setIsLocating(false);
           alert('✅ Ponto registrado com sucesso!');
         }, (err) => {
@@ -1415,16 +1368,6 @@ export default function CaboDashboard({
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
 
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all ${
-                isOnline 
-                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
-                : 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400'
-            }`}>
-              {isOnline ? <Wifi className="w-3.5 h-3.5 animate-pulse" /> : <CloudOff className="w-3.5 h-3.5" />}
-              <span className="text-xs font-semibold hidden sm:inline">
-                {isOnline ? 'Conectado' : 'Modo offline'}
-              </span>
-            </div>
 
             <button 
               onClick={() => navigate('/perfil')}
@@ -1628,36 +1571,7 @@ export default function CaboDashboard({
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                  <section className="bg-zinc-950 text-white rounded-md p-5 sm:p-6 shadow-md relative overflow-hidden group border border-white/10 flex flex-col justify-between">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none"></div>
-                    <div className="flex items-center gap-4 relative z-10">
-                      <div className="bg-zinc-900/80 p-3 rounded-md relative shadow-inner border border-white/10 shrink-0">
-                        <RefreshCcw className={`w-6 h-6 text-blue-500 ${queueCount > 0 ? 'animate-spin-slow' : ''}`} />
-                        {queueCount > 0 && (
-                          <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-zinc-950 shadow-md">
-                            {queueCount}
-                          </span>
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="text-white font-bold text-base sm:text-lg tracking-tight uppercase leading-tight">{queueCount} Pacotes Offline</h3>
-                        <p className="text-zinc-400 text-[10px] font-medium mt-0.5 uppercase tracking-wider">
-                          {isOnline ? 'Conexão estável com o terminal central' : 'Armazenamento local criptografado (sem rede)'}
-                        </p>
-                      </div>
-                    </div>
-                    {isOnline && queueCount > 0 && (
-                      <button 
-                        onClick={syncOfflineQueue}
-                        className="mt-4 w-full bg-blue-600 text-white py-2.5 rounded-md font-bold text-xs uppercase tracking-wider shadow-md hover:bg-blue-500 transition-all active:scale-95"
-                      >
-                        Sincronizar Terminal
-                      </button>
-                    )}
-                  </section>
-
-                  <div className="bg-blue-600 p-5 sm:p-6 rounded-md flex flex-col justify-between relative overflow-hidden shadow-md group">
+<div className="bg-blue-600 p-5 sm:p-6 rounded-md flex flex-col justify-between relative overflow-hidden shadow-md group">
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-transparent pointer-events-none"></div>
                     <ShieldCheck className="absolute -right-6 -bottom-6 w-32 h-32 text-white/10 rotate-12 group-hover:rotate-6 transition-all duration-500 pointer-events-none" />
                     <p className="text-white font-bold text-base sm:text-lg uppercase leading-snug text-left relative z-10 tracking-tight">
