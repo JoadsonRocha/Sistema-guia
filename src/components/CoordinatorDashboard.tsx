@@ -2641,21 +2641,21 @@ export default function CoordinatorDashboard({
               <motion.section 
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white dark:bg-zinc-900 rounded-lg p-4 md:p-6 shadow-xs border border-zinc-200 dark:border-zinc-800 overflow-hidden relative group transition-colors"
+                className="bg-white dark:bg-zinc-900 rounded-xl p-3 md:p-4 shadow-xs border border-zinc-200 dark:border-zinc-800 overflow-hidden relative group transition-colors"
               >
-                <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none text-zinc-400 group-hover:scale-110 transition-transform duration-700">
-                  <ShieldCheck className="w-40 h-40" />
+                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none text-zinc-400 group-hover:scale-110 transition-transform duration-700">
+                  <ShieldCheck className="w-24 h-24" />
                 </div>
 
                 {/* Cabeçalho */}
-                <div className="flex items-center justify-between mb-4 relative z-10">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 rounded-md border border-blue-100 dark:border-blue-900/40">
-                      <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="flex items-center justify-between mb-3 relative z-10">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 bg-blue-50 dark:bg-blue-950/50 rounded-md border border-blue-100 dark:border-blue-900/40">
+                      <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-tighter">Ordem do Dia</h3>
-                      <p className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Diretiva Central de Comando</p>
+                      <h3 className="text-xs font-black text-zinc-900 dark:text-white uppercase tracking-tighter leading-none mb-0.5">Ordem do Dia</h3>
+                      <p className="text-[8px] font-bold text-[var(--text-secondary)] uppercase tracking-wider leading-none">Diretiva Central</p>
                     </div>
                   </div>
                   {isAdmin && (
@@ -2663,16 +2663,16 @@ export default function CoordinatorDashboard({
                       {dailyOrder && !isEditingDailyOrder && (
                         <button
                           onClick={handleCloseActiveOrder}
-                          className="text-[9px] font-bold text-red-500 uppercase tracking-wider hover:text-red-600 transition-colors border border-red-200 dark:border-red-900/50 px-3 py-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-950/30"
+                          className="btn-danger !px-2.5 !py-1 !text-[9px] !min-h-0 !h-auto rounded-md"
                         >
                           Encerrar
                         </button>
                       )}
                       <button
                         onClick={() => { setIsEditingDailyOrder(!isEditingDailyOrder); setNewDailyOrder(''); }}
-                        className="text-[9px] font-bold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider hover:text-blue-600 transition-colors border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                        className="btn-secondary !px-2.5 !py-1 !text-[9px] !min-h-0 !h-auto rounded-md"
                       >
-                        {isEditingDailyOrder ? 'Cancelar' : '+ Nova Diretiva'}
+                        {isEditingDailyOrder ? 'Cancelar' : '+ Nova'}
                       </button>
                     </div>
                   )}
@@ -2680,19 +2680,19 @@ export default function CoordinatorDashboard({
 
                 {/* Formulário de nova diretiva */}
                 {isEditingDailyOrder && (
-                  <div className="space-y-3 relative z-10 mb-4">
+                  <div className="space-y-2 relative z-10 mb-3">
                     <textarea
                       value={newDailyOrder}
                       onChange={(e) => setNewDailyOrder(e.target.value)}
-                      placeholder="Digite a diretiva central para todas as equipes..."
-                      className="w-full bg-zinc-50 dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-xl p-4 text-xs font-bold text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none focus:border-blue-600 min-h-[100px] transition-colors"
+                      placeholder="Digite a diretiva central..."
+                      className="w-full bg-zinc-50 dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-xl p-3 text-xs font-bold text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none focus:border-blue-600 min-h-[60px] transition-colors"
                       autoFocus
                     />
                     <button
                       onClick={handleUpdateDailyOrder}
-                      className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-all hover:bg-blue-500"
+                      className="btn-primary w-full !py-2 !text-[10px]"
                     >
-                      📢 Transmitir para Unidades
+                      📢 Transmitir
                     </button>
                   </div>
                 )}
@@ -2700,53 +2700,48 @@ export default function CoordinatorDashboard({
                 {/* Diretiva Ativa */}
                 <div className="relative z-10">
                   {dailyOrder ? (
-                    <div className="border-l-4 border-blue-600 pl-4 py-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 px-2 py-0.5 rounded-full">
-                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                    <div className="border-l-2 border-blue-600 pl-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="inline-flex items-center gap-1 text-[8px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                          <span className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></span>
                           Em Vigor
                         </span>
                       </div>
-                      <p className="text-base md:text-lg font-bold text-zinc-900 dark:text-white tracking-tight leading-relaxed max-w-3xl">
+                      <p className="text-sm font-semibold text-zinc-900 dark:text-white tracking-tight leading-snug">
                         &ldquo;{dailyOrder.text}&rdquo;
                       </p>
-                      <div className="mt-3 flex items-center gap-4 text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                        <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> {dailyOrder.createdAt ? new Date(dailyOrder.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '---'}</span>
-                        <span className="w-1.5 h-1.5 bg-zinc-300 dark:bg-zinc-600 rounded-full"></span>
-                        <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> {dailyOrder.createdBy || 'Comando'}</span>
+                      <div className="mt-1.5 flex items-center gap-3 text-[8px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-blue-600 dark:text-blue-400" /> {dailyOrder.createdAt ? new Date(dailyOrder.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '---'}</span>
+                        <span className="flex items-center gap-1"><User className="w-3 h-3 text-blue-600 dark:text-blue-400" /> {dailyOrder.createdBy || 'Comando'}</span>
                       </div>
                     </div>
                   ) : !isEditingDailyOrder && (
-                    <p className="text-zinc-400 text-xs font-medium italic">Nenhuma diretiva ativa no momento.</p>
+                    <p className="text-zinc-400 text-[10px] font-medium italic py-1">Nenhuma diretiva ativa.</p>
                   )}
                 </div>
 
                 {/* Histórico de Diretivas */}
                 {dailyOrders.filter(o => o.status === 'closed').length > 0 && (
-                  <div className="relative z-10 mt-4 border-t border-zinc-100 dark:border-zinc-800 pt-3">
+                  <div className="relative z-10 mt-3 border-t border-[var(--border-color)] pt-2">
                     <button
                       onClick={() => setShowOrderHistory(!showOrderHistory)}
-                      className="flex items-center gap-2 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
+                      className="flex items-center gap-1.5 text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider hover:text-blue-600 transition-colors"
                     >
-                      <span className="inline-block w-3.5 h-3.5 text-center leading-none">{showOrderHistory ? '▾' : '▸'}</span>
-                      Histórico ({dailyOrders.filter(o => o.status === 'closed').length} encerradas)
+                      <span className="inline-block w-3 h-3 text-center leading-none">{showOrderHistory ? '▾' : '▸'}</span>
+                      Histórico ({dailyOrders.filter(o => o.status === 'closed').length})
                     </button>
                     {showOrderHistory && (
-                      <div className="mt-3 space-y-2 max-h-60 overflow-y-auto pr-1">
+                      <div className="mt-2 space-y-1.5 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
                         {dailyOrders.filter(o => o.status === 'closed').map(order => (
-                          <div key={order.id} className="flex items-start gap-3 py-2 px-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-md border border-zinc-100 dark:border-zinc-700/50">
-                            <div className="flex-shrink-0 mt-0.5">
-                              <span className="inline-block w-2 h-2 bg-zinc-300 dark:bg-zinc-600 rounded-full mt-1"></span>
-                            </div>
+                          <div key={order.id} className="flex items-start gap-2 py-1.5 px-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-100 dark:border-zinc-700/50">
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 line-through leading-snug truncate">
+                              <p className="text-[10px] font-semibold text-[var(--text-secondary)] line-through leading-snug truncate">
                                 &ldquo;{order.text}&rdquo;
                               </p>
-                              <p className="text-[9px] text-zinc-400 dark:text-zinc-500 mt-0.5 uppercase tracking-wider font-bold">
+                              <p className="text-[8px] text-zinc-400 dark:text-zinc-500 mt-0.5 uppercase tracking-wider font-bold">
                                 {order.createdAt ? new Date(order.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''} · {order.createdBy || 'Comando'}
                               </p>
                             </div>
-                            <span className="flex-shrink-0 text-[8px] font-black text-zinc-400 uppercase bg-zinc-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded">Encerrada</span>
                           </div>
                         ))}
                       </div>
