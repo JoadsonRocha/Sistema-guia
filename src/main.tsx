@@ -12,6 +12,12 @@ window.addEventListener('error', (event) => {
   console.warn('Startup warning or handled error caught:', event.message || event.error);
 });
 
+// Auto-reload quando um chunk JS (lazy load) não é encontrado após um novo deploy no servidor
+window.addEventListener('vite:preloadError', (event) => {
+  console.warn('Deploy mismatch detected (chunk not found). Reloading page to fetch latest version...');
+  window.location.reload();
+});
+
 window.addEventListener('unhandledrejection', (event) => {
   event.preventDefault();
   const reason = event.reason;
