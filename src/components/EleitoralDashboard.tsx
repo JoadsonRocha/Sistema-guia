@@ -88,7 +88,7 @@ function TseHeaderCell({
 
   return (
     <th 
-      className={`py-3.5 px-3 relative font-black text-[9px] uppercase tracking-wider text-zinc-700 dark:text-zinc-200 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-850 select-none whitespace-nowrap transition-colors ${
+      className={`py-3.5 px-3 relative font-black text-[9px] uppercase tracking-wider text-zinc-700 dark:text-zinc-200 border-b border-[var(--border-color)] bg-zinc-100 dark:bg-zinc-850 select-none whitespace-nowrap transition-colors ${
         isSortable ? 'cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800' : ''
       } ${align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left'}`}
       onClick={() => isSortable && onSort && onSort()}
@@ -1534,12 +1534,12 @@ export default function EleitoralDashboard({
       )}
       
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border-color)] pb-5">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">
+          <h1 className="text-2xl md:text-3xl font-black text-[var(--text-primary)] tracking-tight uppercase">
             Análise Eleitoral
           </h1>
-          <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+          <p className="text-xs md:text-sm text-[var(--text-secondary)] mt-1">
             Monitoramento analítico de eleitores aptos, locais de votação e representatividade estatística.
           </p>
         </div>
@@ -1549,7 +1549,7 @@ export default function EleitoralDashboard({
           {votingLocations.length > 0 && (
             <button 
               onClick={resetFilters}
-              className="flex items-center justify-center gap-2 px-3 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm text-xs font-black uppercase tracking-tight text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-blue-600 dark:hover:text-blue-600 transition-colors shadow-sm"
+              className="flex items-center justify-center gap-2 px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm text-xs font-black uppercase tracking-tight text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-blue-600 dark:hover:text-blue-600 transition-colors shadow-sm"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Limpar Filtros</span>
@@ -1559,7 +1559,7 @@ export default function EleitoralDashboard({
       </div>
 
       {/* SUB-NAVIGATION TABS & ACTION BUTTON */}
-      <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 gap-2 pb-px flex-wrap">
+      <div className="flex items-center justify-between border-b border-[var(--border-color)] gap-2 pb-px flex-wrap">
         <div className="flex gap-1 overflow-x-auto">
           <button
             onClick={() => setSubTab('tre_oficial')}
@@ -1653,7 +1653,7 @@ export default function EleitoralDashboard({
       {/* MODAL: EXCEL IMPORT FOR COORDENADOR GERAL */}
       {isImportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl max-w-xl w-full p-6 text-zinc-900 dark:text-white relative animate-in fade-in zoom-in duration-150">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg shadow-2xl max-w-xl w-full p-6 text-[var(--text-primary)] relative animate-in fade-in zoom-in duration-150">
             <button 
               onClick={() => setIsImportModalOpen(false)}
               className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
@@ -1666,21 +1666,21 @@ export default function EleitoralDashboard({
                 <Database className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+                <h3 className="text-base font-bold text-[var(--text-primary)]">
                   Importador de Dados Oficiais do TRE
                 </h3>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                <p className="text-xs text-[var(--text-secondary)]">
                   Gerencie a planilha de dados eleitorais oficiais de votação.
                 </p>
               </div>
             </div>
 
-            <div className="my-4 border-t border-b border-zinc-100 dark:border-zinc-800 py-4 space-y-4">
+            <div className="my-4 border-t border-b border-[var(--border-color)] py-4 space-y-4">
               {/* Actions bar */}
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <button
                   onClick={downloadTemplate}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded text-xs font-medium transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-[var(--text-primary)] rounded text-xs font-medium transition-colors"
                 >
                   <Download className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                   <span>Baixar Planilha Modelo</span>
@@ -1707,10 +1707,10 @@ export default function EleitoralDashboard({
                     <Database className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-zinc-900 dark:text-white uppercase tracking-wider">
+                    <h4 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
                       Repositório Oficial TSE no Google Drive
                     </h4>
-                    <p className="text-[11px] text-zinc-600 dark:text-zinc-400">
+                    <p className="text-[11px] text-[var(--text-secondary)]">
                       Acesse as tabelas oficiais por estado prontas no Google Drive ou cole o link do seu estado.
                     </p>
                   </div>
@@ -1740,7 +1740,7 @@ export default function EleitoralDashboard({
                 className={`border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer ${
                   dragActive 
                     ? "border-blue-500 bg-blue-50/50 dark:bg-blue-950/30" 
-                    : "border-zinc-300 dark:border-zinc-700 hover:border-blue-500 bg-zinc-50 dark:bg-zinc-800/50"
+                    : "border-[var(--border-color)] hover:border-blue-500 bg-zinc-50 dark:bg-zinc-800/50"
                 }`}
               >
                 <div className="flex flex-col items-center justify-center gap-2">
@@ -1748,7 +1748,7 @@ export default function EleitoralDashboard({
                   <span className="text-sm font-bold text-zinc-800 dark:text-zinc-100">
                     Arraste a planilha do TSE aqui ou clique para selecionar
                   </span>
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <span className="text-xs text-[var(--text-secondary)]">
                     Suporta arquivos .xlsx, .xls e .csv baixados do Drive ou do site oficial do TSE
                   </span>
                 </div>
@@ -1758,7 +1758,7 @@ export default function EleitoralDashboard({
             <div className="flex justify-end">
               <button
                 onClick={() => setIsImportModalOpen(false)}
-                className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-medium rounded transition-colors"
+                className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-[var(--text-primary)] text-xs font-medium rounded transition-colors"
               >
                 Fechar
               </button>
@@ -1769,12 +1769,12 @@ export default function EleitoralDashboard({
 
       {/* MAIN SCREEN HANDLING - EMPTY STATE VS GRAPH COMPONENT */}
       {votingLocations.length === 0 ? (
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm p-12 text-center max-w-2xl mx-auto shadow-sm">
+        <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-12 text-center max-w-2xl mx-auto shadow-sm">
           <FileSpreadsheet className="w-16 h-16 text-blue-600 mx-auto mb-4 animate-pulse" />
-          <h2 className="text-lg font-black text-zinc-900 dark:text-white uppercase tracking-wide">
+          <h2 className="text-lg font-black text-[var(--text-primary)] uppercase tracking-wide">
             Nenhum Dado Eleitoral Carregado
           </h2>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 max-w-md mx-auto leading-relaxed">
+          <p className="text-xs text-[var(--text-secondary)] mt-2 max-w-md mx-auto leading-relaxed">
             Iremos trabalhar exclusivamente com dados oficiais do TRE. Os dados simulados de teste foram zerados de acordo com as diretrizes de segurança da campanha.
           </p>
 
@@ -1802,8 +1802,8 @@ export default function EleitoralDashboard({
               </div>
             </div>
           ) : (
-            <div className="mt-6 p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm space-y-1">
-              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-black uppercase tracking-widest">
+            <div className="mt-6 p-4 bg-zinc-50 dark:bg-zinc-950 border border-[var(--border-color)] rounded-sm space-y-1">
+              <p className="text-[10px] text-[var(--text-secondary)] font-black uppercase tracking-widest">
                 Aguardando carregamento da planilha oficial de locais de votação do TRE pelo Coordenador Geral no painel administrativo.
               </p>
               <p className="text-[9px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider">
@@ -1817,8 +1817,8 @@ export default function EleitoralDashboard({
           {subTab === 'tre_oficial' ? (
             <>
               {/* FILTER CONTROLS */}
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-zinc-900 dark:text-white font-black text-sm uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-4">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 shadow-sm">
+            <div className="flex items-center gap-2 text-[var(--text-primary)] font-black text-sm uppercase tracking-wider border-b border-[var(--border-color)] pb-2 mb-4">
               <Filter className="w-4 h-4 text-blue-600" />
               <span>Segmentação e Filtros Interativos</span>
             </div>
@@ -1826,13 +1826,13 @@ export default function EleitoralDashboard({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Municipio Filter */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <label className="text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">
                   Município
                 </label>
                 <select
                   value={selectedMunicipio}
                   onChange={(e) => handleMunicipioChange(e.target.value)}
-                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-2 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-all uppercase"
+                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-[var(--border-color)] rounded-sm p-2 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-all uppercase"
                 >
                   {municipiosList.map(mun => (
                     <option key={mun} value={mun}>{mun === 'Todos' ? '✦ Todos os Municípios' : mun}</option>
@@ -1842,13 +1842,13 @@ export default function EleitoralDashboard({
 
               {/* Zona Eleitoral Filter */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <label className="text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">
                   Zona Eleitoral
                 </label>
                 <select
                   value={selectedZona}
                   onChange={(e) => handleZonaChange(e.target.value)}
-                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-2 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-all uppercase"
+                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-[var(--border-color)] rounded-sm p-2 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-all uppercase"
                 >
                   {zonasList.map(z => (
                     <option key={z} value={z}>{z === 'Todos' ? '✦ Todas as Zonas' : z}</option>
@@ -1858,13 +1858,13 @@ export default function EleitoralDashboard({
 
               {/* Bairro Filter */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <label className="text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">
                   Bairro
                 </label>
                 <select
                   value={selectedBairro}
                   onChange={(e) => handleBairroChange(e.target.value)}
-                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-2 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-all uppercase"
+                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-[var(--border-color)] rounded-sm p-2 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-all uppercase"
                 >
                   {bairrosList.map(b => (
                     <option key={b} value={b}>{b === 'Todos' ? '✦ Todos os Bairros' : b}</option>
@@ -1874,13 +1874,13 @@ export default function EleitoralDashboard({
 
               {/* Local Votacao Filter */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <label className="text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">
                   Local de Votação
                 </label>
                 <select
                   value={selectedLocal}
                   onChange={(e) => setSelectedLocal(e.target.value)}
-                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-2 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-all uppercase"
+                  className="w-full text-xs font-black bg-zinc-50 dark:bg-zinc-950 border border-[var(--border-color)] rounded-sm p-2 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-all uppercase"
                 >
                   {locaisList.map(l => (
                     <option key={l} value={l}>
@@ -1918,7 +1918,7 @@ export default function EleitoralDashboard({
               </div>
 
               {/* Total Municipios */}
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm p-4 shadow-sm flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-zinc-300 dark:border-t-zinc-700">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 shadow-sm flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-zinc-300 dark:border-t-zinc-700">
                 <div className="absolute right-2 top-2 text-zinc-100 dark:text-zinc-800 group-hover:scale-110 transition-transform">
                   <Building2 className="w-14 h-14" />
                 </div>
@@ -1926,7 +1926,7 @@ export default function EleitoralDashboard({
                   Municípios Analisados
                 </p>
                 <div className="mt-3">
-                  <h3 className="text-2xl md:text-3xl font-black tracking-tight text-zinc-900 dark:text-white leading-none">
+                  <h3 className="text-2xl md:text-3xl font-black tracking-tight text-[var(--text-primary)] leading-none">
                     {totalStateMunicipios}
                   </h3>
                   <p className="text-[9px] text-zinc-400 mt-1 uppercase font-semibold">
@@ -1936,7 +1936,7 @@ export default function EleitoralDashboard({
               </div>
 
               {/* Total Locais */}
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm p-4 shadow-sm flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-zinc-300 dark:border-t-zinc-700">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 shadow-sm flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-zinc-300 dark:border-t-zinc-700">
                 <div className="absolute right-2 top-2 text-zinc-100 dark:text-zinc-800 group-hover:scale-110 transition-transform">
                   <MapIcon className="w-14 h-14" />
                 </div>
@@ -1944,7 +1944,7 @@ export default function EleitoralDashboard({
                   Locais de Votação
                 </p>
                 <div className="mt-3">
-                  <h3 className="text-2xl md:text-3xl font-black tracking-tight text-zinc-900 dark:text-white leading-none">
+                  <h3 className="text-2xl md:text-3xl font-black tracking-tight text-[var(--text-primary)] leading-none">
                     {totalStateLocais}
                   </h3>
                   <p className="text-[9px] text-zinc-400 mt-1 uppercase font-semibold">
@@ -1954,7 +1954,7 @@ export default function EleitoralDashboard({
               </div>
 
               {/* Total Secoes */}
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm p-4 shadow-sm flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-zinc-300 dark:border-t-zinc-700">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 shadow-sm flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-zinc-300 dark:border-t-zinc-700">
                 <div className="absolute right-2 top-2 text-zinc-100 dark:text-zinc-800 group-hover:scale-110 transition-transform">
                   <Hash className="w-14 h-14" />
                 </div>
@@ -1962,7 +1962,7 @@ export default function EleitoralDashboard({
                   Seções Eleitorais
                 </p>
                 <div className="mt-3">
-                  <h3 className="text-2xl md:text-3xl font-black tracking-tight text-zinc-900 dark:text-white leading-none">
+                  <h3 className="text-2xl md:text-3xl font-black tracking-tight text-[var(--text-primary)] leading-none">
                     {totalStateSecoes}
                   </h3>
                   <p className="text-[9px] text-zinc-400 mt-1 uppercase font-semibold">
@@ -1978,9 +1978,9 @@ export default function EleitoralDashboard({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* CURRENT FILTERS SUMMARY */}
-            <div className="lg:col-span-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-4 shadow-sm flex flex-col justify-between">
+            <div className="lg:col-span-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded p-4 shadow-sm flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-2 text-zinc-900 dark:text-white font-bold text-xs uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-3">
+                <div className="flex items-center gap-2 text-[var(--text-primary)] font-bold text-xs uppercase tracking-wider border-b border-[var(--border-color)] pb-2 mb-3">
                   <MapPin className="w-4 h-4 text-blue-600" />
                   <span>Escopo Atual Filtrado</span>
                 </div>
@@ -1988,32 +1988,32 @@ export default function EleitoralDashboard({
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-zinc-400 uppercase font-black tracking-wider text-[9px]">Município:</span>
-                    <span className="font-bold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded">
+                    <span className="font-bold text-[var(--text-primary)] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded">
                       {selectedMunicipio}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-zinc-400 uppercase font-black tracking-wider text-[9px]">Zona Eleitoral:</span>
-                    <span className="font-bold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded">
+                    <span className="font-bold text-[var(--text-primary)] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded">
                       {selectedZona}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-zinc-400 uppercase font-black tracking-wider text-[9px]">Bairro:</span>
-                    <span className="font-bold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-right max-w-[200px] truncate" title={selectedBairro}>
+                    <span className="font-bold text-[var(--text-primary)] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-right max-w-[200px] truncate" title={selectedBairro}>
                       {selectedBairro}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-zinc-400 uppercase font-black tracking-wider text-[9px]">Local:</span>
-                    <span className="font-bold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-right max-w-[200px] truncate" title={selectedLocal}>
+                    <span className="font-bold text-[var(--text-primary)] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-right max-w-[200px] truncate" title={selectedLocal}>
                       {selectedLocal}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="border-t border-zinc-100 dark:border-zinc-800 pt-4 mt-4 grid grid-cols-2 gap-2 text-center">
+              <div className="border-t border-[var(--border-color)] pt-4 mt-4 grid grid-cols-2 gap-2 text-center">
                 <div className="bg-zinc-50 dark:bg-zinc-950 p-2 rounded border border-zinc-100 dark:border-zinc-850">
                   <p className="text-[9px] font-black uppercase text-zinc-400 tracking-wider">Eleitores Escopo</p>
                   <h4 className="text-lg font-black text-blue-600 dark:text-blue-600 mt-1">
@@ -2036,8 +2036,8 @@ export default function EleitoralDashboard({
             </div>
 
             {/* INDICADORES (KPIS) */}
-            <div className="lg:col-span-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-4 shadow-sm">
-              <div className="flex items-center gap-2 text-zinc-900 dark:text-white font-bold text-xs uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-4">
+            <div className="lg:col-span-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded p-4 shadow-sm">
+              <div className="flex items-center gap-2 text-[var(--text-primary)] font-bold text-xs uppercase tracking-wider border-b border-[var(--border-color)] pb-2 mb-4">
                 <Award className="w-4 h-4 text-blue-600" />
                 <span>Indicadores de Desempenho e Extremos (KPIs)</span>
               </div>
@@ -2050,7 +2050,7 @@ export default function EleitoralDashboard({
                     <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">
                       Maior Local de Votação {selectedMunicipio !== 'Todos' ? `de ${selectedMunicipio}` : ''}
                     </span>
-                    <h4 className="text-xs font-bold text-zinc-900 dark:text-white mt-1.5 truncate" title={kpiMetrics.maiorLocal.local}>
+                    <h4 className="text-xs font-bold text-[var(--text-primary)] mt-1.5 truncate" title={kpiMetrics.maiorLocal.local}>
                       {kpiMetrics.maiorLocal.local}
                     </h4>
                   </div>
@@ -2070,7 +2070,7 @@ export default function EleitoralDashboard({
                     <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">
                       Menor Local de Votação {selectedMunicipio !== 'Todos' ? `de ${selectedMunicipio}` : ''}
                     </span>
-                    <h4 className="text-xs font-bold text-zinc-900 dark:text-white mt-1.5 truncate" title={kpiMetrics.menorLocal.local}>
+                    <h4 className="text-xs font-bold text-[var(--text-primary)] mt-1.5 truncate" title={kpiMetrics.menorLocal.local}>
                       {kpiMetrics.menorLocal.local}
                     </h4>
                   </div>
@@ -2175,17 +2175,17 @@ export default function EleitoralDashboard({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {/* CHART 1: LOCAL VOTING RANKING (HORIZONTAL BARS) */}
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-4 shadow-sm flex flex-col justify-between">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded p-4 shadow-sm flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-4">
-                  <div className="text-zinc-900 dark:text-white font-bold text-xs uppercase tracking-wider">
+                <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2 mb-4">
+                  <div className="text-[var(--text-primary)] font-bold text-xs uppercase tracking-wider">
                     Gráfico 1: Concentração por Local de Votação (Top 10)
                   </div>
                   <span className="text-[8px] font-black text-blue-600 bg-blue-600/10 px-1.5 py-0.5 rounded-sm uppercase">
                     Eleitores Aptos
                   </span>
                 </div>
-                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mb-4">
+                <p className="text-[10px] text-[var(--text-secondary)] mb-4">
                   Eixo X = Quantidade de Eleitores Aptos | Eixo Y = Local de Votação
                 </p>
               </div>
@@ -2225,17 +2225,17 @@ export default function EleitoralDashboard({
             </div>
 
             {/* CHART 2: PIE/DONUT CHART (PARTICIPATION OF LOCALS) */}
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-4 shadow-sm flex flex-col justify-between">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded p-4 shadow-sm flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-4">
-                  <div className="text-zinc-900 dark:text-white font-bold text-xs uppercase tracking-wider">
+                <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2 mb-4">
+                  <div className="text-[var(--text-primary)] font-bold text-xs uppercase tracking-wider">
                     Gráfico 2: Participação de cada Local de Votação
                   </div>
                   <span className="text-[8px] font-black text-blue-600 bg-blue-600/10 px-1.5 py-0.5 rounded-sm uppercase">
                     Participação %
                   </span>
                 </div>
-                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mb-4">
+                <p className="text-[10px] text-[var(--text-secondary)] mb-4">
                   Divisão percentual dos maiores locais e aglutinação de remanescentes em &quot;Outros&quot;
                 </p>
               </div>
@@ -2277,9 +2277,9 @@ export default function EleitoralDashboard({
             </div>
 
             {/* CHART 3: STATEWIDE MUNICIPAL RANKING */}
-            <div className="lg:col-span-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded p-4 shadow-sm">
-              <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-4">
-                <div className="text-zinc-900 dark:text-white font-bold text-xs uppercase tracking-wider">
+            <div className="lg:col-span-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded p-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2 mb-4">
+                <div className="text-[var(--text-primary)] font-bold text-xs uppercase tracking-wider">
                   Gráfico 3: Ranking Estadual Geral dos Municípios
                 </div>
                 <span className="text-[8px] font-black text-blue-600 bg-blue-600/10 px-1.5 py-0.5 rounded-sm uppercase">
@@ -2320,12 +2320,12 @@ export default function EleitoralDashboard({
           </div>
 
           {/* DETAILED DYNAMIC TABLE (TABELA DETALHADA NA PARTE INFERIOR) */}
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded shadow-sm overflow-hidden">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded shadow-sm overflow-hidden">
             
             {/* Table Header Controls */}
-            <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-zinc-50 dark:bg-zinc-900">
+            <div className="p-4 border-b border-[var(--border-color)] flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-[var(--bg-tertiary)]">
               <div>
-                <h3 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-wider">
+                <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-wider">
                   Painel de Locais de Votação (Tabela Dinâmica)
                 </h3>
                 <p className="text-[11px] text-zinc-400 mt-0.5">
@@ -2341,7 +2341,7 @@ export default function EleitoralDashboard({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-zinc-100 dark:bg-zinc-850 text-zinc-500 uppercase font-black text-[9px] border-b border-zinc-200 dark:border-zinc-800 tracking-wider">
+                  <tr className="bg-zinc-100 dark:bg-zinc-850 text-zinc-500 uppercase font-black text-[9px] border-b border-[var(--border-color)] tracking-wider">
                     {TSE_COLUMNS.map((col) => (
                       <TseHeaderCell 
                         key={col.key}
@@ -2371,7 +2371,7 @@ export default function EleitoralDashboard({
                         className="hover:bg-blue-50/30 dark:hover:bg-zinc-800/60 transition-colors text-[11px]"
                       >
                         {/* 1. NM MUNICIPIO */}
-                        <td className="py-3 px-3 font-bold text-zinc-900 dark:text-white uppercase whitespace-nowrap">
+                        <td className="py-3 px-3 font-bold text-[var(--text-primary)] uppercase whitespace-nowrap">
                           {row.nmMunicipio || row.municipio}
                         </td>
 
@@ -2391,7 +2391,7 @@ export default function EleitoralDashboard({
                         </td>
 
                         {/* 5. DS_TIPO_SECAO_AGREGADA */}
-                        <td className="py-3 px-3 text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
+                        <td className="py-3 px-3 text-[var(--text-secondary)] whitespace-nowrap">
                           <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
                             row.dsTipoSecaoAgregada === 'Agregada' 
                               ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400' 
@@ -2419,7 +2419,7 @@ export default function EleitoralDashboard({
                         </td>
 
                         {/* 9. DS ENDERECO */}
-                        <td className="py-3 px-3 text-zinc-500 dark:text-zinc-400 max-w-[200px] truncate" title={row.dsEndereco || row.endereco}>
+                        <td className="py-3 px-3 text-[var(--text-secondary)] max-w-[200px] truncate" title={row.dsEndereco || row.endereco}>
                           {row.dsEndereco || row.endereco || '---'}
                         </td>
 
@@ -2434,12 +2434,12 @@ export default function EleitoralDashboard({
                         </td>
 
                         {/* 12. NM LOCAL VOTACAO ORIGINAL */}
-                        <td className="py-3 px-3 text-zinc-500 dark:text-zinc-400 max-w-[180px] truncate" title={row.nmLocalVotacaoOriginal || row.nmLocalVotacao || row.local}>
+                        <td className="py-3 px-3 text-[var(--text-secondary)] max-w-[180px] truncate" title={row.nmLocalVotacaoOriginal || row.nmLocalVotacao || row.local}>
                           {row.nmLocalVotacaoOriginal || row.nmLocalVotacao || row.local || '---'}
                         </td>
 
                         {/* 13. DS ENDERECO_LOCVT_ORIGINAL */}
-                        <td className="py-3 px-3 text-zinc-500 dark:text-zinc-400 max-w-[180px] truncate" title={row.dsEnderecoLocvtOriginal || row.dsEndereco || row.endereco}>
+                        <td className="py-3 px-3 text-[var(--text-secondary)] max-w-[180px] truncate" title={row.dsEnderecoLocvtOriginal || row.dsEndereco || row.endereco}>
                           {row.dsEnderecoLocvtOriginal || row.dsEndereco || row.endereco || '---'}
                         </td>
                       </tr>
@@ -2451,13 +2451,13 @@ export default function EleitoralDashboard({
 
             {/* Pagination Controls */}
             {processedTableData.length > 0 && (
-              <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                <div className="text-zinc-500 dark:text-zinc-400 text-center sm:text-left">
+              <div className="p-4 border-t border-[var(--border-color)] bg-[var(--bg-tertiary)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <div className="text-[var(--text-secondary)] text-center sm:text-left">
                   Mostrando <span className="font-bold text-zinc-900 dark:text-zinc-100">{Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, processedTableData.length)}</span> a <span className="font-bold text-zinc-900 dark:text-zinc-100">{Math.min(currentPage * ITEMS_PER_PAGE, processedTableData.length)}</span> de <span className="font-bold text-zinc-900 dark:text-zinc-100">{processedTableData.length}</span> locais
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-zinc-500 dark:text-zinc-400 font-medium mr-1">
+                  <span className="text-[var(--text-secondary)] font-medium mr-1">
                     Página <span className="font-bold text-zinc-900 dark:text-zinc-100">{currentPage}</span> de <span className="font-bold text-zinc-900 dark:text-zinc-100">{totalPages}</span>
                   </span>
 
@@ -2465,7 +2465,7 @@ export default function EleitoralDashboard({
                     <button
                       onClick={() => setCurrentPage(1)}
                       disabled={currentPage === 1}
-                      className="p-1.5 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                      className="p-1.5 rounded border border-[var(--border-color)] bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                       title="Primeira página"
                     >
                       <ChevronsLeft className="w-4 h-4" />
@@ -2474,7 +2474,7 @@ export default function EleitoralDashboard({
                     <button
                       onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
-                      className="p-1.5 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                      className="p-1.5 rounded border border-[var(--border-color)] bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                       title="Página anterior"
                     >
                       <ChevronLeft className="w-4 h-4" />
@@ -2483,7 +2483,7 @@ export default function EleitoralDashboard({
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
-                      className="p-1.5 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                      className="p-1.5 rounded border border-[var(--border-color)] bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                       title="Próxima página"
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -2492,7 +2492,7 @@ export default function EleitoralDashboard({
                     <button
                       onClick={() => setCurrentPage(totalPages)}
                       disabled={currentPage === totalPages}
-                      className="p-1.5 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                      className="p-1.5 rounded border border-[var(--border-color)] bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                       title="Última página"
                     >
                       <ChevronsRight className="w-4 h-4" />
@@ -2508,20 +2508,20 @@ export default function EleitoralDashboard({
             /* THE BRAND NEW CRUZAMENTO DE DADOS VIEW */
             <div className="space-y-6 animate-fadeIn">
               {/* INTRO AND FILTERS */}
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-5 rounded-sm shadow-sm">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm shadow-sm">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                   <div>
                     <h2 className="text-sm font-black text-zinc-950 dark:text-white uppercase tracking-wider flex items-center gap-2">
                       <Compass className="w-5 h-5 text-blue-600 animate-pulse" />
                       Diretrizes Estratégicas de Cobertura Eleitoral
                     </h2>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                    <p className="text-xs text-[var(--text-secondary)] mt-1">
                       Cruzamento em tempo real dos eleitores oficiais do TRE com os cadastros captados pelas equipes da campanha. Use este painel para direcionar visitas, organizar panfletagens e priorizar municípios com baixo engajamento.
                     </p>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-sm border border-zinc-200 dark:border-zinc-700">
+                    <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-sm border border-[var(--border-color)]">
                       <button
                         onClick={() => setStrategicSort('coverage')}
                         className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-sm transition-all ${
@@ -2547,7 +2547,7 @@ export default function EleitoralDashboard({
                     <select
                       value={strategicStatusFilter}
                       onChange={(e: any) => setStrategicStatusFilter(e.target.value)}
-                      className="text-[10px] font-black uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-sm p-1.5 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                      className="text-[10px] font-black uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 border border-[var(--border-color)] rounded-sm p-1.5 focus:outline-none focus:ring-1 focus:ring-blue-600"
                     >
                       <option value="Todos">✦ Filtro: Todos os Status</option>
                       <option value="critical">🔴 Crítico (&lt; 0.5%)</option>
@@ -2562,7 +2562,7 @@ export default function EleitoralDashboard({
               {/* BENTO STATS GRID */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Card 1: Total TRE */}
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-sm shadow-sm flex items-center justify-between">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-4 rounded-sm shadow-sm flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Eleitores TRE (Estado)</p>
                     <p className="text-2xl font-black text-zinc-950 dark:text-white mt-1">
@@ -2570,13 +2570,13 @@ export default function EleitoralDashboard({
                     </p>
                     <p className="text-[8px] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mt-0.5">Base Oficial TRE Carregada</p>
                   </div>
-                  <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-full text-zinc-500 dark:text-zinc-400">
+                  <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-full text-[var(--text-secondary)]">
                     <Database className="w-5 h-5" />
                   </div>
                 </div>
 
                 {/* Card 2: Total Campaign */}
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-sm shadow-sm flex items-center justify-between">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-4 rounded-sm shadow-sm flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Cadastros na Campanha</p>
                     <p className="text-2xl font-black text-blue-600 dark:text-blue-600 mt-1">
@@ -2590,7 +2590,7 @@ export default function EleitoralDashboard({
                 </div>
 
                 {/* Card 3: Average Coverage */}
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-sm shadow-sm flex items-center justify-between">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-4 rounded-sm shadow-sm flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Índice Médio de Penetração</p>
                     <p className="text-2xl font-black text-zinc-950 dark:text-white mt-1">
@@ -2598,13 +2598,13 @@ export default function EleitoralDashboard({
                     </p>
                     <p className="text-[8px] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mt-0.5">Média Geral de Cobertura</p>
                   </div>
-                  <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-full text-zinc-500 dark:text-zinc-400">
+                  <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-full text-[var(--text-secondary)]">
                     <Percent className="w-5 h-5" />
                   </div>
                 </div>
 
                 {/* Card 4: Critical Municipalities */}
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-sm shadow-sm flex items-center justify-between">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-4 rounded-sm shadow-sm flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">Municípios Críticos</p>
                     <p className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
@@ -2622,8 +2622,8 @@ export default function EleitoralDashboard({
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
                 {/* CHART: VISUALIZATION OF COVERAGE INDEX */}
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-sm shadow-sm lg:col-span-7">
-                  <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-4">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-4 rounded-sm shadow-sm lg:col-span-7">
+                  <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2 mb-4">
                     <div className="text-zinc-950 dark:text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5">
                       <TrendingUp className="w-4 h-4 text-blue-600" />
                       Gráfico Estratégico: Índice de Cobertura por Município (%)
@@ -2671,7 +2671,7 @@ export default function EleitoralDashboard({
                       </ResponsiveContainer>
                     )}
                   </div>
-                  <div className="mt-3 flex items-center justify-center gap-4 flex-wrap text-[9px] font-black uppercase tracking-wider border-t border-zinc-100 dark:border-zinc-800 pt-3">
+                  <div className="mt-3 flex items-center justify-center gap-4 flex-wrap text-[9px] font-black uppercase tracking-wider border-t border-[var(--border-color)] pt-3">
                     <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-red-500 rounded-sm inline-block"></span> Crítico (&lt; 0.5%)</div>
                     <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-orange-500 rounded-sm inline-block"></span> Baixo (0.5% - 1.5%)</div>
                     <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-blue-600 rounded-sm inline-block"></span> Médio (1.5% - 4.0%)</div>
@@ -2800,8 +2800,8 @@ export default function EleitoralDashboard({
               </div>
 
               {/* STRATEGIC RANKED TABLE */}
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm p-4 shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3 mb-4 flex-wrap gap-2">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3 mb-4 flex-wrap gap-2">
                   <div className="flex items-center gap-1.5 text-zinc-950 dark:text-white font-black text-xs uppercase tracking-wider">
                     <Award className="w-4 h-4 text-blue-600" />
                     Lista de Priorização por Cobertura Eleitoral ({strategicStatusFilter === 'Todos' ? 'Todos os Municípios' : `Status: ${strategicStatusFilter.toUpperCase()}`})
@@ -2818,7 +2818,7 @@ export default function EleitoralDashboard({
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-zinc-200 dark:border-zinc-800 text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                      <tr className="border-b border-[var(--border-color)] text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">
                         <th className="py-2.5 px-4">Município</th>
                         <th className="py-2.5 px-4 text-right">Eleitores (TRE)</th>
                         <th className="py-2.5 px-4 text-right">Cadastrados (Nossos)</th>
@@ -2873,7 +2873,7 @@ export default function EleitoralDashboard({
                               </td>
 
                               {/* Missing Voters */}
-                              <td className="py-3 px-4 text-right font-bold text-zinc-500 dark:text-zinc-400">
+                              <td className="py-3 px-4 text-right font-bold text-[var(--text-secondary)]">
                                 {row.missingElectors > 0 ? row.missingElectors.toLocaleString() : '---'}
                               </td>
 

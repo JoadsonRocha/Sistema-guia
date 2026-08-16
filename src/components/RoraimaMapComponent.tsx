@@ -317,15 +317,15 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
   // If no TRE file has been uploaded and no teams/voters have location data for this coordinator
   if (dynamicMunicipalities.length === 0) {
     return (
-      <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-8 md:p-12 text-center space-y-4 shadow-sm my-4">
+      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-8 md:p-12 text-center space-y-4 shadow-sm my-4">
         <div className="w-14 h-14 bg-amber-100 dark:bg-amber-900/30 text-amber-600 rounded-full flex items-center justify-center mx-auto">
           <MapIcon className="w-7 h-7" />
         </div>
         <div className="max-w-md mx-auto space-y-3">
-          <h2 className="text-base md:text-lg font-black uppercase text-zinc-900 dark:text-white tracking-tight">
+          <h2 className="text-base md:text-lg font-black uppercase text-[var(--text-primary)] tracking-tight">
             Nenhum Dado Regional ou Planilha TRE Carregada
           </h2>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
             Sua campanha ainda não possui dados territoriais ou planilha oficial do TRE cadastrada.
           </p>
           <p className="text-[11px] text-zinc-400 dark:text-zinc-500 leading-relaxed">
@@ -606,7 +606,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
     };
 
     return (
-      <div key={node.id || node.name} className="relative pl-4 md:pl-5 border-l border-zinc-200 dark:border-zinc-800 ml-2 md:ml-3 py-1">
+      <div key={node.id || node.name} className="relative pl-4 md:pl-5 border-l border-[var(--border-color)] ml-2 md:ml-3 py-1">
         {/* Connection point dot */}
         <div className="absolute top-4 left-0 w-2.5 md:w-3.5 h-px bg-zinc-200 dark:bg-zinc-800" />
         
@@ -638,7 +638,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
             </div>
           </div>
 
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[9px] font-bold text-zinc-500 dark:text-zinc-400">
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[9px] font-bold text-[var(--text-secondary)]">
             {node.localVotacao && (
               <span className="flex items-center gap-0.5">
                 <MapPin className="w-2.5 h-2.5 text-blue-600" /> Colégio: {node.localVotacao}
@@ -692,14 +692,14 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
   return (
     <div className="space-y-6">
       {/* Header Panel */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-600 rounded-sm flex items-center justify-center shadow-lg shadow-blue-600/10">
             <MapIcon className="w-5 h-5 text-zinc-950" />
           </div>
           <div>
             <h2 className="text-xl font-black uppercase text-zinc-950 dark:text-white tracking-tighter leading-none">Mapa Regional Eleitoral</h2>
-            <p className="text-zinc-500 dark:text-zinc-400 text-[10px] font-bold uppercase tracking-widest mt-1.5">Visão Territorial, Divisão por Zonas do TRE e Gestão de Lideranças Locais</p>
+            <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-1.5">Visão Territorial, Divisão por Zonas do TRE e Gestão de Lideranças Locais</p>
           </div>
         </div>
 
@@ -709,7 +709,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
           <select 
             value={selectedMun} 
             onChange={(e) => setSelectedMun(e.target.value)}
-            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white px-3 py-2 rounded-sm font-black text-[10px] uppercase outline-none focus:border-blue-600 shadow-sm"
+            className="bg-[var(--bg-secondary)] border border-[var(--border-color)] text-zinc-950 dark:text-white px-3 py-2 rounded-sm font-black text-[10px] uppercase outline-none focus:border-blue-600 shadow-sm"
           >
             {dynamicMunicipalities.map(mun => (
               <option key={mun} value={mun}>{mun} ({getZoneLabel(mun)})</option>
@@ -723,13 +723,13 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
         
         {/* Left Side: Municipalities & Zones Sidebar (Cols 1-4) */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm p-4 shadow-sm">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 shadow-sm">
             
             {/* Sidebar Title */}
             <div className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-900 pb-3 mb-3">
               <div>
-                <h3 className="text-[11px] font-black uppercase tracking-wider text-zinc-900 dark:text-white">Divisão Territorial da Campanha</h3>
-                <p className="text-[8px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wide leading-none mt-1">Selecione o Município</p>
+                <h3 className="text-[11px] font-black uppercase tracking-wider text-[var(--text-primary)]">Divisão Territorial da Campanha</h3>
+                <p className="text-[8px] text-[var(--text-secondary)] font-bold uppercase tracking-wide leading-none mt-1">Selecione o Município</p>
               </div>
             </div>
 
@@ -740,7 +740,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
                   <select
                     value={selectedZoneFilter}
                     onChange={(e) => setSelectedZoneFilter(e.target.value)}
-                    className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm py-1.5 px-2 font-bold text-[9px] text-zinc-900 dark:text-white outline-none focus:border-blue-600"
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-1.5 px-2 font-bold text-[9px] text-[var(--text-primary)] outline-none focus:border-blue-600"
                   >
                     <option value="all">Todas as Zonas Eleitorais</option>
                     {dynamicZonesGroups.map(g => (
@@ -754,7 +754,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
                       value={sidebarSearch}
                       onChange={(e) => setSidebarSearch(e.target.value)}
                       placeholder="Filtrar município por nome..."
-                      className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm py-1.5 pl-7 pr-2 font-bold text-[9px] text-zinc-900 dark:text-white outline-none focus:border-blue-600 placeholder:text-zinc-400"
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-1.5 pl-7 pr-2 font-bold text-[9px] text-[var(--text-primary)] outline-none focus:border-blue-600 placeholder:text-zinc-400"
                     />
                     <Search className="absolute left-2 top-2 w-3 h-3 text-zinc-400" />
                   </div>
@@ -767,8 +767,8 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
                       key={group.name} 
                       className="space-y-1.5"
                     >
-                      <div className="flex justify-between items-center px-1 pt-1 border-b border-zinc-100 dark:border-zinc-800/80 pb-1">
-                        <span className="text-[9px] font-bold uppercase text-zinc-600 dark:text-zinc-400 tracking-wider flex items-center gap-1.5">
+                      <div className="flex justify-between items-center px-1 pt-1 border-b border-[var(--border-color)]/80 pb-1">
+                        <span className="text-[9px] font-bold uppercase text-[var(--text-secondary)] tracking-wider flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                           {group.name}
                         </span>
@@ -789,7 +789,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
                               className={`w-full text-left p-2 rounded border transition-all flex items-center justify-between outline-none ${
                                 isSelected
                                   ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 font-bold shadow-xs'
-                                  : 'border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-800 dark:text-zinc-200'
+                                  : 'border-[var(--border-color)] bg-[var(--bg-secondary)] hover:border-zinc-300 dark:hover:border-zinc-700 text-[var(--text-primary)]'
                               }`}
                             >
                               <div className="flex items-center gap-2">
@@ -801,7 +801,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
                                   <h5 className="text-xs font-bold uppercase leading-none">
                                     {mun}
                                   </h5>
-                                  <p className="text-[9px] text-zinc-500 dark:text-zinc-400 font-medium uppercase mt-0.5 leading-none">
+                                  <p className="text-[9px] text-[var(--text-secondary)] font-medium uppercase mt-0.5 leading-none">
                                     {getZoneLabel(mun)}
                                   </p>
                                 </div>
@@ -836,7 +836,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
         <div className="lg:col-span-8 space-y-5">
           
           {/* Selected City Overview Command Card */}
-          <div className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-lg p-5 md:p-6 relative overflow-hidden shadow-xs border border-zinc-200 dark:border-zinc-800 transition-all">
+          <div className="bg-[var(--bg-secondary)] text-zinc-900 dark:text-zinc-100 rounded-lg p-5 md:p-6 relative overflow-hidden shadow-xs border border-[var(--border-color)] transition-all">
             {/* Ambient subtle light overlay */}
             <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none text-zinc-400">
               <MapIcon className="w-24 h-24" />
@@ -844,9 +844,9 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
 
             <div className="relative z-10">
               <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-blue-600 dark:text-blue-400">QG Municipal • Comando Eleitoral</span>
-              <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-zinc-900 dark:text-white mt-1">{selectedMun}</h3>
+              <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-[var(--text-primary)] mt-1">{selectedMun}</h3>
               
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400 mt-2">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] uppercase font-bold text-[var(--text-secondary)] mt-2">
                 <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
                   <span className="inline-block w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
                   {ZONE_INFO[selectedMun]?.zone}
@@ -859,11 +859,11 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
             </div>
 
             {/* General Metrics Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-zinc-100 dark:border-zinc-800 pt-5 mt-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-[var(--border-color)] pt-5 mt-5">
               <div className="space-y-1">
                 <span className="text-[9px] font-bold uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">Eleitores Mapeados</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-xl md:text-2xl font-black text-zinc-900 dark:text-white">{munStats[selectedMun]?.voters || 0}</span>
+                  <span className="text-xl md:text-2xl font-black text-[var(--text-primary)]">{munStats[selectedMun]?.voters || 0}</span>
                   <span className="text-[9px] font-bold text-zinc-400 uppercase">Fichas</span>
                 </div>
               </div>
@@ -899,14 +899,14 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
           </div>
 
           {/* Core Navigation Sub-Tabs of Selected City */}
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm shadow-sm overflow-hidden">
-            <div className="flex border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/40">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm shadow-sm overflow-hidden">
+            <div className="flex border-b border-[var(--border-color)] bg-zinc-50 dark:bg-zinc-950/40">
               <button
                 type="button"
                 onClick={() => setMunSubTab('frentes')}
                 className={`flex-1 py-3 text-center text-[10px] font-black uppercase tracking-wider transition-all border-b-2 outline-none flex items-center justify-center gap-2 ${
                   munSubTab === 'frentes'
-                    ? 'border-blue-600 text-zinc-950 dark:text-white bg-white dark:bg-zinc-900'
+                    ? 'border-blue-600 text-zinc-950 dark:text-white bg-[var(--bg-secondary)]'
                     : 'border-transparent text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'
                 }`}
               >
@@ -919,7 +919,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
                 onClick={() => setMunSubTab('eleitores')}
                 className={`flex-1 py-3 text-center text-[10px] font-black uppercase tracking-wider transition-all border-b-2 outline-none flex items-center justify-center gap-2 ${
                   munSubTab === 'eleitores'
-                    ? 'border-blue-600 text-zinc-950 dark:text-white bg-white dark:bg-zinc-900'
+                    ? 'border-blue-600 text-zinc-950 dark:text-white bg-[var(--bg-secondary)]'
                     : 'border-transparent text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'
                 }`}
               >
@@ -948,10 +948,10 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
                         >
                           <div>
                             <div className="flex justify-between items-start mb-2">
-                              <h4 className="text-xs font-black uppercase text-zinc-900 dark:text-white leading-tight">
+                              <h4 className="text-xs font-black uppercase text-[var(--text-primary)] leading-tight">
                                 {team.name}
                               </h4>
-                              <span className="bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-xs leading-none shrink-0">
+                              <span className="bg-zinc-200 dark:bg-zinc-800 text-[var(--text-secondary)] text-[7px] font-black uppercase px-1.5 py-0.5 rounded-xs leading-none shrink-0">
                                 {team.status || 'Operando'}
                               </span>
                             </div>
@@ -962,7 +962,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
                                 <div className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-[9px] font-bold">
                                   {team.leader?.charAt(0).toUpperCase()}
                                 </div>
-                                <span className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200">
+                                <span className="text-[11px] font-bold text-[var(--text-primary)]">
                                   {team.leader || 'Líder Não Definido'}
                                 </span>
                               </div>
@@ -992,7 +992,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
                       ))}
                     </div>
                   ) : (
-                    <div className="p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-sm text-center">
+                    <div className="p-8 border border-dashed border-[var(--border-color)] rounded-sm text-center">
                       <Users className="w-6 h-6 text-zinc-300 dark:text-zinc-850 mx-auto mb-2" />
                       <p className="font-bold text-zinc-400 dark:text-zinc-600 uppercase text-[9px]">Nenhuma equipe baseada neste município ainda.</p>
                     </div>
@@ -1004,7 +1004,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
               {munSubTab === 'eleitores' && (
                 <div className="space-y-4">
                   {/* View Mode Toggle inside Eleitores */}
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-[var(--border-color)] pb-3">
                     <span className="text-[9px] font-black uppercase text-zinc-400 tracking-wider">Diretório de Contatos e Indicações</span>
                     
                     <div className="flex gap-1 bg-zinc-100 dark:bg-zinc-950 p-0.5 rounded-xs w-full sm:w-auto">
@@ -1045,7 +1045,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Buscar nome, telefone ou colégio eleitoral..."
-                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-sm py-2 pl-8 pr-3 font-bold text-[9px] text-zinc-900 dark:text-white outline-none focus:border-blue-600 placeholder:text-zinc-400"
+                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-[var(--border-color)] rounded-sm py-2 pl-8 pr-3 font-bold text-[9px] text-[var(--text-primary)] outline-none focus:border-blue-600 placeholder:text-zinc-400"
                           />
                           <Search className="absolute left-2.5 top-2.5 w-3 h-3 text-zinc-400" />
                         </div>
@@ -1059,7 +1059,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
                               className={`px-2.5 py-1.5 text-[8px] font-black uppercase rounded-xs transition-all whitespace-nowrap ${
                                 sentimentFilter === filter 
                                   ? 'bg-zinc-950 text-white dark:bg-zinc-800' 
-                                  : 'bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 text-zinc-600 dark:text-zinc-400'
+                                  : 'bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 text-[var(--text-secondary)]'
                               }`}
                             >
                               {filter === 'all' ? 'Tudo' : filter === 'support' ? 'Apoiador' : filter === 'neutral' ? 'Neutro' : 'Oposição'}
@@ -1078,13 +1078,13 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
                             >
                               <div className="space-y-1">
                                 <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className="text-xs font-black uppercase text-zinc-900 dark:text-white">{voter.name}</span>
+                                  <span className="text-xs font-black uppercase text-[var(--text-primary)]">{voter.name}</span>
                                   {voter.sentiment === 'support' && <span className="bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/20 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">Apoio</span>}
                                   {voter.sentiment === 'neutral' && <span className="bg-blue-600/10 text-blue-700 dark:text-blue-500 border border-blue-600/20 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">Neutro</span>}
                                   {voter.sentiment === 'opposed' && <span className="bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-sm">Oposição</span>}
                                 </div>
                                 
-                                <div className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 flex flex-wrap gap-x-3 gap-y-0.5">
+                                <div className="text-[9px] font-bold text-[var(--text-secondary)] flex flex-wrap gap-x-3 gap-y-0.5">
                                   {voter.localVotacao && (
                                     <span className="flex items-center gap-0.5">
                                       <MapPin className="w-2.5 h-2.5 text-blue-600" /> Local: {voter.localVotacao}
@@ -1114,7 +1114,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
                             </div>
                           ))
                         ) : (
-                          <div className="p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-sm text-center">
+                          <div className="p-8 border border-dashed border-[var(--border-color)] rounded-sm text-center">
                             <Search className="w-6 h-6 text-zinc-300 dark:text-zinc-800 mx-auto mb-2" />
                             <p className="font-bold text-zinc-400 dark:text-zinc-600 uppercase text-[9px]">Nenhum eleitor mapeado atende ao filtro.</p>
                           </div>
@@ -1151,7 +1151,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
                           ))}
                         </div>
                       ) : (
-                        <div className="p-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-sm text-center">
+                        <div className="p-8 border border-dashed border-[var(--border-color)] rounded-sm text-center">
                           <Network className="w-6 h-6 text-zinc-300 dark:text-zinc-800 mx-auto mb-2" />
                           <p className="font-bold text-zinc-400 dark:text-zinc-600 uppercase text-[9px]">Nenhuma árvore de conexões ativa neste município ainda.</p>
                         </div>
