@@ -30,6 +30,7 @@ export function LoginPage() {
   }>({});
   const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [authInfo, setAuthInfo] = useState('');
   const [showDomainGuide, setShowDomainGuide] = useState(false);
   const [copiedDomain, setCopiedDomain] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -84,6 +85,7 @@ export function LoginPage() {
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
+    setAuthInfo('');
     setIsLoading(true);
     const params = new URLSearchParams(window.location.search);
     const urlRole = (params.get('role') || inviteParams.role || userRole) as any;
@@ -185,6 +187,8 @@ export function LoginPage() {
 
           if (isCredentialIssue) {
             if (preRegDoc || effectiveRole === 'coordenador_geral') {
+              setAuthInfo('Primeiro acesso detectado. Estamos criando seu ambiente seguro, aguarde...');
+              
               const effectiveCoordinatorId = preRegDoc?.coordinatorId || urlCoordId;
               const effectiveRegionalCoordId = preRegDoc?.regionalCoordId || urlRegionalCoordId;
               const effectiveTeamId = preRegDoc?.teamId || urlTeamId;
@@ -233,6 +237,7 @@ export function LoginPage() {
 
   const handleGoogleAuth = async () => {
     setAuthError('');
+    setAuthInfo('');
     setShowDomainGuide(false);
     try {
       await login();
@@ -378,6 +383,16 @@ export function LoginPage() {
               </button>
             </div>
           </div>
+
+          {/* Info Message (Auto Registration) */}
+          {authInfo && (
+            <div className="space-y-2 pt-1">
+              <p className="text-blue-500 text-xs font-semibold text-center bg-blue-500/10 py-2 px-3 rounded-xl border border-blue-500/20 flex items-center justify-center gap-2">
+                <span className="inline-block w-3 h-3 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></span>
+                {authInfo}
+              </p>
+            </div>
+          )}
 
           {/* Error Message */}
           {authError && (
