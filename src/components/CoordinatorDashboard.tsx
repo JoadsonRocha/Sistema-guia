@@ -63,13 +63,16 @@ import {
   Moon,
   Loader2,
   Mail,
-  Map as MapIcon
+  Map as MapIcon,
+  Search,
+  Trophy,
+  Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { processarCaos, gerarBriefingCandidato, processarNotaAudio } from '../services/geminiService';
-import { sugerirMetaInteligente } from '../services/groqService';
+import { sugerirMetaInteligente, analisarRaioXEquipe } from '../services/groqService';
 import { reportService } from '../services/reportService';
 import { useAuth } from '../lib/SupabaseProvider';
 import { supabaseService } from '../lib/supabaseService';
@@ -256,6 +259,11 @@ export default function CoordinatorDashboard({
   // Link Share Modal
   const [isShareLinkModalOpen, setIsShareLinkModalOpen] = useState(false);
   const [selectedShareTeam, setSelectedShareTeam] = useState('');
+
+  // Teams UI State
+  const [teamSearchQuery, setTeamSearchQuery] = useState('');
+  const [teamStatusFilter, setTeamStatusFilter] = useState<'ALL' | 'ALERTA' | 'CRITICO'>('ALL');
+  const [teamGroqLoading, setTeamGroqLoading] = useState<string | null>(null);
 
   // Cadastro do Candidato State e Licença
   const [isCandidateModalOpen, setIsCandidateModalOpen] = useState(false);
@@ -3672,139 +3680,179 @@ export default function CoordinatorDashboard({
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 gap-3">
-                  {teams.length > 0 ? teams.map((team) => (
-                    <motion.div 
-                      key={team.id || team.name} 
-                      layout
-                      className={`bg-[var(--bg-secondary)] border ${team.fraudAlert ? 'border-red-600 shadow-md animate-pulse' : 'border-[var(--border-color)]'} rounded-md p-3.5 sm:p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 hover:shadow-md hover:border-blue-500/30 transition-all group relative overflow-hidden`}
-                    >
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/5 blur-2xl -mr-12 -mt-12 pointer-events-none opacity-0 dark:opacity-100" />
-                      
-                      {team.fraudAlert && (
-                        <div className="absolute top-0 right-6 bg-red-600 text-white text-[8px] font-bold px-3 py-0.5 rounded-b-md uppercase flex items-center gap-1 shadow z-10">
-                          <AlertTriangle className="w-3 h-3" /> Alerta Crítico
+                {/* Search, Filters and Gamification */}
+                {(() => {
+                  const filteredTeams = teams.filter(t => {
+                    const matchesSearch = t.name.toLowerCase().includes(teamSearchQuery.toLowerCase()) || 
+                                          (t.leader || '').toLowerCase().includes(teamSearchQuery.toLowerCase());
+                    const matchesStatus = teamStatusFilter === 'ALL' ? true :
+                                          teamStatusFilter === 'CRITICO' ? t.fraudAlert :
+                                          teamStatusFilter === 'ALERTA' ? t.status === 'ALERTA' : true;
+                    return matchesSearch && matchesStatus;
+                  });
+
+                  // Leaderboard calculation
+                  const teamsWithStats = teams.map(t => {
+                    const matched = allVoters.filter(v => isVoterInTeam(v, t)).length;
+                    const count = teamVotersCountMap[t.name] !== undefined ? Math.max(teamVotersCountMap[t.name], matched) : matched;
+                    return { ...t, totalVoters: count };
+                  }).sort((a, b) => b.totalVoters - a.totalVoters);
+                  
+                  const top3 = teamsWithStats.slice(0, 3);
+
+                  return (
+                    <div className="space-y-6">
+                      {/* Search and Filters */}
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-md p-3.5 flex flex-col sm:flex-row items-center gap-3 shadow-sm">
+                        <div className="relative flex-1 w-full">
+                          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
+                          <input 
+                            type="text" 
+                            placeholder="Buscar liderança ou equipe..." 
+                            value={teamSearchQuery}
+                            onChange={e => setTeamSearchQuery(e.target.value)}
+                            className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] rounded-md pl-9 pr-3 py-2 text-sm outline-none focus:border-blue-500 transition-colors"
+                          />
+                        </div>
+                        <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+                          <button onClick={() => setTeamStatusFilter('ALL')} className={`px-4 py-2 rounded-full text-xs font-bold uppercase whitespace-nowrap border transition-all ${teamStatusFilter === 'ALL' ? 'bg-zinc-800 text-white border-zinc-700 dark:bg-zinc-200 dark:text-zinc-900' : 'bg-transparent text-[var(--text-secondary)] border-[var(--border-color)] hover:bg-[var(--bg-tertiary)]'}`}>Todas</button>
+                          <button onClick={() => setTeamStatusFilter('ALERTA')} className={`px-4 py-2 rounded-full text-xs font-bold uppercase whitespace-nowrap border transition-all ${teamStatusFilter === 'ALERTA' ? 'bg-blue-600/20 text-blue-500 border-blue-500/30' : 'bg-transparent text-[var(--text-secondary)] border-[var(--border-color)] hover:bg-[var(--bg-tertiary)]'}`}>Alertas</button>
+                          <button onClick={() => setTeamStatusFilter('CRITICO')} className={`px-4 py-2 rounded-full text-xs font-bold uppercase whitespace-nowrap border transition-all ${teamStatusFilter === 'CRITICO' ? 'bg-red-600/20 text-red-500 border-red-500/30 shadow-[0_0_10px_rgba(220,38,38,0.2)]' : 'bg-transparent text-[var(--text-secondary)] border-[var(--border-color)] hover:bg-[var(--bg-tertiary)]'}`}>Crítico 🚨</button>
+                        </div>
+                      </div>
+
+                      {/* Leaderboard */}
+                      {top3.length > 0 && teamSearchQuery === '' && teamStatusFilter === 'ALL' && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                           {top3.map((t, idx) => (
+                             <div key={t.id || t.name} className={`relative bg-gradient-to-br ${idx === 0 ? 'from-amber-500/10 to-yellow-600/5 border-amber-500/30 shadow-md shadow-amber-500/10' : idx === 1 ? 'from-slate-400/10 to-slate-500/5 border-slate-400/30' : 'from-orange-700/10 to-orange-800/5 border-orange-700/30'} border rounded-md p-4 flex items-center gap-4 overflow-hidden`}>
+                               <div className="absolute -right-4 -top-4 opacity-10">
+                                 <Trophy className="w-24 h-24" />
+                               </div>
+                               <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm ${idx === 0 ? 'bg-amber-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.6)]' : idx === 1 ? 'bg-slate-400 text-white' : 'bg-orange-700 text-white'}`}>
+                                 {idx + 1}º
+                               </div>
+                               <div className="z-10">
+                                 <p className="text-[10px] font-bold uppercase text-[var(--text-secondary)] mb-0.5">Top {idx + 1} Líder</p>
+                                 <h4 className="font-black text-[var(--text-primary)] text-sm md:text-base truncate max-w-[140px] uppercase tracking-tight">{t.leader || t.name}</h4>
+                                 <p className="text-xs font-black text-emerald-500 flex items-center gap-1 mt-0.5">
+                                    <Users className="w-3 h-3" /> {t.totalVoters} Eleitores
+                                 </p>
+                               </div>
+                             </div>
+                           ))}
                         </div>
                       )}
-                      
-                      <div className="flex items-center gap-3 min-w-[200px] sm:min-w-[220px] relative z-10">
-                        <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-md flex items-center justify-center transition-transform group-hover:scale-105 shrink-0 ${
-                          team.status === 'OK' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 
-                          team.status === 'ALERTA' ? 'bg-blue-600/10 text-blue-600' : 'bg-red-500/10 text-red-500'
-                        }`}>
-                          <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </div>
-                        <div className="space-y-0.5 min-w-0">
-                          <h3 className="font-bold text-[var(--text-primary)] text-sm sm:text-base uppercase tracking-tight truncate">{team.name}</h3>
-                          <div className="flex flex-col gap-0.5 opacity-80">
-                            <p className="text-[9px] font-medium text-[var(--text-secondary)] uppercase flex items-center gap-1 truncate">
-                              <User className="w-2.5 h-2.5 text-blue-600 shrink-0" /> Líder: <span className="font-semibold text-[var(--text-primary)]">{team.leader}</span>
-                            </p>
-                            <p className="text-[9px] font-medium text-[var(--text-secondary)] uppercase flex items-center gap-1 truncate">
-                              <MapPin className="w-2.5 h-2.5 text-blue-600 shrink-0" /> Base: <span className="font-semibold text-[var(--text-primary)]">{team.location}</span>
-                            </p>
+
+                      {/* Teams Grid */}
+                      <div className="grid grid-cols-1 gap-3">
+                        {filteredTeams.length > 0 ? filteredTeams.map((team) => {
+                          const matched = allVoters.filter(v => isVoterInTeam(v, team)).length;
+                          const votersCount = teamVotersCountMap[team.name] !== undefined ? Math.max(teamVotersCountMap[team.name], matched) : matched;
+                          const engajamento = Math.min(100, Math.round((votersCount / 100) * 100));
+                          const teamUrgencies = urgencies.filter(u => u.team === team.name).length;
+                          const teamIdKey = team.id || team.name.replace(/\s/g, '_').toLowerCase();
+
+                          return (
+                            <motion.div 
+                              key={teamIdKey} 
+                              layout
+                              className={`bg-[var(--bg-secondary)] border ${team.fraudAlert ? 'border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.15)] animate-pulse' : 'border-[var(--border-color)]'} rounded-md p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:border-blue-500/50 transition-all group`}
+                            >
+                              <div className="flex flex-col lg:flex-row gap-4 lg:items-center flex-1">
+                                <div className="flex items-center gap-3 min-w-[200px]">
+                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${team.status === 'OK' ? 'bg-emerald-500/20 text-emerald-500' : team.status === 'ALERTA' ? 'bg-blue-500/20 text-blue-500' : 'bg-red-500/20 text-red-500'}`}>
+                                    <Users className="w-5 h-5" />
+                                  </div>
+                                  <div className="space-y-0.5">
+                                    <h3 className="font-black text-[var(--text-primary)] text-sm uppercase tracking-tight truncate">{team.name}</h3>
+                                    <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase flex items-center gap-1">
+                                      <User className="w-3 h-3 text-blue-500" /> Líder: {team.leader}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-4 flex-1">
+                                  {/* Donut Chart Simulado / Engajamento */}
+                                  <div className="flex items-center gap-2">
+                                    <div className="relative w-10 h-10 shrink-0">
+                                      <svg viewBox="0 0 36 36" className="w-10 h-10 circular-chart text-emerald-500">
+                                        <path className="text-[var(--bg-tertiary)] stroke-current" strokeWidth="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <path className="stroke-current" strokeDasharray={`${engajamento}, 100`} strokeWidth="3" strokeLinecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                      </svg>
+                                      <div className="absolute inset-0 flex items-center justify-center text-[9px] font-black">{engajamento}%</div>
+                                    </div>
+                                    <div>
+                                      <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase">Performance</p>
+                                      <p className="text-sm font-black text-[var(--text-primary)]">{votersCount} Votos</p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${teamUrgencies > 0 ? 'bg-red-500/20 text-red-500' : 'bg-emerald-500/20 text-emerald-500'}`}>
+                                      <AlertTriangle className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                      <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase">Demandas</p>
+                                      <p className={`text-sm font-black ${teamUrgencies > 0 ? 'text-red-500' : 'text-[var(--text-primary)]'}`}>{teamUrgencies} Abertas</p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    <div className={`w-2 h-2 rounded-full shrink-0 ${team.status === 'OK' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : team.status === 'ALERTA' ? 'bg-amber-500' : 'bg-red-500 animate-pulse'}`} />
+                                    <div>
+                                      <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase">Saúde</p>
+                                      <p className="text-xs font-black text-[var(--text-primary)] uppercase">{team.status === 'OK' ? 'Operando' : team.status}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex flex-wrap items-center gap-2 lg:justify-end shrink-0 pt-2 lg:pt-0 mt-2 lg:mt-0 border-t lg:border-t-0 border-[var(--border-color)]">
+                                <button 
+                                  onClick={async () => {
+                                    setTeamGroqLoading(teamIdKey);
+                                    try {
+                                      const res = await analisarRaioXEquipe({ teamName: team.name, eleitores: votersCount, demandas: teamUrgencies, status: team.status, engajamento });
+                                      showToast(`⚡ IA Tática: ${res.conselho_tatico}`, 'success');
+                                    } catch(err:any) {
+                                      showToast(err.message, 'error');
+                                    } finally {
+                                      setTeamGroqLoading(null);
+                                    }
+                                  }}
+                                  disabled={teamGroqLoading === teamIdKey}
+                                  className="p-2 bg-purple-600/10 hover:bg-purple-600 text-purple-600 hover:text-white rounded-md transition-all border border-purple-500/30 flex items-center justify-center group"
+                                  title="Raio-X Inteligente (Groq IA)"
+                                >
+                                  {teamGroqLoading === teamIdKey ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                                </button>
+                                <button onClick={() => {
+                                  navigator.clipboard.writeText(`${window.location.origin}/cadastro?teamId=${teamIdKey}&coordinatorId=${coordinatorId || user?.uid || ''}`);
+                                  alert(`✅ Link de autocadastro da equipe "${team.name}" copiado com sucesso!`);
+                                }} className="p-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-md border border-[var(--border-color)]" title="Copiar Link de Autocadastro"><UserPlus className="w-4 h-4" /></button>
+                                <button onClick={() => handleCopyAccessLink(team)} className="p-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-md border border-[var(--border-color)]" title="Copiar Credenciais de Acesso"><LogIn className="w-4 h-4" /></button>
+                                <button onClick={() => handleEditTeam(team)} className="p-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-md border border-[var(--border-color)]" title="Editar Unidade"><Edit3 className="w-4 h-4" /></button>
+                                <button onClick={() => handleDeleteTeam(teamIdKey, team.name)} className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-md border border-red-500/30" title="Excluir"><Trash2 className="w-4 h-4" /></button>
+                                <button 
+                                  onClick={() => { setSelectedManagingTeam(team); setIsTeamManagementOpen(true); }}
+                                  className={`px-4 py-2 rounded-md font-black text-[10px] uppercase tracking-wider transition-all shadow-sm ${teamUrgencies > 0 ? 'bg-red-600 text-white hover:bg-red-700 shadow-[0_0_10px_rgba(220,38,38,0.2)]' : 'bg-blue-600 text-white hover:bg-blue-500 shadow-[0_0_10px_rgba(37,99,235,0.2)]'}`}
+                                >
+                                  Gerenciar Equipe
+                                </button>
+                              </div>
+                            </motion.div>
+                          );
+                        }) : (
+                          <div className="p-12 text-center bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-md">
+                            <Users className="w-8 h-8 text-[var(--text-secondary)] opacity-50 mx-auto mb-3" />
+                            <p className="text-sm font-semibold text-[var(--text-secondary)]">Nenhuma equipe encontrada para este filtro.</p>
                           </div>
-                        </div>
+                        )}
                       </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1 text-left relative z-10 py-1.5 lg:py-0 border-y lg:border-y-0 border-[var(--border-color)]/50">
-                        <div>
-                          <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-0.5 opacity-70">Eleitores</p>
-                          <p className="text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-tight">
-                            {(() => {
-                              const matched = allVoters.filter(v => isVoterInTeam(v, team)).length;
-                              const count = teamVotersCountMap[team.name] !== undefined 
-                                ? Math.max(teamVotersCountMap[team.name], matched) 
-                                : matched;
-                              return count;
-                            })()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-0.5 opacity-70">Engajamento</p>
-                          <p className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">
-                            {(() => {
-                              const matched = allVoters.filter(v => isVoterInTeam(v, team)).length;
-                              const count = teamVotersCountMap[team.name] !== undefined 
-                                ? Math.max(teamVotersCountMap[team.name], matched) 
-                                : matched;
-                              return Math.min(100, Math.round((count / 100) * 100));
-                            })()}%
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-0.5 opacity-70">Demandas</p>
-                          <p className={`text-base sm:text-lg font-bold tracking-tight ${urgencies.filter(u => u.team === team.name).length > 0 ? 'text-red-600' : 'text-[var(--text-secondary)] opacity-40'}`}>
-                            {urgencies.filter(u => u.team === team.name).length}
-                          </p>
-                        </div>
-                        <div>
-                           <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1 opacity-70">Status de Rede</p>
-                           <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border leading-none ${
-                            team.status === 'OK' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 
-                            team.status === 'ALERTA' ? 'bg-blue-600/10 text-blue-700 dark:text-blue-400 border-blue-600/20' : 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
-                          }`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${team.status === 'OK' ? 'bg-emerald-500' : team.status === 'ALERTA' ? 'bg-blue-600' : 'bg-red-500'}`} />
-                            {team.status}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-row items-center gap-2 justify-end relative z-10 w-full lg:w-auto">
-                        <div className="flex gap-1 items-center">
-                           <button 
-                             onClick={() => {
-                               const tId = team.id || team.name.replace(/\s/g, '_').toLowerCase();
-                               navigator.clipboard.writeText(`${window.location.origin}/cadastro?teamId=${tId}&coordinatorId=${coordinatorId || user?.uid || ''}`);
-                               alert(`✅ Link de autocadastro da equipe "${team.name}" copiado com sucesso!`);
-                             }}
-                             className="p-1.5 sm:p-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-md hover:bg-zinc-900 hover:text-white transition-all border border-[var(--border-color)] flex items-center justify-center"
-                             title="Copiar Link de Autocadastro"
-                           >
-                             <UserPlus className="w-3.5 h-3.5" />
-                           </button>
-                           <button 
-                             onClick={() => handleCopyAccessLink(team)}
-                             className="p-1.5 sm:p-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-md hover:bg-zinc-900 hover:text-white transition-all border border-[var(--border-color)] flex items-center justify-center"
-                             title="Copiar Credenciais de Acesso"
-                           >
-                             <LogIn className="w-3.5 h-3.5" />
-                           </button>
-                           <button 
-                             onClick={() => handleEditTeam(team)}
-                             className="p-1.5 sm:p-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-md hover:bg-zinc-900 hover:text-white transition-all border border-[var(--border-color)] flex items-center justify-center"
-                             title="Editar Unidade"
-                           >
-                             <Edit3 className="w-3.5 h-3.5" />
-                           </button>
-                           <button 
-                             onClick={() => handleDeleteTeam(team.id || team.name.replace(/\s/g, '_').toLowerCase(), team.name)}
-                             className="p-1.5 sm:p-2 bg-red-50 dark:bg-red-950/30 text-red-600 hover:bg-red-600 hover:text-white rounded-md transition-all border border-red-200 dark:border-red-900/50 flex items-center justify-center"
-                             title="Excluir"
-                           >
-                             <Trash2 className="w-3.5 h-3.5" />
-                           </button>
-                        </div>
-                        <button 
-                          onClick={() => {
-                            setSelectedManagingTeam(team);
-                            setIsTeamManagementOpen(true);
-                          }}
-                          className={`px-3 py-2 rounded-md font-bold text-xs uppercase tracking-wide transition-all active:scale-95 whitespace-nowrap shadow-sm ${
-                            urgencies.filter(u => u.team === team.name).length > 0 ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200'
-                          }`}
-                        >
-                          Gerenciar Equipe
-                        </button>
-                      </div>
-                    </motion.div>
-                  )) : (
-                    <div className="p-20 text-center bg-white rounded-sm border-2 border-dashed border-zinc-200">
-                       <RefreshCcw className="w-10 h-10 text-zinc-200 animate-spin mx-auto mb-4" />
-                       <p className="font-black text-zinc-300 uppercase tracking-[0.2em] text-[9px]">Sincronizando unidades...</p>
                     </div>
-                  )}
-                </div>
+                  );
+                })()}
               </motion.div>
             )}
 

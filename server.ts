@@ -211,7 +211,7 @@ async function startServer() {
   });
 
   app.post('/api/groq/process', async (req, res) => {
-    const { municipio, targetVoters, context } = req.body;
+    const { type, municipio, targetVoters, context } = req.body;
     const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey) {
@@ -219,11 +219,24 @@ async function startServer() {
     }
 
     try {
-      // Dynamic import to avoid breaking if not installed globally yet
       const Groq = (await import('groq-sdk')).default;
       const groq = new Groq({ apiKey });
 
-      const prompt = `Atue como o melhor estrategista eleitoral do Brasil. O Coordenador Geral está configurando as Metas da Campanha.
+      let prompt = '';
+      
+      if (type === 'raio-x-equipe') {
+        prompt = `Atue como um analista tático eleitoral sênior. O Coordenador Geral precisa de um Raio-X rápido de uma equipe.
+Equipe/Líder: ${context?.teamName || 'Equipe'}
+Eleitores Mapeados: ${context?.eleitores || 0}
+Demandas em Aberto: ${context?.demandas || 0}
+Status Atual: ${context?.status || 'OK'}
+Engajamento: ${context?.engajamento || '0'}%
+
+Sugerir um conselho tático muito breve (MÁXIMO 2 LINHAS) para o coordenador agir sobre esta equipe hoje.
+Responda EXATAMENTE neste formato JSON, sem Markdown ou texto adicional fora do JSON:
+{"conselho_tatico": "Seu conselho aqui."}`;
+      } else {
+        prompt = `Atue como o melhor estrategista eleitoral do Brasil. O Coordenador Geral está configurando as Metas da Campanha.
 Município/Região: ${municipio}
 Meta Anterior Sugerida/Buscada: ${targetVoters || 'N/A'}
 Contexto Demográfico/Electoral: ${JSON.stringify(context || {})}
@@ -231,6 +244,7 @@ Contexto Demográfico/Electoral: ${JSON.stringify(context || {})}
 Seu objetivo: Sugerir um NÚMERO REALISTA E MATEMÁTICO de eleitores que a equipe deve cadastrar/mapear nesta região, e escrever uma breve justificativa estratégica (máx 3 linhas).
 Responda EXATAMENTE neste formato JSON, sem Markdown ou texto adicional fora do JSON:
 {"sugestao_votos": 5000, "justificativa": "Sua justificativa tática aqui."}`;
+      }
 
       const chatCompletion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
