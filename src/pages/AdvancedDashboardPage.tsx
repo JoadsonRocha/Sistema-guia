@@ -195,9 +195,9 @@ export const AdvancedDashboardPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <ChartWidget title="Eleitores por Bairro (Top 10)" subtitle="Distribuição geográfica da base">
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={neighborhoodData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+            <BarChart data={neighborhoodData} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
               <XAxis type="number" hide />
-              <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} width={120} />
+              <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 10}} width={90} />
               <Tooltip content={<ChartTooltip />} cursor={{fill: '#f1f5f9'}} />
               <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={24} />
             </BarChart>
