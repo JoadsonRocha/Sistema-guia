@@ -129,10 +129,9 @@ body {
     background-color: var(--bg-tertiary) !important;
   }
 
-  /* Make primary buttons easy to tap and consistent */
-  button, .btn {
-    min-height: 40px;
-    padding: 0.5rem 1rem;
+  /* Make custom .btn consistent */
+  .btn {
+    min-height: 36px;
     border-radius: 0.75rem;
     font-weight: 600;
     transition: all 0.2s ease;
