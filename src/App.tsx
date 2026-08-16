@@ -11,6 +11,9 @@ import { ProfilePage } from './pages/ProfilePage';
 // Lazy loading heavy components
 const PublicVoterRegister = lazy(() => import('./components/PublicVoterRegister'));
 const SalesLandingPage = lazy(() => import('./components/SalesLandingPage').then(m => ({ default: m.SalesLandingPage })));
+const TermsPage = lazy(() => import('./pages/TermsPage').then(m => ({ default: m.TermsPage })));
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
+const CookiesPage = lazy(() => import('./pages/CookiesPage').then(m => ({ default: m.CookiesPage })));
 
 import { useAuth } from './lib/SupabaseProvider';
 import { supabaseService } from './lib/supabaseService';
@@ -90,6 +93,11 @@ export default function App() {
 
         {/* Public external register */}
         <Route path="/cadastro" element={<PublicRegisterWrapper />} />
+
+        {/* Legal Pages */}
+        <Route path="/termos" element={<TermsPage />} />
+        <Route path="/privacidade" element={<PrivacyPage />} />
+        <Route path="/cookies" element={<CookiesPage />} />
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>

@@ -30,6 +30,7 @@ export function LoginPage() {
   }>({});
   const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [acceptedLgpd, setAcceptedLgpd] = useState(false);
   const [authInfo, setAuthInfo] = useState('');
   const [showDomainGuide, setShowDomainGuide] = useState(false);
   const [copiedDomain, setCopiedDomain] = useState<string | null>(null);
@@ -138,6 +139,12 @@ export function LoginPage() {
       }
 
       if (isRegistering) {
+        if (!acceptedLgpd) {
+          setAuthError('Por favor, aceite os Termos de Uso e Política de Privacidade para criar a conta.');
+          setIsLoading(false);
+          return;
+        }
+        
         // Impedir que cadastros abertos ganhem direitos administrativos (exceto Coordenador Geral, que inicia a campanha)
         if ((effectiveRole === 'admin' || effectiveRole === 'coordenador') && !preRegDoc) {
           setAuthError('Erro de Segurança: Não é permitido criar contas administrativas sem pré-registro autorizado no comitê.');
@@ -425,10 +432,28 @@ export function LoginPage() {
             </div>
           )}
 
+          {/* LGPD Checkbox for Registration */}
+          {isRegistering && (
+            <div className="pt-2 pb-1">
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="checkbox"
+                  required
+                  checked={acceptedLgpd}
+                  onChange={e => setAcceptedLgpd(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 text-blue-600 rounded focus:ring-blue-600 cursor-pointer accent-blue-600 shrink-0"
+                />
+                <span className="text-[10px] text-[var(--text-secondary)] font-semibold leading-tight">
+                  Concordo com os <a href="/termos" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Termos de Uso</a> e a <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Política de Privacidade</a>.
+                </span>
+              </label>
+            </div>
+          )}
+
           {/* Submit Button */}
           <button 
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || (isRegistering && !acceptedLgpd)}
             className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-2.5 sm:py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 mt-2"
           >
             {isLoading ? (

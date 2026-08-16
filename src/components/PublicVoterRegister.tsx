@@ -71,6 +71,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
 
   const [acceptedLgpd, setAcceptedLgpd] = useState(false);
   const [isLocatingGPS, setIsLocatingGPS] = useState(false);
+  const [honey, setHoney] = useState('');
 
   const handleGetGPSLocation = async () => {
     setIsLocatingGPS(true);
@@ -275,6 +276,11 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (honey) {
+      // Basic Honeypot Anti-Spam protection: if the hidden field is filled, silently succeed for the bot.
+      setSuccess(true);
+      return;
+    }
     if (!leaderInfo) return;
 
     if (!acceptedLgpd) {
@@ -545,6 +551,9 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                 </motion.div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Honeypot field - Hidden from real users */}
+                  <input type="text" name="website_url" value={honey} onChange={e => setHoney(e.target.value)} style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
+
                   
                   {/* STEP 1: DADOS PESSOAIS */}
                   {currentStep === 1 && (
@@ -797,7 +806,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
                             className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-blue-600 cursor-pointer accent-blue-600 shrink-0"
                           />
                           <span className="text-[11px] text-zinc-800 font-bold leading-tight">
-                            Li e concordo com a <a href="/download/arquitetura-doc" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-extrabold hover:text-blue-800">Política de Privacidade e Proteção de Dados (LGPD)</a>. *
+                            Li e concordo com os <a href="/termos" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-extrabold hover:text-blue-800">Termos de Uso</a> e a <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-extrabold hover:text-blue-800">Política de Privacidade (LGPD)</a>. *
                           </span>
                         </label>
                       </div>
