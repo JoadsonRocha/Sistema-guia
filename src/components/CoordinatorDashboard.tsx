@@ -7450,7 +7450,6 @@ export default function CoordinatorDashboard({
                         </p>
                       </div>
                     )}
-                  </div>
                   
                   {isGeral && (
                     <div className="space-y-1">
@@ -7466,6 +7465,7 @@ export default function CoordinatorDashboard({
                       />
                     </div>
                   )}
+                  </div>
                 )}
 
                 {/* TAB 2: APRESENTAÇÃO & BIOGRAFIA */}
