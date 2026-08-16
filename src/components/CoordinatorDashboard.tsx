@@ -64,9 +64,7 @@ import {
   Loader2,
   Mail,
   Map as MapIcon,
-  Search,
   Trophy,
-  Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { jsPDF } from 'jspdf';

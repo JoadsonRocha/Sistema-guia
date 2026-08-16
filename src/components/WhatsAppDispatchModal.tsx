@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Send, CheckCircle2, Copy, X, MessageSquare, ShieldCheck, Sparkles, Users, ExternalLink, ArrowRight, Check, Search, Filter, RefreshCw, Settings2 } from 'lucide-react';
 import { whatsappService, WaMeRecipientLink } from '../services/whatsappService';
+import { gerarMensagemWhatsApp } from '../services/groqService';
 
 interface WhatsAppDispatchModalProps {
   isOpen: boolean;
@@ -179,6 +180,32 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
 
     setIsBulkSending(false);
     alert('Disparo automático em lote finalizado!');
+  };
+
+  const handleGenerateMessage = async () => {
+    setIsGenerating(true);
+    try {
+      const contextoMap: Record<string, string> = {
+        convocacao: 'Convocar eleitores para uma reunião ou ação de rua da campanha, motivando a participação e reforçando o engajamento comunitário',
+        dia_d: 'Lembrar os eleitores de que é dia de eleição, motivar o voto e dar instruções de como encontrar o local de votação',
+        demanda: 'Informar que a solicitação/demanda cadastrada pelo eleitor foi registrada e está sendo acompanhada pela equipe de campanha',
+        cadastro: 'Dar boas-vindas a um novo eleitor cadastrado no sistema, agradecendo o apoio e reforçando o senso de comunidade',
+      };
+      const publicoMap: Record<string, string> = {
+        voters: 'Eleitor comum da base da campanha',
+        leaders: 'Líder comunitário / Cabo Eleitoral',
+      };
+      const contexto = contextoMap[templateType] || 'Mobilização geral da campanha';
+      const publico = publicoMap[targetAudience] || 'Apoiador da campanha';
+      const mensagem = await gerarMensagemWhatsApp(contexto, publico, 'nosso candidato');
+      // Preservar as variáveis de interpolação ajustando o texto gerado
+      const mensagemFinal = mensagem.trim();
+      setCustomMessage(mensagemFinal);
+    } catch (err: any) {
+      alert(`❌ Erro ao gerar mensagem com I.A.: ${err.message}`);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const sentCount = Object.keys(sentMap).filter(k => preparedBatch.some(p => p.id === k)).length;
