@@ -2382,11 +2382,11 @@ export default function CoordinatorDashboard({
           {[
             { id: 'overview', label: isRegional ? 'Painel Regional' : 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
             { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
+            { id: 'materials', label: 'Materiais', icon: <Package className="w-4 h-4" /> },
             { id: 'metas', label: 'Metas', icon: <Target className="w-4 h-4" /> },
             ...(isGeral ? [{ id: 'regional_coords', label: 'Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
             { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
             { id: 'voters', label: 'Eleitores', icon: <UserPlus className="w-4 h-4" /> },
-            { id: 'materials', label: 'Materiais', icon: <Package className="w-4 h-4" /> },
             { id: 'demands', label: 'Demandas', icon: <Activity className="w-4 h-4" /> },
             { id: 'mapa', label: 'Mapa', icon: <MapIcon className="w-4 h-4" /> },
             { id: 'analise_eleitoral', label: 'Análise', icon: <TrendingUp className="w-4 h-4" /> },
