@@ -93,11 +93,11 @@ body {
     color: var(--text-primary) !important;
     background-color: var(--bg-secondary) !important;
     border: 1px solid var(--border-color) !important;
-    padding: 0.56rem 0.75rem !important;
-    border-radius: 0.5rem !important;
-    font-size: 1rem !important;
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 0.75rem !important;
+    font-size: 0.875rem !important;
     line-height: 1.25 !important;
-    min-height: 44px !important;
+    min-height: 40px !important;
     outline: none !important;
     box-shadow: none !important;
     transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
@@ -105,7 +105,7 @@ body {
   }
 
   textarea {
-    min-height: 96px;
+    min-height: 80px;
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
     resize: vertical;
@@ -118,7 +118,7 @@ body {
 
   input:focus, textarea:focus, select:focus {
     border-color: var(--accent-color) !important;
-    box-shadow: 0 0 0 6px rgba(5,120,211,0.08) !important;
+    box-shadow: 0 0 0 4px rgba(5,120,211,0.1) !important;
     background-color: var(--bg-secondary) !important;
   }
 
@@ -131,15 +131,40 @@ body {
 
   /* Make primary buttons easy to tap and consistent */
   button, .btn {
-    min-height: 44px;
-    padding: 0.56rem 1rem;
-    border-radius: 0.5rem;
+    min-height: 40px;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
     font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  button:active, .btn:active {
+    transform: scale(0.97);
   }
 
   /* Ensure form controls inherit high-contrast text color in dark mode */
   .dark input, .dark textarea, .dark select {
     color: var(--text-primary) !important;
     background-color: var(--bg-secondary) !important;
+  }
+}
+
+@layer components {
+  /* UI/UX Standardization: Soft Square Premium Buttons */
+  .btn-primary {
+    @apply bg-blue-600 text-white shadow-sm hover:bg-blue-500 hover:shadow-md border border-blue-500/30 font-bold text-sm flex items-center justify-center gap-2;
+  }
+  .btn-secondary {
+    @apply bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-color)] hover:bg-zinc-100 dark:hover:bg-zinc-800 font-bold text-sm flex items-center justify-center gap-2;
+  }
+  .btn-danger {
+    @apply bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white dark:bg-red-950/30 dark:border-red-900/50 shadow-sm font-bold text-sm flex items-center justify-center gap-2;
+  }
+  .btn-icon {
+    @apply p-2 min-h-[36px] w-[36px] h-[36px] bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-[var(--border-color)] flex items-center justify-center shrink-0;
+  }
+  .btn-icon-danger {
+    @apply p-2 min-h-[36px] w-[36px] h-[36px] bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white dark:bg-red-950/30 dark:border-red-900/50 flex items-center justify-center shrink-0;
   }
 }
