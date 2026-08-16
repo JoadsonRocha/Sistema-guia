@@ -2448,7 +2448,7 @@ export default function CoordinatorDashboard({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Pesquisar zonas, líderes ou demandas..."
-                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm py-2.5 pl-11 pr-4 text-[11px] font-black uppercase tracking-tight text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] placeholder:opacity-50 focus:ring-1 focus:ring-blue-600/40 outline-none transition-all shadow-inner"
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2.5 pl-11 pr-4 text-[11px] font-black uppercase tracking-tight text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] placeholder:opacity-50 focus:ring-1 focus:ring-blue-600/40 outline-none transition-all shadow-inner"
               />
 
               {/* SEARCH RESULTS PANEL */}
@@ -2458,7 +2458,7 @@ export default function CoordinatorDashboard({
                     initial={{ opacity: 0, y: 10 }} 
                     animate={{ opacity: 1, y: 0 }} 
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute top-full left-0 right-0 mt-4 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm shadow-2xl z-50 max-h-96 overflow-y-auto p-2 transition-colors duration-300"
+                    className="absolute top-full left-0 right-0 mt-4 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl shadow-2xl z-50 max-h-96 overflow-y-auto p-2 transition-colors duration-300"
                   >
                     {totalResults > 0 ? (
                       <div className="p-1 space-y-3">
@@ -2466,8 +2466,8 @@ export default function CoordinatorDashboard({
                           <div>
                             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-2 mb-1">Equipes / Zonas</p>
                             {searchResults.teams.map(t => (
-                              <button key={t.id} onClick={() => { setActiveTab('teams'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-sm transition-colors text-left">
-                                <div className="w-8 h-8 rounded-sm bg-zinc-100 flex items-center justify-center"><Users className="w-4 h-4 text-zinc-900" /></div>
+                              <button key={t.id} onClick={() => { setActiveTab('teams'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-xl transition-colors text-left">
+                                <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center"><Users className="w-4 h-4 text-zinc-900" /></div>
                                 <div>
                                   <p className="text-xs font-bold text-zinc-900 uppercase">{t.zone}</p>
                                   <p className="text-[10px] text-zinc-500 uppercase">{t.leaderName}</p>
@@ -2481,8 +2481,8 @@ export default function CoordinatorDashboard({
                           <div>
                             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-2 mb-1">Agenda / Demandas</p>
                             {searchResults.agendas.map(a => (
-                              <button key={a.id} onClick={() => { setActiveTab('agenda'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-sm transition-colors text-left">
-                                <div className="w-8 h-8 rounded-sm bg-zinc-100 flex items-center justify-center"><Calendar className="w-4 h-4 text-zinc-900" /></div>
+                              <button key={a.id} onClick={() => { setActiveTab('agenda'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-xl transition-colors text-left">
+                                <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center"><Calendar className="w-4 h-4 text-zinc-900" /></div>
                                 <div>
                                   <p className="text-xs font-bold text-zinc-900 uppercase">{a.motivo}</p>
                                   <p className="text-[10px] text-zinc-500 uppercase">{a.municipio} • {a.data}</p>
@@ -2496,8 +2496,8 @@ export default function CoordinatorDashboard({
                           <div>
                             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-2 mb-1">Notas Táticas</p>
                             {searchResults.notes.map(n => (
-                              <button key={n.id} onClick={() => { setActiveTab('notes'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-sm transition-colors text-left">
-                                <div className="w-8 h-8 rounded-sm bg-zinc-100 flex items-center justify-center"><MessageSquare className="w-4 h-4 text-zinc-900" /></div>
+                              <button key={n.id} onClick={() => { setActiveTab('notes'); setSearchQuery(''); }} className="w-full flex items-center gap-3 p-2 hover:bg-zinc-50 rounded-xl transition-colors text-left">
+                                <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center"><MessageSquare className="w-4 h-4 text-zinc-900" /></div>
                                 <div>
                                   <p className="text-[10px] text-zinc-800 font-medium line-clamp-1">"{n.text}"</p>
                                   <p className="text-[8px] text-zinc-400 font-black uppercase tracking-widest leading-none mt-1">{n.leaderName} • {n.team}</p>
@@ -2576,7 +2576,7 @@ export default function CoordinatorDashboard({
 
             <button 
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-sm text-zinc-500 dark:text-zinc-400 hover:bg-blue-600 hover:text-white active:scale-90 transition-all border border-zinc-200 dark:border-zinc-700"
+              className="p-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl text-zinc-500 dark:text-zinc-400 hover:bg-blue-600 hover:text-white active:scale-90 transition-all border border-zinc-200 dark:border-zinc-700"
               title={theme === 'dark' ? "Ativar Modo Claro" : "Ativar Modo Escuro"}
             >
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -2694,12 +2694,12 @@ export default function CoordinatorDashboard({
                       value={newDailyOrder}
                       onChange={(e) => setNewDailyOrder(e.target.value)}
                       placeholder="Digite a diretiva central para todas as equipes..."
-                      className="w-full bg-zinc-50 dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-sm p-4 text-xs font-bold text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none focus:border-blue-600 min-h-[100px] transition-colors"
+                      className="w-full bg-zinc-50 dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-xl p-4 text-xs font-bold text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none focus:border-blue-600 min-h-[100px] transition-colors"
                       autoFocus
                     />
                     <button
                       onClick={handleUpdateDailyOrder}
-                      className="bg-blue-600 text-white px-6 py-2.5 rounded-sm font-black text-[10px] uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-all hover:bg-blue-500"
+                      className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-all hover:bg-blue-500"
                     >
                       📢 Transmitir para Unidades
                     </button>
@@ -2773,17 +2773,17 @@ export default function CoordinatorDashboard({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     onClick={stat.action}
-                    className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-3.5 md:p-5 rounded-sm shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:border-blue-600/50 transition-all cursor-pointer group"
+                    className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-3.5 md:p-5 rounded-xl shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:border-blue-600/50 transition-all cursor-pointer group"
                   >
                     <div className="flex justify-between items-start mb-2.5">
-                      <div className={`p-2 rounded-sm group-hover:bg-blue-600 transition-colors ${(stat as any).iconColor || 'bg-[var(--bg-tertiary)]'}`}>
+                      <div className={`p-2 rounded-xl group-hover:bg-blue-600 transition-colors ${(stat as any).iconColor || 'bg-[var(--bg-tertiary)]'}`}>
                         {i === 0 && <Target className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
                         {i === 1 && <Users className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
                         {i === 2 && <Calendar className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
                         {i === 3 && <DollarSign className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-[6px] md:text-[7px] font-black py-0.5 px-1.5 bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 rounded-sm uppercase tracking-widest border border-green-200/50 dark:border-green-500/20 leading-none">ATIVO</span>
+                        <span className="text-[6px] md:text-[7px] font-black py-0.5 px-1.5 bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 rounded-xl uppercase tracking-widest border border-green-200/50 dark:border-green-500/20 leading-none">ATIVO</span>
                       </div>
                     </div>
                     <p className={`text-lg md:text-2xl font-black tracking-tighter mb-0.5 leading-none ${stat.color || 'text-[var(--text-primary)]'}`}>{stat.value}</p>
@@ -3076,7 +3076,7 @@ export default function CoordinatorDashboard({
                   </div>
 
                   {/* Category selector */}
-                  <div className="flex items-center gap-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] p-1 rounded-sm">
+                  <div className="flex items-center gap-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] p-1 rounded-xl">
                     {(['municipio', 'bairro', 'regiao'] as const).map((cat) => (
                       <button 
                         key={cat}
@@ -3084,7 +3084,7 @@ export default function CoordinatorDashboard({
                           setGoalCategory(cat);
                           setNewGoal(g => ({ ...g, category: cat }));
                         }}
-                        className={`px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider transition-all ${
+                        className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
                           goalCategory === cat ? 'bg-blue-600 text-white shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                         }`}
                       >
@@ -3112,14 +3112,14 @@ export default function CoordinatorDashboard({
 
                   return (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative overflow-hidden">
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-2 h-full bg-blue-600" />
                         <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Meta Geral Total ({goalCategory})</p>
                         <p className="text-2xl font-black text-[var(--text-primary)] mt-1">{totalMetaGeral.toLocaleString('pt-BR')}</p>
                         <p className="text-[8px] font-bold text-blue-500 uppercase tracking-wider mt-1">Objetivo Macro da Campanha</p>
                       </div>
 
-                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative overflow-hidden">
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-2 h-full bg-emerald-500" />
                         <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Alocado a Coord. Regionais</p>
                         <p className="text-2xl font-black text-emerald-500 mt-1">{totalMetaDistribuidaRegionais.toLocaleString('pt-BR')}</p>
@@ -3128,14 +3128,14 @@ export default function CoordinatorDashboard({
                         </p>
                       </div>
 
-                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative overflow-hidden">
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-2 h-full bg-amber-500" />
                         <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Saldo Restante a Alocar</p>
                         <p className="text-2xl font-black text-amber-500 mt-1">{totalPendenteAlocacao.toLocaleString('pt-BR')}</p>
                         <p className="text-[8px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mt-1">Meta a Distribuir p/ Coordenadores</p>
                       </div>
 
-                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative overflow-hidden">
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-2 h-full bg-purple-500" />
                         <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Eleitores Mapeados (Real)</p>
                         <p className="text-2xl font-black text-purple-500 mt-1">{totalMapeados.toLocaleString('pt-BR')}</p>
@@ -3148,7 +3148,7 @@ export default function CoordinatorDashboard({
                 })()}
 
                 {/* Form to add new goal */}
-                <form onSubmit={handleCreateGoal} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm space-y-4 shadow-sm">
+                <form onSubmit={handleCreateGoal} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-xl space-y-4 shadow-sm">
                   <h3 className="text-xs font-black uppercase tracking-wider text-[var(--text-primary)] flex items-center gap-2">
                     <Plus className="w-4 h-4 text-blue-600" /> Cadastrar Nova Meta Geral para {goalCategory === 'municipio' ? 'Município' : goalCategory === 'bairro' ? 'Bairro' : 'Região'}
                   </h3>
@@ -3163,7 +3163,7 @@ export default function CoordinatorDashboard({
                         value={newGoal.locationName}
                         onChange={(e) => setNewGoal({ ...newGoal, locationName: e.target.value })}
                         placeholder={goalCategory === 'municipio' ? "Ex: Boa Vista" : goalCategory === 'bairro' ? "Ex: Pintolândia" : "Ex: Região Sul"}
-                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600"
                       />
                     </div>
                     <div>
@@ -3192,7 +3192,7 @@ export default function CoordinatorDashboard({
                           setNewGoal({ ...newGoal, targetVoters: digits === '' ? '' : parseInt(digits, 10) });
                         }}
                         placeholder="Ex: 5.000"
-                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600"
                       />
                     </div>
                     <div className="flex flex-col sm:flex-row items-end gap-2">
@@ -3215,14 +3215,14 @@ export default function CoordinatorDashboard({
                             setIsGroqLoading(false);
                           }
                         }}
-                        className="bg-purple-600 hover:bg-purple-500 text-white font-black text-xs px-4 py-3 rounded-sm uppercase tracking-wider shadow-md shadow-purple-600/20 disabled:opacity-50 flex items-center justify-center shrink-0"
+                        className="bg-purple-600 hover:bg-purple-500 text-white font-black text-xs px-4 py-3 rounded-xl uppercase tracking-wider shadow-md shadow-purple-600/20 disabled:opacity-50 flex items-center justify-center shrink-0"
                         title="Usar Inteligência Artificial para sugerir Meta Matemática"
                       >
                         {isGroqLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : '✨ IA Groq'}
                       </button>
                       <button 
                         type="submit"
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-sm uppercase tracking-wider shadow-md shadow-blue-600/20 active:scale-95 transition-all"
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-xl uppercase tracking-wider shadow-md shadow-blue-600/20 active:scale-95 transition-all"
                       >
                         Salvar Meta Geral
                       </button>
@@ -3264,11 +3264,11 @@ export default function CoordinatorDashboard({
                     const reachPct = isNaN(rawReachPct) ? 0 : Math.min(100, rawReachPct);
 
                     return (
-                      <div key={goal.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative flex flex-col justify-between hover:border-blue-500/50 transition-all shadow-sm">
+                      <div key={goal.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-xl relative flex flex-col justify-between hover:border-blue-500/50 transition-all shadow-sm">
                         <div>
                           <div className="flex items-start justify-between mb-3">
                             <div>
-                              <span className="text-[7px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2 py-0.5 rounded-sm uppercase tracking-widest">
+                              <span className="text-[7px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2 py-0.5 rounded-xl uppercase tracking-widest">
                                 META POR {goal.category ? goal.category.toUpperCase() : 'MUNICÍPIO'}
                               </span>
                               <h3 className="text-lg font-black text-[var(--text-primary)] uppercase tracking-tight mt-1">{goal.locationName}</h3>
@@ -3276,14 +3276,14 @@ export default function CoordinatorDashboard({
                             <div className="flex items-center gap-1">
                               <button 
                                 onClick={() => handleOpenEditGoal(goal)}
-                                className="text-zinc-400 hover:text-blue-500 p-1.5 rounded-sm transition-colors hover:bg-[var(--bg-tertiary)]"
+                                className="text-zinc-400 hover:text-blue-500 p-1.5 rounded-xl transition-colors hover:bg-[var(--bg-tertiary)]"
                                 title="Editar Meta Geral"
                               >
                                 <Edit3 className="w-4 h-4" />
                               </button>
                               <button 
                                 onClick={() => handleDeleteGoal(goal.id)}
-                                className="text-zinc-400 hover:text-red-500 p-1.5 rounded-sm transition-colors hover:bg-[var(--bg-tertiary)]"
+                                className="text-zinc-400 hover:text-red-500 p-1.5 rounded-xl transition-colors hover:bg-[var(--bg-tertiary)]"
                                 title="Excluir meta"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -3292,7 +3292,7 @@ export default function CoordinatorDashboard({
                           </div>
 
                           {/* Goal Breakdown Grid */}
-                          <div className="grid grid-cols-3 gap-2 p-3 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm my-3">
+                          <div className="grid grid-cols-3 gap-2 p-3 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl my-3">
                             <div>
                               <p className="text-[7.5px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Meta Geral</p>
                               <p className="text-sm font-black text-[var(--text-primary)] mt-0.5">{target.toLocaleString('pt-BR')}</p>
@@ -3319,7 +3319,7 @@ export default function CoordinatorDashboard({
                                 const ratio = target > 0 ? (cVal / target) * 100 : 0;
                                 const pctOfMetaGeral = (isNaN(ratio) ? 0 : ratio).toFixed(1).replace('.', ',');
                                 return (
-                                  <div key={c.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1.5 rounded-sm text-[9px] font-bold text-emerald-700 dark:text-emerald-300 uppercase">
+                                  <div key={c.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1.5 rounded-xl text-[9px] font-bold text-emerald-700 dark:text-emerald-300 uppercase">
                                     <div className="flex items-center gap-1.5 min-w-0">
                                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                                       <span className="font-black truncate">{c.name}</span>
@@ -3342,7 +3342,7 @@ export default function CoordinatorDashboard({
                                 const ratio = target > 0 ? (tVal / target) * 100 : 0;
                                 const pctOfMetaGeral = (isNaN(ratio) ? 0 : ratio).toFixed(1).replace('.', ',');
                                 return (
-                                  <div key={t.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1.5 rounded-sm text-[9px] font-bold text-blue-700 dark:text-blue-300 uppercase">
+                                  <div key={t.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1.5 rounded-xl text-[9px] font-bold text-blue-700 dark:text-blue-300 uppercase">
                                     <div className="flex items-center gap-1.5 min-w-0">
                                       <Users className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                                       <span className="font-black truncate">{t.name}</span>
@@ -3355,7 +3355,7 @@ export default function CoordinatorDashboard({
                               })}
 
                               {matchedRegCoords.length === 0 && matchedTeams.length === 0 && (
-                                <p className="text-[9px] font-bold text-amber-500 uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-sm">
+                                <p className="text-[9px] font-bold text-amber-500 uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-xl">
                                   ⚠️ Nenhum Coordenador Regional ou Equipe alocado para esta área ainda.
                                 </p>
                               )}
@@ -3370,7 +3370,7 @@ export default function CoordinatorDashboard({
                               <span className="text-[var(--text-secondary)]">Distribuição entre Regionais ({totalAllocated} / {target})</span>
                               <span className="text-emerald-500">{allocPct}% Alocado</span>
                             </div>
-                            <div className="w-full bg-[var(--bg-tertiary)] h-2 rounded-sm overflow-hidden border border-[var(--border-color)]">
+                            <div className="w-full bg-[var(--bg-tertiary)] h-2 rounded-xl overflow-hidden border border-[var(--border-color)]">
                               <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${allocPct}%` }} />
                             </div>
                           </div>
@@ -3382,7 +3382,7 @@ export default function CoordinatorDashboard({
                                 {reachPct >= 100 ? '🏆 100% (BATEU A META!)' : reachPct < 30 ? `⚠️ ${reachPct}% (CRÍTICO)` : `${reachPct}% Alcançado`}
                               </span>
                             </div>
-                            <div className="w-full bg-[var(--bg-tertiary)] h-2 rounded-sm overflow-hidden border border-[var(--border-color)]">
+                            <div className="w-full bg-[var(--bg-tertiary)] h-2 rounded-xl overflow-hidden border border-[var(--border-color)]">
                               <div className={`h-full transition-all duration-500 ${reachPct >= 100 ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]' : reachPct < 30 ? 'bg-red-500' : 'bg-purple-500'}`} style={{ width: `${Math.min(reachPct, 100)}%` }} />
                             </div>
                           </div>
@@ -3392,7 +3392,7 @@ export default function CoordinatorDashboard({
                   })}
 
                   {goalsList.filter(g => g.category === goalCategory || (!g.category && goalCategory === 'municipio')).length === 0 && (
-                    <div className="col-span-full bg-[var(--bg-secondary)] border border-[var(--border-color)] p-10 text-center rounded-sm">
+                    <div className="col-span-full bg-[var(--bg-secondary)] border border-[var(--border-color)] p-10 text-center rounded-xl">
                       <Target className="w-10 h-10 text-zinc-400 mx-auto mb-2 opacity-50" />
                       <p className="text-xs font-black uppercase text-[var(--text-primary)] tracking-tight">Nenhuma meta geral cadastrada nesta categoria</p>
                       <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mt-1">
@@ -3414,7 +3414,7 @@ export default function CoordinatorDashboard({
                   if (unlinkedCoords.length === 0) return null;
 
                   return (
-                    <div className="mt-8 bg-[var(--bg-secondary)] border border-amber-500/30 p-5 rounded-sm space-y-4">
+                    <div className="mt-8 bg-[var(--bg-secondary)] border border-amber-500/30 p-5 rounded-xl space-y-4">
                       <div className="flex items-center gap-2">
                         <ShieldCheck className="w-5 h-5 text-amber-500" />
                         <div>
@@ -3429,7 +3429,7 @@ export default function CoordinatorDashboard({
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {unlinkedCoords.map(coord => (
-                          <div key={coord.id} className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-3 rounded-sm flex items-center justify-between gap-3">
+                          <div key={coord.id} className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-3 rounded-xl flex items-center justify-between gap-3">
                             <div>
                               <p className="text-xs font-black text-[var(--text-primary)] uppercase">{coord.name}</p>
                               <p className="text-[9px] font-bold text-blue-500 uppercase">Região: {coord.region} • Meta: {Number(coord.targetVoters || 0).toLocaleString('pt-BR')}</p>
@@ -3444,7 +3444,7 @@ export default function CoordinatorDashboard({
                                 });
                                 window.scrollTo({ top: 300, behavior: 'smooth' });
                               }}
-                              className="bg-amber-600 hover:bg-amber-500 text-white font-black text-[9px] px-3 py-2 rounded-sm uppercase tracking-wider shrink-0"
+                              className="bg-amber-600 hover:bg-amber-500 text-white font-black text-[9px] px-3 py-2 rounded-xl uppercase tracking-wider shrink-0"
                             >
                               + Criar Meta Geral
                             </button>
@@ -3474,7 +3474,7 @@ export default function CoordinatorDashboard({
                       setRegCoordStep('form');
                       setNewRegCoord({ name: '', email: '', phone: '', region: '', subLocations: '', targetVoters: 500 });
                     }}
-                    className="bg-blue-600 hover:bg-blue-500 text-white font-black text-xs px-5 py-3 rounded-sm uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
+                    className="bg-blue-600 hover:bg-blue-500 text-white font-black text-xs px-5 py-3 rounded-xl uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
                   >
                     <Plus className="w-4 h-4" /> Cadastrar Coordenador Regional
                   </button>
@@ -3482,19 +3482,19 @@ export default function CoordinatorDashboard({
 
                 {/* Metric Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm">
+                  <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-xl">
                     <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Coordenadores Ativos</p>
                     <p className="text-2xl font-black text-blue-600 mt-1">{regionalCoordinators.length}</p>
                     <p className="text-[8px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mt-1">Visão Regional Unificada</p>
                   </div>
-                  <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm">
+                  <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-xl">
                     <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Meta Acumulada Regional</p>
                     <p className="text-2xl font-black text-emerald-500 mt-1">
                       {regionalCoordinators.reduce((acc, curr) => acc + (Number(curr.targetVoters) || 0), 0).toLocaleString('pt-BR')}
                     </p>
                     <p className="text-[8px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mt-1">Eleitores Previstos</p>
                   </div>
-                  <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm">
+                  <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-xl">
                     <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Regiões Mapeadas</p>
                     <p className="text-2xl font-black text-purple-500 mt-1">
                       {new Set(regionalCoordinators.map(r => r.region).filter(Boolean)).size}
@@ -3508,11 +3508,11 @@ export default function CoordinatorDashboard({
                   {regionalCoordinators.map(coord => {
                     const link = `${window.location.origin}/login?email=${encodeURIComponent(coord.email)}&access_token=${btoa(coord.tempPassword || '123456')}&role=coordenador_regional&coordinatorId=${coordinatorId || user?.uid || ''}`;
                     return (
-                      <div key={coord.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-sm relative group hover:border-blue-500/50 transition-all flex flex-col justify-between">
+                      <div key={coord.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-xl relative group hover:border-blue-500/50 transition-all flex flex-col justify-between">
                         <div>
                           <div className="flex items-start justify-between mb-3">
                             <div>
-                              <span className="text-[7px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2 py-0.5 rounded-sm uppercase tracking-widest">
+                              <span className="text-[7px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2 py-0.5 rounded-xl uppercase tracking-widest">
                                 COORDENADOR REGIONAL
                               </span>
                               <h3 className="text-base font-black text-[var(--text-primary)] uppercase tracking-tight mt-1.5">{coord.name}</h3>
@@ -3521,14 +3521,14 @@ export default function CoordinatorDashboard({
                             <div className="flex items-center gap-1">
                               <button 
                                 onClick={() => handleOpenEditRegCoord(coord)}
-                                className="text-zinc-400 hover:text-blue-500 p-1.5 rounded-sm transition-colors hover:bg-[var(--bg-tertiary)]"
+                                className="text-zinc-400 hover:text-blue-500 p-1.5 rounded-xl transition-colors hover:bg-[var(--bg-tertiary)]"
                                 title="Editar Coordenador Regional"
                               >
                                 <Edit3 className="w-4 h-4" />
                               </button>
                               <button 
                                 onClick={() => handleDeleteRegionalCoordinator(coord.id, coord.email)}
-                                className="text-zinc-400 hover:text-red-500 p-1.5 rounded-sm transition-colors hover:bg-[var(--bg-tertiary)]"
+                                className="text-zinc-400 hover:text-red-500 p-1.5 rounded-xl transition-colors hover:bg-[var(--bg-tertiary)]"
                                 title="Remover Coordenador"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -3548,7 +3548,7 @@ export default function CoordinatorDashboard({
                             {coord.subLocations && (
                               <p className="flex items-start gap-2">
                                 <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase w-16 shrink-0 mt-0.5">Composição:</span>
-                                <span className="font-mono text-[10px] text-blue-600 dark:text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded-sm flex-1 font-bold">
+                                <span className="font-mono text-[10px] text-blue-600 dark:text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded-xl flex-1 font-bold">
                                   {coord.subLocations}
                                 </span>
                               </p>
@@ -3565,7 +3565,7 @@ export default function CoordinatorDashboard({
                             navigator.clipboard.writeText(link);
                             alert("Link de Acesso do Coordenador Regional copiado para a área de transferência!");
                           }}
-                          className="w-full bg-zinc-900 hover:bg-zinc-800 text-blue-400 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-zinc-800 mt-2"
+                          className="w-full bg-zinc-900 hover:bg-zinc-800 text-blue-400 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-zinc-800 mt-2"
                         >
                           <Send className="w-3.5 h-3.5" /> Copiar Link de Acesso WhatsApp
                         </button>
@@ -3574,7 +3574,7 @@ export default function CoordinatorDashboard({
                   })}
 
                   {regionalCoordinators.length === 0 && (
-                    <div className="col-span-full bg-[var(--bg-secondary)] border border-[var(--border-color)] p-12 text-center rounded-sm">
+                    <div className="col-span-full bg-[var(--bg-secondary)] border border-[var(--border-color)] p-12 text-center rounded-xl">
                       <ShieldCheck className="w-12 h-12 text-zinc-400 mx-auto mb-3 opacity-50" />
                       <h3 className="text-sm font-black uppercase text-[var(--text-primary)] tracking-tight">Nenhum Coordenador Regional Cadastrado</h3>
                       <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mt-1 max-w-md mx-auto">
@@ -3860,7 +3860,7 @@ export default function CoordinatorDashboard({
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 md:space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4 md:pb-6">
                   <div className="flex items-center gap-3 md:gap-4">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-950 rounded-sm flex items-center justify-center shadow-lg">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-950 rounded-xl flex items-center justify-center shadow-lg">
                       <Target className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
                     </div>
                     <div>
@@ -3871,7 +3871,7 @@ export default function CoordinatorDashboard({
                 </div>
 
                 {/* FILTERS */}
-                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-4 md:p-6 shadow-sm space-y-4 md:space-y-6">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 md:p-6 shadow-sm space-y-4 md:space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-zinc-500 ml-1">Pesquisar por Nome ou Telefone</label>
@@ -3909,7 +3909,7 @@ export default function CoordinatorDashboard({
                     <div className="pt-4 border-t border-[var(--border-color)] flex flex-col sm:flex-row gap-3">
                       <button 
                         onClick={() => setIsWaModalOpen(true)}
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 md:py-4 rounded-sm font-black text-[9px] md:text-[10px] uppercase tracking-[0.2em] shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all outline-none"
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 md:py-4 rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-[0.2em] shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all outline-none"
                       >
                         <Send className="w-3.5 h-3.5" /> Disparar Convite via WhatsApp (wa.me) para {filteredVoters.length} Eleitores
                       </button>
@@ -3918,7 +3918,7 @@ export default function CoordinatorDashboard({
                           const count = filteredVoters.filter(v => !v.voted).length;
                           alert(`🚨 ALERTA DE LOGÍSTICA!\n${count} eleitores pendentes na área atual. Acionando líderes de equipe para mobilização imediata.`);
                         }}
-                        className="px-6 md:px-8 bg-red-600 text-white rounded-sm font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-red-700 transition-all flex items-center justify-center gap-1.5 py-3 md:py-0 shadow-lg shadow-red-500/10 outline-none"
+                        className="px-6 md:px-8 bg-red-600 text-white rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-red-700 transition-all flex items-center justify-center gap-1.5 py-3 md:py-0 shadow-lg shadow-red-500/10 outline-none"
                       >
                         <Activity className="w-3.5 h-3.5" /> Alerta de Logística (Dia D)
                       </button>
@@ -3938,7 +3938,7 @@ export default function CoordinatorDashboard({
                                setVoterFilterTags([...voterFilterTags, tag]);
                              }
                            }}
-                           className={`px-2.5 py-1.5 rounded-sm text-[8px] md:text-[9px] font-black uppercase transition-all border ${
+                           className={`px-2.5 py-1.5 rounded-xl text-[8px] md:text-[9px] font-black uppercase transition-all border ${
                              voterFilterTags.includes(tag)
                              ? 'bg-blue-600 border-blue-600 text-white shadow-md'
                              : 'bg-[var(--bg-tertiary)] border-[var(--border-color)] text-[var(--text-secondary)] hover:bg-zinc-200 dark:hover:bg-zinc-800'
@@ -3962,7 +3962,7 @@ export default function CoordinatorDashboard({
                 </div>
 
                 {/* TABLE/LIST */}
-                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm shadow-sm overflow-x-auto min-h-[400px] custom-scrollbar">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl shadow-sm overflow-x-auto min-h-[400px] custom-scrollbar">
                   <table className="w-full text-left border-collapse min-w-[600px] lg:min-w-0">
                     <thead>
                       <tr className="bg-[var(--bg-tertiary)] border-b border-[var(--border-color)]">
@@ -3988,10 +3988,10 @@ export default function CoordinatorDashboard({
                               <div className="flex items-center gap-2">
                                 <span className="text-sm font-black text-zinc-950 uppercase leading-none">{voter.name}</span>
                                 {voter.isArticulator && (
-                                  <span className="bg-zinc-950 text-blue-600 text-[7px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">Articulador</span>
+                                  <span className="bg-zinc-950 text-blue-600 text-[7px] font-black px-1.5 py-0.5 rounded-xl uppercase tracking-tighter">Articulador</span>
                                 )}
                                 {voter.isIndigenous && (
-                                  <span className="bg-orange-100 text-orange-700 text-[7px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">Com. Tradicional</span>
+                                  <span className="bg-orange-100 text-orange-700 text-[7px] font-black px-1.5 py-0.5 rounded-xl uppercase tracking-tighter">Com. Tradicional</span>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 mt-1.5">
@@ -4027,27 +4027,27 @@ export default function CoordinatorDashboard({
                           <td className="p-4">
                             <div className="flex flex-wrap gap-1 items-center">
                               {voter.voted ? (
-                                <span className="bg-emerald-500 text-white text-[7px] font-black px-2 py-0.5 rounded-sm uppercase tracking-widest flex items-center gap-1 shadow-sm">
+                                <span className="bg-emerald-500 text-white text-[7px] font-black px-2 py-0.5 rounded-xl uppercase tracking-widest flex items-center gap-1 shadow-sm">
                                   <CheckCircle2 className="w-2.5 h-2.5" /> VOTOU
                                 </span>
                               ) : (
-                                <span className="bg-zinc-100 text-zinc-400 text-[7px] font-black px-2 py-0.5 rounded-sm uppercase tracking-widest flex items-center gap-1">
+                                <span className="bg-zinc-100 text-zinc-400 text-[7px] font-black px-2 py-0.5 rounded-xl uppercase tracking-widest flex items-center gap-1">
                                   <Clock className="w-2.5 h-2.5" /> PENDENTE
                                 </span>
                               )}
                               {voter.hasDocPhoto ? (
-                                <span className="bg-zinc-900 text-white text-[7px] font-black px-2 py-0.5 rounded-sm uppercase tracking-widest flex items-center gap-1">
+                                <span className="bg-zinc-900 text-white text-[7px] font-black px-2 py-0.5 rounded-xl uppercase tracking-widest flex items-center gap-1">
                                   <Camera className="w-2.5 h-2.5" /> DOC OK
                                 </span>
                               ) : (
-                                <span className="bg-zinc-50 text-red-400 border border-red-100 text-[7px] font-black px-2 py-0.5 rounded-sm uppercase tracking-widest">
+                                <span className="bg-zinc-50 text-red-400 border border-red-100 text-[7px] font-black px-2 py-0.5 rounded-xl uppercase tracking-widest">
                                   SEM DOC
                                 </span>
                               )}
                             </div>
                             <div className="flex flex-wrap gap-1 mt-2">
                               {voter.tags?.map((tag: string) => (
-                                <span key={tag} className="bg-blue-600/10 text-blue-700 px-2 py-0.5 rounded-sm text-[8px] font-black uppercase">
+                                <span key={tag} className="bg-blue-600/10 text-blue-700 px-2 py-0.5 rounded-xl text-[8px] font-black uppercase">
                                   {tag}
                                 </span>
                               )) || <span className="text-zinc-300">---</span>}
@@ -4091,14 +4091,14 @@ export default function CoordinatorDashboard({
                                    });
                                    setIsVoterEditModalOpen(true);
                                  }}
-                                 className="p-2 text-zinc-400 hover:text-blue-600 transition-all hover:bg-blue-600/10 rounded-sm"
+                                 className="p-2 text-zinc-400 hover:text-blue-600 transition-all hover:bg-blue-600/10 rounded-xl"
                                  title="Editar dados"
                                >
                                  <Edit3 className="w-4 h-4" />
                                </button>
                                <button 
                                  onClick={() => handleDeleteVoter(voter.id)}
-                                 className="p-2 text-zinc-400 hover:text-red-600 transition-all hover:bg-red-500/10 rounded-sm"
+                                 className="p-2 text-zinc-400 hover:text-red-600 transition-all hover:bg-red-500/10 rounded-xl"
                                  title="Excluir eleitor"
                                >
                                  <Trash2 className="w-4 h-4" />
@@ -4119,7 +4119,7 @@ export default function CoordinatorDashboard({
                 </div>
 
                 {/* PAGINAÇÃO */}
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm text-xs font-bold text-[var(--text-secondary)]">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl text-xs font-bold text-[var(--text-secondary)]">
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className="text-[10px] uppercase font-black text-zinc-400">Itens por página:</span>
                     <select
@@ -4128,7 +4128,7 @@ export default function CoordinatorDashboard({
                         setVoterPageSize(Number(e.target.value));
                         setVoterPage(1);
                       }}
-                      className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] rounded-sm p-1.5 px-3 font-black uppercase outline-none focus:border-blue-600 transition-colors cursor-pointer text-[10px]"
+                      className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] rounded-xl p-1.5 px-3 font-black uppercase outline-none focus:border-blue-600 transition-colors cursor-pointer text-[10px]"
                     >
                       {[10, 25, 50, 100, 250].map((size) => (
                         <option key={size} value={size}>
@@ -4145,7 +4145,7 @@ export default function CoordinatorDashboard({
                     <button
                       disabled={voterPage === 1}
                       onClick={() => setVoterPage(prev => Math.max(prev - 1, 1))}
-                      className="p-2 px-3 border border-[var(--border-color)] rounded-sm bg-[var(--bg-tertiary)] disabled:opacity-30 disabled:pointer-events-none hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[var(--text-primary)] transition-all font-black text-[10px] uppercase tracking-wider"
+                      className="p-2 px-3 border border-[var(--border-color)] rounded-xl bg-[var(--bg-tertiary)] disabled:opacity-30 disabled:pointer-events-none hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[var(--text-primary)] transition-all font-black text-[10px] uppercase tracking-wider"
                     >
                       Anterior
                     </button>
@@ -4163,7 +4163,7 @@ export default function CoordinatorDashboard({
                         <button
                           key={pageNum}
                           onClick={() => setVoterPage(pageNum)}
-                          className={`w-8 h-8 rounded-sm font-black border transition-all text-[10px] ${
+                          className={`w-8 h-8 rounded-xl font-black border transition-all text-[10px] ${
                             voterPage === pageNum
                               ? 'bg-blue-600 border-blue-600 text-white shadow-md'
                               : 'border-[var(--border-color)] bg-[var(--bg-tertiary)] text-[var(--text-primary)] hover:bg-zinc-100 dark:hover:bg-zinc-800'
@@ -4177,7 +4177,7 @@ export default function CoordinatorDashboard({
                     <button
                       disabled={voterPage === totalPages}
                       onClick={() => setVoterPage(prev => Math.min(prev + 1, totalPages))}
-                      className="p-2 px-3 border border-[var(--border-color)] rounded-sm bg-[var(--bg-tertiary)] disabled:opacity-30 disabled:pointer-events-none hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[var(--text-primary)] transition-all font-black text-[10px] uppercase tracking-wider"
+                      className="p-2 px-3 border border-[var(--border-color)] rounded-xl bg-[var(--bg-tertiary)] disabled:opacity-30 disabled:pointer-events-none hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[var(--text-primary)] transition-all font-black text-[10px] uppercase tracking-wider"
                     >
                       Próximo
                     </button>
@@ -4190,7 +4190,7 @@ export default function CoordinatorDashboard({
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 pb-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-600 rounded-sm flex items-center justify-center shadow-lg shadow-blue-600/10">
+                    <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/10">
                       <Calendar className="w-6 h-6 text-zinc-950" />
                     </div>
                     <div>
@@ -4345,7 +4345,7 @@ export default function CoordinatorDashboard({
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 md:space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4 md:pb-6">
                   <div className="flex items-center gap-3 md:gap-4">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm flex items-center justify-center shadow-inner">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl flex items-center justify-center shadow-inner">
                       <MessageSquare className="w-5 h-5 md:w-6 md:h-6 text-[var(--text-primary)]" />
                     </div>
                     <div>
@@ -4353,13 +4353,13 @@ export default function CoordinatorDashboard({
                       <div className="flex gap-2.5 mt-3 md:mt-5">
                         <button 
                           onClick={() => setNoteSubTab('tactical')}
-                          className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-3.5 md:px-6 py-2 md:py-2.5 rounded-sm transition-all border ${noteSubTab === 'tactical' ? 'bg-zinc-950 text-white border-zinc-950 shadow-xl dark:bg-blue-600 dark:text-white dark:border-blue-600' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-blue-600'}`}
+                          className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-3.5 md:px-6 py-2 md:py-2.5 rounded-xl transition-all border ${noteSubTab === 'tactical' ? 'bg-zinc-950 text-white border-zinc-950 shadow-xl dark:bg-blue-600 dark:text-white dark:border-blue-600' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-blue-600'}`}
                         >
                           Equipe (Fórum)
                         </button>
                         <button 
                           onClick={() => setNoteSubTab('private')}
-                          className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-3.5 md:px-6 py-2 md:py-2.5 rounded-sm transition-all border ${noteSubTab === 'private' ? 'bg-zinc-950 text-white border-zinc-950 shadow-xl dark:bg-blue-600 dark:text-white dark:border-blue-600' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-blue-600'}`}
+                          className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-3.5 md:px-6 py-2 md:py-2.5 rounded-xl transition-all border ${noteSubTab === 'private' ? 'bg-zinc-950 text-white border-zinc-950 shadow-xl dark:bg-blue-600 dark:text-white dark:border-blue-600' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-blue-600'}`}
                         >
                           Minhas Observações
                         </button>
@@ -4370,7 +4370,7 @@ export default function CoordinatorDashboard({
                   {noteSubTab === 'private' && (
                     <button 
                       onClick={() => setIsAiModalOpen(true)}
-                      className="bg-blue-600 text-white px-8 py-3.5 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-blue-500 active:scale-95 transition-all flex items-center gap-3"
+                      className="bg-blue-600 text-white px-8 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-blue-500 active:scale-95 transition-all flex items-center gap-3"
                     >
                       <Plus className="w-4 h-4" /> Nova Observação
                     </button>
@@ -4383,7 +4383,7 @@ export default function CoordinatorDashboard({
                       <NoteCard key={note.id} note={note} user={user} isAdmin={isAdmin} currentUserName={profileData?.name} onDelete={() => supabaseService.deleteDocument('notes', note.id)} />
                     ))
                   ) : (
-                    <div className="col-span-full py-24 bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-sm text-center grayscale opacity-40">
+                    <div className="col-span-full py-24 bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-xl text-center grayscale opacity-40">
                       <Clock className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
                       <p className="font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] text-xs">Aguardando novos feeds táticos...</p>
                     </div>
@@ -4630,7 +4630,7 @@ export default function CoordinatorDashboard({
                 </div>
 
                 {/* SOLICITAÇÕES DE LÍDERES */}
-                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 md:p-10 shadow-[var(--shadow-sm)]">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-6 md:p-10 shadow-[var(--shadow-sm)]">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 border-b border-[var(--border-color)] pb-6 gap-4">
                     <div>
                       <h3 className="text-xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Solicitações de Líderes</h3>
@@ -4645,7 +4645,7 @@ export default function CoordinatorDashboard({
                           });
                           setCollapsedRequests(collapsed);
                         }}
-                        className="flex-1 sm:flex-none px-3 py-1.5 border border-[var(--border-color)] rounded-sm text-[9px] font-black uppercase tracking-wider hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] transition-all active:scale-95"
+                        className="flex-1 sm:flex-none px-3 py-1.5 border border-[var(--border-color)] rounded-xl text-[9px] font-black uppercase tracking-wider hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] transition-all active:scale-95"
                       >
                         Expandir Todos
                       </button>
@@ -4657,7 +4657,7 @@ export default function CoordinatorDashboard({
                           });
                           setCollapsedRequests(collapsed);
                         }}
-                        className="flex-1 sm:flex-none px-3 py-1.5 border border-[var(--border-color)] rounded-sm text-[9px] font-black uppercase tracking-wider hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] transition-all active:scale-95"
+                        className="flex-1 sm:flex-none px-3 py-1.5 border border-[var(--border-color)] rounded-xl text-[9px] font-black uppercase tracking-wider hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] transition-all active:scale-95"
                       >
                         Recolher Todos
                       </button>
@@ -4670,7 +4670,7 @@ export default function CoordinatorDashboard({
                       return (
                         <div 
                           key={req.id} 
-                          className={`bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm transition-all duration-200 relative overflow-hidden group shadow-sm hover:shadow-md hover:border-blue-600/20 ${
+                          className={`bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl transition-all duration-200 relative overflow-hidden group shadow-sm hover:shadow-md hover:border-blue-600/20 ${
                             isCollapsed ? 'p-3.5 cursor-pointer' : 'p-5 flex flex-col gap-4'
                           }`}
                           onClick={() => {
@@ -4693,7 +4693,7 @@ export default function CoordinatorDashboard({
                             }}
                           >
                             <div className="flex items-center gap-3">
-                              <div className={`w-9 h-9 rounded-sm flex items-center justify-center border border-[var(--border-color)] shrink-0 ${
+                              <div className={`w-9 h-9 rounded-xl flex items-center justify-center border border-[var(--border-color)] shrink-0 ${
                                 req.status === 'aprovado' ? 'bg-emerald-500/10 text-emerald-500' : 
                                 req.status === 'devolucao_pendente' ? 'bg-blue-500/10 text-blue-500' :
                                 req.status === 'devolvido' ? 'bg-zinc-500/10 text-zinc-400' :
@@ -4712,7 +4712,7 @@ export default function CoordinatorDashboard({
                             </div>
                             
                             <div className="flex items-center gap-2.5 shrink-0">
-                              <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-1 rounded-sm shadow-sm ${
+                              <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-1 rounded-xl shadow-sm ${
                                 req.status === 'aprovado' ? 'bg-emerald-500 text-white' : 
                                 req.status === 'devolucao_pendente' ? 'bg-blue-600 text-white' :
                                 req.status === 'devolvido' ? 'bg-zinc-500 text-white' :
@@ -4732,42 +4732,42 @@ export default function CoordinatorDashboard({
                           {!isCollapsed && (
                             <div className="flex flex-col gap-3.5 pt-3.5 border-t border-[var(--border-color)] mt-1 animate-fadeIn">
                               {req.returnDate && (
-                                <div className="bg-blue-600/5 px-3 py-2 rounded-sm border border-blue-600/10 text-left">
+                                <div className="bg-blue-600/5 px-3 py-2 rounded-xl border border-blue-600/10 text-left">
                                   <span className="text-[8px] font-black text-blue-600 dark:text-blue-600 uppercase tracking-wider block mb-0.5">Previsão de Devolução</span>
                                   <span className="text-xs font-black text-[var(--text-primary)]">{new Date(req.returnDate + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
                                 </div>
                               )}
 
                               {req.reason && (
-                                <div className="bg-white/5 p-3 rounded-sm border border-white/5">
+                                <div className="bg-white/5 p-3 rounded-xl border border-white/5">
                                   <p className="text-[10px] font-bold text-zinc-500 italic leading-relaxed">"{req.reason}"</p>
                                 </div>
                               )}
 
                               {req.receivedByLeader && (
-                                <div className="bg-emerald-500/5 px-3 py-2 rounded-sm border border-emerald-500/10 text-left">
+                                <div className="bg-emerald-500/5 px-3 py-2 rounded-xl border border-emerald-500/10 text-left">
                                   <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block mb-0.5">Status de Entrega</span>
                                   <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">✓ RECEBIDO EM {new Date(req.receivedAt).toLocaleString()}</span>
                                 </div>
                               )}
 
                               {req.returnedAt && (
-                                <div className="bg-blue-500/5 px-3 py-2 rounded-sm border border-blue-500/10 text-left">
+                                <div className="bg-blue-500/5 px-3 py-2 rounded-xl border border-blue-500/10 text-left">
                                   <span className="text-[8px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider block mb-0.5">Devolução Solicitada</span>
                                   <span className="text-xs font-black text-blue-600 dark:text-blue-400">✓ DEVOLVIDO PELO LÍDER EM {new Date(req.returnedAt).toLocaleString()}</span>
                                 </div>
                               )}
 
                               {req.returnApprovedAt && (
-                                <div className="bg-emerald-500/5 px-3 py-2 rounded-sm border border-emerald-500/10 text-left">
+                                <div className="bg-emerald-500/5 px-3 py-2 rounded-xl border border-emerald-500/10 text-left">
                                   <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block mb-0.5">Devolução Confirmada</span>
                                   <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">✓ CONFIRMADO EM {new Date(req.returnApprovedAt).toLocaleString()}</span>
                                 </div>
                               )}
 
                               {req.signedBy && (
-                                <div className="p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-sm flex items-center gap-3">
-                                  <div className="p-2 bg-emerald-500/10 rounded-sm text-emerald-500">
+                                <div className="p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl flex items-center gap-3">
+                                  <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-500">
                                     <ShieldCheck className="w-4 h-4 animate-pulse" />
                                   </div>
                                   <div className="text-left leading-none">
@@ -4786,13 +4786,13 @@ export default function CoordinatorDashboard({
                                     <>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); handleDenyMaterialRequest(req.id); }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 border border-red-500/30 text-red-500 rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-md shadow-red-500/10"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 border border-red-500/30 text-red-500 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-md shadow-red-500/10"
                                       >
                                         <XCircle className="w-3.5 h-3.5" /> Negar
                                       </button>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); handleApproveMaterialRequest(req); }}
-                                        className="flex items-center gap-1.5 px-4 py-1.5 bg-emerald-500 text-white rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-emerald-400 transition-all active:scale-95 shadow-md shadow-emerald-500/20"
+                                        className="flex items-center gap-1.5 px-4 py-1.5 bg-emerald-500 text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-emerald-400 transition-all active:scale-95 shadow-md shadow-emerald-500/20"
                                       >
                                         <CheckCircle2 className="w-3.5 h-3.5" /> Assinar & Liberar
                                       </button>
@@ -4802,7 +4802,7 @@ export default function CoordinatorDashboard({
                                   {req.status === 'devolucao_pendente' && (
                                     <button 
                                       onClick={(e) => { e.stopPropagation(); handleConfirmReturnMaterialRequest(req); }}
-                                      className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-blue-500 transition-all active:scale-95 shadow-md shadow-blue-500/20"
+                                      className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-500 transition-all active:scale-95 shadow-md shadow-blue-500/20"
                                     >
                                       <CheckCircle2 className="w-3.5 h-3.5" /> Confirmar Devolução
                                     </button>
@@ -4814,7 +4814,7 @@ export default function CoordinatorDashboard({
                         </div>
                       );
                     }) : (
-                      <div className="col-span-full py-20 text-center border-2 border-dashed border-[var(--border-color)] rounded-sm grayscale opacity-30">
+                      <div className="col-span-full py-20 text-center border-2 border-dashed border-[var(--border-color)] rounded-xl grayscale opacity-30">
                         <Package className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
                         <p className="text-[var(--text-secondary)] font-black uppercase tracking-[0.2em] text-[10px]">Sem solicitações pendentes.</p>
                       </div>
@@ -4834,7 +4834,7 @@ export default function CoordinatorDashboard({
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                   <div className="lg:col-span-3 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-10 shadow-[var(--shadow-sm)]">
+                   <div className="lg:col-span-3 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-10 shadow-[var(--shadow-sm)]">
                       <div className="mb-10">
                         <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[var(--text-primary)]">Volume Operacional por Zona</h3>
                         <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-2 opacity-50">Análise quantitativa de solicitações em campo</p>
@@ -4854,7 +4854,7 @@ export default function CoordinatorDashboard({
                               content={({ active, payload }) => {
                                 if (active && payload && payload.length) {
                                   return (
-                                    <div className="bg-zinc-950 p-4 rounded-sm shadow-2xl border border-white/10 dark:bg-zinc-900">
+                                    <div className="bg-zinc-950 p-4 rounded-xl shadow-2xl border border-white/10 dark:bg-zinc-900">
                                       <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">{payload[0].payload.name}</p>
                                       <p className="text-xl font-black text-white">{payload[0].value} <span className="text-[10px] opacity-50">Demandas</span></p>
                                     </div>
@@ -4874,7 +4874,7 @@ export default function CoordinatorDashboard({
                    </div>
 
                    <div className="lg:col-span-1 space-y-6">
-                      <div className="bg-zinc-950 rounded-sm p-8 text-white text-center relative overflow-hidden dark:bg-zinc-900 border border-white/5">
+                      <div className="bg-zinc-950 rounded-xl p-8 text-white text-center relative overflow-hidden dark:bg-zinc-900 border border-white/5">
                         <div className="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
                         <Activity className="w-10 h-10 text-blue-600 mx-auto mb-5 animate-pulse" />
                         <h4 className="text-lg font-black uppercase tracking-tighter">Foco Estratégico</h4>
@@ -4883,7 +4883,7 @@ export default function CoordinatorDashboard({
                         </p>
                       </div>
 
-                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-8 shadow-[var(--shadow-sm)]">
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-8 shadow-[var(--shadow-sm)]">
                         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-primary)] mb-8 border-b border-[var(--border-color)] pb-3">Pressão por Unidade</h4>
                         <div className="space-y-6">
                           {demandsSummary.length > 0 ? demandsSummary.map(d => (
@@ -4929,9 +4929,9 @@ export default function CoordinatorDashboard({
                     { id: 'materials', title: 'Materiais e Estoque', desc: 'Controle de suprimentos e remessas.', icon: <Package className="w-6 h-6" /> },
                     { id: 'demands', title: 'Demandas e Mapa', desc: 'Urgências e necessidades mapeadas.', icon: <Activity className="w-6 h-6" /> }
                   ].map(r => (
-                    <div key={r.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-6 hover:border-blue-600/50 transition-all group shadow-sm">
+                    <div key={r.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-6 hover:border-blue-600/50 transition-all group shadow-sm">
                       <div className="flex items-center gap-4 mb-4">
-                        <div className="p-3 bg-zinc-950 text-blue-600 rounded-sm shadow-xl group-hover:scale-110 transition-transform dark:bg-zinc-900 border border-white/5">
+                        <div className="p-3 bg-zinc-950 text-blue-600 rounded-xl shadow-xl group-hover:scale-110 transition-transform dark:bg-zinc-900 border border-white/5">
                           {r.icon}
                         </div>
                         <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">{r.title}</h3>
@@ -4943,7 +4943,7 @@ export default function CoordinatorDashboard({
                           setSelectedReportColumns(AVAILABLE_COLUMNS_BY_TYPE[r.id]?.map(c => c.dataKey) || []);
                           setIsReportModalOpen(true);
                         }}
-                        className="w-full bg-zinc-950 text-white dark:bg-zinc-900 border border-white/10 py-3.5 rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                        className="w-full bg-zinc-950 text-white dark:bg-zinc-900 border border-white/10 py-3.5 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2"
                       >
                         <Plus className="w-4 h-4" /> Configurar Filtros
                       </button>
@@ -4951,15 +4951,15 @@ export default function CoordinatorDashboard({
                   ))}
                 </div>
 
-                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-sm p-10 shadow-sm mt-12">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-10 shadow-sm mt-12">
                   <h3 className="text-lg font-black uppercase text-[var(--text-primary)] tracking-tighter mb-8 flex items-center gap-3">
                     <History className="w-5 h-5 text-blue-600" /> Histórico de Relatórios Gerados
                   </h3>
                   <div className="space-y-4">
                     {reportsHistory.length > 0 ? reportsHistory.map((rep: any) => (
-                      <div key={rep.id} className="flex flex-col md:flex-row md:items-center justify-between p-5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm hover:border-blue-600/30 transition-all shadow-inner group">
+                      <div key={rep.id} className="flex flex-col md:flex-row md:items-center justify-between p-5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl hover:border-blue-600/30 transition-all shadow-inner group">
                         <div className="flex items-center gap-5">
-                          <div className="p-3 bg-zinc-950 text-white rounded-sm border border-white/5 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                          <div className="p-3 bg-zinc-950 text-white rounded-xl border border-white/5 group-hover:bg-blue-600 group-hover:text-white transition-all">
                             <FileDown className="w-5 h-5" />
                           </div>
                           <div>
@@ -4972,7 +4972,7 @@ export default function CoordinatorDashboard({
                              <a 
                                href={rep.pdfUrl} 
                                download={`${rep.title}.pdf`}
-                               className="px-6 py-2.5 bg-zinc-950 text-white dark:bg-zinc-900 border border-white/10 rounded-sm font-black text-[9px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 shadow-xl"
+                               className="px-6 py-2.5 bg-zinc-950 text-white dark:bg-zinc-900 border border-white/10 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 shadow-xl"
                              >
                                Baixar PDF
                              </a>
@@ -4980,7 +4980,7 @@ export default function CoordinatorDashboard({
                         </div>
                       </div>
                     )) : (
-                      <div className="py-20 text-center border-2 border-dashed border-[var(--border-color)] rounded-sm grayscale opacity-30">
+                      <div className="py-20 text-center border-2 border-dashed border-[var(--border-color)] rounded-xl grayscale opacity-30">
                         <FileText className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
                         <p className="text-[var(--text-secondary)] font-black uppercase tracking-[0.2em] text-[10px]">Aguardando geração de dados estratégicos.</p>
                       </div>
@@ -5020,7 +5020,7 @@ export default function CoordinatorDashboard({
               initial={{ y: 100 }}
               animate={{ y: 0 }}
               exit={{ y: 100 }}
-              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative mb-10 border border-zinc-200"
+              className="bg-white w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative mb-10 border border-zinc-200"
             >
               <button 
                 onClick={() => {
@@ -5028,7 +5028,7 @@ export default function CoordinatorDashboard({
                   setAiResult(null);
                   setChaosText('');
                 }}
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 active:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-xl text-zinc-500 active:bg-zinc-200 transition-all active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -5047,13 +5047,13 @@ export default function CoordinatorDashboard({
                       value={chaosText}
                       onChange={(e) => setChaosText(e.target.value)}
                       placeholder="Descreva a situação em tempo real..."
-                      className="w-full h-40 bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-xs text-zinc-800 focus:border-blue-600 outline-none transition-all placeholder:text-zinc-300 resize-none"
+                      className="w-full h-40 bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-xs text-zinc-800 focus:border-blue-600 outline-none transition-all placeholder:text-zinc-300 resize-none"
                     />
                     <div className="flex flex-col gap-3 font-sans">
                       <button 
                         onClick={handleProcessCaos}
                         disabled={isProcessing || !chaosText}
-                        className="w-full bg-zinc-950 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2"
+                        className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2"
                       >
                         {isProcessing ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4 cursor-pointer text-blue-600" />}
                         {isProcessing ? 'Processando Inteligência...' : 'Analisar com IA'}
@@ -5063,14 +5063,14 @@ export default function CoordinatorDashboard({
                         <button 
                           onClick={() => handleSaveNote('tactical')}
                           disabled={isProcessing || !chaosText}
-                          className="flex-1 bg-blue-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2"
+                          className="flex-1 bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2"
                         >
                           <MessageSquare className="w-4 h-4" /> Postar no Fórum
                         </button>
                         <button 
                           onClick={() => handleSaveNote('private')}
                           disabled={isProcessing || !chaosText}
-                          className="flex-1 bg-zinc-100 text-zinc-900 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+                          className="flex-1 bg-zinc-100 text-zinc-900 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center gap-2"
                         >
                           <Plus className="w-4 h-4" /> Salvar Privado
                         </button>
@@ -5081,14 +5081,14 @@ export default function CoordinatorDashboard({
                   <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                     {/* RESULTADOS DA IA */}
                     {aiResult.tarefas_logistica?.length > 0 && (
-                      <div className="bg-blue-50 p-4 rounded-sm border-l-4 border-blue-600">
+                      <div className="bg-blue-50 p-4 rounded-xl border-l-4 border-blue-600">
                         <h4 className="text-blue-700 font-black text-[9px] uppercase mb-2 flex items-center gap-2 tracking-widest leading-none">
                           <Fuel className="w-3.5 h-3.5" /> Logística
                         </h4>
                         <ul className="space-y-1.5">
                           {aiResult.tarefas_logistica.map((t: string, i: number) => (
                             <li key={i} className="text-[11px] font-bold text-zinc-800 flex items-start gap-2">
-                              <div className="w-1 h-1 rounded-sm bg-blue-500 mt-1.5 flex-shrink-0"></div>
+                              <div className="w-1 h-1 rounded-xl bg-blue-500 mt-1.5 flex-shrink-0"></div>
                               {t}
                             </li>
                           ))}
@@ -5097,14 +5097,14 @@ export default function CoordinatorDashboard({
                     )}
 
                     {aiResult.acoes_politicas?.length > 0 && (
-                      <div className="bg-green-50 p-4 rounded-sm border-l-4 border-green-600">
+                      <div className="bg-green-50 p-4 rounded-xl border-l-4 border-green-600">
                         <h4 className="text-green-700 font-black text-[9px] uppercase mb-2 flex items-center gap-2 tracking-widest leading-none">
                           <Brain className="w-3.5 h-3.5" /> Ações Planejadas
                         </h4>
                         <ul className="space-y-1.5">
                           {aiResult.acoes_politicas.map((t: string, i: number) => (
                             <li key={i} className="text-[11px] font-bold text-zinc-800 flex items-start gap-2">
-                              <div className="w-1 h-1 rounded-sm bg-green-500 mt-1.5 flex-shrink-0"></div>
+                              <div className="w-1 h-1 rounded-xl bg-green-500 mt-1.5 flex-shrink-0"></div>
                               {t}
                             </li>
                           ))}
@@ -5113,14 +5113,14 @@ export default function CoordinatorDashboard({
                     )}
 
                     {aiResult.alertas_crise?.length > 0 && (
-                      <div className="bg-red-50 p-4 rounded-sm border-l-4 border-red-600">
+                      <div className="bg-red-50 p-4 rounded-xl border-l-4 border-red-600">
                         <h4 className="text-red-700 font-black text-[9px] uppercase mb-2 flex items-center gap-2 tracking-widest leading-none">
                           <AlertTriangle className="w-3.5 h-3.5" /> Alertas
                         </h4>
                         <ul className="space-y-1.5">
                           {aiResult.alertas_crise.map((t: string, i: number) => (
                             <li key={i} className="text-[11px] font-bold text-red-900 flex items-start gap-2">
-                              <div className="w-1 h-1 rounded-sm bg-red-600 mt-1.5 flex-shrink-0"></div>
+                              <div className="w-1 h-1 rounded-xl bg-red-600 mt-1.5 flex-shrink-0"></div>
                               {t}
                             </li>
                           ))}
@@ -5135,7 +5135,7 @@ export default function CoordinatorDashboard({
                         setChaosText('');
                         alert('Demandas delegadas com sucesso!');
                       }}
-                      className="w-full bg-green-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/10 hover:bg-green-700 transition-all mb-2"
+                      className="w-full bg-green-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/10 hover:bg-green-700 transition-all mb-2"
                     >
                       CONFIRMAR DELEGAÇÃO
                     </button>
@@ -5146,7 +5146,7 @@ export default function CoordinatorDashboard({
                           setChaosText(`${aiResult.title}: ${summary}`);
                           handleSaveNote('tactical');
                         }}
-                        className="flex-1 bg-blue-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all flex items-center justify-center gap-2"
+                        className="flex-1 bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 hover:text-white transition-all flex items-center justify-center gap-2"
                       >
                         <MessageSquare className="w-4 h-4" /> Postar no Fórum
                       </button>
@@ -5156,7 +5156,7 @@ export default function CoordinatorDashboard({
                           setChaosText(`${aiResult.title}: ${summary}`);
                           handleSaveNote('private');
                         }}
-                        className="flex-1 bg-zinc-950 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
+                        className="flex-1 bg-zinc-950 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
                       >
                         <Lock className="w-4 h-4" /> Salvar Privado
                       </button>
@@ -5184,11 +5184,11 @@ export default function CoordinatorDashboard({
           >
               <motion.div 
                 initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-                className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-zinc-200"
+                className="bg-white w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative border border-zinc-200"
               >
                 <button 
                   onClick={() => setIsUrgencyModalOpen(false)}
-                  className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 z-10"
+                  className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-xl text-zinc-500 z-10"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -5201,7 +5201,7 @@ export default function CoordinatorDashboard({
                 <div className="p-6 space-y-6">
                   <div>
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block mb-2 leading-none">Relato de Campo</label>
-                    <p className="p-4 bg-zinc-50 border border-zinc-100 rounded-sm text-xs font-bold text-zinc-700 leading-relaxed">
+                    <p className="p-4 bg-zinc-50 border border-zinc-100 rounded-xl text-xs font-bold text-zinc-700 leading-relaxed">
                       "{selectedUrgency.description}"
                     </p>
                   </div>
@@ -5212,7 +5212,7 @@ export default function CoordinatorDashboard({
                       value={observation}
                       onChange={(e) => setObservation(e.target.value)}
                       placeholder="Oriente o líder regional..."
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-xs text-zinc-800 outline-none focus:border-zinc-950 transition-all h-28 resize-none placeholder:text-zinc-300"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-xs text-zinc-800 outline-none focus:border-zinc-950 transition-all h-28 resize-none placeholder:text-zinc-300"
                     />
                   </div>
                   
@@ -5227,7 +5227,7 @@ export default function CoordinatorDashboard({
                         setIsUrgencyModalOpen(false);
                         alert("Solicitação Negada.");
                       }}
-                      className="bg-red-50 text-red-600 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest border border-red-100 hover:bg-red-600 hover:text-white transition-all shadow-sm shadow-red-500/5 active:scale-95"
+                      className="bg-red-50 text-red-600 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest border border-red-100 hover:bg-red-600 hover:text-white transition-all shadow-sm shadow-red-500/5 active:scale-95"
                     >
                       Negar
                     </button>
@@ -5241,7 +5241,7 @@ export default function CoordinatorDashboard({
                         setIsUrgencyModalOpen(false);
                         alert("Solicitação Aprovada!");
                       }}
-                      className="bg-green-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/10 hover:bg-zinc-950 transition-all active:scale-95"
+                      className="bg-green-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/10 hover:bg-zinc-950 transition-all active:scale-95"
                     >
                       Aprovar
                     </button>
@@ -5261,18 +5261,18 @@ export default function CoordinatorDashboard({
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative text-left"
+              className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative text-left"
             >
               <button 
                 onClick={() => setIsSignatureModalOpen(false)}
-                className="absolute top-4 right-4 bg-zinc-800 p-2 rounded-sm text-zinc-400 hover:text-white transition-colors z-10"
+                className="absolute top-4 right-4 bg-zinc-800 p-2 rounded-xl text-zinc-400 hover:text-white transition-colors z-10"
               >
                 <X className="w-4 h-4" />
               </button>
 
               <div className="p-6 bg-gradient-to-r from-blue-600/20 to-emerald-600/20 border-b border-zinc-800">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-blue-600 rounded-sm text-white shadow-lg shadow-blue-600/10">
+                  <div className="p-2.5 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-600/10">
                     <ShieldCheck className="w-6 h-6 animate-pulse" />
                   </div>
                   <div>
@@ -5284,7 +5284,7 @@ export default function CoordinatorDashboard({
 
               <form onSubmit={handleConfirmSignature} className="p-6 space-y-6">
                 <div className="space-y-4">
-                  <div className="bg-zinc-950/50 border border-zinc-850 p-4 rounded-sm space-y-3">
+                  <div className="bg-zinc-950/50 border border-zinc-850 p-4 rounded-xl space-y-3">
                     <div className="flex justify-between border-b border-zinc-800/50 pb-2">
                       <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Material Solicitado:</span>
                       <span className="text-xs font-black text-white uppercase">{signingRequest.materialName}</span>
@@ -5302,7 +5302,7 @@ export default function CoordinatorDashboard({
                       <span className="text-xs font-black text-white uppercase">{signingRequest.team || '---'}</span>
                     </div>
                     {signingRequest.returnDate && (
-                      <div className="flex justify-between border-b border-zinc-800/50 pb-2 bg-blue-600/5 px-2 py-1 rounded-sm border border-blue-600/10">
+                      <div className="flex justify-between border-b border-zinc-800/50 pb-2 bg-blue-600/5 px-2 py-1 rounded-xl border border-blue-600/10">
                         <span className="text-[9px] font-black text-blue-600 uppercase tracking-wider">Previsão de Devolução:</span>
                         <span className="text-xs font-black text-blue-600">{new Date(signingRequest.returnDate + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
                       </div>
@@ -5310,7 +5310,7 @@ export default function CoordinatorDashboard({
                     {signingRequest.reason && (
                       <div className="pt-1 text-left">
                         <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Motivo/Observação:</span>
-                        <p className="text-[10px] text-zinc-400 italic mt-1 bg-zinc-950 p-3 rounded-sm border border-zinc-800/30">"{signingRequest.reason}"</p>
+                        <p className="text-[10px] text-zinc-400 italic mt-1 bg-zinc-950 p-3 rounded-xl border border-zinc-800/30">"{signingRequest.reason}"</p>
                       </div>
                     )}
                   </div>
@@ -5325,7 +5325,7 @@ export default function CoordinatorDashboard({
                       value={signerName}
                       onChange={(e) => setSignerName(e.target.value)}
                       placeholder="Digite seu nome completo como assinatura..."
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-sm py-4 px-4 font-bold text-sm text-white outline-none focus:border-blue-600 transition-colors shadow-inner"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-4 px-4 font-bold text-sm text-white outline-none focus:border-blue-600 transition-colors shadow-inner"
                     />
                     <p className="text-[8px] text-zinc-500 leading-normal ml-1">
                       Ao assinar digitando seu nome, você certifica eletronicamente a liberação deste lote, registrando o carimbo de data/hora e hash de integridade exclusivo do sistema.
@@ -5337,13 +5337,13 @@ export default function CoordinatorDashboard({
                   <button 
                     type="button"
                     onClick={() => setIsSignatureModalOpen(false)}
-                    className="bg-zinc-800 text-zinc-300 py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest border border-zinc-700 hover:bg-zinc-700 hover:text-white transition-all active:scale-95"
+                    className="bg-zinc-800 text-zinc-300 py-4.5 rounded-xl font-black text-[11px] uppercase tracking-widest border border-zinc-700 hover:bg-zinc-700 hover:text-white transition-all active:scale-95"
                   >
                     Cancelar
                   </button>
                   <button 
                     type="submit"
-                    className="bg-emerald-500 text-zinc-950 py-4.5 rounded-sm font-black text-[11px] uppercase tracking-widest shadow-xl shadow-emerald-500/10 hover:bg-emerald-400 transition-all active:scale-95"
+                    className="bg-emerald-500 text-zinc-950 py-4.5 rounded-xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-emerald-500/10 hover:bg-emerald-400 transition-all active:scale-95"
                   >
                     Confirmar & Assinar
                   </button>
@@ -5367,14 +5367,14 @@ export default function CoordinatorDashboard({
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative"
             >
               <button 
                 onClick={() => {
                   setIsTeamModalOpen(false);
                   setTeamCreationStep('form');
                 }}
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-xl text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -5399,7 +5399,7 @@ export default function CoordinatorDashboard({
                       onChange={(e) => setNewTeam({...newTeam, name: e.target.value})}
                       placeholder="Ex: Tropa de Elite"
                       disabled={isEditMode}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all disabled:opacity-50 placeholder:text-zinc-300"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all disabled:opacity-50 placeholder:text-zinc-300"
                     />
                   </div>
                   
@@ -5411,7 +5411,7 @@ export default function CoordinatorDashboard({
                       value={newTeam.leader}
                       onChange={(e) => setNewTeam({...newTeam, leader: e.target.value})}
                       placeholder="Nome do Líder de Equipe"
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300"
                     />
                   </div>
 
@@ -5429,7 +5429,7 @@ export default function CoordinatorDashboard({
                             region: selected?.region || newTeam.region || ''
                           });
                         }}
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-3.5 font-bold text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3.5 font-bold text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
                       >
                         <option value="">Direto com a Coordenação Geral</option>
                         {regionalCoordinators.map(r => (
@@ -5440,7 +5440,7 @@ export default function CoordinatorDashboard({
                       </select>
                     </div>
                   ) : (
-                    <div className="bg-blue-50 border border-blue-100 rounded-sm p-3 text-left">
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-left">
                       <p className="text-[9px] font-black text-blue-700 uppercase tracking-wider">
                         Subordinação: Sua Coordenação Regional ({userRegion || profileData?.region || 'Regional'})
                       </p>
@@ -5457,7 +5457,7 @@ export default function CoordinatorDashboard({
                         onChange={(e) => setNewTeam({...newTeam, leaderEmail: e.target.value})}
                         placeholder="lider@sistema.org"
                         disabled={isEditMode}
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all disabled:opacity-50 placeholder:text-zinc-300"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all disabled:opacity-50 placeholder:text-zinc-300"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -5468,7 +5468,7 @@ export default function CoordinatorDashboard({
                         value={newTeam.leaderPhone}
                         onChange={(e) => setNewTeam({...newTeam, leaderPhone: e.target.value})}
                         placeholder="(00) 00000-0000"
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300"
                       />
                     </div>
                   </div>
@@ -5528,20 +5528,20 @@ export default function CoordinatorDashboard({
                       onChange={(e) => setNewTeam({...newTeam, observations: e.target.value})}
                       placeholder="Diretrizes e observações cruciais..."
                       maxLength={1000}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-blue-600 transition-all h-24 placeholder:text-zinc-300 resize-none"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-bold text-[11px] text-zinc-800 outline-none focus:border-blue-600 transition-all h-24 placeholder:text-zinc-300 resize-none"
                     />
                   </div>
                   
                   <button 
                     type="submit"
-                    className="w-full bg-zinc-950 text-blue-600 py-4 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-zinc-950/10 hover:bg-zinc-900 transition-all active:scale-[0.98] mt-2"
+                    className="w-full bg-zinc-950 text-blue-600 py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-zinc-950/10 hover:bg-zinc-900 transition-all active:scale-[0.98] mt-2"
                   >
                     {isEditMode ? 'SALVAR ALTERAÇÕES' : 'EFETIVAR CADASTRO'}
                   </button>
                 </form>
               ) : (
                 <div className="p-8 space-y-6 text-center">
-                  <div className="w-16 h-16 bg-green-50 text-green-600 rounded-sm flex items-center justify-center mx-auto mb-2 border border-green-100">
+                  <div className="w-16 h-16 bg-green-50 text-green-600 rounded-xl flex items-center justify-center mx-auto mb-2 border border-green-100">
                     <CheckCircle2 className="w-8 h-8" />
                   </div>
                   <h3 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Credenciais Geradas</h3>
@@ -5549,7 +5549,7 @@ export default function CoordinatorDashboard({
                     Transmita o link de segurança abaixo para <span className="text-zinc-950">{newTeam.leader}</span>. Acesso imediato e restrito via Token Único.
                   </p>
                   
-                  <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100 break-all text-[9px] font-mono font-black text-blue-600 select-all">
+                  <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-100 break-all text-[9px] font-mono font-black text-blue-600 select-all">
                     {createdTeamLink}
                   </div>
 
@@ -5559,7 +5559,7 @@ export default function CoordinatorDashboard({
                         navigator.clipboard.writeText(createdTeamLink);
                         alert("Link copiado!");
                       }}
-                      className="w-full bg-blue-600 text-white py-4 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-95"
+                      className="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-95"
                     >
                       Copiar Link de Segurança
                     </button>
@@ -5583,7 +5583,7 @@ export default function CoordinatorDashboard({
                           spent: 0
                         });
                       }}
-                      className="w-full bg-zinc-100 text-zinc-500 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all"
+                      className="w-full bg-zinc-100 text-zinc-500 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all"
                     >
                       Fechar
                     </button>
@@ -5759,11 +5759,11 @@ export default function CoordinatorDashboard({
           >
             <motion.div 
               initial={{ scale: 0.9, y: 50 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 50 }}
-              className="bg-white w-full max-w-2xl rounded-sm overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-2xl rounded-xl overflow-hidden shadow-2xl relative"
             >
               <button 
                 onClick={() => setIsBriefingModalOpen(false)}
-                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200"
+                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-xl text-zinc-500 hover:bg-zinc-200"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -5782,7 +5782,7 @@ export default function CoordinatorDashboard({
               <div className="p-8 bg-white border-t border-zinc-100 flex gap-4">
                 <button 
                   onClick={() => setIsBriefingModalOpen(false)}
-                  className="flex-1 bg-zinc-950 text-white py-5 rounded-sm font-black text-lg shadow-xl"
+                  className="flex-1 bg-zinc-950 text-white py-5 rounded-xl font-black text-lg shadow-xl"
                 >
                   ENTENDIDO, COPIAR PARA O CANDIDATO
                 </button>
@@ -5801,7 +5801,7 @@ export default function CoordinatorDashboard({
           >
             <motion.div 
               initial={{ scale: 0.95, y: 40 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 40 }}
-              className="bg-white w-full max-w-4xl rounded-sm overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]"
+              className="bg-white w-full max-w-4xl rounded-xl overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]"
             >
               <button 
                 onClick={() => {
@@ -5809,7 +5809,7 @@ export default function CoordinatorDashboard({
                   setSelectedManagingTeam(null);
                   setManagingTeamVoters([]);
                 }} 
-                className="absolute top-8 right-8 bg-zinc-100 p-3 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all z-10"
+                className="absolute top-8 right-8 bg-zinc-100 p-3 rounded-xl text-zinc-500 hover:bg-zinc-200 transition-all z-10"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -5817,7 +5817,7 @@ export default function CoordinatorDashboard({
               <div className="bg-zinc-950 p-10 border-b-8 border-blue-600 text-left">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                   <div className="flex items-center gap-6">
-                    <div className="bg-blue-600 text-white w-20 h-20 rounded-sm flex items-center justify-center font-black text-3xl shadow-lg shadow-blue-600/20">
+                    <div className="bg-blue-600 text-white w-20 h-20 rounded-xl flex items-center justify-center font-black text-3xl shadow-lg shadow-blue-600/20">
                       {selectedManagingTeam.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -5831,13 +5831,13 @@ export default function CoordinatorDashboard({
                   <div className="flex gap-2">
                      <button 
                        onClick={() => handleEditTeam(selectedManagingTeam)}
-                       className="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest border border-zinc-700 hover:bg-zinc-700 shadow-lg"
+                       className="bg-zinc-800 text-zinc-300 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-zinc-700 hover:bg-zinc-700 shadow-lg"
                      >
                        Editar Equipe
                      </button>
                      <button 
                        onClick={() => handleDeleteTeam(selectedManagingTeam.id || selectedManagingTeam.name.toLowerCase(), selectedManagingTeam.name)}
-                       className="bg-red-950/30 text-red-500 px-4 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest border border-red-900/20 hover:bg-red-900/40"
+                       className="bg-red-950/30 text-red-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-red-900/20 hover:bg-red-900/40"
                      >
                        Excluir Equipe
                      </button>
@@ -5848,10 +5848,10 @@ export default function CoordinatorDashboard({
               <div className="flex-1 overflow-y-auto p-10">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                   <div className="lg:col-span-1 space-y-8">
-                     <div className="bg-zinc-50 p-6 rounded-sm border-2 border-zinc-100">
+                     <div className="bg-zinc-50 p-6 rounded-xl border-2 border-zinc-100">
                         <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4">Líder e Contato</p>
                         <div className="flex items-center gap-4 mb-6">
-                           <div className="bg-zinc-200 w-12 h-12 rounded-sm flex items-center justify-center font-black text-zinc-600">
+                           <div className="bg-zinc-200 w-12 h-12 rounded-xl flex items-center justify-center font-black text-zinc-600">
                               {selectedManagingTeam.leader.charAt(0).toUpperCase()}
                            </div>
                            <div className="text-left font-sans">
@@ -5873,11 +5873,11 @@ export default function CoordinatorDashboard({
                      </div>
 
                      <div className="grid grid-cols-2 gap-4 font-sans">
-                        <div className="bg-green-50 p-6 rounded-sm border border-green-100 text-center">
+                        <div className="bg-green-50 p-6 rounded-xl border border-green-100 text-center">
                            <p className="text-2xl font-black text-green-700 leading-none">{managingTeamVoters.length}</p>
                            <p className="text-[8px] font-black text-green-600 uppercase tracking-widest mt-2">Membros</p>
                         </div>
-                        <div className="bg-zinc-900 p-6 rounded-sm text-center">
+                        <div className="bg-zinc-900 p-6 rounded-xl text-center">
                            <p className="text-2xl font-black text-blue-600 leading-none">ATIVO</p>
                            <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mt-2">Status</p>
                         </div>
@@ -5887,16 +5887,16 @@ export default function CoordinatorDashboard({
                   <div className="lg:col-span-2 text-left font-sans">
                      <div className="flex justify-between items-center mb-6">
                         <h3 className="text-xl font-black text-zinc-950 uppercase tracking-tighter flex items-center gap-3">
-                           Membros Cadastrados <span className="bg-zinc-100 text-zinc-400 px-3 py-1 rounded-sm text-xs">{managingTeamVoters.length}</span>
+                           Membros Cadastrados <span className="bg-zinc-100 text-zinc-400 px-3 py-1 rounded-xl text-xs">{managingTeamVoters.length}</span>
                         </h3>
                      </div>
 
                      <div className="space-y-3">
                         {managingTeamVoters.length > 0 ? (
                           managingTeamVoters.sort((a,b) => a.name.localeCompare(b.name)).map((vx) => (
-                           <div key={vx.id} className="group bg-white p-5 rounded-sm border-2 border-zinc-100 hover:border-blue-600 transition-all flex items-center justify-between shadow-sm">
+                           <div key={vx.id} className="group bg-white p-5 rounded-xl border-2 border-zinc-100 hover:border-blue-600 transition-all flex items-center justify-between shadow-sm">
                               <div className="flex items-center gap-4">
-                                 <div className="bg-zinc-100 group-hover:bg-blue-600 group-hover:text-white transition-colors w-12 h-12 rounded-sm flex items-center justify-center font-black text-lg">
+                                 <div className="bg-zinc-100 group-hover:bg-blue-600 group-hover:text-white transition-colors w-12 h-12 rounded-xl flex items-center justify-center font-black text-lg">
                                     {vx.name.charAt(0).toUpperCase()}
                                  </div>
                                  <div>
@@ -5910,7 +5910,7 @@ export default function CoordinatorDashboard({
                                       const cleanPhone = vx.phone.replace(/\D/g, '');
                                       window.open(`https://wa.me/55${cleanPhone}`, '_blank');
                                    }}
-                                   className="p-3 bg-zinc-50 rounded-sm text-zinc-400 hover:text-green-600 hover:bg-green-50 transition-all"
+                                   className="p-3 bg-zinc-50 rounded-xl text-zinc-400 hover:text-green-600 hover:bg-green-50 transition-all"
                                  >
                                     <Phone className="w-4 h-4" />
                                  </button>
@@ -5944,7 +5944,7 @@ export default function CoordinatorDashboard({
                                       setSelectedVoter(vx);
                                       setIsVoterEditModalOpen(true);
                                    }}
-                                   className="p-3 bg-zinc-50 rounded-sm text-zinc-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                                   className="p-3 bg-zinc-50 rounded-xl text-zinc-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
                                  >
                                     <Edit3 className="w-4 h-4" />
                                  </button>
@@ -5960,14 +5960,14 @@ export default function CoordinatorDashboard({
                                          }
                                       }
                                    }}
-                                   className="p-3 bg-red-600 text-white rounded-sm hover:bg-red-700 shadow-md transition-all active:scale-95"
+                                   className="p-3 bg-red-600 text-white rounded-xl hover:bg-red-700 shadow-md transition-all active:scale-95"
                                  >
                                     <Trash2 className="w-4 h-4" />
                                  </button>
                               </div>
                            </div>
                         ))) : (
-                           <div className="py-20 text-center bg-zinc-50 rounded-sm border-2 border-dashed border-zinc-200">
+                           <div className="py-20 text-center bg-zinc-50 rounded-xl border-2 border-dashed border-zinc-200">
                               <p className="font-black text-zinc-300 uppercase tracking-widest">Nenhum eleitor registrado por este líder ainda.</p>
                            </div>
                         )}
@@ -5989,14 +5989,14 @@ export default function CoordinatorDashboard({
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative"
             >
               <button 
                 onClick={() => {
                    setIsVoterEditModalOpen(false);
                    setSelectedVoter(null);
                 }} 
-                className="absolute top-5 right-5 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all"
+                className="absolute top-5 right-5 bg-zinc-100 p-2 rounded-xl text-zinc-500 hover:bg-zinc-200 transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -6009,25 +6009,25 @@ export default function CoordinatorDashboard({
               <form onSubmit={handleVoterEditSubmit} className="p-6 space-y-4 text-left">
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
-                  <input required type="text" value={voterEditForm.name} onChange={e => setVoterEditForm({...voterEditForm, name: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Digite o nome..." />
+                  <input required type="text" value={voterEditForm.name} onChange={e => setVoterEditForm({...voterEditForm, name: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="Digite o nome..." />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Telefone / WhatsApp</label>
-                  <input type="text" value={voterEditForm.phone} onChange={e => setVoterEditForm({...voterEditForm, phone: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="(00) 00000-0000" />
+                  <input type="text" value={voterEditForm.phone} onChange={e => setVoterEditForm({...voterEditForm, phone: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="(00) 00000-0000" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Endereço / Referência</label>
-                  <input type="text" value={voterEditForm.address} onChange={e => setVoterEditForm({...voterEditForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Rua, Bairro, N..." />
+                  <input type="text" value={voterEditForm.address} onChange={e => setVoterEditForm({...voterEditForm, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="Rua, Bairro, N..." />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">CPF</label>
-                    <input type="text" value={voterEditForm.cpf || ''} onChange={e => setVoterEditForm({...voterEditForm, cpf: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="000.000.000-00" />
+                    <input type="text" value={voterEditForm.cpf || ''} onChange={e => setVoterEditForm({...voterEditForm, cpf: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="000.000.000-00" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">RG</label>
-                    <input type="text" value={voterEditForm.rg || ''} onChange={e => setVoterEditForm({...voterEditForm, rg: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Alistamento RG..." />
+                    <input type="text" value={voterEditForm.rg || ''} onChange={e => setVoterEditForm({...voterEditForm, rg: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="Alistamento RG..." />
                   </div>
                 </div>
 
@@ -6039,18 +6039,18 @@ export default function CoordinatorDashboard({
                   secao={voterEditForm.secao || ''}
                   localVotacao={voterEditForm.localVotacao || ''}
                   onChange={updates => setVoterEditForm(prev => ({ ...prev, ...updates }))}
-                  inputClassName="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all"
+                  inputClassName="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm text-zinc-900 outline-none focus:border-blue-600 transition-all"
                   labelClassName="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1 block"
                 />
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Observações Estratégicas</label>
-                  <textarea value={voterEditForm.observations} onChange={e => setVoterEditForm({...voterEditForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm h-24" placeholder="Ex: Prioritário, transporte necessário..."></textarea>
+                  <textarea value={voterEditForm.observations} onChange={e => setVoterEditForm({...voterEditForm, observations: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm h-24" placeholder="Ex: Prioritário, transporte necessário..."></textarea>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Fidelidade Política</label>
-                    <div className="flex gap-2 bg-zinc-50 p-3 rounded-sm border border-zinc-100">
+                    <div className="flex gap-2 bg-zinc-50 p-3 rounded-xl border border-zinc-100">
                       {[1,2,3,4,5].map(star => (
                         <button
                           key={star}
@@ -6065,7 +6065,7 @@ export default function CoordinatorDashboard({
                   </div>
                   <div className="space-y-1">
                     <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Sentiment (Opinião)</label>
-                    <div className="flex gap-1 bg-zinc-50 p-1.5 rounded-sm border border-zinc-100">
+                    <div className="flex gap-1 bg-zinc-50 p-1.5 rounded-xl border border-zinc-100">
                       {[
                         { id: 'support', icon: <CheckCircle2 className="w-4 h-4" />, color: 'text-emerald-500' },
                         { id: 'neutral', icon: <Activity className="w-4 h-4" />, color: 'text-zinc-400' },
@@ -6075,7 +6075,7 @@ export default function CoordinatorDashboard({
                           key={s.id}
                           type="button"
                           onClick={() => setVoterEditForm({...voterEditForm, sentiment: s.id as any})}
-                          className={`flex-1 flex items-center justify-center py-2 rounded-sm transition-all ${voterEditForm.sentiment === s.id ? 'bg-zinc-950 text-white shadow-md' : 'text-zinc-300 hover:bg-zinc-100'}`}
+                          className={`flex-1 flex items-center justify-center py-2 rounded-xl transition-all ${voterEditForm.sentiment === s.id ? 'bg-zinc-950 text-white shadow-md' : 'text-zinc-300 hover:bg-zinc-100'}`}
                         >
                           <div className={voterEditForm.sentiment === s.id ? 'text-white' : s.color}>{s.icon}</div>
                         </button>
@@ -6090,7 +6090,7 @@ export default function CoordinatorDashboard({
                     <button
                       type="button"
                       onClick={() => setVoterEditForm({...voterEditForm, voted: !voterEditForm.voted})}
-                      className={`w-full p-3.5 rounded-sm font-black text-[10px] uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${
+                      className={`w-full p-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${
                         voterEditForm.voted 
                         ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg' 
                         : 'bg-zinc-50 text-zinc-400 border-zinc-100 hover:bg-zinc-100'
@@ -6105,7 +6105,7 @@ export default function CoordinatorDashboard({
                     <button
                       type="button"
                       onClick={() => setVoterEditForm({...voterEditForm, hasDocPhoto: !voterEditForm.hasDocPhoto})}
-                      className={`w-full p-3.5 rounded-sm font-black text-[10px] uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${
+                      className={`w-full p-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${
                         voterEditForm.hasDocPhoto 
                         ? 'bg-zinc-900 text-white border-zinc-900' 
                         : 'bg-zinc-50 text-zinc-400 border-zinc-100 hover:bg-zinc-100'
@@ -6117,13 +6117,13 @@ export default function CoordinatorDashboard({
                   </div>
                 </div>
 
-                <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100 space-y-3">
+                <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-100 space-y-3">
                    <div className="flex items-center justify-between">
                      <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Comunidades Tradicionais (RR)</label>
                      <button
                         type="button"
                         onClick={() => setVoterEditForm({...voterEditForm, isIndigenous: !voterEditForm.isIndigenous})}
-                        className={`text-[8px] font-black px-2 py-1 rounded-sm uppercase tracking-tighter ${voterEditForm.isIndigenous ? 'bg-zinc-950 text-blue-600' : 'bg-zinc-200 text-zinc-400'}`}
+                        className={`text-[8px] font-black px-2 py-1 rounded-xl uppercase tracking-tighter ${voterEditForm.isIndigenous ? 'bg-zinc-950 text-blue-600' : 'bg-zinc-200 text-zinc-400'}`}
                       >
                        {voterEditForm.isIndigenous ? 'ATIVADO' : 'DESATIVADO'}
                      </button>
@@ -6133,11 +6133,11 @@ export default function CoordinatorDashboard({
                      <div className="grid grid-cols-2 gap-3">
                        <div className="space-y-1">
                          <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Comunidade</label>
-                         <input type="text" value={voterEditForm.communityName} onChange={e => setVoterEditForm({...voterEditForm, communityName: e.target.value})} className="w-full bg-white border border-zinc-200 rounded-sm p-2 font-bold text-xs" placeholder="Nome da Com..." />
+                         <input type="text" value={voterEditForm.communityName} onChange={e => setVoterEditForm({...voterEditForm, communityName: e.target.value})} className="w-full bg-white border border-zinc-200 rounded-xl p-2 font-bold text-xs" placeholder="Nome da Com..." />
                        </div>
                        <div className="space-y-1">
                          <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Liderança / Tuxaua</label>
-                         <input type="text" value={voterEditForm.tuxauaName} onChange={e => setVoterEditForm({...voterEditForm, tuxauaName: e.target.value})} className="w-full bg-white border border-zinc-200 rounded-sm p-2 font-bold text-xs" placeholder="Nome do Tuxaua..." />
+                         <input type="text" value={voterEditForm.tuxauaName} onChange={e => setVoterEditForm({...voterEditForm, tuxauaName: e.target.value})} className="w-full bg-white border border-zinc-200 rounded-xl p-2 font-bold text-xs" placeholder="Nome do Tuxaua..." />
                        </div>
                      </div>
                    )}
@@ -6145,7 +6145,7 @@ export default function CoordinatorDashboard({
 
                  <div className="space-y-1">
                    <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Família / Comunidade / Grupamento</label>
-                   <input type="text" value={voterEditForm.familyCommunity} onChange={e => setVoterEditForm({...voterEditForm, familyCommunity: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Ex: Família Silva, Com. Ribeirinha, Igreja..." />
+                   <input type="text" value={voterEditForm.familyCommunity} onChange={e => setVoterEditForm({...voterEditForm, familyCommunity: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="Ex: Família Silva, Com. Ribeirinha, Igreja..." />
                  </div>
 
                  {!voterEditForm.isArticulator && (
@@ -6154,7 +6154,7 @@ export default function CoordinatorDashboard({
                     <select 
                       value={voterEditForm.articulatorId} 
                       onChange={e => setVoterEditForm({...voterEditForm, articulatorId: e.target.value})} 
-                      className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm appearance-none outline-none"
+                      className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm appearance-none outline-none"
                     >
                       <option value="">NENHUM ARTICULADOR</option>
                       {(allVoters.length > 0 ? allVoters.filter(v => v.isArticulator && v.id !== selectedVoter?.id) : articulators.filter(v => v.id !== selectedVoter?.id)).map(art => (
@@ -6166,7 +6166,7 @@ export default function CoordinatorDashboard({
 
                 <div className="space-y-1">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Cruzamento (Dobradinha / Outros Apoios)</label>
-                  <input type="text" value={voterEditForm.associatedCandidates} onChange={e => setVoterEditForm({...voterEditForm, associatedCandidates: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Ex: Federal X, Estadual Y..." />
+                  <input type="text" value={voterEditForm.associatedCandidates} onChange={e => setVoterEditForm({...voterEditForm, associatedCandidates: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="Ex: Federal X, Estadual Y..." />
                 </div>
 
                 <div className="space-y-1">
@@ -6174,7 +6174,7 @@ export default function CoordinatorDashboard({
                   <select 
                     value={voterEditForm.referredBy} 
                     onChange={e => setVoterEditForm({...voterEditForm, referredBy: e.target.value})} 
-                    className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm outline-none appearance-none"
+                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm outline-none appearance-none"
                   >
                     <option value="">NENHUM INDICIADOR SELECIONADO</option>
                     {[...sourceVoters]
@@ -6191,7 +6191,7 @@ export default function CoordinatorDashboard({
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Tags de Segmentação</label>
                   <div className="flex flex-wrap gap-2 mb-2">
                     {voterEditForm.tags?.map(tag => (
-                      <span key={tag} className="bg-blue-600/10 text-blue-600 px-3 py-1 rounded-sm text-[9px] font-black uppercase flex items-center gap-2">
+                      <span key={tag} className="bg-blue-600/10 text-blue-600 px-3 py-1 rounded-xl text-[9px] font-black uppercase flex items-center gap-2">
                         {tag}
                         <button type="button" onClick={() => setVoterEditForm({...voterEditForm, tags: voterEditForm.tags.filter(t => t !== tag)})}>
                           <X className="w-2 h-2" />
@@ -6213,7 +6213,7 @@ export default function CoordinatorDashboard({
                           }
                         }
                       }}
-                      className="flex-1 bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" 
+                      className="flex-1 bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" 
                       placeholder="Adicionar tag (Enter)..." 
                     />
                     <button 
@@ -6224,7 +6224,7 @@ export default function CoordinatorDashboard({
                           setCurrentEditTag('');
                         }
                       }}
-                      className="bg-zinc-950 text-white px-4 rounded-sm"
+                      className="bg-zinc-950 text-white px-4 rounded-xl"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -6233,7 +6233,7 @@ export default function CoordinatorDashboard({
                   {availableTags.length > 0 && (
                     <div className="mt-2.5">
                       <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block mb-1">Tags Disponíveis no Sistema (Clique para Adicionar)</label>
-                      <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 bg-zinc-50 border border-zinc-100 rounded-sm">
+                      <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 bg-zinc-50 border border-zinc-100 rounded-xl">
                         {availableTags.map(tag => {
                           const isSelected = voterEditForm.tags?.some(t => t.trim().toUpperCase() === tag.toUpperCase());
                           return (
@@ -6254,7 +6254,7 @@ export default function CoordinatorDashboard({
                                   });
                                 }
                               }}
-                              className={`px-2 py-1 text-[9px] font-black uppercase rounded-sm border transition-all ${
+                              className={`px-2 py-1 text-[9px] font-black uppercase rounded-xl border transition-all ${
                                 isSelected
                                   ? 'bg-blue-600/20 text-blue-600 border-blue-600/40 hover:bg-blue-600/10'
                                   : 'bg-white text-zinc-600 border-zinc-200 hover:border-blue-600/50 hover:text-zinc-850'
@@ -6269,7 +6269,7 @@ export default function CoordinatorDashboard({
                   )}
                 </div>
                 
-                <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-sm font-black text-base shadow-xl shadow-zinc-200 mt-2 active:scale-95 transition-all">
+                <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-base shadow-xl shadow-zinc-200 mt-2 active:scale-95 transition-all">
                   SALVAR ALTERAÇÕES
                 </button>
               </form>
@@ -6286,12 +6286,12 @@ export default function CoordinatorDashboard({
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative my-auto"
+              className="bg-white w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative my-auto"
             >
               <button 
                 type="button"
                 onClick={() => setIsProfileModalOpen(false)} 
-                className="absolute top-5 right-5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 p-2 rounded-sm z-50 transition-all flex items-center justify-center shadow-md cursor-pointer"
+                className="absolute top-5 right-5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 p-2 rounded-xl z-50 transition-all flex items-center justify-center shadow-md cursor-pointer"
                 title="Fechar"
               >
                 <X className="w-5 h-5" />
@@ -6299,14 +6299,14 @@ export default function CoordinatorDashboard({
               <div className="bg-zinc-950 p-6 border-b-4 border-blue-600 text-left">
                 <div className="flex items-center gap-4">
                    <div className="relative group">
-                      <div className="w-16 h-16 bg-zinc-800 rounded-sm flex items-center justify-center border-2 border-zinc-700 overflow-hidden">
+                      <div className="w-16 h-16 bg-zinc-800 rounded-xl flex items-center justify-center border-2 border-zinc-700 overflow-hidden">
                          {profileData?.photoUrl ? (
                            <img src={profileData.photoUrl} alt="Perfil" className="w-full h-full object-cover" />
                          ) : (
                            <User className="w-8 h-8 text-zinc-600" />
                          )}
                       </div>
-                      <label className="absolute -bottom-1 -right-1 bg-blue-600 p-1.5 rounded-sm text-white shadow-lg hover:scale-110 transition-all cursor-pointer">
+                      <label className="absolute -bottom-1 -right-1 bg-blue-600 p-1.5 rounded-xl text-white shadow-lg hover:scale-110 transition-all cursor-pointer">
                          <Camera className="w-3.5 h-3.5" />
                          <input 
                            type="file" 
@@ -6369,11 +6369,11 @@ export default function CoordinatorDashboard({
                 className="p-6 space-y-3.5 text-left font-sans"
               >
                 {/* Módulos do Sistema & Licença */}
-                <div className="p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-sm space-y-2.5">
+                <div className="p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl space-y-2.5">
                   <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-0.5">Módulos da Campanha & Licença</p>
                   
                   {isGeral && (
-                    <div className="p-3 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-sm space-y-2">
+                    <div className="p-3 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-xl space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <ShieldCheck className="w-4 h-4 text-amber-500" />
@@ -6425,7 +6425,7 @@ export default function CoordinatorDashboard({
                       setIsProfileModalOpen(false);
                       setIsManualOpen(true);
                     }}
-                    className="w-full flex items-center justify-between p-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 font-bold rounded-sm transition-all cursor-pointer group text-left"
+                    className="w-full flex items-center justify-between p-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 font-bold rounded-xl transition-all cursor-pointer group text-left"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded bg-blue-600 text-white flex items-center justify-center shrink-0 font-black shadow-sm">
@@ -6440,7 +6440,7 @@ export default function CoordinatorDashboard({
                   </button>
 
                   {/* Suporte Técnico & Sugestões de Melhorias */}
-                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-sm space-y-2">
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded bg-emerald-600 text-white flex items-center justify-center shrink-0 font-black shadow-sm">
@@ -6494,24 +6494,24 @@ export default function CoordinatorDashboard({
                     name="photoUrl" 
                     onChange={(e) => setProfileData((prev: any) => ({ ...prev, photoUrl: e.target.value }))}
                     type="text" 
-                    className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" 
+                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" 
                     placeholder="https://..." 
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
-                  <input defaultValue={profileData?.name} name="name" type="text" className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="Seu nome real..." />
+                  <input defaultValue={profileData?.name} name="name" type="text" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="Seu nome real..." />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Telefone Profissional</label>
-                  <input defaultValue={profileData?.phone} name="phone" type="text" className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm" placeholder="(00) 00000-0000" />
+                  <input defaultValue={profileData?.phone} name="phone" type="text" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="(00) 00000-0000" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Cargo / Biografia</label>
-                  <textarea defaultValue={profileData?.bio} name="bio" className="w-full bg-zinc-50 border border-zinc-100 rounded-sm p-3.5 font-bold text-sm h-24" placeholder="Ex: Coordenador de Logística e Transmissão..."></textarea>
+                  <textarea defaultValue={profileData?.bio} name="bio" className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm h-24" placeholder="Ex: Coordenador de Logística e Transmissão..."></textarea>
                 </div>
                 
-                <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-sm font-black text-base shadow-xl shadow-zinc-200 mt-2 active:scale-95 transition-all">
+                <button type="submit" className="w-full bg-zinc-950 text-white py-4 rounded-xl font-black text-base shadow-xl shadow-zinc-200 mt-2 active:scale-95 transition-all">
                   SALVAR CONFIGURAÇÕES
                 </button>
 
@@ -6521,7 +6521,7 @@ export default function CoordinatorDashboard({
                     <button 
                       type="button"
                       onClick={handleResetSystem}
-                      className="w-full bg-red-50 text-red-600 py-3 rounded-sm font-black text-xs uppercase tracking-widest border border-red-100 hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                      className="w-full bg-red-50 text-red-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest border border-red-100 hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
                     >
                       <Trash2 className="w-4 h-4" /> Zerar Tudo do Zero
                     </button>
@@ -6542,7 +6542,7 @@ export default function CoordinatorDashboard({
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-2xl rounded-sm overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-2xl rounded-xl overflow-hidden shadow-2xl relative"
             >
               <button 
                 onClick={() => setIsAgendaDetailModalOpen(false)}
@@ -6553,7 +6553,7 @@ export default function CoordinatorDashboard({
 
               <div className="bg-zinc-950 p-12 text-left">
                 <div className="flex items-center gap-6">
-                   <div className="w-20 h-20 bg-blue-600 rounded-sm flex flex-col items-center justify-center text-white text-center">
+                   <div className="w-20 h-20 bg-blue-600 rounded-xl flex flex-col items-center justify-center text-white text-center">
                       <span className="text-[10px] font-black uppercase leading-none">{new Date(selectedAgenda.data).toLocaleDateString('pt-BR', { month: 'short' })}</span>
                       <span className="text-3xl font-black">{new Date(selectedAgenda.data).getDate()}</span>
                    </div>
@@ -6578,7 +6578,7 @@ export default function CoordinatorDashboard({
                    </div>
                 </div>
 
-                <div className="bg-zinc-50 p-8 rounded-sm border-2 border-zinc-100">
+                <div className="bg-zinc-50 p-8 rounded-xl border-2 border-zinc-100">
                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Objetivo Estratégico</p>
                    <p className="text-xl font-bold text-zinc-700 leading-relaxed">
                       "{selectedAgenda.motivo || 'Nenhum motivo detalhado informado.'}"
@@ -6586,14 +6586,14 @@ export default function CoordinatorDashboard({
                 </div>
 
                 <div className="flex items-center gap-4 pt-4">
-                   <div className="p-4 bg-blue-50 text-blue-600 rounded-sm flex items-center gap-3 flex-1 border border-blue-100">
+                   <div className="p-4 bg-blue-50 text-blue-600 rounded-xl flex items-center gap-3 flex-1 border border-blue-100">
                       <Users className="w-6 h-6" />
                       <div>
                          <p className="text-[10px] font-black uppercase tracking-tighter">Mobilização</p>
                          <p className="text-sm font-bold">Equipe e Membros</p>
                       </div>
                    </div>
-                   <div className="p-4 bg-green-50 text-green-600 rounded-sm flex items-center gap-3 flex-1 border border-green-100">
+                   <div className="p-4 bg-green-50 text-green-600 rounded-xl flex items-center gap-3 flex-1 border border-green-100">
                       <CheckCircle2 className="w-6 h-6" />
                       <div>
                          <p className="text-[10px] font-black uppercase tracking-tighter">Status</p>
@@ -6615,7 +6615,7 @@ export default function CoordinatorDashboard({
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-2xl rounded-sm overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-2xl rounded-xl overflow-hidden shadow-2xl relative"
             >
               <button 
                 onClick={() => setIsHistoryModalOpen(false)}
@@ -6633,11 +6633,11 @@ export default function CoordinatorDashboard({
 
               <div className="p-10 space-y-6 text-left max-h-[60vh] overflow-y-auto">
                 <div className="grid grid-cols-2 gap-4 text-center">
-                   <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100">
+                   <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-100">
                       <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Contatos</p>
                       <p className="text-xl font-black">{selectedHistoryTeam.contacts || 0}</p>
                    </div>
-                   <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100">
+                   <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-100">
                       <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest text-center">Ponto</p>
                       <p className="text-sm font-black text-green-600">OK (98%)</p>
                    </div>
@@ -6656,11 +6656,11 @@ export default function CoordinatorDashboard({
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-zinc-200"
+              className="bg-white w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative border border-zinc-200"
             >
               <button 
                 onClick={() => setIsReportModalOpen(false)} 
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-xl text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -6679,7 +6679,7 @@ export default function CoordinatorDashboard({
                         setReportDetailLevel('summary');
                         setSelectedReportColumns(AVAILABLE_COLUMNS_BY_TYPE[selectedReportType]?.map(c => c.dataKey) || []);
                       }}
-                      className={`flex-1 py-3 px-4 rounded-sm font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 border ${
+                      className={`flex-1 py-3 px-4 rounded-xl font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 border ${
                         reportDetailLevel === 'summary' 
                           ? 'bg-zinc-950 text-white border-zinc-950 shadow-lg' 
                           : 'bg-zinc-50 text-zinc-400 border-zinc-100 hover:bg-zinc-100'
@@ -6695,7 +6695,7 @@ export default function CoordinatorDashboard({
                           setSelectedReportColumns(AVAILABLE_COLUMNS_BY_TYPE['voters']?.map(c => c.dataKey) || []);
                         }
                       }}
-                      className={`flex-1 py-3 px-4 rounded-sm font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 border ${
+                      className={`flex-1 py-3 px-4 rounded-xl font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 border ${
                         reportDetailLevel === 'detailed' 
                           ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-600/20 active:scale-95' 
                           : 'bg-zinc-50 text-zinc-400 border-zinc-100 hover:bg-zinc-100'
@@ -6722,7 +6722,7 @@ export default function CoordinatorDashboard({
                       <select 
                         value={reportFilters.status || ''} 
                         onChange={e => setReportFilters({...reportFilters, status: e.target.value})}
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all cursor-pointer"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all cursor-pointer"
                       >
                         <option value="">TODOS OS STATUS</option>
                         <option value="OK">OPERANDO (OK)</option>
@@ -6740,7 +6740,7 @@ export default function CoordinatorDashboard({
                        <select 
                          value={reportFilters.team || ''} 
                          onChange={e => setReportFilters({...reportFilters, team: e.target.value})}
-                         className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
+                         className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
                        >
                          <option value="">TODAS AS EQUIPES</option>
                          {teams.map(t => (
@@ -6753,7 +6753,7 @@ export default function CoordinatorDashboard({
                        <select 
                          value={reportFilters.sentiment || ''} 
                          onChange={e => setReportFilters({...reportFilters, sentiment: e.target.value})}
-                         className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
+                         className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
                        >
                          <option value="">TODOS OS SENTIMENTOS</option>
                          <option value="support">APOIO (FIDELIZADO)</option>
@@ -6772,7 +6772,7 @@ export default function CoordinatorDashboard({
                         type="date" 
                         value={reportFilters.startDate || ''} 
                         onChange={e => setReportFilters({...reportFilters, startDate: e.target.value})}
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -6781,7 +6781,7 @@ export default function CoordinatorDashboard({
                         type="date" 
                         value={reportFilters.endDate || ''} 
                         onChange={e => setReportFilters({...reportFilters, endDate: e.target.value})}
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all"
                       />
                     </div>
                   </div>
@@ -6803,7 +6803,7 @@ export default function CoordinatorDashboard({
                               : [...prev, col.dataKey]
                           );
                         }}
-                        className={`flex items-center gap-2 p-2 rounded-sm border transition-all text-left ${
+                        className={`flex items-center gap-2 p-2 rounded-xl border transition-all text-left ${
                           selectedReportColumns.includes(col.dataKey)
                             ? 'bg-blue-50 border-blue-600 text-blue-700'
                             : 'bg-zinc-50 border-zinc-100 text-zinc-400'
@@ -6832,7 +6832,7 @@ export default function CoordinatorDashboard({
                       }, 'pdf');
                       setIsReportModalOpen(false);
                     }}
-                    className="w-full bg-zinc-950 text-white py-4 px-3 rounded-sm font-black text-[10px] uppercase tracking-wider shadow-xl hover:bg-zinc-800 transition-all active:scale-[0.98] flex items-center justify-center gap-2 border border-zinc-800"
+                    className="w-full bg-zinc-950 text-white py-4 px-3 rounded-xl font-black text-[10px] uppercase tracking-wider shadow-xl hover:bg-zinc-800 transition-all active:scale-[0.98] flex items-center justify-center gap-2 border border-zinc-800"
                   >
                     <FileDown className="w-4 h-4 text-blue-600" /> EXPORTAR PDF
                   </button>
@@ -6846,7 +6846,7 @@ export default function CoordinatorDashboard({
                       }, 'excel');
                       setIsReportModalOpen(false);
                     }}
-                    className="w-full bg-emerald-700 text-white py-4 px-3 rounded-sm font-black text-[10px] uppercase tracking-wider shadow-xl hover:bg-emerald-600 transition-all active:scale-[0.98] flex items-center justify-center gap-2 border border-emerald-600"
+                    className="w-full bg-emerald-700 text-white py-4 px-3 rounded-xl font-black text-[10px] uppercase tracking-wider shadow-xl hover:bg-emerald-600 transition-all active:scale-[0.98] flex items-center justify-center gap-2 border border-emerald-600"
                   >
                     <FileSpreadsheet className="w-4 h-4 text-emerald-200" /> EXPORTAR EXCEL (.XLSX)
                   </button>
@@ -6860,14 +6860,14 @@ export default function CoordinatorDashboard({
       <AnimatePresence>
         {isRegionalModalOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto">
-            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative">
               <button onClick={() => setIsRegionalModalOpen(false)} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-[var(--text-primary)]">
                 <X className="w-5 h-5" />
               </button>
 
               <div className="p-6 bg-zinc-950 border-b border-zinc-800 text-left">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-sm bg-blue-600 flex items-center justify-center text-white font-black">
+                  <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black">
                     <ShieldCheck className="w-6 h-6" />
                   </div>
                   <div>
@@ -6887,7 +6887,7 @@ export default function CoordinatorDashboard({
                       value={newRegCoord.name}
                       onChange={(e) => setNewRegCoord({ ...newRegCoord, name: e.target.value })}
                       placeholder="Ex: Carlos Eduardo Silva"
-                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600"
                     />
                   </div>
 
@@ -6899,7 +6899,7 @@ export default function CoordinatorDashboard({
                       value={newRegCoord.email}
                       onChange={(e) => setNewRegCoord({ ...newRegCoord, email: e.target.value })}
                       placeholder="carlos@nexuspolitica.com"
-                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600"
                     />
                   </div>
 
@@ -6955,7 +6955,7 @@ export default function CoordinatorDashboard({
                       <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
                         Municípios ou Bairros Integrantes (Opcional)
                       </label>
-                      <span className="text-[8px] font-bold text-blue-500 uppercase tracking-widest bg-blue-500/10 px-1.5 py-0.5 rounded-sm border border-blue-500/20">
+                      <span className="text-[8px] font-bold text-blue-500 uppercase tracking-widest bg-blue-500/10 px-1.5 py-0.5 rounded-xl border border-blue-500/20">
                         Estratégia & TRE
                       </span>
                     </div>
@@ -6964,7 +6964,7 @@ export default function CoordinatorDashboard({
                       value={newRegCoord.subLocations}
                       onChange={(e) => setNewRegCoord({ ...newRegCoord, subLocations: e.target.value })}
                       placeholder="Ex: Caracaraí, Rorainópolis, São Luiz OU Pintolândia, Asa Branca"
-                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600"
                     />
                     <p className="text-[8px] font-bold text-[var(--text-secondary)] mt-1 uppercase tracking-wider">
                       Relacione os municípios ou bairros que compõem esta região para cruzamento de inteligência e formulário de metas.
@@ -6996,14 +6996,14 @@ export default function CoordinatorDashboard({
                         setNewRegCoord({ ...newRegCoord, targetVoters: digits === '' ? '' : parseInt(digits, 10) });
                       }}
                       placeholder="Ex: 500"
-                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600"
                     />
                   </div>
 
                   <button 
                     type="submit" 
                     disabled={isProcessing}
-                    className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-sm font-black text-xs uppercase tracking-wider shadow-lg shadow-blue-600/20 active:scale-95 transition-all mt-2"
+                    className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-wider shadow-lg shadow-blue-600/20 active:scale-95 transition-all mt-2"
                   >
                     {isProcessing ? 'GERANDO ACESSO...' : 'CADASTRAR E GERAR LINK'}
                   </button>
@@ -7018,7 +7018,7 @@ export default function CoordinatorDashboard({
                     <p className="text-xs font-bold text-[var(--text-secondary)] mt-1">Envie o link abaixo para o Coordenador Regional acessar o painel dele.</p>
                   </div>
 
-                  <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-3 rounded-sm font-mono text-xs text-blue-500 break-all select-all">
+                  <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-3 rounded-xl font-mono text-xs text-blue-500 break-all select-all">
                     {createdRegCoordLink}
                   </div>
 
@@ -7027,14 +7027,14 @@ export default function CoordinatorDashboard({
                       navigator.clipboard.writeText(createdRegCoordLink);
                       alert("Link de acesso copiado!");
                     }}
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-sm font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all"
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all"
                   >
                     <Copy className="w-4 h-4" /> Copiar Link de Acesso
                   </button>
 
                   <button 
                     onClick={() => setIsRegionalModalOpen(false)}
-                    className="w-full bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] text-[var(--text-primary)] py-2.5 rounded-sm font-black text-xs uppercase tracking-wider transition-all"
+                    className="w-full bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] text-[var(--text-primary)] py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all"
                   >
                     Concluir
                   </button>
@@ -7048,14 +7048,14 @@ export default function CoordinatorDashboard({
       <AnimatePresence>
         {isShareLinkModalOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto">
-            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-md rounded-sm overflow-hidden shadow-2xl relative">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-md rounded-xl overflow-hidden shadow-2xl relative">
               <button onClick={() => setIsShareLinkModalOpen(false)} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-[var(--text-primary)]">
                 <X className="w-5 h-5" />
               </button>
 
               <div className="p-6 bg-zinc-950 border-b border-zinc-800 text-left">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-sm bg-emerald-600 flex items-center justify-center text-white font-black">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-black">
                     <Send className="w-5 h-5" />
                   </div>
                   <div>
@@ -7088,7 +7088,7 @@ export default function CoordinatorDashboard({
                   <select 
                     value={selectedShareTeam}
                     onChange={(e) => setSelectedShareTeam(e.target.value)}
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600"
                   >
                     <option value="">-- Cadastro Geral (Sem Equipe Específica) --</option>
                     {teams.map(t => (
@@ -7097,7 +7097,7 @@ export default function CoordinatorDashboard({
                   </select>
                 </div>
 
-                <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-3 rounded-sm">
+                <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-3 rounded-xl">
                   <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">URL de Cadastro Público:</p>
                   <p className="font-mono text-xs text-blue-500 break-all select-all">
                     {`${window.location.origin}/cadastro?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`}
@@ -7112,7 +7112,7 @@ export default function CoordinatorDashboard({
                       const messageText = `*FAÇA PARTE DO NOSSO TIME!* 🗳️\n\nOlá! Gostaria de convidar você para fazer parte da nossa caminhada e apoiar a campanha de *${candName}*.\n\nRealize seu cadastro de forma simples e rápida no link abaixo:\n${finalUrl}`;
                       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`, '_blank');
                     }}
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-sm font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer"
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer"
                   >
                     <Send className="w-4 h-4" /> Enviar Directo no WhatsApp
                   </button>
@@ -7125,7 +7125,7 @@ export default function CoordinatorDashboard({
                       navigator.clipboard.writeText(messageText);
                       alert("✅ Mensagem completa com 'FAÇA PARTE DO NOSSO TIME' e o link foram copiados para a área de transferência!");
                     }}
-                    className="w-full bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border-color)] py-2.5 rounded-sm font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
+                    className="w-full bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border-color)] py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
                   >
                     <Copy className="w-4 h-4" /> Copiar Mensagem com "FAÇA PARTE DO NOSSO TIME"
                   </button>
@@ -7547,14 +7547,14 @@ export default function CoordinatorDashboard({
       <AnimatePresence>
         {isEditGoalModalOpen && editingGoal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto">
-            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-md rounded-sm overflow-hidden shadow-2xl relative">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-md rounded-xl overflow-hidden shadow-2xl relative">
               <button onClick={() => setIsEditGoalModalOpen(false)} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-[var(--text-primary)]">
                 <X className="w-5 h-5" />
               </button>
 
               <div className="p-6 bg-zinc-950 border-b border-zinc-800 text-left">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-sm bg-blue-600 flex items-center justify-center text-white font-black">
+                  <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black">
                     <Target className="w-5 h-5" />
                   </div>
                   <div>
@@ -7572,7 +7572,7 @@ export default function CoordinatorDashboard({
                     type="text" 
                     value={editingGoal.locationName || ''}
                     onChange={(e) => setEditingGoal({ ...editingGoal, locationName: e.target.value })}
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600"
                   />
                 </div>
 
@@ -7602,7 +7602,7 @@ export default function CoordinatorDashboard({
                       setEditingGoal({ ...editingGoal, targetVoters: digits === '' ? '' : parseInt(digits, 10) });
                     }}
                     placeholder="Ex: 5.000"
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600"
                   />
                 </div>
 
@@ -7610,14 +7610,14 @@ export default function CoordinatorDashboard({
                   <button 
                     type="button"
                     onClick={() => setIsEditGoalModalOpen(false)}
-                    className="w-1/2 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] text-[var(--text-primary)] py-3 rounded-sm font-black text-xs uppercase tracking-wider"
+                    className="w-1/2 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] text-[var(--text-primary)] py-3 rounded-xl font-black text-xs uppercase tracking-wider"
                   >
                     Cancelar
                   </button>
                   <button 
                     type="submit"
                     disabled={isProcessing}
-                    className="w-1/2 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-sm font-black text-xs uppercase tracking-wider shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
+                    className="w-1/2 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-black text-xs uppercase tracking-wider shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
                   >
                     {isProcessing ? 'Salvando...' : 'Atualizar Meta'}
                   </button>
@@ -7631,14 +7631,14 @@ export default function CoordinatorDashboard({
       <AnimatePresence>
         {isEditRegCoordModalOpen && editingRegCoord && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto">
-            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative">
               <button onClick={() => setIsEditRegCoordModalOpen(false)} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-[var(--text-primary)]">
                 <X className="w-5 h-5" />
               </button>
 
               <div className="p-6 bg-zinc-950 border-b border-zinc-800 text-left">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-sm bg-blue-600 flex items-center justify-center text-white font-black">
+                  <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black">
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div>
@@ -7656,7 +7656,7 @@ export default function CoordinatorDashboard({
                     type="text" 
                     value={editingRegCoord.name || ''}
                     onChange={(e) => setEditingRegCoord({ ...editingRegCoord, name: e.target.value })}
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600"
                   />
                 </div>
 
@@ -7667,7 +7667,7 @@ export default function CoordinatorDashboard({
                       type="text" 
                       value={editingRegCoord.phone || ''}
                       onChange={(e) => setEditingRegCoord({ ...editingRegCoord, phone: e.target.value })}
-                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600"
                     />
                   </div>
                   <div>
@@ -7677,7 +7677,7 @@ export default function CoordinatorDashboard({
                       type="text" 
                       value={editingRegCoord.region || ''}
                       onChange={(e) => setEditingRegCoord({ ...editingRegCoord, region: e.target.value })}
-                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                      className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600"
                     />
                   </div>
                 </div>
@@ -7688,7 +7688,7 @@ export default function CoordinatorDashboard({
                     type="text" 
                     value={editingRegCoord.subLocations || ''}
                     onChange={(e) => setEditingRegCoord({ ...editingRegCoord, subLocations: e.target.value })}
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600"
                   />
                 </div>
 
@@ -7718,7 +7718,7 @@ export default function CoordinatorDashboard({
                       setEditingRegCoord({ ...editingRegCoord, targetVoters: digits === '' ? '' : parseInt(digits, 10) });
                     }}
                     placeholder="Ex: 500"
-                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-sm p-3 font-bold text-xs outline-none focus:border-blue-600"
+                    className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-bold text-xs outline-none focus:border-blue-600"
                   />
                 </div>
 
@@ -7726,14 +7726,14 @@ export default function CoordinatorDashboard({
                   <button 
                     type="button"
                     onClick={() => setIsEditRegCoordModalOpen(false)}
-                    className="w-1/2 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] text-[var(--text-primary)] py-3 rounded-sm font-black text-xs uppercase tracking-wider"
+                    className="w-1/2 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] text-[var(--text-primary)] py-3 rounded-xl font-black text-xs uppercase tracking-wider"
                   >
                     Cancelar
                   </button>
                   <button 
                     type="submit"
                     disabled={isProcessing}
-                    className="w-1/2 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-sm font-black text-xs uppercase tracking-wider shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
+                    className="w-1/2 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-black text-xs uppercase tracking-wider shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
                   >
                     {isProcessing ? 'Salvando...' : 'Atualizar Dados'}
                   </button>
@@ -7776,13 +7776,13 @@ export default function CoordinatorDashboard({
           <button 
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1.5 transition-all shrink-0 min-w-[54px] rounded-sm ${
+            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1.5 transition-all shrink-0 min-w-[54px] rounded-xl ${
               activeTab === tab.id 
               ? 'text-blue-600 dark:text-blue-500 font-black' 
               : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300'
             }`}
           >
-            <div className={`p-1 rounded-sm transition-all ${activeTab === tab.id ? 'bg-blue-600/10 dark:bg-blue-500/15' : ''}`}>
+            <div className={`p-1 rounded-xl transition-all ${activeTab === tab.id ? 'bg-blue-600/10 dark:bg-blue-500/15' : ''}`}>
               {tab.icon}
             </div>
             <span className="text-[7.5px] font-black uppercase tracking-tight leading-none">
