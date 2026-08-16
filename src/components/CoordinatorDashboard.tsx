@@ -2878,14 +2878,14 @@ export default function CoordinatorDashboard({
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       <button 
-                        onClick={() => { setActiveTab('agenda'); setTimeout(() => { setAgendaForm(DEFAULT_AGENDA_INFO); setEditingAgenda(null); setIsAgendaCreateModalOpen(true); }, 100); }}
+                        onClick={() => { setActiveTab('agenda'); setTimeout(() => { setAgendaForm({ municipio: '', data: '', hora_inicio: '', hora_fim: '', motivo: '', allocatedMaterials: '' }); setEditingAgenda(null); setIsAgendaCreateModalOpen(true); }, 100); }}
                         className="btn-primary !py-3 flex-col gap-1 hover:shadow-lg transition-all"
                       >
                         <Calendar className="w-5 h-5 mb-1" />
                         <span>Novo Evento</span>
                       </button>
                       <button 
-                        onClick={() => { setActiveTab('materials'); setTimeout(() => { setEditingMaterial(null); setIsMaterialModalOpen(true); }, 100); }}
+                        onClick={() => { setActiveTab('materials'); setTimeout(() => { setEditingMaterialId(null); setIsMaterialModalOpen(true); }, 100); }}
                         className="btn-secondary !bg-indigo-50 !text-indigo-600 !border-indigo-200 hover:!bg-indigo-600 hover:!text-white !py-3 flex-col gap-1 transition-all"
                       >
                         <Package className="w-5 h-5 mb-1" />
@@ -2899,7 +2899,7 @@ export default function CoordinatorDashboard({
                         <span>Nova Meta</span>
                       </button>
                       <button 
-                        onClick={() => { setActiveTab('voters'); setTimeout(() => { setVoterForm(DEFAULT_VOTER_INFO); setEditingVoterId(null); setIsVoterEditModalOpen(true); }, 100); }}
+                        onClick={() => { setActiveTab('voters'); setTimeout(() => { setIsVoterEditModalOpen(true); }, 100); }}
                         className="btn-secondary !py-3 flex-col gap-1 transition-all"
                       >
                         <UserPlus className="w-5 h-5 mb-1 text-[var(--text-secondary)]" />
