@@ -36,6 +36,7 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
   const [sentMap, setSentMap] = useState<Record<string, boolean>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeQueueIndex, setActiveQueueIndex] = useState<number>(0);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Carregar configurações da Evolution API ao abrir
   React.useEffect(() => {
@@ -395,9 +396,21 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
                     <label className="text-[9px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">Conteúdo</label>
-                    <span className="text-[9px] text-[var(--text-secondary)]">Variáveis: <code className="text-emerald-600 dark:text-emerald-400 font-bold">{`{nome}`}</code>, <code className="text-emerald-600 dark:text-emerald-400 font-bold">{`{bairro}`}</code></span>
+                    
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={handleGenerateMessage}
+                        disabled={isGenerating}
+                        className="flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-white rounded-md transition-colors active:scale-95 disabled:opacity-50"
+                        title="Usar Inteligência Estratégica (Groq API) para escrever uma mensagem de alta conversão"
+                      >
+                        {isGenerating ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                        {isGenerating ? 'Gerando texto...' : 'Gerar com I.A.'}
+                      </button>
+                      <span className="text-[9px] text-[var(--text-secondary)]">Variáveis: <code className="text-emerald-600 dark:text-emerald-400 font-bold">{`{nome}`}</code>, <code className="text-emerald-600 dark:text-emerald-400 font-bold">{`{bairro}`}</code></span>
+                    </div>
                   </div>
                   <textarea
                     rows={4}
