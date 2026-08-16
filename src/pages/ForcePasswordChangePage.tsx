@@ -12,8 +12,17 @@ export function ForcePasswordChangePage() {
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
-    if (newPassword.length < 6) {
-      return setAuthError('A nova senha deve ter pelo menos 6 caracteres');
+    if (newPassword.length < 8) {
+      return setAuthError('A nova senha deve ter pelo menos 8 caracteres.');
+    }
+    if (!/(?=.*[A-Z])/.test(newPassword)) {
+      return setAuthError('A nova senha deve conter pelo menos uma letra maiúscula.');
+    }
+    if (!/(?=.*\d)/.test(newPassword)) {
+      return setAuthError('A nova senha deve conter pelo menos um número.');
+    }
+    if (!/(?=.*[!@#$%^&*])/.test(newPassword)) {
+      return setAuthError('A nova senha deve conter pelo menos um caractere especial (!@#$%^&*).');
     }
     try {
       await changePassword(newPassword);
@@ -45,9 +54,9 @@ export function ForcePasswordChangePage() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
               className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] p-4.5 rounded-sm focus:outline-none focus:border-blue-600 transition-all font-bold text-sm shadow-inner"
-              placeholder="Mínimo 6 caracteres"
+              placeholder="Mín. 8 caracteres, 1 maiúscula, 1 número, 1 especial"
             />
           </div>
           {authError && <p className="text-red-500 text-[10px] font-black text-center bg-red-500/5 py-3 rounded-sm border border-red-500/10 uppercase tracking-widest">{authError}</p>}
