@@ -152,9 +152,11 @@ export function LoginPage() {
           return;
         }
 
-        const effectiveCoordinatorId = preRegDoc?.coordinatorId || urlCoordId;
-        const effectiveRegionalCoordId = preRegDoc?.regionalCoordId || urlRegionalCoordId;
-        const effectiveTeamId = preRegDoc?.teamId || urlTeamId;
+        const sanitizeId = (id: any) => (!id || id === 'null' || id === 'undefined' || String(id).trim() === '') ? undefined : id;
+        
+        const effectiveCoordinatorId = sanitizeId(preRegDoc?.coordinatorId) || sanitizeId(urlCoordId) || undefined;
+        const effectiveRegionalCoordId = sanitizeId(preRegDoc?.regionalCoordId) || sanitizeId(urlRegionalCoordId) || undefined;
+        const effectiveTeamId = sanitizeId(preRegDoc?.teamId) || sanitizeId(urlTeamId) || undefined;
         const effectiveRegion = preRegDoc?.region || urlRegion || '';
 
         if (effectiveRole === 'coordenador_geral') {

@@ -27,7 +27,7 @@ export const PLAN_CONFIGS: Record<PlanType, {
     maxVoters: 7,
     maxLeaders: 2,
     maxRegionals: 2,
-    maxGeneralCoordinators: 1,
+    maxGeneralCoordinators: 10,
   },
   start: {
     name: 'Plano Start Tático',
