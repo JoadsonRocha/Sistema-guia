@@ -2624,6 +2624,122 @@ export default function CoordinatorDashboard({
                   {/* COLUNA PRINCIPAL (ESQUERDA / CENTRO) */}
                   <div className="flex-1 space-y-6">
 
+                    {/* NOVOS WIDGETS ESTRATÉGICOS */}
+                    {(() => {
+                      const todayStart = new Date();
+                      todayStart.setHours(0,0,0,0);
+                      const todayVoters = voters.filter(v => v.createdAt >= todayStart.getTime()).length;
+                      
+                      const teamStats = teams.map(t => ({
+                        name: t.name,
+                        leader: t.leader || t.name,
+                        count: voters.filter(v => isVoterInTeam(v, t)).length
+                      })).sort((a,b) => b.count - a.count).slice(0, 3);
+
+                      const demandsByZone = urgencies.filter(u => u.type === 'demanda').reduce((acc, curr) => {
+                        const team = curr.team || 'Não Informado';
+                        if (!acc[team]) acc[team] = 0;
+                        acc[team]++;
+                        return acc;
+                      }, {} as Record<string, number>);
+                      const topCriticalZones = Object.entries(demandsByZone).sort((a,b) => b[1] - a[1]).slice(0, 3);
+
+                      return (
+                        <div className="space-y-6">
+                          {/* Ações Rápidas */}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <button onClick={() => setActiveTab('voters')} className="bg-[var(--bg-secondary)] hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-[var(--border-color)] p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all group shadow-sm">
+                              <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
+                                <MessageSquare className="w-5 h-5" />
+                              </div>
+                              <span className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-wider text-center">Disparar WhatsApp</span>
+                            </button>
+                            
+                            <button onClick={() => setActiveTab('metas')} className="bg-[var(--bg-secondary)] hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-[var(--border-color)] p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all group shadow-sm">
+                              <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
+                                <Target className="w-5 h-5" />
+                              </div>
+                              <span className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-wider text-center">Nova Meta Diária</span>
+                            </button>
+
+                            <button onClick={() => setActiveTab('analise_eleitoral')} className="bg-[var(--bg-secondary)] hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-[var(--border-color)] p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all group shadow-sm">
+                              <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+                                <Brain className="w-5 h-5" />
+                              </div>
+                              <span className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-wider text-center">Diagnóstico IA</span>
+                            </button>
+
+                            <button onClick={() => setActiveTab('teams')} className="bg-[var(--bg-secondary)] hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-[var(--border-color)] p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all group shadow-sm">
+                              <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
+                                <UserPlus className="w-5 h-5" />
+                              </div>
+                              <span className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-wider text-center">Cadastrar Cabo</span>
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Termômetro */}
+                            <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-2xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+                              <div className="absolute -right-4 -top-4 w-16 h-16 bg-blue-500/10 rounded-full blur-xl pointer-events-none" />
+                              <div className="flex justify-between items-center mb-3 relative z-10">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Engajamento Hoje</span>
+                                <Activity className="w-4 h-4 text-blue-500" />
+                              </div>
+                              <div className="relative z-10">
+                                <span className="text-3xl font-black text-[var(--text-primary)] tracking-tight">{todayVoters}</span>
+                                <span className="text-xs text-[var(--text-secondary)] block mt-1">novos eleitores nas últimas 24h</span>
+                              </div>
+                            </div>
+
+                            {/* Leaderboard */}
+                            <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-2xl shadow-sm relative overflow-hidden">
+                              <div className="absolute -right-4 -top-4 w-16 h-16 bg-amber-500/10 rounded-full blur-xl pointer-events-none" />
+                              <div className="flex justify-between items-center mb-4 relative z-10">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Top Lideranças</span>
+                                <Trophy className="w-4 h-4 text-amber-500" />
+                              </div>
+                              <div className="space-y-3 relative z-10">
+                                {teamStats.length === 0 ? (
+                                  <p className="text-xs text-zinc-500">Nenhum dado ainda</p>
+                                ) : (
+                                  teamStats.map((t, idx) => (
+                                    <div key={idx} className="flex justify-between items-center">
+                                      <div className="flex items-center gap-2">
+                                        <span className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-black ${idx === 0 ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' : idx === 1 ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}`}>{idx + 1}</span>
+                                        <span className="text-xs font-bold text-[var(--text-primary)] truncate max-w-[100px]">{t.leader}</span>
+                                      </div>
+                                      <span className="text-[10px] font-black text-[var(--text-secondary)]">{t.count}</span>
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Zonas Críticas */}
+                            <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-2xl shadow-sm relative overflow-hidden cursor-pointer hover:border-red-500/50 transition-colors" onClick={() => setActiveTab('mapa')}>
+                              <div className="absolute -right-4 -top-4 w-16 h-16 bg-red-500/10 rounded-full blur-xl pointer-events-none" />
+                              <div className="flex justify-between items-center mb-4 relative z-10">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Radar (Fogo)</span>
+                                <AlertTriangle className="w-4 h-4 text-red-500" />
+                              </div>
+                              <div className="space-y-3 relative z-10">
+                                {topCriticalZones.length === 0 ? (
+                                  <p className="text-xs text-zinc-500">Sem áreas críticas</p>
+                                ) : (
+                                  topCriticalZones.map(([zone, count], idx) => (
+                                    <div key={idx} className="flex justify-between items-center">
+                                      <span className="text-xs font-bold text-[var(--text-primary)] truncate max-w-[120px]">{zone}</span>
+                                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">{count} alertas</span>
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
                     {/* CARD: EVENTOS DOS COORDENADORES REGIONAIS E LÍDERES */}
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-5 md:p-6 shadow-sm space-y-4">
                       <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
