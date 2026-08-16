@@ -2833,7 +2833,7 @@ export default function CoordinatorDashboard({
                             <Calendar className="w-5 h-5" />
                           </div>
                           <div>
-                            <h3 className="text-base font-bold text-[var(--text-primary)]">Eventos & Agenda dos Coordenadores e Líderes</h3>
+                            <h3 className="text-sm font-semibold text-[var(--text-primary)]">Eventos & Agenda dos Coordenadores e Líderes</h3>
                             <p className="text-xs text-[var(--text-secondary)]">Compromissos, caminhadas e ações de rua cadastradas pelas equipes de campo</p>
                           </div>
                         </div>
@@ -2883,7 +2883,7 @@ export default function CoordinatorDashboard({
                             <ShieldCheck className="w-5 h-5" />
                           </div>
                           <div>
-                            <h3 className="text-base font-bold text-[var(--text-primary)]">Coordenação Regional e Setores</h3>
+                            <h3 className="text-sm font-semibold text-[var(--text-primary)]">Coordenação Regional e Setores</h3>
                             <p className="text-xs text-[var(--text-secondary)]">Acompanhamento dos coordenadores de polo e jurisdições</p>
                           </div>
                         </div>
@@ -3092,7 +3092,7 @@ export default function CoordinatorDashboard({
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
                   <div>
-                    <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                       <Target className="w-6 h-6 text-blue-600" /> Central de Metas Eleitorais
                     </h2>
                     <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-2">
@@ -3296,7 +3296,7 @@ export default function CoordinatorDashboard({
                               <span className="text-[7px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2 py-0.5 rounded-xl uppercase tracking-widest">
                                 META POR {goal.category ? goal.category.toUpperCase() : 'MUNICÍPIO'}
                               </span>
-                              <h3 className="text-lg font-black text-[var(--text-primary)] uppercase tracking-tight mt-1">{goal.locationName}</h3>
+                              <h3 className="text-base font-semibold text-[var(--text-primary)] mt-1">{goal.locationName}</h3>
                             </div>
                             <div className="flex items-center gap-1">
                               <button 
@@ -3486,7 +3486,7 @@ export default function CoordinatorDashboard({
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
                   <div>
-                    <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                       <ShieldCheck className="w-6 h-6 text-blue-600" /> Coordenadores Regionais
                     </h2>
                     <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-widest mt-2">
@@ -3540,7 +3540,7 @@ export default function CoordinatorDashboard({
                               <span className="text-[7px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2 py-0.5 rounded-xl uppercase tracking-widest">
                                 COORDENADOR REGIONAL
                               </span>
-                              <h3 className="text-base font-black text-[var(--text-primary)] uppercase tracking-tight mt-1.5">{coord.name}</h3>
+                              <h3 className="text-sm font-semibold text-[var(--text-primary)] mt-1.5">{coord.name}</h3>
                               <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{coord.region || 'Região Não Definida'}</p>
                             </div>
                             <div className="flex items-center gap-1">
@@ -3601,7 +3601,7 @@ export default function CoordinatorDashboard({
                   {regionalCoordinators.length === 0 && (
                     <div className="col-span-full bg-[var(--bg-secondary)] border border-[var(--border-color)] p-12 text-center rounded-xl">
                       <ShieldCheck className="w-12 h-12 text-zinc-400 mx-auto mb-3 opacity-50" />
-                      <h3 className="text-sm font-black uppercase text-[var(--text-primary)] tracking-tight">Nenhum Coordenador Regional Cadastrado</h3>
+                      <h3 className="text-sm font-semibold text-[var(--text-primary)]">Nenhum Coordenador Regional Cadastrado</h3>
                       <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mt-1 max-w-md mx-auto">
                         Cadastre os coordenadores regionais para gerenciarem frentes de atuação específicas em municípios ou bairros.
                       </p>
@@ -3615,8 +3615,8 @@ export default function CoordinatorDashboard({
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 md:space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2.5 border-b border-[var(--border-color)] pb-3">
                   <div>
-                    <h2 className="text-lg sm:text-xl font-bold uppercase text-[var(--text-primary)] tracking-tight leading-none">Gestão de Equipes</h2>
-                    <p className="text-[var(--text-secondary)] text-[9px] font-semibold uppercase tracking-wider mt-1">Controle tático de recursos e unidades</p>
+                    <h2 className="text-lg font-bold text-[var(--text-primary)]">Gestão de Equipes</h2>
+                    <p className="text-xs font-medium text-[var(--text-secondary)] mt-1">Controle tático de recursos e unidades</p>
                   </div>
                   <div className="flex items-center gap-2 w-full md:w-auto mt-1 md:mt-0">
                     <button
@@ -3790,7 +3790,7 @@ export default function CoordinatorDashboard({
                                     <Users className="w-5 h-5" />
                                   </div>
                                   <div className="space-y-0.5">
-                                    <h3 className="font-black text-[var(--text-primary)] text-sm uppercase tracking-tight truncate">{team.name}</h3>
+                                    <h3 className="font-semibold text-[var(--text-primary)] text-sm truncate">{team.name}</h3>
                                     <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase flex items-center gap-1">
                                       <User className="w-3 h-3 text-blue-500" /> Líder: {team.leader}
                                     </p>
@@ -3889,8 +3889,8 @@ export default function CoordinatorDashboard({
                       <Target className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
                     </div>
                     <div>
-                      <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Base de Eleitores</h2>
-                      <p className="text-[var(--text-secondary)] text-[8px] md:text-[10px] font-bold uppercase tracking-widest mt-1.5 md:mt-2">Gestão centralizada de segmentação e influência</p>
+                      <h2 className="text-lg font-bold text-[var(--text-primary)]">Base de Eleitores</h2>
+                      <p className="text-xs font-medium text-[var(--text-secondary)] mt-1">Gestão centralizada de segmentação e influência</p>
                     </div>
                   </div>
                 </div>
@@ -4219,8 +4219,8 @@ export default function CoordinatorDashboard({
                       <Calendar className="w-6 h-6 text-zinc-950" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-black uppercase text-zinc-950 tracking-tighter leading-none">Agenda</h2>
-                      <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Logística e compromissos oficiais</p>
+                      <h2 className="text-lg font-bold text-[var(--text-primary)]">Agenda</h2>
+                      <p className="text-xs font-medium text-[var(--text-secondary)] mt-1">Logística e compromissos oficiais</p>
                     </div>
                   </div>
                   <button 
@@ -4242,7 +4242,7 @@ export default function CoordinatorDashboard({
                     <div className="bg-white border border-[var(--border-color)] rounded-2xl p-6 lg:p-8 shadow-sm h-full relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-bl-full -mr-8 -mt-8 pointer-events-none" />
                       <div className="flex items-center justify-between mb-8 relative z-10">
-                        <h3 className="text-lg font-black uppercase text-[var(--text-primary)] tracking-tighter flex items-center gap-3">
+                        <h3 className="text-base font-semibold text-[var(--text-primary)] flex items-center gap-3">
                            Timeline Oficial
                         </h3>
                       </div>
@@ -4285,7 +4285,7 @@ export default function CoordinatorDashboard({
                   <div className="lg:col-span-1 space-y-6">
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm">
                       <div className="flex flex-col gap-2 mb-6 border-b border-[var(--border-color)] pb-4">
-                        <h3 className="text-sm font-black uppercase text-[var(--text-primary)] tracking-tighter flex items-center gap-2">
+                        <h3 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
                           <Clock className="w-4 h-4 text-amber-500" /> Aprovação Pendente
                         </h3>
                         <span className="bg-amber-100 text-amber-700 px-2.5 py-1 rounded-lg text-[10px] font-black w-fit uppercase tracking-widest">
@@ -4374,7 +4374,7 @@ export default function CoordinatorDashboard({
                       <MessageSquare className="w-5 h-5 md:w-6 md:h-6 text-[var(--text-primary)]" />
                     </div>
                     <div>
-                      <h2 className="text-xl md:text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Anotações Táticas</h2>
+                      <h2 className="text-lg font-bold text-[var(--text-primary)]">Anotações Táticas</h2>
                       <div className="flex gap-2.5 mt-3 md:mt-5">
                         <button 
                           onClick={() => setNoteSubTab('tactical')}
@@ -4421,7 +4421,7 @@ export default function CoordinatorDashboard({
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 md:space-y-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-[var(--border-color)] pb-4">
                   <div>
-                    <h2 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] leading-none font-sans">Gestão de Materiais e Estoque</h2>
+                    <h2 className="text-lg font-bold text-[var(--text-primary)]">Gestão de Materiais e Estoque</h2>
                     <p className="text-[var(--text-secondary)] text-xs font-normal mt-1">Controle de lotes, distribuição e reposição para equipes de campo</p>
                   </div>
                   <button
@@ -4853,7 +4853,7 @@ export default function CoordinatorDashboard({
               <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Mapeamento Geográfico</h2>
+                    <h2 className="text-lg font-bold text-[var(--text-primary)]">Mapeamento Geográfico</h2>
                     <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">Concentração de Demandas e Pressão Política por Zona</p>
                   </div>
                 </div>
@@ -4939,7 +4939,7 @@ export default function CoordinatorDashboard({
               <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[var(--border-color)] pb-6">
                   <div>
-                    <h2 className="text-2xl font-black uppercase text-[var(--text-primary)] tracking-tighter leading-none">Relatórios & BI</h2>
+                    <h2 className="text-lg font-bold text-[var(--text-primary)]">Relatórios & BI</h2>
                     <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">Inteligência de Dados e Exportação em PDF ou Excel (.XLSX)</p>
                   </div>
                 </div>
@@ -4977,7 +4977,7 @@ export default function CoordinatorDashboard({
                 </div>
 
                 <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-10 shadow-sm mt-12">
-                  <h3 className="text-lg font-black uppercase text-[var(--text-primary)] tracking-tighter mb-8 flex items-center gap-3">
+                  <h3 className="text-base font-semibold text-[var(--text-primary)] mb-8 flex items-center gap-3">
                     <History className="w-5 h-5 text-blue-600" /> Histórico de Relatórios Gerados
                   </h3>
                   <div className="space-y-4">
@@ -6650,7 +6650,7 @@ export default function CoordinatorDashboard({
               </button>
 
               <div className="bg-zinc-950 p-10 border-b-4 border-blue-600 text-left">
-                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">
+                <h2 className="text-lg font-bold text-white">
                   Histórico Estratégico
                 </h2>
                 <p className="text-blue-600 text-xs font-black mt-2 uppercase tracking-widest">Equipe: {selectedHistoryTeam.name}</p>
@@ -7039,7 +7039,7 @@ export default function CoordinatorDashboard({
                     <Check className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-[var(--text-primary)] uppercase tracking-tight">Coordenador Cadastrado com Sucesso!</h3>
+                    <h3 className="text-sm font-semibold text-[var(--text-primary)]">Coordenador Cadastrado com Sucesso!</h3>
                     <p className="text-xs font-bold text-[var(--text-secondary)] mt-1">Envie o link abaixo para o Coordenador Regional acessar o painel dele.</p>
                   </div>
 
@@ -7819,3 +7819,5 @@ export default function CoordinatorDashboard({
     </div>
   );
 }
+
+
