@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Brain, FileDown, AlertTriangle, CheckCircle, Search } from 'lucide-react';
+import { BarChart3, Brain, FileDown, AlertTriangle, CheckCircle, Search, ExternalLink } from 'lucide-react';
 import { tseAnalyticsService, TseDemographicData, CampaignBaseData } from '../lib/tseAnalyticsService';
 import { generateCampaignInsights } from '../services/groqService';
 
@@ -59,13 +59,24 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
             <p className="text-sm text-slate-500">Cruzamento demográfico e geográfico com dados oficiais</p>
           </div>
         </div>
-        <button 
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-sm font-medium transition-colors"
-          title="Importar novo CSV do TSE"
-        >
-          <FileDown className="w-4 h-4" />
-          <span>Atualizar CSV</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <a 
+            href="https://dadosabertos.tse.jus.br/dataset/eleitorado-atual" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm text-slate-500 hover:text-indigo-600 transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" />
+            <span>Baixar Dados Oficiais</span>
+          </a>
+          <button 
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-sm font-medium transition-colors"
+            title="Importar novo CSV do TSE"
+          >
+            <FileDown className="w-4 h-4" />
+            <span>Atualizar CSV</span>
+          </button>
+        </div>
       </div>
 
       <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
