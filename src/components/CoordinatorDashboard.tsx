@@ -2378,31 +2378,31 @@ export default function CoordinatorDashboard({
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1">
+        <nav className="flex-1 space-y-0.5 overflow-y-auto custom-scrollbar pr-1">
           {[
-            { id: 'overview', label: isRegional ? 'Painel Regional' : 'Dashboard Geral', icon: <LayoutDashboard className="w-4 h-4" /> },
-            { id: 'metas', label: 'Metas Eleitorais', icon: <Target className="w-4 h-4" /> },
-            ...(isGeral ? [{ id: 'regional_coords', label: 'Coord. Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
-            { id: 'teams', label: 'Equipes & Líderes', icon: <Users className="w-4 h-4" /> },
-            { id: 'voters', label: 'Eleitores Geral', icon: <UserPlus className="w-4 h-4" /> },
+            { id: 'overview', label: isRegional ? 'Painel Regional' : 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
             { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
-            { id: 'mapa', label: 'Mapa Regional', icon: <MapIcon className="w-4 h-4" /> },
+            { id: 'metas', label: 'Metas', icon: <Target className="w-4 h-4" /> },
+            ...(isGeral ? [{ id: 'regional_coords', label: 'Regionais', icon: <ShieldCheck className="w-4 h-4" /> }] : []),
+            { id: 'teams', label: 'Equipes', icon: <Users className="w-4 h-4" /> },
+            { id: 'voters', label: 'Eleitores', icon: <UserPlus className="w-4 h-4" /> },
             { id: 'materials', label: 'Materiais', icon: <Package className="w-4 h-4" /> },
             { id: 'demands', label: 'Demandas', icon: <Activity className="w-4 h-4" /> },
-            { id: 'analise_eleitoral', label: 'Análise Eleitoral', icon: <TrendingUp className="w-4 h-4" /> },
+            { id: 'mapa', label: 'Mapa', icon: <MapIcon className="w-4 h-4" /> },
+            { id: 'analise_eleitoral', label: 'Análise', icon: <TrendingUp className="w-4 h-4" /> },
+            { id: 'reports', label: 'Relatórios', icon: <FileDown className="w-4 h-4" /> },
             { id: 'notes', label: 'Anotações', icon: <MessageSquare className="w-4 h-4" /> },
-            { id: 'reports', label: 'Relatórios & BI', icon: <FileDown className="w-4 h-4" /> },
           ].map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id as any)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all group ${
+              className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs font-medium transition-all group ${
                 activeTab === item.id 
-                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 font-bold shadow-2xs' 
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100/70 dark:hover:bg-zinc-800/50'
+                ? 'bg-blue-50/80 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-bold shadow-sm' 
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50'
               }`}
             >
-              <div className={`transition-colors ${activeTab === item.id ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-400 dark:text-zinc-500 group-hover:text-blue-600 dark:group-hover:text-blue-400'}`}>
+              <div className={`transition-colors ${activeTab === item.id ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-zinc-300'}`}>
                 {item.icon}
               </div>
               {item.label}
