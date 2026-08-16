@@ -2383,8 +2383,8 @@ export default function CoordinatorDashboard({
               title="Configurações e Perfil"
             >
               <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-sm text-white overflow-hidden shadow-sm shrink-0 border border-zinc-200 dark:border-zinc-700">
-                {profileData?.photoURL ? (
-                  <img src={profileData.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                {profileData?.photoUrl ? (
+                  <img src={profileData.photoUrl} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   (profileData?.name || user?.email || 'A').charAt(0).toUpperCase()
                 )}
@@ -2559,8 +2559,8 @@ export default function CoordinatorDashboard({
               className="flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 p-1.5 rounded-xl transition-all"
             >
               <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-xs text-white overflow-hidden shadow-sm border border-zinc-200 dark:border-zinc-700">
-                {profileData?.photoURL ? (
-                  <img src={profileData.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                {profileData?.photoUrl ? (
+                  <img src={profileData.photoUrl} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   (profileData?.name || user?.email || 'A').charAt(0).toUpperCase()
                 )}
