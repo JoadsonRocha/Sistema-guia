@@ -2500,22 +2500,24 @@ export default function CoordinatorDashboard({
 
           <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Badge de Identificação do Político / Candidato */}
-            <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 bg-blue-600/10 dark:bg-blue-900/30 border border-blue-500/30 rounded-xl">
-              <img 
-                src={candidateForm?.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
-                alt="Candidato" 
-                className="w-7 h-7 rounded-full object-cover border border-blue-500 shrink-0 bg-slate-800" 
-                onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
-              />
-              <div className="text-left">
-                <p className="text-[11px] font-black text-[var(--text-primary)] leading-none truncate max-w-[170px]">
-                  {candidateForm?.name || 'Candidato Oficial'}
-                </p>
-                <p className="text-[9px] font-bold text-blue-600 dark:text-blue-400 leading-none mt-0.5 truncate max-w-[170px]">
-                  {candidateForm?.title || 'Campanha 2026'}
-                </p>
+            {candidateForm?.id && (
+              <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 bg-blue-600/10 dark:bg-blue-900/30 border border-blue-500/30 rounded-xl">
+                <img 
+                  src={candidateForm?.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
+                  alt="Candidato" 
+                  className="w-7 h-7 rounded-full object-cover border border-blue-500 shrink-0 bg-slate-800" 
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+                />
+                <div className="text-left">
+                  <p className="text-[11px] font-black text-[var(--text-primary)] leading-none truncate max-w-[170px]">
+                    {candidateForm?.name || 'Candidato Oficial'}
+                  </p>
+                  <p className="text-[9px] font-bold text-blue-600 dark:text-blue-400 leading-none mt-0.5 truncate max-w-[170px]">
+                    {candidateForm?.title || 'Campanha 2026'}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             {isGeral && (
               <button 
@@ -2591,7 +2593,7 @@ export default function CoordinatorDashboard({
               <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-5 md:space-y-8">
               
             {/* BANNER EM DESTAQUE DE CADASTRO DO CANDIDATO */}
-            {isGeral && candidatesList.length === 0 && (
+            {isGeral && !candidateForm?.id && (
               <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-2xl p-5 shadow-lg border border-blue-700/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shrink-0">
@@ -2792,28 +2794,30 @@ export default function CoordinatorDashboard({
                     </div>
 
                     {/* CARTÃO EM DESTAQUE DO CANDIDATO */}
-                    <div className="bg-gradient-to-br from-blue-700 via-blue-900 to-slate-900 text-white rounded-2xl p-6 shadow-xl border border-blue-500/30 space-y-4 relative overflow-hidden group">
-                      <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 blur-3xl rounded-full pointer-events-none transition-all group-hover:scale-150"></div>
-                      <span className="text-[10px] font-black text-blue-300 block uppercase tracking-[0.2em] relative z-10">Candidato Oficial da Campanha</span>
-                      <div className="flex flex-col items-center text-center gap-3 relative z-10">
-                        <img 
-                          src={candidateForm?.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
-                          alt="Candidato" 
-                          className="w-24 h-24 rounded-full object-cover border-4 border-white/90 shadow-[0_0_15px_rgba(255,255,255,0.2)] shrink-0 bg-slate-800 transition-transform group-hover:scale-105"
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
-                        />
-                        <div className="overflow-hidden w-full">
-                          <h4 className="text-xl font-black text-white truncate">{candidateForm?.name || 'Candidato da Campanha'}</h4>
-                          <p className="text-sm font-semibold text-blue-200 mt-0.5 truncate">{candidateForm?.title || 'Eleições 2026'}</p>
+                    {candidateForm?.id && (
+                      <div className="bg-gradient-to-br from-blue-700 via-blue-900 to-slate-900 text-white rounded-2xl p-6 shadow-xl border border-blue-500/30 space-y-4 relative overflow-hidden group">
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 blur-3xl rounded-full pointer-events-none transition-all group-hover:scale-150"></div>
+                        <span className="text-[10px] font-black text-blue-300 block uppercase tracking-[0.2em] relative z-10">Candidato Oficial da Campanha</span>
+                        <div className="flex flex-col items-center text-center gap-3 relative z-10">
+                          <img 
+                            src={candidateForm?.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
+                            alt="Candidato" 
+                            className="w-24 h-24 rounded-full object-cover border-4 border-white/90 shadow-[0_0_15px_rgba(255,255,255,0.2)] shrink-0 bg-slate-800 transition-transform group-hover:scale-105"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
+                          />
+                          <div className="overflow-hidden w-full">
+                            <h4 className="text-xl font-black text-white truncate">{candidateForm?.name || 'Candidato da Campanha'}</h4>
+                            <p className="text-sm font-semibold text-blue-200 mt-0.5 truncate">{candidateForm?.title || 'Eleições 2026'}</p>
+                          </div>
                         </div>
+                        <button
+                          onClick={() => { setActiveTab('candidato'); setIsCandidateModalOpen(true); }}
+                          className="w-full py-2.5 mt-2 bg-white hover:bg-blue-50 text-blue-900 rounded-xl font-bold text-xs transition-all shadow-[0_4px_10px_rgba(255,255,255,0.1)] active:scale-95 cursor-pointer text-center flex items-center justify-center gap-2 relative z-10"
+                        >
+                          <UserPlus className="w-4 h-4" /> {isGeral ? 'Editar Informações' : 'Visualizar Detalhes'}
+                        </button>
                       </div>
-                      <button
-                        onClick={() => { setActiveTab('candidato'); setIsCandidateModalOpen(true); }}
-                        className="w-full py-2.5 mt-2 bg-white hover:bg-blue-50 text-blue-900 rounded-xl font-bold text-xs transition-all shadow-[0_4px_10px_rgba(255,255,255,0.1)] active:scale-95 cursor-pointer text-center flex items-center justify-center gap-2 relative z-10"
-                      >
-                        <UserPlus className="w-4 h-4" /> {isGeral ? 'Editar Informações' : 'Visualizar Detalhes'}
-                      </button>
-                    </div>
+                    )}
 
                     {/* ATIVIDADE E MOBILIZAÇÃO DAS EQUIPES */}
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm space-y-4">
