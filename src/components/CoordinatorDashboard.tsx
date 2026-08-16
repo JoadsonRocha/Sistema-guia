@@ -207,6 +207,7 @@ export default function CoordinatorDashboard({
   const setActiveTab = (tab: ActiveTabType) => {
     try { localStorage.setItem(ACTIVE_TAB_KEY, tab); } catch (_) {}
     setActiveTabState(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
   const [selectedLinkTeam, setSelectedLinkTeam] = useState('');

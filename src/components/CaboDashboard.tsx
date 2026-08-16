@@ -105,6 +105,7 @@ export default function CaboDashboard({
   const setActiveTab = (tab: CaboTabType) => {
     try { localStorage.setItem(CABO_TAB_KEY, tab); } catch (_) {}
     setActiveTabState(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [dailyOrder, setDailyOrder] = useState<any>(null);
