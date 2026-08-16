@@ -5,6 +5,7 @@ export interface CandidateInfo {
   name: string;
   title: string; // Cargo / Função (Deputado Estadual, Deputado Federal, Senador, Governador, etc.)
   photoUrl: string;
+  bannerUrl?: string; // Capa de Fundo
   bio: string;
   number?: string; // Número de Urna
   party?: string; // Partido ou Coligação
@@ -23,7 +24,8 @@ export const DEFAULT_CANDIDATE_INFO: CandidateInfo = {
   name: 'Candidato Pendente',
   title: 'Aguardando Cadastro',
   photoUrl: '',
-  bio: 'Os dados do candidato ainda não foram preenchidos.',
+  bannerUrl: '',
+  bio: 'A biografia do candidato será exibida aqui após o cadastro oficial.',
   proposals: '',
   badgeTitle: 'Campanha em Estruturação',
   subtitle: 'Configure sua campanha no painel.'

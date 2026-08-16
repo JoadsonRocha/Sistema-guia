@@ -363,9 +363,21 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
         {/* ESQUERDA: BANNER / CARD DO CANDIDATO */}
         <div className="lg:col-span-5 bg-gradient-to-b from-blue-600 via-blue-600 to-blue-700 text-white p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
           
+          {/* Banner de Fundo (se existir) */}
+          {candidateInfo?.bannerUrl && (
+            <div 
+              className="absolute inset-0 z-0 opacity-40 mix-blend-overlay"
+              style={{
+                backgroundImage: `url(${candidateInfo.bannerUrl})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
+            />
+          )}
+
           {/* Elementos decorativos de fundo */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-900/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none z-0" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-900/40 rounded-full blur-2xl pointer-events-none z-0" />
 
           <div className="relative z-10 flex flex-col items-center text-center">
             

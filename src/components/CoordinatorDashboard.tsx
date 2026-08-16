@@ -7451,6 +7451,21 @@ export default function CoordinatorDashboard({
                       </div>
                     )}
                   </div>
+                  
+                  {isGeral && (
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
+                        URL do Banner de Fundo (Página Externa)
+                      </label>
+                      <input 
+                        type="text"
+                        placeholder="Link da imagem horizontal de capa..."
+                        value={candidateForm.bannerUrl || ''}
+                        onChange={(e) => setCandidateForm({ ...candidateForm, bannerUrl: e.target.value })}
+                        className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3 text-xs font-medium outline-none focus:border-blue-600"
+                      />
+                    </div>
+                  )}
                 )}
 
                 {/* TAB 2: APRESENTAÇÃO & BIOGRAFIA */}
