@@ -4235,81 +4235,10 @@ export default function CoordinatorDashboard({
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  {/* Solicitações Pendentes */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+                  
+                  {/* Cronograma Confirmado (Timeline Oficial) - AGORA EM DESTAQUE (2 Colunas) */}
                   <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white border border-[var(--border-color)] rounded-2xl p-6 lg:p-8 shadow-sm">
-                      <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-black uppercase text-[var(--text-primary)] tracking-tighter flex items-center gap-3">
-                          <Clock className="w-5 h-5 text-amber-500" /> Solicitações Pendentes
-                        </h3>
-                        <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-black">
-                          {agendas.filter(a => a.status === 'pendente').length} aguardando
-                        </span>
-                      </div>
-                      
-                      <div className="space-y-4">
-                        {agendas.filter(a => a.status === 'pendente').length > 0 ? agendas.filter(a => a.status === 'pendente').map((item) => {
-                          const itemDate = new Date(item.data);
-                          itemDate.setMinutes(itemDate.getMinutes() + itemDate.getTimezoneOffset());
-                          const isToday = itemDate.toDateString() === new Date().toDateString();
-                          
-                          return (
-                          <motion.div key={item.id} layout className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-5 lg:p-6 flex flex-col md:flex-row justify-between items-center gap-6 group hover:border-blue-500/30 hover:shadow-md transition-all relative overflow-hidden">
-                            {isToday && <div className="absolute top-0 left-0 w-1 h-full bg-red-500" title="Evento Hoje!" />}
-                            <div className="flex items-center gap-5 w-full md:w-auto">
-                              <div className={`flex flex-col items-center justify-center min-w-[70px] h-[70px] rounded-xl shrink-0 shadow-sm ${isToday ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}>
-                                <span className="text-[10px] font-black uppercase leading-none mb-1">{itemDate.toLocaleDateString('pt-BR', { month: 'short' })}</span>
-                                <span className="text-3xl font-black leading-none">{itemDate.getDate()}</span>
-                              </div>
-                              <div className="space-y-1.5 flex-1">
-                                <h3 className="text-base font-black tracking-tight text-[var(--text-primary)] group-hover:text-blue-600 transition-colors">{item.municipio}</h3>
-                                <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-[var(--text-secondary)]">
-                                  <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md ${isToday ? 'bg-red-100 text-red-700' : 'bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border-color)]'}`}>
-                                    <Clock className="w-3 h-3" /> {item.hora_inicio}
-                                  </span>
-                                  <span className="flex items-center gap-1.5 bg-[var(--bg-tertiary)] px-2 py-0.5 rounded-md border border-[var(--border-color)] text-[var(--text-primary)]"><User className="w-3 h-3 text-blue-500" /> {item.sugeridoPor || 'Coordenador'}</span>
-                                </div>
-                                {item.allocatedMaterials && (
-                                  <div className="flex items-center gap-1.5 text-[11px] text-blue-600 font-bold pt-1">
-                                    <Package className="w-3.5 h-3.5 shrink-0" />
-                                    <span>Materiais: {item.allocatedMaterials}</span>
-                                  </div>
-                                )}
-                                {item.motivo && <p className="text-[11px] text-[var(--text-secondary)] bg-[var(--bg-tertiary)] px-3 py-1.5 rounded-lg border border-[var(--border-color)] inline-block font-medium mt-1.5">{item.motivo}</p>}
-                              </div>
-                            </div>
-                            <div className="flex gap-2 w-full md:w-auto shrink-0 mt-4 md:mt-0">
-                              <button 
-                                onClick={async () => {
-                                  await supabaseService.updateDocument('agenda', item.id, { status: 'negado' });
-                                }}
-                                className="flex-1 md:flex-none px-5 py-2.5 bg-white border border-red-200 text-red-600 font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-red-50 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-1.5"
-                              >
-                                <X className="w-3.5 h-3.5" /> Negar
-                              </button>
-                              <button 
-                                onClick={async () => {
-                                  await supabaseService.updateDocument('agenda', item.id, { status: 'confirmado' });
-                                }}
-                                className="flex-1 md:flex-none px-5 py-2.5 bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest rounded-lg shadow-[0_4px_15px_rgba(16,185,129,0.3)] hover:bg-emerald-500 active:scale-95 transition-all flex items-center justify-center gap-1.5"
-                              >
-                                <Check className="w-3.5 h-3.5" /> Confirmar
-                              </button>
-                            </div>
-                          </motion.div>
-                        );}) : (
-                          <div className="p-16 bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-2xl text-center grayscale opacity-60">
-                            <CheckCircle2 className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
-                            <p className="font-black text-[var(--text-secondary)] uppercase tracking-[0.15em] text-[10px]">Agenda Zerada. Nenhuma solicitação pendente.</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Cronograma Confirmado (Timeline Vertical) */}
-                  <div className="space-y-6">
                     <div className="bg-white border border-[var(--border-color)] rounded-2xl p-6 lg:p-8 shadow-sm h-full relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-bl-full -mr-8 -mt-8 pointer-events-none" />
                       <div className="flex items-center justify-between mb-8 relative z-10">
@@ -4318,7 +4247,7 @@ export default function CoordinatorDashboard({
                         </h3>
                       </div>
                       
-                      <div className="relative space-y-6 before:absolute before:inset-0 before:left-[11px] before:h-full before:w-0.5 before:bg-gradient-to-b before:from-blue-500 before:via-blue-200 before:to-transparent z-10 overflow-y-auto max-h-[500px] custom-scrollbar pr-2 pb-8">
+                      <div className="relative space-y-6 before:absolute before:inset-0 before:left-[11px] before:h-full before:w-0.5 before:bg-gradient-to-b before:from-blue-500 before:via-blue-200 before:to-transparent z-10 overflow-y-auto max-h-[600px] custom-scrollbar pr-2 pb-8">
                         {agendas.filter(a => a.status === 'confirmado').sort((a, b) => new Date(`${a.data}T${a.hora_inicio}`).getTime() - new Date(`${b.data}T${b.hora_inicio}`).getTime()).map((item, idx) => {
                           const itemDate = new Date(item.data);
                           itemDate.setMinutes(itemDate.getMinutes() + itemDate.getTimezoneOffset());
@@ -4334,19 +4263,90 @@ export default function CoordinatorDashboard({
                             className="relative flex items-start group cursor-pointer"
                           >
                             <div className="flex items-center justify-center w-6 h-6 rounded-full border-4 border-white bg-blue-500 shadow shrink-0 absolute left-0 z-10 group-hover:scale-125 transition-transform" />
-                            <div className="ml-10 w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] p-4 rounded-2xl shadow-sm group-hover:border-blue-500/50 group-hover:shadow-md transition-all relative overflow-hidden">
+                            <div className="ml-10 w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-2xl shadow-sm group-hover:border-blue-500/50 group-hover:shadow-md transition-all relative overflow-hidden">
                                <div className="absolute top-0 right-0 w-16 h-16 bg-blue-50/30 rounded-bl-full -mr-4 -mt-4 pointer-events-none" />
-                               <div className="flex justify-between items-start mb-2 relative z-10">
-                                 <span className="text-[10px] font-black text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1"><Clock className="w-3 h-3" /> {item.hora_inicio}</span>
-                                 <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase bg-[var(--bg-tertiary)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">{itemDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
+                               <div className="flex justify-between items-start mb-3 relative z-10">
+                                 <span className="text-[11px] font-black text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 px-2.5 py-1 rounded-md uppercase tracking-wider flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {item.hora_inicio}</span>
+                                 <span className="text-[11px] font-black text-[var(--text-secondary)] uppercase bg-[var(--bg-tertiary)] px-2.5 py-1 rounded-md border border-[var(--border-color)]">{itemDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
                                </div>
-                               <h4 className="text-sm font-black uppercase text-[var(--text-primary)] truncate group-hover:text-blue-600 transition-colors leading-tight mb-1 relative z-10">{item.municipio}</h4>
-                               {item.motivo && <p className="text-[11px] text-[var(--text-secondary)] font-medium line-clamp-2 leading-snug relative z-10">{item.motivo}</p>}
+                               <h4 className="text-base font-black uppercase text-[var(--text-primary)] group-hover:text-blue-600 transition-colors leading-tight mb-2 relative z-10">{item.municipio}</h4>
+                               {item.motivo && <p className="text-xs text-[var(--text-secondary)] font-medium leading-relaxed relative z-10">{item.motivo}</p>}
                             </div>
                           </motion.div>
                         )})}
                         {agendas.filter(a => a.status === 'confirmado').length === 0 && (
                           <div className="text-center text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest mt-12 w-full relative z-20">Nenhum evento oficializado.</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Solicitações Pendentes - AGORA NA LATERAL (1 Coluna) */}
+                  <div className="lg:col-span-1 space-y-6">
+                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm">
+                      <div className="flex flex-col gap-2 mb-6 border-b border-[var(--border-color)] pb-4">
+                        <h3 className="text-sm font-black uppercase text-[var(--text-primary)] tracking-tighter flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-amber-500" /> Aprovação Pendente
+                        </h3>
+                        <span className="bg-amber-100 text-amber-700 px-2.5 py-1 rounded-lg text-[10px] font-black w-fit uppercase tracking-widest">
+                          {agendas.filter(a => a.status === 'pendente').length} aguardando
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
+                        {agendas.filter(a => a.status === 'pendente').length > 0 ? agendas.filter(a => a.status === 'pendente').map((item) => {
+                          const itemDate = new Date(item.data);
+                          itemDate.setMinutes(itemDate.getMinutes() + itemDate.getTimezoneOffset());
+                          const isToday = itemDate.toDateString() === new Date().toDateString();
+                          
+                          return (
+                          <motion.div key={item.id} layout className="bg-white dark:bg-zinc-900 border border-[var(--border-color)] rounded-xl p-4 flex flex-col gap-4 group hover:border-blue-500/30 hover:shadow-md transition-all relative overflow-hidden">
+                            {isToday && <div className="absolute top-0 left-0 w-1 h-full bg-red-500" title="Evento Hoje!" />}
+                            
+                            <div className="flex items-start gap-3">
+                              <div className={`flex flex-col items-center justify-center min-w-[50px] h-[50px] rounded-lg shrink-0 shadow-sm ${isToday ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}>
+                                <span className="text-[8px] font-black uppercase leading-none mb-0.5">{itemDate.toLocaleDateString('pt-BR', { month: 'short' })}</span>
+                                <span className="text-xl font-black leading-none">{itemDate.getDate()}</span>
+                              </div>
+                              <div className="space-y-1 w-full min-w-0">
+                                <h3 className="text-xs font-black tracking-tight text-[var(--text-primary)] truncate group-hover:text-blue-600 transition-colors" title={item.municipio}>{item.municipio}</h3>
+                                <div className="flex items-center gap-2 text-[10px] font-bold text-[var(--text-secondary)]">
+                                  <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md ${isToday ? 'bg-red-100 text-red-700' : 'bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border-color)]'}`}>
+                                    <Clock className="w-2.5 h-2.5" /> {item.hora_inicio}
+                                  </span>
+                                </div>
+                                <div className="text-[10px] text-[var(--text-secondary)] truncate">
+                                  Por: <span className="font-bold text-[var(--text-primary)]">{item.sugeridoPor || 'Coordenador'}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {item.motivo && <p className="text-[10px] text-[var(--text-secondary)] bg-[var(--bg-tertiary)] px-2.5 py-1.5 rounded-lg border border-[var(--border-color)] line-clamp-2">{item.motivo}</p>}
+
+                            <div className="grid grid-cols-2 gap-2 mt-2">
+                              <button 
+                                onClick={async () => {
+                                  await supabaseService.updateDocument('agenda', item.id, { status: 'negado' });
+                                }}
+                                className="px-2 py-2 bg-white border border-red-200 text-red-600 font-black text-[9px] uppercase tracking-widest rounded-lg hover:bg-red-50 active:scale-95 transition-all flex items-center justify-center gap-1"
+                              >
+                                <X className="w-3 h-3" /> Negar
+                              </button>
+                              <button 
+                                onClick={async () => {
+                                  await supabaseService.updateDocument('agenda', item.id, { status: 'confirmado' });
+                                }}
+                                className="px-2 py-2 bg-emerald-600 text-white font-black text-[9px] uppercase tracking-widest rounded-lg hover:bg-emerald-500 active:scale-95 transition-all flex items-center justify-center gap-1"
+                              >
+                                <Check className="w-3 h-3" /> Confirmar
+                              </button>
+                            </div>
+                          </motion.div>
+                        );}) : (
+                          <div className="p-8 bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-2xl text-center grayscale opacity-60">
+                            <CheckCircle2 className="w-8 h-8 text-[var(--text-secondary)] mx-auto mb-3" />
+                            <p className="font-black text-[var(--text-secondary)] uppercase tracking-[0.1em] text-[9px]">Tudo em dia.</p>
+                          </div>
                         )}
                       </div>
                     </div>
