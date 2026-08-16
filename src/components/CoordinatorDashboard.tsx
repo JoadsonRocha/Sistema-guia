@@ -2618,76 +2618,7 @@ export default function CoordinatorDashboard({
 
               {/* Ordem do Dia movida para a lateral direita */}
 
-              {/* AÇÕES RÁPIDAS (QUICK ACTIONS) */}
-              <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl shadow-xs">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-amber-500" /> Ações Rápidas
-                  </h3>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <button 
-                    onClick={() => { setActiveTab('agenda'); setTimeout(() => { setAgendaForm(DEFAULT_AGENDA_INFO); setEditingAgenda(null); setIsAgendaCreateModalOpen(true); }, 100); }}
-                    className="btn-primary !py-3 flex-col gap-1 hover:shadow-lg transition-all"
-                  >
-                    <Calendar className="w-5 h-5 mb-1" />
-                    <span>Novo Evento</span>
-                  </button>
-                  <button 
-                    onClick={() => { setActiveTab('materials'); setTimeout(() => { setEditingMaterial(null); setIsMaterialModalOpen(true); }, 100); }}
-                    className="btn-secondary !bg-indigo-50 !text-indigo-600 !border-indigo-200 hover:!bg-indigo-600 hover:!text-white !py-3 flex-col gap-1 transition-all"
-                  >
-                    <Package className="w-5 h-5 mb-1" />
-                    <span>Estoque</span>
-                  </button>
-                  <button 
-                    onClick={() => { setActiveTab('metas'); setTimeout(() => setIsEditGoalModalOpen(true), 100); }}
-                    className="btn-secondary !bg-emerald-50 !text-emerald-600 !border-emerald-200 hover:!bg-emerald-600 hover:!text-white !py-3 flex-col gap-1 transition-all"
-                  >
-                    <Target className="w-5 h-5 mb-1" />
-                    <span>Nova Meta</span>
-                  </button>
-                  <button 
-                    onClick={() => { setActiveTab('voters'); setTimeout(() => { setVoterForm(DEFAULT_VOTER_INFO); setEditingVoterId(null); setIsVoterEditModalOpen(true); }, 100); }}
-                    className="btn-secondary !py-3 flex-col gap-1 transition-all"
-                  >
-                    <UserPlus className="w-5 h-5 mb-1 text-[var(--text-secondary)]" />
-                    <span>Eleitor</span>
-                  </button>
-                </div>
-              </section>
 
-              {/* STATS GRID */}
-              <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                {stats.map((stat, i) => (
-                  <motion.div 
-                    key={i}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    onClick={stat.action}
-                    className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-3.5 md:p-5 rounded-xl shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:border-blue-600/50 transition-all cursor-pointer group"
-                  >
-                    <div className="flex justify-between items-start mb-2.5">
-                      <div className={`p-2 rounded-xl group-hover:bg-blue-600 transition-colors ${(stat as any).iconColor || 'bg-[var(--bg-tertiary)]'}`}>
-                        {i === 0 && <Target className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
-                        {i === 1 && <Users className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
-                        {i === 2 && <Calendar className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
-                        {i === 3 && <DollarSign className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <span className="text-[6px] md:text-[7px] font-black py-0.5 px-1.5 bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 rounded-xl uppercase tracking-widest border border-green-200/50 dark:border-green-500/20 leading-none">ATIVO</span>
-                      </div>
-                    </div>
-                    <p className={`text-lg md:text-2xl font-black tracking-tighter mb-0.5 leading-none ${stat.color || 'text-[var(--text-primary)]'}`}>{stat.value}</p>
-                    <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-[0.1em]">{stat.label}</p>
-                    <div className="mt-3.5 md:mt-5 pt-2 md:pt-3 border-t border-[var(--border-color)] flex items-center justify-between">
-                      <span className="text-[7.5px] md:text-[8px] font-bold text-[var(--text-secondary)] uppercase tracking-widest leading-none">{stat.sub}</span>
-                      <ChevronRight className="w-3 h-3 text-[var(--text-secondary)] group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
-                    </div>
-                  </motion.div>
-                ))}
-              </section>
 
                 <div className="pt-2 flex flex-col lg:flex-row gap-6">
                   {/* COLUNA PRINCIPAL (ESQUERDA / CENTRO) */}
@@ -2932,6 +2863,80 @@ export default function CoordinatorDashboard({
                     </div>
 
                   </div>
+                </div>
+
+                {/* AÇÕES RÁPIDAS E METRICAS MOVIDAS PARA BAIXO */}
+                <div className="mt-8 space-y-5 md:space-y-8">
+                  {/* AÇÕES RÁPIDAS (QUICK ACTIONS) */}
+                  <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl shadow-xs">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-2">
+                        <Zap className="w-4 h-4 text-amber-500" /> Ações Rápidas
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <button 
+                        onClick={() => { setActiveTab('agenda'); setTimeout(() => { setAgendaForm(DEFAULT_AGENDA_INFO); setEditingAgenda(null); setIsAgendaCreateModalOpen(true); }, 100); }}
+                        className="btn-primary !py-3 flex-col gap-1 hover:shadow-lg transition-all"
+                      >
+                        <Calendar className="w-5 h-5 mb-1" />
+                        <span>Novo Evento</span>
+                      </button>
+                      <button 
+                        onClick={() => { setActiveTab('materials'); setTimeout(() => { setEditingMaterial(null); setIsMaterialModalOpen(true); }, 100); }}
+                        className="btn-secondary !bg-indigo-50 !text-indigo-600 !border-indigo-200 hover:!bg-indigo-600 hover:!text-white !py-3 flex-col gap-1 transition-all"
+                      >
+                        <Package className="w-5 h-5 mb-1" />
+                        <span>Estoque</span>
+                      </button>
+                      <button 
+                        onClick={() => { setActiveTab('metas'); setTimeout(() => setIsEditGoalModalOpen(true), 100); }}
+                        className="btn-secondary !bg-emerald-50 !text-emerald-600 !border-emerald-200 hover:!bg-emerald-600 hover:!text-white !py-3 flex-col gap-1 transition-all"
+                      >
+                        <Target className="w-5 h-5 mb-1" />
+                        <span>Nova Meta</span>
+                      </button>
+                      <button 
+                        onClick={() => { setActiveTab('voters'); setTimeout(() => { setVoterForm(DEFAULT_VOTER_INFO); setEditingVoterId(null); setIsVoterEditModalOpen(true); }, 100); }}
+                        className="btn-secondary !py-3 flex-col gap-1 transition-all"
+                      >
+                        <UserPlus className="w-5 h-5 mb-1 text-[var(--text-secondary)]" />
+                        <span>Eleitor</span>
+                      </button>
+                    </div>
+                  </section>
+
+                  {/* STATS GRID */}
+                  <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                    {stats.map((stat, i) => (
+                      <motion.div 
+                        key={i}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        onClick={stat.action}
+                        className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-3.5 md:p-5 rounded-xl shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:border-blue-600/50 transition-all cursor-pointer group"
+                      >
+                        <div className="flex justify-between items-start mb-2.5">
+                          <div className={`p-2 rounded-xl group-hover:bg-blue-600 transition-colors ${(stat as any).iconColor || 'bg-[var(--bg-tertiary)]'}`}>
+                            {i === 0 && <Target className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
+                            {i === 1 && <Users className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
+                            {i === 2 && <Calendar className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
+                            {i === 3 && <DollarSign className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-white" />}
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span className="text-[6px] md:text-[7px] font-black py-0.5 px-1.5 bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 rounded-xl uppercase tracking-widest border border-green-200/50 dark:border-green-500/20 leading-none">ATIVO</span>
+                          </div>
+                        </div>
+                        <p className={`text-lg md:text-2xl font-black tracking-tighter mb-0.5 leading-none ${stat.color || 'text-[var(--text-primary)]'}`}>{stat.value}</p>
+                        <p className="text-[8px] md:text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-[0.1em]">{stat.label}</p>
+                        <div className="mt-3.5 md:mt-5 pt-2 md:pt-3 border-t border-[var(--border-color)] flex items-center justify-between">
+                          <span className="text-[7.5px] md:text-[8px] font-bold text-[var(--text-secondary)] uppercase tracking-widest leading-none">{stat.sub}</span>
+                          <ChevronRight className="w-3 h-3 text-[var(--text-secondary)] group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </section>
                 </div>
               </motion.div>
             )}
