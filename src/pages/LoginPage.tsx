@@ -166,7 +166,9 @@ export function LoginPage() {
           }
         }
         
-        const shouldForce = preRegDoc?.forcePasswordChange !== false && !preRegDoc?.passwordChangedAt;
+        // Se o usuário está se registrando manualmente e criando sua própria senha,
+        // não faz sentido forçá-lo a redefinir a senha logo em seguida.
+        const shouldForce = false;
         
         await signupWithEmail(email, password, effectiveRole, {
           name: preRegDoc?.name || email.split('@')[0],
