@@ -87,7 +87,9 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
           <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-2xl p-4 flex gap-3">
             <AlertTriangle className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5" />
             <p className="text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
-              <strong>Como funciona:</strong> Baixe o arquivo CSV do seu estado no portal do TSE usando o botão acima. Depois, clique em "Atualizar CSV" para cruzar os dados oficiais com a base real cadastrada pelas suas equipes.
+              <strong>Base Nativa (Roraima):</strong> Os dados demográficos oficiais do TSE de Roraima já estão <strong>pré-carregados no código do sistema</strong> para uso imediato. Eles mostram o universo total de eleitores do estado (cenário da guerra), e não os eleitores cadastrados pelas suas equipes.
+              <br/><br/>
+              <strong>Outros Estados:</strong> Caso você gerencie campanhas fora de Roraima, basta baixar o CSV público no portal do TSE (botão acima) e clicar em <strong>"Atualizar CSV"</strong> para importar os dados do seu estado.
             </p>
           </div>
 
