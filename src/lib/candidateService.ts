@@ -87,6 +87,8 @@ export const candidateService = {
           setLocalCacheList([singleCoord]);
           return [singleCoord];
         }
+        // Isolar a busca: se coordinatorId foi passado e não achou nada, retornar fallback, NÃO buscar globais.
+        return [DEFAULT_CANDIDATE_INFO];
       }
 
       // 2. Verificar lista global 'candidates_list'
@@ -192,12 +194,12 @@ export const candidateService = {
     };
 
     try {
-      await supabaseService.setDocument('settings', 'candidates_list', payload, true);
-      await supabaseService.setDocument('settings', 'candidate', updatedCandidate, true);
-
       if (coordinatorId) {
         await supabaseService.setDocument('settings', `candidates_${coordinatorId}`, payload, true);
         await supabaseService.setDocument('settings', `candidate_${coordinatorId}`, updatedCandidate, true);
+      } else {
+        await supabaseService.setDocument('settings', 'candidates_list', payload, true);
+        await supabaseService.setDocument('settings', 'candidate', updatedCandidate, true);
       }
     } catch (e) {
       console.error("Erro ao salvar candidato no Supabase:", e);
@@ -230,9 +232,10 @@ export const candidateService = {
     };
 
     try {
-      await supabaseService.setDocument('settings', 'candidates_list', payload, true);
       if (coordinatorId) {
         await supabaseService.setDocument('settings', `candidates_${coordinatorId}`, payload, true);
+      } else {
+        await supabaseService.setDocument('settings', 'candidates_list', payload, true);
       }
     } catch (e) {
       console.error("Erro ao remover candidato:", e);
