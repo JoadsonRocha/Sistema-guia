@@ -30,8 +30,8 @@ export const AdvancedDashboardPage: React.FC = () => {
       if (!coordId) return;
 
       const [votersData, teamsData, goalsData] = await Promise.all([
-        supabaseService.getCollectionFiltered<any>('eleitor', coordId),
-        supabaseService.getCollectionFiltered<any>('equipe', coordId),
+        supabaseService.getCollectionFiltered<any>('voters', coordId),
+        supabaseService.getCollectionFiltered<any>('teams', coordId),
         supabaseService.getCollectionFiltered<any>('goals', coordId)
       ]);
 

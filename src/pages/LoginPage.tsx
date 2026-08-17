@@ -7,6 +7,8 @@ import { supabaseService } from '../lib/supabaseService';
 import { validateGeneralCoordinatorRegistration, triggerUpgradeRedirect } from '../lib/planService';
 import logoImg from '../assets/logo.png';
 
+const sanitizeId = (id?: string | null): string => (id ? String(id).trim() : '');
+
 export function LoginPage() {
   const { 
     login, 

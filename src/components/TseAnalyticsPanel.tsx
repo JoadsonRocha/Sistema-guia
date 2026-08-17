@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { BarChart3, Brain, FileDown, AlertTriangle, CheckCircle, Search, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { BarChart3, Brain, FileDown, AlertTriangle, CheckCircle, Search, ExternalLink, RefreshCw, UploadCloud } from 'lucide-react';
 import { tseAnalyticsService, TseDemographicData, CampaignBaseData } from '../lib/tseAnalyticsService';
 import { generateCampaignInsights } from '../services/groqService';
+import { parseExcelOrCSVBuffer } from '../lib/excelParser';
 
 export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string }) {
   const [tseData, setTseData] = useState<TseDemographicData[]>([]);
@@ -9,6 +10,8 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
   const [insights, setInsights] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     loadData();
@@ -17,7 +20,6 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
   const loadData = async () => {
     setIsLoading(true);
     try {
-      // In a real scenario, you'd parse a real CSV here. We use the mock from the service.
       const context = await tseAnalyticsService.prepareAiContext(coordinatorId);
       setTseData(context.tseData);
       setBaseData(context.baseData);
@@ -25,6 +27,44 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
       console.error("Error loading TSE data:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadStatus('Lendo arquivo do TSE...');
+    try {
+      const buffer = await file.arrayBuffer();
+      const rows = parseExcelOrCSVBuffer(buffer, file.name);
+
+      if (!rows || rows.length < 2) {
+        setUploadStatus('Arquivo vazio ou formato não reconhecido.');
+        return;
+      }
+
+      // Converte cabeçalho + linhas em array de objetos
+      const headers = rows[0].map((h: any) => String(h || '').trim());
+      const parsedObjects = rows.slice(1).map((row: any[]) => {
+        const obj: Record<string, any> = {};
+        headers.forEach((h, idx) => {
+          if (h) obj[h] = row[idx];
+        });
+        return obj;
+      });
+
+      const processedTse = tseAnalyticsService.processTseCsvData(parsedObjects);
+      setTseData(processedTse);
+      setUploadStatus(`Sucesso! ${processedTse.length} zonas eleitorais importadas.`);
+      setTimeout(() => setUploadStatus(''), 4000);
+    } catch (err: any) {
+      console.error("Erro ao importar CSV do TSE:", err);
+      setUploadStatus(`Erro ao importar: ${err.message || 'arquivo inválido'}`);
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -42,10 +82,26 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
   };
 
   if (isLoading) {
-    return <div className="p-6 text-center animate-pulse">Carregando dados eleitorais...</div>;
+    return (
+      <div className="bg-[var(--bg-secondary)] rounded-2xl p-8 border border-[var(--border-color)] text-center animate-pulse flex items-center justify-center gap-3">
+        <RefreshCw className="w-5 h-5 text-indigo-500 animate-spin" />
+        <span className="text-sm font-medium text-[var(--text-secondary)]">Carregando inteligência demográfica eleitoral...</span>
+      </div>
+    );
   }
 
   const tseTotal = tseData.reduce((acc, curr) => acc + curr.totalEleitores, 0);
+  const tseMulheres = tseData.reduce((a, b) => a + b.mulheres, 0);
+  const tseHomens = tseData.reduce((a, b) => a + b.homens, 0);
+
+  const baseTotal = baseData?.totalCadastrados || 0;
+  const baseMulheres = baseData?.mulheres || 0;
+  const baseHomens = baseData?.homens || 0;
+
+  const percTseMulheres = (tseMulheres / (tseTotal || 1)) * 100;
+  const percBaseMulheres = (baseMulheres / (baseTotal || 1)) * 100;
+  const percTseHomens = (tseHomens / (tseTotal || 1)) * 100;
+  const percBaseHomens = (baseHomens / (baseTotal || 1)) * 100;
 
   return (
     <div className="bg-[var(--bg-secondary)] rounded-2xl shadow-sm border border-[var(--border-color)] overflow-hidden mb-6 transition-colors">
@@ -56,10 +112,17 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
           </div>
           <div>
             <h2 className="text-lg font-bold text-[var(--text-primary)] tracking-tight">Inteligência Eleitoral (TSE x Base)</h2>
-            <p className="text-xs text-[var(--text-secondary)]">Cruzamento demográfico e geográfico com dados oficiais</p>
+            <p className="text-xs text-[var(--text-secondary)]">Cruzamento demográfico e geográfico com dados oficiais do TRE/TSE</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileUpload} 
+            accept=".csv, .xlsx, .xls, .txt" 
+            className="hidden" 
+          />
           <a 
             href="https://dadosabertos.tse.jus.br/dataset/eleitorado-atual" 
             target="_blank" 
@@ -70,14 +133,22 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
             <span>Baixar Dados (TSE)</span>
           </a>
           <button 
+            onClick={() => fileInputRef.current?.click()}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 dark:bg-indigo-500 text-white hover:bg-indigo-700 dark:hover:bg-indigo-600 rounded-lg text-sm font-bold tracking-tight transition-colors shadow-sm shadow-indigo-500/20"
-            title="Importar novo CSV do TSE"
+            title="Importar novo CSV do TSE de qualquer estado"
           >
-            <FileDown className="w-4 h-4" />
+            <UploadCloud className="w-4 h-4" />
             <span>Atualizar CSV</span>
           </button>
         </div>
       </div>
+
+      {uploadStatus && (
+        <div className="px-6 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-xs font-semibold border-b border-indigo-100 dark:border-indigo-900/30 flex items-center gap-2">
+          <CheckCircle className="w-4 h-4 text-indigo-500 shrink-0" />
+          <span>{uploadStatus}</span>
+        </div>
+      )}
 
       <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         
@@ -87,9 +158,9 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
           <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-2xl p-4 flex gap-3">
             <AlertTriangle className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5" />
             <p className="text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
-              <strong>Base Nativa (Roraima):</strong> Os dados demográficos oficiais do TSE de Roraima já estão <strong>pré-carregados no código do sistema</strong> para uso imediato. Eles mostram o universo total de eleitores do estado (cenário da guerra), e não os eleitores cadastrados pelas suas equipes.
+              <strong>Base Nativa (Roraima):</strong> Os dados demográficos oficiais do TSE/TRE de Roraima já estão <strong>pré-carregados no código do sistema</strong> para uso imediato. Eles mostram o universo total de eleitores do estado ({tseTotal.toLocaleString('pt-BR')} aptos), permitindo comparar a penetração da sua base.
               <br/><br/>
-              <strong>Outros Estados:</strong> Caso você gerencie campanhas fora de Roraima, basta baixar o CSV público no portal do TSE (botão acima) e clicar em <strong>"Atualizar CSV"</strong> para importar os dados do seu estado.
+              <strong>Outros Estados:</strong> Caso você gerencie campanhas fora de Roraima, basta baixar o CSV público no portal do TSE e clicar em <strong>"Atualizar CSV"</strong>.
             </p>
           </div>
 
@@ -102,7 +173,7 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
              <div className="p-5 rounded-2xl border border-indigo-200 dark:border-indigo-800/50 bg-indigo-50 dark:bg-indigo-900/20 flex flex-col justify-center relative overflow-hidden shadow-sm">
                 <div className="absolute -right-4 -top-4 w-16 h-16 bg-indigo-300/30 dark:bg-indigo-700/30 rounded-full blur-xl"></div>
                 <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">Nossa Base (Captados)</span>
-                <span className="text-3xl font-black text-indigo-700 dark:text-indigo-300 tracking-tight">{baseData?.totalCadastrados.toLocaleString('pt-BR')}</span>
+                <span className="text-3xl font-black text-indigo-700 dark:text-indigo-300 tracking-tight">{baseTotal.toLocaleString('pt-BR')}</span>
              </div>
           </div>
 
@@ -112,33 +183,39 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
               Diagnóstico Demográfico Rápido
             </h3>
             
-            <div className="space-y-3">
-               <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
-                  <span className="text-[var(--text-secondary)]">Mulheres (TSE: {(tseData.reduce((a,b)=>a+b.mulheres,0) / (tseTotal || 1) * 100).toFixed(1)}%)</span>
-                  <span className="text-amber-600 dark:text-amber-500">Base: {((baseData?.mulheres || 0) / (baseData?.totalCadastrados || 1) * 100).toFixed(1)}%</span>
-               </div>
-               <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2">
-                  <div className="bg-amber-500 dark:bg-amber-400 h-2 rounded-full transition-all duration-1000" style={{ width: `${((baseData?.mulheres || 0) / (baseData?.totalCadastrados || 1) * 100)}%` }}></div>
+            <div className="space-y-4">
+               <div>
+                 <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-1.5">
+                    <span className="text-[var(--text-secondary)]">Mulheres (TSE: {percTseMulheres.toFixed(1)}%)</span>
+                    <span className="text-amber-600 dark:text-amber-500">Base: {baseTotal > 0 ? percBaseMulheres.toFixed(1) : '0.0'}%</span>
+                 </div>
+                 <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2.5 overflow-hidden">
+                    <div className="bg-amber-500 dark:bg-amber-400 h-2.5 rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, percBaseMulheres)}%` }}></div>
+                 </div>
                </div>
 
-               <div className="flex justify-between text-xs font-bold uppercase tracking-wider pt-2">
-                  <span className="text-[var(--text-secondary)]">Homens (TSE: {(tseData.reduce((a,b)=>a+b.homens,0) / (tseTotal || 1) * 100).toFixed(1)}%)</span>
-                  <span className="text-emerald-600 dark:text-emerald-500">Base: {((baseData?.homens || 0) / (baseData?.totalCadastrados || 1) * 100).toFixed(1)}%</span>
-               </div>
-               <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2">
-                  <div className="bg-emerald-500 dark:bg-emerald-400 h-2 rounded-full transition-all duration-1000" style={{ width: `${((baseData?.homens || 0) / (baseData?.totalCadastrados || 1) * 100)}%` }}></div>
+               <div>
+                 <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-1.5">
+                    <span className="text-[var(--text-secondary)]">Homens (TSE: {percTseHomens.toFixed(1)}%)</span>
+                    <span className="text-emerald-600 dark:text-emerald-500">Base: {baseTotal > 0 ? percBaseHomens.toFixed(1) : '0.0'}%</span>
+                 </div>
+                 <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2.5 overflow-hidden">
+                    <div className="bg-emerald-500 dark:bg-emerald-400 h-2.5 rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, percBaseHomens)}%` }}></div>
+                 </div>
                </div>
             </div>
             
-            {(tseTotal === 0 || !baseData?.totalCadastrados) ? (
+            {baseTotal === 0 ? (
               <p className="text-xs font-medium text-[var(--text-secondary)] mt-5 flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/50 p-3 rounded-lg">
-                <CheckCircle className="w-4 h-4 text-zinc-400" />
-                Aguardando importação do TSE e/ou cadastro de eleitores para gerar diagnóstico.
+                <CheckCircle className="w-4 h-4 text-zinc-400 shrink-0" />
+                Aguardando cadastro de eleitores pelas equipes para calcular penetração demográfica.
               </p>
             ) : (
               <p className="text-xs font-medium text-amber-600 dark:text-amber-400 mt-5 flex items-center gap-2 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 p-3 rounded-lg">
                 <AlertTriangle className="w-4 h-4 shrink-0" />
-                Os dados podem indicar uma discrepância na captação por gênero. Considere redirecionar o foco das equipes.
+                {Math.abs(percBaseMulheres - percTseMulheres) > 10 
+                  ? "Identificada discrepância na captação por gênero em relação ao universo do TSE. Recomendado alinhar as metas dos cabos."
+                  : "Distribuição demográfica da campanha alinhada com o perfil do eleitorado oficial."}
               </p>
             )}
           </div>
@@ -146,7 +223,6 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
 
         {/* Painel da Inteligência Artificial */}
         <div className="bg-zinc-950 dark:bg-[#09090b] rounded-2xl p-6 text-white flex flex-col relative overflow-hidden border border-zinc-800 shadow-xl shadow-zinc-900/20">
-          {/* Subtle gradient background for AI feel */}
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 via-transparent to-blue-600/10 pointer-events-none"></div>
           
           <div className="flex items-center gap-3 mb-5 relative z-10">
@@ -180,19 +256,19 @@ export function TseAnalyticsPanel({ coordinatorId }: { coordinatorId?: string })
           )}
 
           {insights && !isAiLoading && (
-             <div className="mt-2 text-xs text-zinc-300 bg-black/40 p-4 rounded-2xl overflow-y-auto max-h-64 custom-scrollbar border border-zinc-800 relative z-10">
-                <div className="prose prose-invert prose-sm max-w-none">
-                  {insights.split('\n').map((paragraph, i) => (
-                    <p key={i} className="mb-2 whitespace-pre-wrap leading-relaxed">{paragraph}</p>
-                  ))}
-                </div>
-                <button 
-                  onClick={handleGenerateInsights}
-                  className="mt-4 text-xs text-indigo-300 hover:text-white underline w-full text-center"
-                >
-                  Regerar Análise
-                </button>
-             </div>
+            <div className="mt-2 text-xs text-zinc-300 bg-black/40 p-4 rounded-2xl overflow-y-auto max-h-64 custom-scrollbar border border-zinc-800 relative z-10">
+              <div className="prose prose-invert prose-sm max-w-none">
+                {insights.split('\n').map((paragraph, i) => (
+                  <p key={i} className="mb-2 whitespace-pre-wrap leading-relaxed">{paragraph}</p>
+                ))}
+              </div>
+              <button 
+                onClick={handleGenerateInsights}
+                className="mt-4 text-xs text-indigo-300 hover:text-white underline w-full text-center"
+              >
+                Regerar Análise
+              </button>
+            </div>
           )}
         </div>
 

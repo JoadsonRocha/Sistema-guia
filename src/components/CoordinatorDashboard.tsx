@@ -2643,7 +2643,7 @@ export default function CoordinatorDashboard({
                         acc[team]++;
                         return acc;
                       }, {} as Record<string, number>);
-                      const topCriticalZones = Object.entries(demandsByZone).sort((a,b) => b[1] - a[1]).slice(0, 3);
+                      const topCriticalZones = Object.entries(demandsByZone).sort((a,b) => Number(b[1]) - Number(a[1])).slice(0, 3);
 
                       return (
                         <div className="space-y-6">

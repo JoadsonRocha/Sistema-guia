@@ -25,7 +25,8 @@ import {
   Sparkles,
   ChevronRight,
   ChevronDown,
-  Info
+  Info,
+  AlertTriangle
 } from 'lucide-react';
 
 interface RoraimaMapComponentProps {
