@@ -9,44 +9,42 @@ const PRIMARY_MODEL = 'llama-3.3-70b-versatile';
 const BACKUP_MODELS = ['llama-3.1-8b-instant', 'gemma2-9b-it'];
 
 /**
- * Executa chamada à API Groq com rotação de modelos e captura de erros
+ * Executa chamada à API Groq apenas quando houver chave válida 'gsk_'
  */
 async function callGroq(systemPrompt: string, userMessage: string, maxTokens = 800): Promise<string> {
-  const apiKey = import.meta.env.VITE_GROQ_API_KEY || (typeof window !== 'undefined' ? localStorage.getItem('nexus_groq_api_key') : null);
+  const rawKey = import.meta.env.VITE_GROQ_API_KEY || (typeof window !== 'undefined' ? localStorage.getItem('nexus_groq_api_key') : null);
+  const apiKey = typeof rawKey === 'string' ? rawKey.trim() : '';
   
-  if (!apiKey) {
+  // Se não houver chave real da Groq iniciada por 'gsk_', não dispara requisições externas para evitar 404/400 no console
+  if (!apiKey || !apiKey.startsWith('gsk_') || apiKey.length < 25) {
     throw new Error("GROQ_API_KEY_NOT_CONFIGURED");
   }
 
-  const modelsToTry = [PRIMARY_MODEL, ...BACKUP_MODELS];
+  try {
+    const response = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage }
+        ],
+        temperature: 0.7,
+        max_tokens: maxTokens
+      })
+    });
 
-  for (const model of modelsToTry) {
-    try {
-      const response = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey.trim()}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMessage }
-          ],
-          temperature: 0.7,
-          max_tokens: maxTokens
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const content = data.choices?.[0]?.message?.content;
-        if (content) return content;
-      }
-    } catch (e) {
-      console.warn(`[Groq AI] Falha ao tentar modelo ${model}:`, e);
+    if (response.ok) {
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (content) return content;
     }
+  } catch (e) {
+    // Falha de rede capturada de forma segura
   }
 
   throw new Error("GROQ_API_FAILED");
