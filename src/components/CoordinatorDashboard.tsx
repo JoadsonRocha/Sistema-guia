@@ -5109,13 +5109,13 @@ export default function CoordinatorDashboard({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-4 flex items-end sm:items-center justify-center overflow-y-auto"
+            className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-3 sm:p-6 flex items-center justify-center overflow-hidden"
           >
             <motion.div 
-              initial={{ y: 100 }}
-              animate={{ y: 0 }}
-              exit={{ y: 100 }}
-              className="bg-white w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative mb-10 border border-zinc-200"
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-white w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200 flex flex-col text-left"
             >
               <button 
                 onClick={() => {
@@ -5123,18 +5123,18 @@ export default function CoordinatorDashboard({
                   setAiResult(null);
                   setChaosText('');
                 }}
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-xl text-zinc-500 active:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-xl text-zinc-500 active:bg-zinc-200 transition-all active:scale-95 z-10"
               >
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="bg-blue-600 p-6">
-                <Brain className="w-10 h-10 text-zinc-950 mb-4" />
+              <div className="bg-blue-600 p-5 shrink-0">
+                <Brain className="w-8 h-8 text-zinc-950 mb-2" />
                 <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none">Análise de IA</h2>
                 <p className="text-zinc-900 text-[10px] font-black mt-2 uppercase tracking-widest leading-tight">Mapeamento Estratégico de Demandas</p>
               </div>
 
-              <div className="p-6">
+              <div className="p-5 overflow-y-auto flex-1">
                 {!aiResult ? (
                   <div className="space-y-4">
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Relato de Campo</label>
@@ -5275,11 +5275,11 @@ export default function CoordinatorDashboard({
         {isUrgencyModalOpen && selectedUrgency && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+            className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-3 sm:p-6 flex items-center justify-center overflow-hidden"
           >
               <motion.div 
-                initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-                className="bg-white w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative border border-zinc-200"
+                initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+                className="bg-white w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] rounded-2xl overflow-hidden shadow-2xl relative border border-zinc-200 flex flex-col text-left"
               >
                 <button 
                   onClick={() => setIsUrgencyModalOpen(false)}
@@ -5288,12 +5288,12 @@ export default function CoordinatorDashboard({
                   <X className="w-4 h-4" />
                 </button>
 
-                <div className={`p-6 ${selectedUrgency.type === 'combustivel' ? 'bg-blue-600' : selectedUrgency.type === 'demanda' ? 'bg-blue-600' : 'bg-red-600'}`}>
+                <div className={`p-5 shrink-0 ${selectedUrgency.type === 'combustivel' ? 'bg-blue-600' : selectedUrgency.type === 'demanda' ? 'bg-blue-600' : 'bg-red-600'}`}>
                   <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">{selectedUrgency.title}</h2>
                   <p className="text-white/70 text-[9px] font-black mt-2 uppercase tracking-widest leading-none">{selectedUrgency.leaderName} • {selectedUrgency.team}</p>
                 </div>
 
-                <div className="p-6 space-y-6">
+                <div className="p-5 sm:p-6 space-y-6 overflow-y-auto flex-1">
                   <div>
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block mb-2 leading-none">Relato de Campo</label>
                     <p className="p-4 bg-zinc-50 border border-zinc-100 rounded-xl text-xs font-bold text-zinc-700 leading-relaxed">
@@ -5352,11 +5352,11 @@ export default function CoordinatorDashboard({
         {isSignatureModalOpen && signingRequest && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-zinc-950/95 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+            className="fixed inset-0 z-[200] bg-zinc-950/95 backdrop-blur-md p-3 sm:p-6 flex items-center justify-center overflow-hidden"
           >
             <motion.div 
-              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative text-left"
+              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="bg-zinc-900 border border-zinc-800 w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] rounded-2xl overflow-hidden shadow-2xl relative text-left flex flex-col"
             >
               <button 
                 onClick={() => setIsSignatureModalOpen(false)}
@@ -5365,19 +5365,19 @@ export default function CoordinatorDashboard({
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="p-6 bg-gradient-to-r from-blue-600/20 to-emerald-600/20 border-b border-zinc-800">
+              <div className="p-5 bg-gradient-to-r from-blue-600/20 to-emerald-600/20 border-b border-zinc-800 shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-600/10">
                     <ShieldCheck className="w-6 h-6 animate-pulse" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none font-sans">Autenticação de Assinatura Digital</h2>
-                    <p className="text-zinc-400 text-[9px] font-black mt-2 uppercase tracking-widest leading-none">CONTROLE DE ARSENAL DE MATERIAIS</p>
+                    <h2 className="text-lg font-black text-white tracking-tighter uppercase leading-none font-sans">Autenticação de Assinatura Digital</h2>
+                    <p className="text-zinc-400 text-[9px] font-black mt-1.5 uppercase tracking-widest leading-none">CONTROLE DE ARSENAL DE MATERIAIS</p>
                   </div>
                 </div>
               </div>
 
-              <form onSubmit={handleConfirmSignature} className="p-6 space-y-6">
+              <form onSubmit={handleConfirmSignature} className="p-5 sm:p-6 space-y-6 overflow-y-auto flex-1">
                 <div className="space-y-4">
                   <div className="bg-zinc-950/50 border border-zinc-850 p-4 rounded-xl space-y-3">
                     <div className="flex justify-between border-b border-zinc-800/50 pb-2">
@@ -5456,35 +5456,35 @@ export default function CoordinatorDashboard({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+            className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-3 sm:p-6 flex items-center justify-center overflow-hidden"
           >
             <motion.div 
-              initial={{ scale: 0.9, y: 20 }}
+              initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative"
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-white w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] rounded-2xl overflow-hidden shadow-2xl relative flex flex-col"
             >
               <button 
                 onClick={() => {
                   setIsTeamModalOpen(false);
                   setTeamCreationStep('form');
                 }}
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-xl text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-xl text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95 z-10"
               >
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="bg-zinc-950 p-6">
-                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
+              <div className="bg-zinc-950 p-5 shrink-0 text-left">
+                <h2 className="text-lg font-black text-white tracking-tighter uppercase leading-none">
                   {teamCreationStep === 'form' ? (isEditMode ? 'Editar Unidade' : 'Cadastrar Unidade') : 'Unidade Ativada'}
                 </h2>
-                <p className="text-zinc-400 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">
+                <p className="text-zinc-400 text-[10px] font-black mt-1.5 uppercase tracking-widest leading-none">
                   {teamCreationStep === 'form' ? (isEditMode ? 'Ajuste de Inteligência' : 'Definição de Base Estratégica') : 'Credencial Digital Gerada'}
                 </p>
               </div>
 
               {teamCreationStep === 'form' ? (
-                <form onSubmit={handleCreateTeam} className="p-6 space-y-4 text-left font-sans">
+                <form onSubmit={handleCreateTeam} className="p-5 sm:p-6 space-y-4 text-left font-sans overflow-y-auto flex-1">
                   <div className="space-y-1.5">
                     <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1">Identificação da Equipe</label>
                     <input 
@@ -6954,13 +6954,13 @@ export default function CoordinatorDashboard({
 
       <AnimatePresence>
         {isRegionalModalOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto">
-            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative">
-              <button onClick={() => setIsRegionalModalOpen(false)} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-[var(--text-primary)]">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-3 sm:p-6 flex items-center justify-center overflow-hidden">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] rounded-2xl overflow-hidden shadow-2xl relative flex flex-col text-left">
+              <button onClick={() => setIsRegionalModalOpen(false)} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-[var(--text-primary)] z-10">
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="p-6 bg-zinc-950 border-b border-zinc-800 text-left">
+              <div className="p-5 bg-zinc-950 border-b border-zinc-800 text-left shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black">
                     <ShieldCheck className="w-6 h-6" />
@@ -6973,7 +6973,7 @@ export default function CoordinatorDashboard({
               </div>
 
               {regCoordStep === 'form' ? (
-                <form onSubmit={handleCreateRegionalCoordinator} className="p-6 space-y-4 text-left">
+                <form onSubmit={handleCreateRegionalCoordinator} className="p-5 sm:p-6 space-y-4 text-left overflow-y-auto flex-1">
                   <div>
                     <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-1">Nome Completo do Coordenador</label>
                     <input 
@@ -7235,13 +7235,13 @@ export default function CoordinatorDashboard({
 
       <AnimatePresence>
         {isCandidateModalOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto">
-            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl relative my-6">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-3 sm:p-6 flex items-center justify-center overflow-hidden">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] rounded-2xl overflow-hidden shadow-2xl relative flex flex-col text-left">
               <button onClick={() => setIsCandidateModalOpen(false)} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-[var(--text-primary)] cursor-pointer z-10">
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="p-5 bg-gradient-to-r from-blue-700 to-blue-900 border-b border-blue-600 text-left text-white">
+              <div className="p-4 sm:p-5 bg-gradient-to-r from-blue-700 to-blue-900 border-b border-blue-600 text-left text-white shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white font-black border border-white/20">
                     <UserPlus className="w-5 h-5" />
@@ -7259,11 +7259,11 @@ export default function CoordinatorDashboard({
                 </div>
 
                 {/* Sub-tabs for candidate modal */}
-                <div className="flex gap-1.5 mt-4 pt-3 border-t border-blue-500/30">
+                <div className="flex gap-1.5 mt-3 pt-2.5 border-t border-blue-500/30 overflow-x-auto">
                   <button
                     type="button"
                     onClick={() => setCandidateModalTab('identificacao')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                       candidateModalTab === 'identificacao'
                         ? 'bg-white text-blue-900 shadow-sm'
                         : 'text-blue-100 hover:bg-white/10'
@@ -7274,7 +7274,7 @@ export default function CoordinatorDashboard({
                   <button
                     type="button"
                     onClick={() => setCandidateModalTab('apresentacao')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                       candidateModalTab === 'apresentacao'
                         ? 'bg-white text-blue-900 shadow-sm'
                         : 'text-blue-100 hover:bg-white/10'
@@ -7285,7 +7285,7 @@ export default function CoordinatorDashboard({
                   <button
                     type="button"
                     onClick={() => setCandidateModalTab('publico')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                       candidateModalTab === 'publico'
                         ? 'bg-white text-blue-900 shadow-sm'
                         : 'text-blue-100 hover:bg-white/10'
@@ -7296,7 +7296,7 @@ export default function CoordinatorDashboard({
                 </div>
               </div>
 
-              <form onSubmit={handleSaveCandidateInfo} className="p-5 space-y-4 text-left max-h-[72vh] overflow-y-auto">
+              <form onSubmit={handleSaveCandidateInfo} className="p-4 sm:p-5 space-y-4 text-left overflow-y-auto flex-1">
                 
                 {!isGeral && (
                   <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl flex items-center gap-3 text-amber-600 dark:text-amber-400">
