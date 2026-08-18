@@ -343,10 +343,19 @@ export default function CoordinatorDashboard({
 
   const handleSaveCandidateInfo = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!candidateForm.name || !candidateForm.title) {
+      alert("Por favor, preencha o Nome e o Cargo do candidato.");
+      return;
+    }
+
     setIsSavingCandidate(true);
     try {
       const candidateToSave: CandidateInfo = {
+        ...DEFAULT_CANDIDATE_INFO,
         ...candidateForm,
+        bio: candidateForm.bio?.trim() || `Candidato oficial a ${candidateForm.title || 'cargo eletivo'} nas Eleições 2026. Compromisso com o desenvolvimento e o bem-estar de toda a população.`,
+        badgeTitle: candidateForm.badgeTitle?.trim() || 'FAÇA PARTE DO NOSSO TIME! 🗳️',
+        subtitle: candidateForm.subtitle?.trim() || 'Preencha o formulário e apoie nossa caminhada.',
         id: editingCandidateId || candidateForm.id || `cand_${Date.now()}`
       };
       const newList = await candidateService.saveCandidate(candidateToSave, user?.uid, coordinatorId);
@@ -354,7 +363,8 @@ export default function CoordinatorDashboard({
       setCandidateForm({ ...DEFAULT_CANDIDATE_INFO, id: undefined });
       setEditingCandidateId(undefined);
       setIsCandidateModalOpen(false);
-      alert("✅ Candidato salvo com sucesso!");
+      setCandidateModalTab('identificacao');
+      alert("✅ Candidato oficial salvo com sucesso!");
     } catch (err: any) {
       alert("Erro ao salvar candidato: " + err.message);
     } finally {
@@ -7241,57 +7251,72 @@ export default function CoordinatorDashboard({
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="p-4 sm:p-5 bg-gradient-to-r from-blue-700 to-blue-900 border-b border-blue-600 text-left text-white shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white font-black border border-white/20">
+              <div className="p-4 sm:p-5 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 border-b border-blue-600 text-left text-white shrink-0">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white font-black border border-white/20 shadow-inner">
                     <UserPlus className="w-5 h-5" />
                   </div>
-                  <div>
-                    <h2 className="text-lg font-black uppercase tracking-tight text-white">
-                      {isGeral ? 'Cadastro do Candidato Oficial' : 'Informações do Candidato'}
-                    </h2>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-lg font-black uppercase tracking-tight text-white">
+                        {isGeral ? 'Cadastro do Candidato Oficial' : 'Informações do Candidato'}
+                      </h2>
+                      <span className="text-[9px] font-black uppercase bg-blue-500/30 text-blue-200 border border-blue-400/30 px-2 py-0.5 rounded-full">
+                        {candidateModalTab === 'identificacao' ? 'Passo 1 de 3' : candidateModalTab === 'apresentacao' ? 'Passo 2 de 3' : 'Passo 3 de 3'}
+                      </span>
+                    </div>
                     <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest">
-                      {isGeral 
-                        ? 'Identificação, foto, propostas e personalização da página pública' 
-                        : 'Visualização oficial definida pelo Coordenador Geral da Campanha'}
+                      {candidateModalTab === 'identificacao' && '1. Identificação, foto e cargo oficial'}
+                      {candidateModalTab === 'apresentacao' && '2. Slogan, biografia e principais propostas'}
+                      {candidateModalTab === 'publico' && '3. Página de autocadastro e redes sociais'}
                     </p>
                   </div>
                 </div>
 
-                {/* Sub-tabs for candidate modal */}
-                <div className="flex gap-1.5 mt-3 pt-2.5 border-t border-blue-500/30 overflow-x-auto">
+                {/* Progress bar */}
+                <div className="w-full bg-blue-950/60 rounded-full h-1.5 mb-3 overflow-hidden">
+                  <div 
+                    className="bg-emerald-400 h-full transition-all duration-300 rounded-full"
+                    style={{ 
+                      width: candidateModalTab === 'identificacao' ? '33.3%' : candidateModalTab === 'apresentacao' ? '66.6%' : '100%' 
+                    }}
+                  />
+                </div>
+
+                {/* Sub-tabs with step indicators */}
+                <div className="grid grid-cols-3 gap-1.5 bg-blue-950/40 p-1 rounded-xl border border-blue-500/20">
                   <button
                     type="button"
                     onClick={() => setCandidateModalTab('identificacao')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    className={`py-2 px-2 rounded-lg text-xs font-black transition-all cursor-pointer text-center truncate ${
                       candidateModalTab === 'identificacao'
-                        ? 'bg-white text-blue-900 shadow-sm'
-                        : 'text-blue-100 hover:bg-white/10'
+                        ? 'bg-white text-blue-900 shadow-md scale-[1.02]'
+                        : 'text-blue-200 hover:bg-white/10'
                     }`}
                   >
-                    1. Identificação & Foto
+                    1. Identificação
                   </button>
                   <button
                     type="button"
                     onClick={() => setCandidateModalTab('apresentacao')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    className={`py-2 px-2 rounded-lg text-xs font-black transition-all cursor-pointer text-center truncate ${
                       candidateModalTab === 'apresentacao'
-                        ? 'bg-white text-blue-900 shadow-sm'
-                        : 'text-blue-100 hover:bg-white/10'
+                        ? 'bg-white text-blue-900 shadow-md scale-[1.02]'
+                        : 'text-blue-200 hover:bg-white/10'
                     }`}
                   >
-                    2. Apresentação & Biografia
+                    2. Apresentação
                   </button>
                   <button
                     type="button"
                     onClick={() => setCandidateModalTab('publico')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    className={`py-2 px-2 rounded-lg text-xs font-black transition-all cursor-pointer text-center truncate ${
                       candidateModalTab === 'publico'
-                        ? 'bg-white text-blue-900 shadow-sm'
-                        : 'text-blue-100 hover:bg-white/10'
+                        ? 'bg-white text-blue-900 shadow-md scale-[1.02]'
+                        : 'text-blue-200 hover:bg-white/10'
                     }`}
                   >
-                    3. Página Pública & Links
+                    3. Página & Redes
                   </button>
                 </div>
               </div>
@@ -7394,7 +7419,7 @@ export default function CoordinatorDashboard({
                                 onClick={() => setCandidateForm({...candidateForm, title: cargo})}
                                 className={`px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase transition-all border ${
                                   candidateForm.title.toLowerCase().includes(cargo.toLowerCase())
-                                    ? 'bg-blue-600 text-white border-blue-600'
+                                    ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
                                     : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-blue-500'
                                 }`}
                               >
@@ -7477,9 +7502,12 @@ export default function CoordinatorDashboard({
                 {candidateModalTab === 'apresentacao' && (
                   <div className="space-y-3.5">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
-                        Slogan de Campanha / Lema
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
+                          Slogan de Campanha / Lema
+                        </label>
+                        <span className="text-[8px] font-bold text-zinc-400 uppercase">Sugestões rápidas</span>
+                      </div>
                       <input 
                         disabled={!isGeral}
                         type="text" 
@@ -7488,17 +7516,35 @@ export default function CoordinatorDashboard({
                         className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3.5 font-bold text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'}`} 
                         placeholder="Ex: Trabalho, Coragem e Compromisso com as Pessoas" 
                       />
+                      {isGeral && (
+                        <div className="flex flex-wrap gap-1 pt-1">
+                          {[
+                            'Trabalho e Compromisso com as Pessoas',
+                            'Coragem para Renovar e Avançar',
+                            'Pela Família e pelo Desenvolvimento',
+                            'A Voz do Povo e do Trabalho Sério'
+                          ].map(sug => (
+                            <button
+                              key={sug}
+                              type="button"
+                              onClick={() => setCandidateForm({ ...candidateForm, slogan: sug })}
+                              className="text-[9px] font-semibold bg-[var(--bg-tertiary)] hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950/40 text-[var(--text-secondary)] px-2 py-0.5 rounded border border-[var(--border-color)] transition-all cursor-pointer"
+                            >
+                              "{sug}"
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-1">
                       <label className="text-xs font-semibold text-[var(--text-secondary)] block">
-                        Biografia / Mensagem de Apresentação {isGeral && '*'}
+                        Biografia / Mensagem de Apresentação
                       </label>
                       <textarea 
-                        required={isGeral}
                         disabled={!isGeral}
                         rows={3}
-                        value={candidateForm.bio} 
+                        value={candidateForm.bio || ''} 
                         onChange={e => isGeral && setCandidateForm({...candidateForm, bio: e.target.value})} 
                         className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-medium text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'} resize-none`} 
                         placeholder="Biografia ou mensagem de apresentação do candidato..." 
@@ -7506,9 +7552,12 @@ export default function CoordinatorDashboard({
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-[var(--text-secondary)] block">
-                        Principais Eixos e Propostas de Campanha
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-semibold text-[var(--text-secondary)] block">
+                          Principais Eixos e Propostas de Campanha
+                        </label>
+                        <span className="text-[8px] font-bold text-zinc-400 uppercase">Inserir Eixo</span>
+                      </div>
                       <textarea 
                         disabled={!isGeral}
                         rows={4}
@@ -7517,6 +7566,29 @@ export default function CoordinatorDashboard({
                         className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 font-medium text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'} resize-none`} 
                         placeholder="• Saúde: Ampliação do atendimento especializado&#10;• Educação: Escolas em tempo integral&#10;• Segurança: Valorização profissional" 
                       />
+                      {isGeral && (
+                        <div className="flex flex-wrap gap-1 pt-1">
+                          {[
+                            { label: '+ Saúde', text: '• Saúde: Fortalecimento da atenção primária e especialistas\n' },
+                            { label: '+ Educação', text: '• Educação: Valorização docente e infraestrutura moderna\n' },
+                            { label: '+ Agricultura & Rural', text: '• Agricultura: Apoio técnico e estradas vicinais para o produtor\n' },
+                            { label: '+ Segurança', text: '• Segurança: Modernização e valorização das forças policiais\n' },
+                            { label: '+ Juventude & Emprego', text: '• Emprego: Incentivo ao primeiro emprego e qualificação técnica\n' }
+                          ].map(item => (
+                            <button
+                              key={item.label}
+                              type="button"
+                              onClick={() => {
+                                const current = candidateForm.proposals || '';
+                                setCandidateForm({ ...candidateForm, proposals: current + (current && !current.endsWith('\n') ? '\n' : '') + item.text });
+                              }}
+                              className="text-[9px] font-bold bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-900 transition-all cursor-pointer"
+                            >
+                              {item.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -7530,7 +7602,7 @@ export default function CoordinatorDashboard({
                         <input 
                           disabled={!isGeral}
                           type="text" 
-                          value={candidateForm.badgeTitle} 
+                          value={candidateForm.badgeTitle || ''} 
                           onChange={e => isGeral && setCandidateForm({...candidateForm, badgeTitle: e.target.value})} 
                           className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3.5 font-bold text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'}`} 
                           placeholder="FAÇA PARTE DO NOSSO TIME! 🗳️" 
@@ -7542,7 +7614,7 @@ export default function CoordinatorDashboard({
                         <input 
                           disabled={!isGeral}
                           type="text" 
-                          value={candidateForm.subtitle} 
+                          value={candidateForm.subtitle || ''} 
                           onChange={e => isGeral && setCandidateForm({...candidateForm, subtitle: e.target.value})} 
                           className={`w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl py-2.5 px-3.5 font-bold text-xs outline-none ${isGeral ? 'focus:border-blue-600' : 'opacity-80 cursor-not-allowed'}`} 
                           placeholder="Preencha o formulário e apoie nossa caminhada..." 
@@ -7581,7 +7653,7 @@ export default function CoordinatorDashboard({
                       <p className="text-[10px] font-black uppercase text-[var(--text-secondary)] tracking-wider mb-2">
                         Prévia da Chamada de Adesão
                       </p>
-                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-3 rounded-lg flex items-center justify-between gap-3">
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-3 rounded-lg flex items-center justify-between gap-3 shadow-xs">
                         <div>
                           <p className="text-xs font-black text-[var(--text-primary)]">{candidateForm.badgeTitle || 'FAÇA PARTE DO NOSSO TIME! 🗳️'}</p>
                           <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">{candidateForm.subtitle || 'Apoie nosso projeto e multiplique votos.'}</p>
@@ -7594,58 +7666,76 @@ export default function CoordinatorDashboard({
                   </div>
                 )}
 
-                <div className="pt-3 border-t border-[var(--border-color)] flex justify-between items-center gap-3">
-                  <div className="flex gap-1.5">
-                    {candidateModalTab !== 'identificacao' && (
+                {/* Smart Action Footer */}
+                <div className="pt-3 border-t border-[var(--border-color)] flex flex-col sm:flex-row justify-between items-center gap-3">
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    {candidateModalTab !== 'identificacao' ? (
                       <button
                         type="button"
                         onClick={() => {
                           if (candidateModalTab === 'publico') setCandidateModalTab('apresentacao');
                           else if (candidateModalTab === 'apresentacao') setCandidateModalTab('identificacao');
                         }}
-                        className="px-3 py-2 bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[var(--bg-primary)] transition-all cursor-pointer"
+                        className="px-3.5 py-2.5 bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[var(--bg-primary)] transition-all cursor-pointer flex-1 sm:flex-none"
                       >
-                        Voltar
+                        &larr; Voltar
                       </button>
-                    )}
-                    {candidateModalTab !== 'publico' && (
+                    ) : (
                       <button
                         type="button"
-                        onClick={() => {
-                          if (candidateModalTab === 'identificacao') setCandidateModalTab('apresentacao');
-                          else if (candidateModalTab === 'apresentacao') setCandidateModalTab('publico');
-                        }}
-                        className="px-3 py-2 bg-[var(--bg-tertiary)] text-blue-600 dark:text-blue-400 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all cursor-pointer"
+                        onClick={() => setIsCandidateModalOpen(false)}
+                        className="px-3.5 py-2.5 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[var(--bg-primary)] transition-all cursor-pointer flex-1 sm:flex-none"
                       >
-                        Avançar &rarr;
+                        {isGeral ? 'Cancelar' : 'Fechar'}
                       </button>
                     )}
                   </div>
 
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsCandidateModalOpen(false)}
-                      className="px-4 py-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[var(--bg-primary)] transition-all cursor-pointer"
-                    >
-                      {isGeral ? 'Cancelar' : 'Fechar'}
-                    </button>
-                    {isGeral && (
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    {/* Botão de Salvamento Rápido visível nos passos 1 e 2 */}
+                    {isGeral && candidateModalTab !== 'publico' && (
                       <button
                         type="submit"
-                        disabled={isSavingCandidate}
-                        className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                        disabled={isSavingCandidate || !candidateForm.name || !candidateForm.title}
+                        className="px-3.5 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border border-zinc-300 dark:border-zinc-700 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        title="Salvar com as configurações atuais e textos padrão"
                       >
-                        {isSavingCandidate ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 text-white animate-spin" /> Salvando...
-                          </>
-                        ) : (
-                          <>
-                            <Check className="w-3.5 h-3.5" /> Salvar Candidato
-                          </>
-                        )}
+                        ⚡ Salvar Rápido
                       </button>
+                    )}
+
+                    {/* Botão de Avançar nos passos 1 e 2 */}
+                    {candidateModalTab !== 'publico' ? (
+                      <button
+                        type="button"
+                        disabled={!candidateForm.name || !candidateForm.title}
+                        onClick={() => {
+                          if (candidateModalTab === 'identificacao') setCandidateModalTab('apresentacao');
+                          else if (candidateModalTab === 'apresentacao') setCandidateModalTab('publico');
+                        }}
+                        className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-blue-600/20 flex items-center gap-2 cursor-pointer flex-1 sm:flex-none justify-center"
+                      >
+                        {candidateModalTab === 'identificacao' ? 'Próximo: Apresentação' : 'Próximo: Página & Redes'} &rarr;
+                      </button>
+                    ) : (
+                      /* Botão Final no Passo 3 */
+                      isGeral && (
+                        <button
+                          type="submit"
+                          disabled={isSavingCandidate || !candidateForm.name || !candidateForm.title}
+                          className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2 cursor-pointer flex-1 sm:flex-none justify-center"
+                        >
+                          {isSavingCandidate ? (
+                            <>
+                              <Loader2 className="w-4 h-4 text-white animate-spin" /> Salvando...
+                            </>
+                          ) : (
+                            <>
+                              <Check className="w-4 h-4" /> Concluir & Salvar Candidato
+                            </>
+                          )}
+                        </button>
+                      )
                     )}
                   </div>
                 </div>
