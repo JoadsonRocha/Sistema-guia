@@ -352,13 +352,25 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
     
     setIsSubmitting(true);
     try {
-      if (voterForm.phone && voterForm.phone.length > 5 && leaderInfo.coordinatorId) {
-        const voters = await supabaseService.getCollectionFiltered<any>('voters', leaderInfo.coordinatorId);
-        const existing = voters.find(v => v.phone === voterForm.phone);
-        if (existing) {
-          showToast('⚠️ Este número já consta na nossa base de apoiadores mobilizados!', 'error');
-          setIsSubmitting(false);
-          return;
+      if (leaderInfo.coordinatorId) {
+        const cleanPhone = (voterForm.phone || '').replace(/\D/g, '');
+        const cleanCpf = (voterForm.cpf || '').replace(/\D/g, '');
+
+        if (cleanPhone.length > 5 || cleanCpf.length > 5) {
+          const voters = await supabaseService.getCollectionFiltered<any>('voters', leaderInfo.coordinatorId);
+          const existingPhone = cleanPhone.length > 5 && voters.find(v => (v.phone || '').replace(/\D/g, '') === cleanPhone);
+          if (existingPhone) {
+            showToast('⚠️ Este número de WhatsApp já consta na nossa base de apoiadores mobilizados!', 'error');
+            setIsSubmitting(false);
+            return;
+          }
+
+          const existingCpf = cleanCpf.length > 5 && voters.find(v => (v.cpf || '').replace(/\D/g, '') === cleanCpf);
+          if (existingCpf) {
+            showToast('⚠️ Este CPF já foi cadastrado na campanha!', 'error');
+            setIsSubmitting(false);
+            return;
+          }
         }
       }
 
