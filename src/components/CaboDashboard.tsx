@@ -54,6 +54,8 @@ import {
   Sun,
   Moon,
   Copy,
+  QrCode,
+  Share2,
   Map as MapIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -62,6 +64,7 @@ import { useAuth } from '../lib/SupabaseProvider';
 import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO } from '../lib/candidateService';
 import { supabaseService } from '../lib/supabaseService';
 import { showToast } from './GlobalToastHost';
+import { WhatsAppDispatchModal } from './WhatsAppDispatchModal';
 import NoteCard from './NoteCard';
 import RoraimaMapComponent from './RoraimaMapComponent';
 import EleitoralDashboard from './EleitoralDashboard';
@@ -108,6 +111,7 @@ export default function CaboDashboard({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isWaModalOpen, setIsWaModalOpen] = useState(false);
   const [dailyOrder, setDailyOrder] = useState<any>(null);
   const [resolvedCoordinatorId, setResolvedCoordinatorId] = useState<string | null>(null);
   const [candidateInfo, setCandidateInfo] = useState<CandidateInfo>(DEFAULT_CANDIDATE_INFO);
@@ -1303,24 +1307,27 @@ export default function CaboDashboard({
             </div>
           </div>
 
-          <div className="bg-[var(--bg-secondary)] rounded-sm p-5 border border-[var(--border-color)] shadow-[var(--shadow-sm)] relative overflow-hidden group">
-            <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-all">
-              <User className="w-16 h-16" />
+          <div className="bg-[var(--bg-secondary)] rounded-2xl p-4 border border-[var(--border-color)] shadow-xs relative overflow-hidden group text-left">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-sm text-white overflow-hidden shadow-sm border border-zinc-200 dark:border-zinc-700 shrink-0">
+                {profileData?.photoUrl ? (
+                  <img src={profileData.photoUrl} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  (profileData?.name || user?.email || 'L').charAt(0).toUpperCase()
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold text-[var(--text-primary)] truncate">
+                  {profileData.name || user?.displayName || user?.email?.split('@')[0] || 'Líder'}
+                </p>
+                <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400 truncate">
+                  Líder de Equipe / Campo
+                </p>
+                <p className="text-[9px] text-[var(--text-secondary)] truncate">
+                  {profileData.zone || 'Setor Base da Campanha'}
+                </p>
+              </div>
             </div>
-            <p className="text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Perfil ativo</p>
-            <h3 className="text-xs font-bold text-[var(--text-primary)] truncate">
-              {profileData.name || user?.displayName || user?.email?.split('@')[0] || 'Operador'}
-            </h3>
-            <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mt-1">
-              {(profileData?.role === 'coordenador_geral' || (user?.email && user.email.toLowerCase().includes('joadson'))) 
-                ? 'Coordenador Geral' 
-                : (profileData?.role === 'coordenador_regional') 
-                ? 'Coordenador Regional' 
-                : 'Líder de Equipe / Campo'}
-            </p>
-            <p className="text-[11px] font-medium text-[var(--text-secondary)] mt-0.5">
-              {profileData.zone || 'Setor Geral da Campanha'}
-            </p>
           </div>
 
           {/* Cartão Oficial do Candidato para Líderes de Equipe */}
@@ -1356,9 +1363,9 @@ export default function CaboDashboard({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-2xl text-xs font-semibold transition-all group ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all group ${
                 activeTab === tab.id 
-                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 font-bold shadow-2xs' 
+                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 shadow-xs' 
                 : 'text-[var(--text-secondary)] hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100/70 dark:hover:bg-zinc-800/50'
               }`}
             >
@@ -1369,13 +1376,11 @@ export default function CaboDashboard({
             </button>
           ))}
         </nav>
-
-
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* TOP BAR */}
-        <header className="h-16 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] px-6 lg:px-10 flex items-center justify-between flex-shrink-0 relative z-30 transition-colors duration-300">
+        <header className="h-16 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] px-4 lg:px-8 flex items-center justify-between flex-shrink-0 relative z-30 transition-colors duration-300">
           <div className="flex items-center gap-3 lg:hidden">
             <div className="flex items-center justify-center bg-transparent shrink-0">
               <img 
@@ -1388,46 +1393,84 @@ export default function CaboDashboard({
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
-             <div className="bg-blue-600/10 text-blue-600 px-4 py-2 rounded-sm border border-blue-600/20 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></div>
-                Setor: {profileData.zone || 'Identificando...'}
+             <div className="bg-blue-600/10 text-blue-600 px-3.5 py-1.5 rounded-xl border border-blue-600/20 text-[10px] font-black uppercase tracking-wider flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></div>
+                Setor: {profileData.zone || 'Base Territorial'}
              </div>
 
              {/* Badge Oficial do Candidato */}
-             <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-600/10 dark:bg-blue-900/30 border border-blue-500/30 rounded-2xl">
+             <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-600/10 dark:bg-blue-900/30 border border-blue-500/30 rounded-xl">
                <img 
                  src={candidateInfo?.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl} 
                  alt="Candidato" 
-                 className="w-7 h-7 rounded-full object-cover border border-blue-500 shrink-0 bg-slate-800" 
+                 className="w-6 h-6 rounded-full object-cover border border-blue-500 shrink-0 bg-slate-800" 
                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_CANDIDATE_INFO.photoUrl; }}
                />
                <div className="text-left">
-                 <p className="text-[11px] font-black text-[var(--text-primary)] leading-none truncate max-w-[180px]">
+                 <p className="text-[11px] font-black text-[var(--text-primary)] leading-none truncate max-w-[160px]">
                    {candidateInfo?.name || 'Candidato Oficial'}
                  </p>
-                 <p className="text-[9px] font-bold text-blue-600 dark:text-blue-400 leading-none mt-0.5 truncate max-w-[180px]">
+                 <p className="text-[9px] font-bold text-blue-600 dark:text-blue-400 leading-none mt-0.5 truncate max-w-[160px]">
                    {candidateInfo?.title || 'Campanha 2026'}
                  </p>
                </div>
              </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Quick Action: Cadastrar Eleitor */}
+            <button 
+              onClick={() => { setRegisterMode('individual'); setIsVoterModalOpen(true); }}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-md text-xs font-bold transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+              title="Cadastrar novo eleitor mobilizado"
+            >
+              <UserPlus className="w-4 h-4" /> <span className="hidden sm:inline">Cadastrar Eleitor</span>
+            </button>
+
+            {/* Quick Action: Disparo WhatsApp */}
+            <button 
+              onClick={() => setIsWaModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 rounded-xl text-xs font-semibold transition-all shadow-xs active:scale-95 cursor-pointer whitespace-nowrap"
+              title="Disparo de mensagens via WhatsApp (wa.me)"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> <span className="hidden md:inline">Disparo WhatsApp</span>
+            </button>
+
+            {/* Quick Action: Link & QR Code */}
+            <button 
+              onClick={() => { setRegisterMode('link'); setIsVoterModalOpen(true); }}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 rounded-xl text-xs font-semibold transition-all shadow-xs active:scale-95 cursor-pointer whitespace-nowrap"
+              title="Gerar e copiar link de cadastro de eleitores ou QR Code"
+            >
+              <QrCode className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> Link & QR
+            </button>
+
             <button 
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl text-[var(--text-secondary)] hover:bg-blue-600 hover:text-white active:scale-90 transition-all shadow-xs"
+              className="p-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl text-zinc-500 dark:text-zinc-400 hover:bg-blue-600 hover:text-white active:scale-90 transition-all border border-zinc-200 dark:border-zinc-700 cursor-pointer"
               title={theme === 'dark' ? "Ativar Modo Claro" : "Ativar Modo Escuro"}
             >
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
 
+            <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-800 hidden sm:block"></div>
 
             <button 
               onClick={() => navigate('/perfil')}
-              className="p-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl text-[var(--text-secondary)] hover:bg-blue-600 hover:text-white active:scale-95 transition-all shadow-xs"
+              className="flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 p-1.5 rounded-xl transition-all cursor-pointer"
               title="Configurações do Perfil"
             >
-              <Settings className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-xs text-white overflow-hidden shadow-sm border border-zinc-200 dark:border-zinc-700">
+                {profileData?.photoUrl ? (
+                  <img src={profileData.photoUrl} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  (profileData?.name || user?.email || 'L').charAt(0).toUpperCase()
+                )}
+              </div>
+              <div className="hidden xl:block text-left">
+                <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 leading-none mb-0.5">{profileData?.name || user?.email?.split('@')[0]}</p>
+                <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400">Líder de Equipe</p>
+              </div>
             </button>
           </div>
         </header>
@@ -1437,39 +1480,134 @@ export default function CaboDashboard({
           <div className="max-w-6xl mx-auto space-y-10">
             
             {activeTab === 'logistica' ? (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 md:space-y-8">
                 {isLocating && (
-                  <div className="bg-blue-600/10 border-2 border-blue-600/20 text-blue-600 p-6 rounded-sm text-center flex items-center justify-center gap-4 font-black text-xs uppercase tracking-[0.2em] shadow-2xl">
-                    <RefreshCcw className="w-6 h-6 animate-spin" /> Verificando Assinatura de GPS e Segurança de Campo...
+                  <div className="bg-blue-600/10 border-2 border-blue-600/20 text-blue-600 p-4 rounded-2xl text-center flex items-center justify-center gap-4 font-black text-xs uppercase tracking-wider shadow-sm">
+                    <RefreshCcw className="w-5 h-5 animate-spin" /> Verificando Assinatura de GPS e Segurança de Campo...
                   </div>
                 )}
+
+                {/* HEADER TÁTICO DA EQUIPE */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-color)] pb-4 text-left">
+                  <div className="flex-col gap-1 flex">
+                    <h2 className="text-base md:text-lg font-bold text-[var(--text-primary)] leading-none">Painel Tático da Equipe</h2>
+                    <p className="text-xs text-[var(--text-secondary)] font-normal">Mobilização territorial, metas e acompanhamento de campo</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button 
+                      onClick={() => { setRegisterMode('individual'); setIsVoterModalOpen(true); }}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm active:scale-95 transition-all cursor-pointer"
+                    >
+                      <UserPlus className="w-4 h-4" /> Novo Eleitor
+                    </button>
+                    <button 
+                      onClick={() => { setRegisterMode('link'); setIsVoterModalOpen(true); }}
+                      className="px-3.5 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] hover:border-blue-500 text-[var(--text-primary)] rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs transition-all cursor-pointer"
+                    >
+                      <QrCode className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Link & QR
+                    </button>
+                  </div>
+                </div>
+
+                {/* 4 CARDS HERO KPI */}
+                {(() => {
+                  const todayStart = new Date();
+                  todayStart.setHours(0,0,0,0);
+                  const todayVoters = myVoters.filter(v => (v.createdAt || 0) >= todayStart.getTime()).length;
+                  const target = teamData?.target || 50;
+                  const pct = Math.min(100, Math.round((myVoters.length / Math.max(1, target)) * 100));
+                  const totalFuel = myRequests.filter(r => r.type === 'combustivel' && r.status === 'aprovado').length;
+                  const pendingDemands = myRequests.filter(r => r.type === 'demanda' && r.status === 'pendente').length;
+
+                  return (
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col justify-between group hover:border-blue-500/40 transition-all text-left">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[10px] sm:text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Eleitores da Base</span>
+                          <div className="p-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl">
+                            <Users className="w-4 h-4" />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex items-baseline gap-2">
+                            <h3 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">{myVoters.length}</h3>
+                            <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">/ meta {target}</span>
+                          </div>
+                          <div className="w-full bg-[var(--bg-tertiary)] h-1.5 rounded-full mt-2.5 overflow-hidden">
+                            <div className="bg-blue-600 h-full rounded-full transition-all" style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className="text-[9px] font-semibold text-[var(--text-secondary)] mt-1 block">{pct}% da meta da equipe</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col justify-between group hover:border-emerald-500/40 transition-all text-left">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[10px] sm:text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Cadastros Hoje</span>
+                          <div className="p-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                            <TrendingUp className="w-4 h-4" />
+                          </div>
+                        </div>
+                        <div>
+                          <h3 className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">+{todayVoters}</h3>
+                          <span className="text-[10px] font-semibold text-[var(--text-secondary)] mt-1 block">Apoiadores cadastrados hoje</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col justify-between group hover:border-amber-500/40 transition-all text-left">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[10px] sm:text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Combustível</span>
+                          <div className="p-2 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-xl">
+                            <Fuel className="w-4 h-4" />
+                          </div>
+                        </div>
+                        <div>
+                          <h3 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">{totalFuel} <span className="text-xs font-bold text-amber-600">liberados</span></h3>
+                          <span className="text-[10px] font-semibold text-[var(--text-secondary)] mt-1 block">Vales oficiais de apoio</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col justify-between group hover:border-purple-500/40 transition-all text-left">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[10px] sm:text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Demandas de Campo</span>
+                          <div className="p-2 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-xl">
+                            <StickyNote className="w-4 h-4" />
+                          </div>
+                        </div>
+                        <div>
+                          <h3 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">{myRequests.filter(r => r.type === 'demanda').length}</h3>
+                          <span className="text-[10px] font-semibold text-purple-600 dark:text-purple-400 mt-1 block">{pendingDemands} pendentes na coordenação</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {dailyOrder?.text && (
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg p-6 md:p-8 shadow-xs relative overflow-hidden group transition-colors"
+                    className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-6 md:p-8 shadow-xs relative overflow-hidden group transition-colors text-left"
                   >
                     <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none text-zinc-400 group-hover:scale-110 transition-transform duration-700">
                       <ShieldCheck className="w-32 h-32 rotate-12" />
                     </div>
                     <div className="flex items-center justify-between gap-3 mb-6">
                       <div className="flex items-center gap-3">
-                        <div className="bg-blue-50 dark:bg-blue-950/50 p-2.5 rounded-md border border-blue-100 dark:border-blue-900/40"><Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" /></div>
+                        <div className="bg-blue-50 dark:bg-blue-950/50 p-2.5 rounded-xl border border-blue-100 dark:border-blue-900/40"><Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" /></div>
                         <div>
                           <h3 className="text-[var(--text-primary)] font-black text-lg uppercase tracking-tight">Ordem do Dia</h3>
                           <p className="text-blue-600 dark:text-blue-400 text-[9px] font-bold uppercase tracking-wider">Diretriz Crítica de Campo</p>
                         </div>
                       </div>
-                      <span className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 px-2 py-1 rounded-full flex-shrink-0">
+                      <span className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 px-2.5 py-1 rounded-full flex-shrink-0">
                         <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                         Em Vigor
                       </span>
                     </div>
-                    <p className="text-[var(--text-primary)] font-bold text-xl leading-relaxed border-l-4 border-blue-600 pl-6 max-w-4xl italic">
+                    <p className="text-[var(--text-primary)] font-bold text-lg sm:text-xl leading-relaxed border-l-4 border-blue-600 pl-6 max-w-4xl italic">
                       &ldquo;{dailyOrder.text}&rdquo;
                     </p>
-                    <div className="mt-6 flex items-center gap-4 text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider bg-slate-50 dark:bg-zinc-800/60 w-fit px-3.5 py-1.5 rounded-md border border-slate-200 dark:border-zinc-700">
+                    <div className="mt-6 flex items-center gap-4 text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider bg-slate-50 dark:bg-zinc-800/60 w-fit px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-zinc-700">
                        <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> Publicado às {dailyOrder.createdAt ? new Date(dailyOrder.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '---'}</span>
                        {dailyOrder.createdBy && <><span className="w-1.5 h-1.5 bg-zinc-300 dark:bg-zinc-600 rounded-full"></span><span>{dailyOrder.createdBy}</span></>}
                     </div>
@@ -1477,15 +1615,15 @@ export default function CaboDashboard({
                 )}
 
                 {teamData?.observations && (
-                  <section className="bg-white border-2 border-zinc-100 rounded-sm p-10 shadow-sm relative overflow-hidden group">
+                  <section className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden group text-left">
                     <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-all pointer-events-none">
                       <StickyNote className="w-32 h-32 text-zinc-900 rotate-12" />
                     </div>
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className="bg-zinc-950 p-3 rounded-sm"><StickyNote className="w-6 h-6 text-blue-600" /></div>
-                      <h3 className="text-zinc-950 font-black text-xl uppercase tracking-tighter">Comunicações da Central</h3>
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="bg-blue-50 dark:bg-blue-950/50 p-2.5 rounded-xl text-blue-600"><StickyNote className="w-5 h-5" /></div>
+                      <h3 className="text-[var(--text-primary)] font-black text-lg uppercase tracking-tight">Comunicações da Central</h3>
                     </div>
-                    <p className="text-zinc-600 font-bold text-lg leading-relaxed whitespace-pre-wrap pl-2 border-l-4 border-blue-600">
+                    <p className="text-[var(--text-secondary)] font-medium text-sm leading-relaxed whitespace-pre-wrap pl-3 border-l-4 border-blue-600">
                       {teamData.observations}
                     </p>
                   </section>
@@ -1503,10 +1641,10 @@ export default function CaboDashboard({
                       whileHover={{ y: -2 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => processAction(action.id as any)}
-                      className="bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-md p-3.5 sm:p-4 flex flex-col justify-between gap-3 shadow-xs border border-[var(--border-color)] hover:border-blue-500/40 hover:shadow-sm transition-all text-left group relative overflow-hidden min-h-[105px]"
+                      className="bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-3 shadow-xs border border-[var(--border-color)] hover:border-blue-500/40 hover:shadow-sm transition-all text-left group relative overflow-hidden min-h-[115px] cursor-pointer"
                     >
                       <div className="flex items-center justify-between w-full">
-                        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-md flex items-center justify-center transition-all ${
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
                           action.color === 'blue' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white' :
                           action.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white' :
                           action.color === 'orange' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-500 group-hover:text-white' :
@@ -1514,7 +1652,7 @@ export default function CaboDashboard({
                         }`}>
                           {action.icon}
                         </div>
-                        <Plus className="w-3.5 h-3.5 text-[var(--text-secondary)] opacity-40 group-hover:opacity-100 group-hover:text-blue-500 transition-all" />
+                        <Plus className="w-4 h-4 text-[var(--text-secondary)] opacity-40 group-hover:opacity-100 group-hover:text-blue-500 transition-all" />
                       </div>
                       <div>
                         <span className="font-bold text-xs sm:text-sm uppercase tracking-tight block text-[var(--text-primary)]">
@@ -3444,6 +3582,14 @@ export default function CaboDashboard({
         )}
       </AnimatePresence>
 
+      {/* MODAL DISPARO WHATSAPP */}
+      <WhatsAppDispatchModal
+        isOpen={isWaModalOpen}
+        onClose={() => setIsWaModalOpen(false)}
+        voters={myVoters}
+        candidateName={candidateInfo?.name || 'Candidato Oficial'}
+      />
+
       {/* MOBILE BOTTOM NAV */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-14 bg-neutral-950/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-white/10 flex items-center justify-around px-2 z-50 shadow-lg">
         {[
@@ -3455,13 +3601,13 @@ export default function CaboDashboard({
           <button 
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-2 transition-all shrink-0 rounded-sm ${
+            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-2 transition-all shrink-0 rounded-xl ${
               activeTab === tab.id 
               ? 'text-blue-500 font-black scale-105' 
               : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            <div className={`p-1 rounded-sm transition-all ${activeTab === tab.id ? 'bg-blue-600/15' : ''}`}>
+            <div className={`p-1 rounded-xl transition-all ${activeTab === tab.id ? 'bg-blue-600/15' : ''}`}>
               {tab.icon}
             </div>
             <span className="text-[7.5px] font-black uppercase tracking-tight leading-none">
