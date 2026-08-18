@@ -425,16 +425,16 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
   }
 
   return (
-    <div className="min-h-screen bg-zinc-200/60 py-6 px-3 sm:px-6 lg:px-8 flex items-center justify-center selection:bg-blue-600 selection:text-white">
-      <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-zinc-200/80 my-4">
+    <div className="min-h-screen bg-slate-100 dark:bg-zinc-950 py-3 sm:py-6 px-3 sm:px-6 flex items-center justify-center selection:bg-blue-600 selection:text-white">
+      <div className="w-full max-w-4xl bg-white dark:bg-zinc-900 rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-zinc-200/90 dark:border-zinc-800 my-auto">
         
-        {/* ESQUERDA: BANNER / CARD DO CANDIDATO */}
-        <div className="lg:col-span-5 bg-gradient-to-b from-blue-600 via-blue-600 to-blue-700 text-white p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+        {/* ESQUERDA: BANNER / CARD DO CANDIDATO (COMPACTO) */}
+        <div className="lg:col-span-5 bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-900 text-white p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden">
           
           {/* Banner de Fundo (se existir) */}
           {candidateInfo?.bannerUrl && (
             <div 
-              className="absolute inset-0 z-0 opacity-40 mix-blend-overlay"
+              className="absolute inset-0 z-0 opacity-30 mix-blend-overlay"
               style={{
                 backgroundImage: `url(${candidateInfo.bannerUrl})`,
                 backgroundSize: 'cover',
@@ -443,28 +443,28 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
             />
           )}
 
-          {/* Elementos decorativos de fundo */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none z-0" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-900/40 rounded-full blur-2xl pointer-events-none z-0" />
+          {/* Elementos decorativos sutis */}
+          <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-xl pointer-events-none z-0" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-900/40 rounded-full blur-xl pointer-events-none z-0" />
 
           <div className="relative z-10 flex flex-col items-center text-center">
             
             {/* BADGE: VOCÊ FOI CONVIDADO POR */}
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-100/90 mb-2">
-              VOCÊ FOI CONVIDADO POR
+            <p className="text-[9px] font-black uppercase tracking-wider text-blue-200 mb-1.5">
+              VOCÊ FOI CONVIDADO POR:
             </p>
-            <div className="bg-white/20 backdrop-blur-md rounded-full px-4 py-2 border border-white/30 inline-flex items-center gap-2 max-w-full justify-center shadow-lg mb-6">
-              <div className="w-6 h-6 rounded-full bg-white/30 flex items-center justify-center shrink-0">
-                <User className="w-3.5 h-3.5 text-white" />
+            <div className="bg-white/15 backdrop-blur-md rounded-full px-3.5 py-1 border border-white/20 inline-flex items-center gap-1.5 max-w-full justify-center shadow-sm mb-4">
+              <div className="w-4 h-4 rounded-full bg-white/30 flex items-center justify-center shrink-0">
+                <User className="w-2.5 h-2.5 text-white" />
               </div>
-              <span className="text-xs font-black uppercase tracking-wider text-white truncate max-w-[220px]">
+              <span className="text-[11px] font-bold text-white truncate max-w-[200px]">
                 {leaderInfo?.name || 'Coordenação Geral'}
               </span>
             </div>
 
             {/* FOTO DO CANDIDATO */}
-            <div className="relative mx-auto my-3">
-              <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-blue-500 flex items-center justify-center relative z-10">
+            <div className="relative mx-auto my-1">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-white/80 shadow-md overflow-hidden bg-blue-500 flex items-center justify-center relative z-10">
                 <img 
                   src={candidateInfo.photoUrl} 
                   alt={candidateInfo.name} 
@@ -476,34 +476,34 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
               </div>
 
               {/* Tag Quero Participar */}
-              <div className="-mt-4 relative z-20 flex justify-center">
-                <span className="bg-white/25 backdrop-blur-md border border-white/40 text-white px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xl">
-                  <UserPlus className="w-3.5 h-3.5" /> Quero Participar
+              <div className="-mt-3 relative z-20 flex justify-center">
+                <span className="bg-blue-600 border border-white/40 text-white px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                  <UserPlus className="w-3 h-3" /> Apoiador
                 </span>
               </div>
             </div>
 
             {/* NOME DO CANDIDATO */}
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight mt-4 mb-1">
+            <h1 className="text-lg sm:text-xl font-black text-white tracking-tight leading-tight mt-2 mb-0.5">
               {candidateInfo.name}
             </h1>
-            <p className="text-xs font-bold text-blue-100/90 uppercase tracking-widest mb-4">
+            <p className="text-[11px] font-bold text-blue-200 uppercase tracking-wider mb-2">
               {candidateInfo.title}
             </p>
 
-            <div className="w-full border-t border-white/20 my-3" />
+            <div className="w-full border-t border-white/15 my-2" />
 
             {/* APRESENTAÇÃO / BIOGRAFIA */}
-            <div className="text-xs text-blue-50/95 leading-relaxed text-center font-medium px-2">
+            <div className="text-[11px] text-blue-100/90 leading-relaxed text-center font-normal px-1">
               <p>
-                {showFullBio ? candidateInfo.bio : `${candidateInfo.bio.slice(0, 150)}${candidateInfo.bio.length > 150 ? '...' : ''}`}
-                {candidateInfo.bio.length > 150 && (
+                {showFullBio ? candidateInfo.bio : `${candidateInfo.bio.slice(0, 110)}${candidateInfo.bio.length > 110 ? '...' : ''}`}
+                {candidateInfo.bio.length > 110 && (
                   <button 
                     type="button"
                     onClick={() => setShowFullBio(!showFullBio)}
                     className="ml-1 text-white underline font-bold hover:text-blue-200 transition-colors cursor-pointer inline-block"
                   >
-                    {showFullBio ? 'Ver menos' : 'Ver mais'}
+                    {showFullBio ? 'Menos' : 'Mais'}
                   </button>
                 )}
               </p>
@@ -511,11 +511,11 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
 
             {/* PROPOSTAS DE CAMPANHA DO CANDIDATO */}
             {candidateInfo.proposals && (
-              <div className="mt-4 pt-3 border-t border-white/20 text-left w-full space-y-1.5 bg-white/10 p-3.5 rounded-xl backdrop-blur-sm shadow-inner">
-                <p className="text-[10px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0" /> Propostas de Campanha:
+              <div className="mt-3 pt-2 border-t border-white/15 text-left w-full space-y-1 bg-white/10 p-2.5 rounded-xl backdrop-blur-xs">
+                <p className="text-[9px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-300 shrink-0" /> Principais Propostas:
                 </p>
-                <div className="text-xs text-white whitespace-pre-line font-normal leading-relaxed opacity-95">
+                <div className="text-[10px] text-white line-clamp-3 leading-relaxed opacity-90">
                   {candidateInfo.proposals}
                 </div>
               </div>
@@ -524,47 +524,37 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
           </div>
 
           {/* RODAPÉ DO BANNER */}
-          <div className="relative z-10 mt-8 pt-4 border-t border-white/15 text-center">
-            <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-blue-100 uppercase tracking-widest">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
-              <span>Base Tática Oficial • {leaderInfo?.teamName || 'Nexus Política'}</span>
+          <div className="relative z-10 mt-4 pt-2.5 border-t border-white/15 text-center">
+            <div className="flex items-center justify-center gap-1.5 text-[9px] font-bold text-blue-200 uppercase tracking-wider">
+              <ShieldCheck className="w-3 h-3 text-emerald-300" />
+              <span>Base Oficial • {leaderInfo?.teamName || 'Nexus Política'}</span>
             </div>
           </div>
 
         </div>
 
-        {/* DIREITA: FORMULÁRIO DE CADASTRO COM ETAPAS */}
-        <div className="lg:col-span-7 bg-white p-6 sm:p-10 flex flex-col justify-between">
+        {/* DIREITA: FORMULÁRIO DE CADASTRO COM ETAPAS (COMPACTO) */}
+        <div className="lg:col-span-7 bg-white dark:bg-zinc-900 p-4 sm:p-6 lg:p-7 flex flex-col justify-between text-left">
           
           <div>
-            {/* Ícone e Título da Campanha */}
-            <div className="text-center mb-6">
-              <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
-                <Heart className="w-6 h-6 fill-emerald-600" />
-              </div>
-              
-              <h2 className="text-xl sm:text-2xl font-black text-zinc-900 tracking-tight mb-2">
-                {candidateInfo.badgeTitle || 'Faça Parte do Nosso Projeto! 🎉'}
+            {/* Título da Campanha */}
+            <div className="text-center mb-4">
+              <h2 className="text-base sm:text-lg font-black text-zinc-900 dark:text-zinc-100 tracking-tight leading-tight">
+                {candidateInfo.badgeTitle || 'Faça Parte do Nosso Time! 🎉'}
               </h2>
-              
-              <p className="text-zinc-600 font-bold text-xs max-w-lg mx-auto leading-relaxed mb-2">
-                {candidateInfo.subtitle || 'Preencha o formulário abaixo e ajude a construir um futuro melhor para nossa comunidade.'}
-              </p>
-              
-              <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                Seus dados estão seguros e protegidos.
+              <p className="text-zinc-500 text-[11px] font-medium mt-0.5">
+                {candidateInfo.subtitle || 'Preencha seus dados para caminhar junto conosco nesta jornada.'}
               </p>
             </div>
 
             {/* ETAPAS / STEPPER INDICATOR */}
-            <div className="grid grid-cols-4 gap-1 sm:gap-2 mb-8 border-b border-zinc-100 pb-4 text-center">
+            <div className="grid grid-cols-4 gap-1 mb-5 border-b border-zinc-100 dark:border-zinc-800 pb-3 text-center">
               {[
-                { step: 1, label: 'DADOS PESSOAIS', icon: User },
-                { step: 2, label: 'ENDEREÇO', icon: Home },
-                { step: 3, label: 'SUGESTÕES & DEMANDAS', icon: FileText },
-                { step: 4, label: 'CONFIRMAÇÃO', icon: ShieldCheck }
+                { step: 1, label: 'Pessoal', icon: User },
+                { step: 2, label: 'Endereço', icon: Home },
+                { step: 3, label: 'Sugestões', icon: FileText },
+                { step: 4, label: 'Confirmar', icon: ShieldCheck }
               ].map((s) => {
-                const Icon = s.icon;
                 const isActive = currentStep === s.step;
                 const isCompleted = currentStep > s.step;
                 
@@ -573,24 +563,24 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
                     key={s.step}
                     type="button"
                     onClick={() => setCurrentStep(s.step as any)}
-                    className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${
+                    className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all cursor-pointer ${
                       isActive 
-                        ? 'bg-blue-50 text-blue-600 font-black border border-blue-200 shadow-sm' 
+                        ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-800' 
                         : isCompleted 
                         ? 'text-emerald-600 font-bold' 
-                        : 'text-zinc-400 font-medium hover:text-zinc-600'
+                        : 'text-zinc-400 hover:text-zinc-600'
                     }`}
                   >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 text-xs font-black transition-all ${
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center mb-0.5 text-[10px] font-black transition-all ${
                       isActive 
-                        ? 'bg-blue-600 text-white shadow-md' 
+                        ? 'bg-blue-600 text-white shadow-xs' 
                         : isCompleted 
                         ? 'bg-emerald-500 text-white' 
-                        : 'bg-zinc-100 text-zinc-500'
+                        : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'
                     }`}>
-                      {isCompleted ? <Check className="w-4 h-4" /> : s.step}
+                      {isCompleted ? <Check className="w-3 h-3" /> : s.step}
                     </div>
-                    <span className="text-[8px] sm:text-[9px] uppercase tracking-tighter leading-none hidden sm:block">
+                    <span className="text-[8px] uppercase tracking-tighter leading-none">
                       {s.label}
                     </span>
                   </button>
