@@ -50,17 +50,18 @@ app.use((req, res, next) => {
   const isProd = NODE_ENV === 'production';
   const cspProd = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://*.googleadservices.com https://*.doubleclick.net https://*.google.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
-    "img-src 'self' data: https: https://www.google-analytics.com https://www.googletagmanager.com",
-    "connect-src 'self' https: wss: https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com",
+    "img-src 'self' data: https: blob: https://www.google-analytics.com https://www.googletagmanager.com https://www.google.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.doubleclick.net",
+    "connect-src 'self' https: wss: ws: https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://*.google.com",
+    "frame-src 'self' https://www.googletagmanager.com https://bid.g.doubleclick.net https://*.doubleclick.net https://*.google.com",
     "object-src 'none'",
     "base-uri 'self'",
     "frame-ancestors 'none'"
   ].join('; ');
 
-  const cspDev = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' ws: wss: http: https:; object-src 'none'; base-uri 'self'; frame-ancestors 'self';";
+  const cspDev = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://*.doubleclick.net https://*.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' ws: wss: http: https:; frame-src 'self' https://www.googletagmanager.com https://bid.g.doubleclick.net https://*.doubleclick.net; object-src 'none'; base-uri 'self'; frame-ancestors 'self';";
 
   res.setHeader('Content-Security-Policy', isProd ? cspProd : cspDev);
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
