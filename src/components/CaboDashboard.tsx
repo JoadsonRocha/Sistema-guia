@@ -1513,9 +1513,9 @@ export default function CaboDashboard({
                 {(() => {
                   const todayStart = new Date();
                   todayStart.setHours(0,0,0,0);
-                  const todayVoters = myVoters.filter(v => (v.createdAt || 0) >= todayStart.getTime()).length;
+                  const todayVoters = voters.filter(v => (v.createdAt || 0) >= todayStart.getTime()).length;
                   const target = teamData?.target || 50;
-                  const pct = Math.min(100, Math.round((myVoters.length / Math.max(1, target)) * 100));
+                  const pct = Math.min(100, Math.round((voters.length / Math.max(1, target)) * 100));
                   const totalFuel = myRequests.filter(r => r.type === 'combustivel' && r.status === 'aprovado').length;
                   const pendingDemands = myRequests.filter(r => r.type === 'demanda' && r.status === 'pendente').length;
 
@@ -1530,7 +1530,7 @@ export default function CaboDashboard({
                         </div>
                         <div>
                           <div className="flex items-baseline gap-2">
-                            <h3 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">{myVoters.length}</h3>
+                            <h3 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">{voters.length}</h3>
                             <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">/ meta {target}</span>
                           </div>
                           <div className="w-full bg-[var(--bg-tertiary)] h-1.5 rounded-full mt-2.5 overflow-hidden">
@@ -3586,7 +3586,7 @@ export default function CaboDashboard({
       <WhatsAppDispatchModal
         isOpen={isWaModalOpen}
         onClose={() => setIsWaModalOpen(false)}
-        voters={myVoters}
+        voters={voters}
         candidateName={candidateInfo?.name || 'Candidato Oficial'}
       />
 

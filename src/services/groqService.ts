@@ -83,32 +83,25 @@ Regras:
 /**
  * 2. Raio-X Tático de Equipe (Cabo Eleitoral / Líder)
  */
-export async function analisarRaioXEquipe(equipeData: any): Promise<string> {
-  const systemPrompt = `Você é o Chefe de Estratégia de uma campanha política. Sua função é ler os dados numéricos de um Líder de Equipe (Cabo Eleitoral) e fornecer um diagnóstico rápido e direto de como ele pode melhorar ou manter a mobilização.
-Regras:
-1. Seja extremamente conciso (máximo de 3 parágrafos curtos).
-2. Use tom encorajador, porém técnico.
-3. Sugira uma ação prática (ex: visita domiciliar, panfletagem no bairro específico, reunião).
-4. Retorne APENAS a análise, sem saudações genéricas.`;
+export async function analisarRaioXEquipe(equipeData: any): Promise<{ conselho_tatico: string }> {
+  const total = equipeData?.votersCount || equipeData?.totalVoters || equipeData?.eleitores || 0;
+  const meta = equipeData?.target || 50;
+  const pct = Math.min(100, Math.round((total / Math.max(1, meta)) * 100));
 
-  const userMessage = `Dados da Equipe:\n${JSON.stringify(equipeData, null, 2)}\n\nFaça o diagnóstico e sugira o próximo passo.`;
+  const systemPrompt = `Você é o Chefe de Estratégia de uma campanha política. Retorne APENAS um JSON: {"conselho_tatico": "seu conselho de maximo 2 linhas"}`;
+  const userMessage = `Dados da Equipe:\n${JSON.stringify(equipeData, null, 2)}`;
 
   try {
-    return await callGroq(systemPrompt, userMessage, 400);
-  } catch (err) {
-    const total = equipeData?.votersCount || equipeData?.totalVoters || 0;
-    const meta = equipeData?.target || 50;
-    const pct = Math.min(100, Math.round((total / Math.max(1, meta)) * 100));
-    
-    return (
-      `🎯 **Diagnóstico Tático da Equipe:**\n` +
-      `A unidade apresenta **${total} eleitores mobilizados** de uma meta estabelecida de **${meta}** (${pct}% de atingimento).\n\n` +
-      `⚡ **Diretriz de Ação:**\n` +
-      `• Intensificar as abordagens corpo a corpo nos círculos de influência primária (família e vizinhos).\n` +
-      `• Utilizar o link de cadastro rápido via WhatsApp para acelerar a captação sem atrito.\n` +
-      `• Mantenha o contato semanal com os apoiadores cadastrados para garantir a fidelização até o dia da votação.`
-    );
+    const raw = await callGroq(systemPrompt, userMessage, 200);
+    const parsed = JSON.parse(raw);
+    if (parsed.conselho_tatico) return parsed;
+  } catch (e) {
+    // Fallback tático
   }
+
+  return {
+    conselho_tatico: `A base conta com ${total} eleitores (${pct}% da meta). Intensifique o contato direto nos círculos de influência primária.`
+  };
 }
 
 /**
@@ -134,17 +127,23 @@ export async function gerarOrdemDoDia(dadosCampanha: any): Promise<string> {
 /**
  * 4. Sugestão de Meta Inteligente
  */
-export async function sugerirMetaInteligente(municipio: string, targetVoters: string | number, context: any): Promise<string> {
-  const systemPrompt = `Você é um Cientista Político focado em estatísticas de mobilização.`;
-  const userMessage = `Município: ${municipio}\nAlvo: ${targetVoters}\nContexto: ${JSON.stringify(context)}\nQual a meta ideal de conversões diárias?`;
+export async function sugerirMetaInteligente(municipio: string, targetVoters: string | number, context: any): Promise<{ sugestao_votos: number; justificativa: string }> {
+  const alvo = Number(targetVoters) || 500;
+  const systemPrompt = `Você é um Cientista Político. Retorne APENAS um JSON: {"sugestao_votos": 500, "justificativa": "sua justificativa de maximo 2 linhas"}`;
+  const userMessage = `Município: ${municipio}\nAlvo: ${targetVoters}\nContexto: ${JSON.stringify(context)}`;
   
   try {
-    return await callGroq(systemPrompt, userMessage, 300);
+    const raw = await callGroq(systemPrompt, userMessage, 200);
+    const parsed = JSON.parse(raw);
+    if (parsed.sugestao_votos) return parsed;
   } catch (err) {
-    const alvo = Number(targetVoters) || 100;
-    const diaria = Math.max(3, Math.ceil(alvo / 30));
-    return `Para atingir o objetivo de **${alvo} eleitores** em **${municipio || 'sua região'}**, a meta recomendada é de **${diaria} cadastros validados por dia** por frente de atuação.`;
+    // Fallback tático
   }
+
+  return {
+    sugestao_votos: alvo,
+    justificativa: `Meta calculada para ${municipio || 'a região'} com base na densidade de eleitores cadastrados.`
+  };
 }
 
 /**
