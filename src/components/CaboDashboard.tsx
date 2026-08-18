@@ -2322,25 +2322,25 @@ export default function CaboDashboard({
         {isProfileModalOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto transition-all"
+            className="fixed inset-0 z-[200] bg-zinc-950/90 backdrop-blur-md p-3 sm:p-6 flex items-center justify-center overflow-hidden transition-all"
           >
             <motion.div 
-              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-[var(--bg-secondary)] w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-[var(--border-color)]"
+              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="bg-[var(--bg-secondary)] w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] rounded-xl overflow-hidden shadow-2xl relative border border-[var(--border-color)] flex flex-col text-left"
             >
               <button 
                 onClick={() => setIsProfileModalOpen(false)}
-                className="absolute top-6 right-6 bg-[var(--bg-tertiary)] p-2.5 rounded-sm text-[var(--text-secondary)] hover:text-red-500 transition-all active:scale-90"
+                className="absolute top-4 right-4 bg-[var(--bg-tertiary)] p-2 rounded-xl text-[var(--text-secondary)] hover:text-red-500 transition-all active:scale-90 z-10"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
 
-              <div className="bg-zinc-950 p-8 border-b-4 border-blue-600 text-left dark:bg-zinc-900 transition-colors">
-                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">Minhas Credenciais</h2>
-                <p className="text-blue-600/70 text-[10px] font-black mt-3 uppercase tracking-[0.2em] leading-none">Ajuste de Identidade Operacional</p>
+              <div className="bg-zinc-950 p-5 border-b-4 border-blue-600 text-left dark:bg-zinc-900 transition-colors shrink-0">
+                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">Minhas Credenciais</h2>
+                <p className="text-blue-600/70 text-[10px] font-black mt-2 uppercase tracking-[0.2em] leading-none">Ajuste de Identidade Operacional</p>
               </div>
 
-              <div className="p-10 space-y-8 text-left">
+              <div className="p-5 sm:p-6 space-y-6 text-left overflow-y-auto flex-1">
                 <div className="space-y-2.5">
                   <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] ml-1 opacity-60">Identificação Nominal</label>
                   <input 
@@ -2386,35 +2386,35 @@ export default function CaboDashboard({
         {isVoterDetailOpen && selectedVoter && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[110] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+            className="fixed inset-0 z-[110] bg-zinc-950/90 backdrop-blur-md p-3 sm:p-6 flex items-center justify-center overflow-hidden"
           >
             <motion.div 
-              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative"
+              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="bg-white w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] rounded-xl overflow-hidden shadow-2xl relative flex flex-col text-left"
             >
               <button 
                 onClick={() => {
                   setIsVoterDetailOpen(false);
                   setSelectedVoter(null);
                 }} 
-                className="absolute top-6 right-6 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-xl text-zinc-500 hover:bg-zinc-200 transition-all z-10"
               >
-                <X className="w-6 h-6" />
+                <X className="w-4 h-4" />
               </button>
 
-              <div className="bg-zinc-950 p-8 border-b-4 border-blue-600 text-left">
-                <div className="flex items-center gap-4 mb-2">
-                   <div className="bg-blue-600 text-white w-12 h-12 rounded-sm flex items-center justify-center font-black text-xl">
+              <div className="bg-zinc-950 p-5 border-b-4 border-blue-600 text-left shrink-0">
+                <div className="flex items-center gap-3">
+                   <div className="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg">
                       {selectedVoter.name.charAt(0).toUpperCase()}
                    </div>
                    <div>
-                      <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">{selectedVoter.name}</h2>
-                      <p className="text-zinc-400 text-[10px] font-black mt-1 uppercase tracking-widest leading-none">Perfil do Eleitor Fidelizado</p>
+                      <h2 className="text-lg font-black text-white tracking-tighter uppercase leading-none">{selectedVoter.name}</h2>
+                      <p className="text-zinc-400 text-[9px] font-black mt-1 uppercase tracking-widest leading-none">Perfil do Eleitor Fidelizado</p>
                     </div>
                 </div>
               </div>
 
-              <div className="p-8 space-y-6 text-left">
+              <div className="p-5 sm:p-6 space-y-5 text-left overflow-y-auto flex-1">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-zinc-50 p-4 rounded-sm border border-zinc-100">
                     <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Status</p>
@@ -3007,23 +3007,23 @@ export default function CaboDashboard({
         {isFuelModalOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+            className="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-md p-3 sm:p-6 flex items-center justify-center overflow-hidden"
           >
             <motion.div 
-              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-zinc-200"
+              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="bg-white w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] rounded-xl overflow-hidden shadow-2xl relative border border-zinc-200 flex flex-col text-left"
             >
               <button 
                 onClick={() => setIsFuelModalOpen(false)} 
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-xl text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95 z-10"
               >
                 <X className="w-4 h-4" />
               </button>
-              <div className="bg-blue-600 p-6">
+              <div className="bg-blue-600 p-5 shrink-0 text-left">
                 <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">Logística de Suporte</h2>
-                <p className="text-blue-200 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Requisição Oficial de Combustível</p>
+                <p className="text-blue-200 text-[10px] font-black mt-1.5 uppercase tracking-widest leading-none">Requisição Oficial de Combustível</p>
               </div>
-              <form onSubmit={handleFuelSubmit} className="p-6 space-y-4 text-left">
+              <form onSubmit={handleFuelSubmit} className="p-5 sm:p-6 space-y-4 text-left overflow-y-auto flex-1">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-zinc-500 uppercase tracking-wider ml-1 block">Volume Necessário (Litros)</label>
                   <input 
@@ -3070,23 +3070,23 @@ export default function CaboDashboard({
         {isDemandModalOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+            className="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-md p-3 sm:p-6 flex items-center justify-center overflow-hidden"
           >
             <motion.div 
-              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-sm overflow-hidden shadow-2xl relative border border-zinc-200"
+              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="bg-white w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] rounded-xl overflow-hidden shadow-2xl relative border border-zinc-200 flex flex-col text-left"
             >
               <button 
                 onClick={() => setIsDemandModalOpen(false)} 
-                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-sm text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-xl text-zinc-500 hover:bg-zinc-200 transition-all active:scale-95 z-10"
               >
                 <X className="w-4 h-4" />
               </button>
-              <div className="bg-blue-600 p-6">
+              <div className="bg-blue-600 p-5 shrink-0 text-left">
                 <h2 className="text-xl font-black text-zinc-950 tracking-tighter uppercase leading-none">Demanda Territorial</h2>
-                <p className="text-zinc-900 text-[10px] font-black mt-2 uppercase tracking-widest leading-none">Monitoramento de Necessidades Sociais</p>
+                <p className="text-zinc-900 text-[10px] font-black mt-1.5 uppercase tracking-widest leading-none">Monitoramento de Necessidades Sociais</p>
               </div>
-              <form onSubmit={handleDemandSubmit} className="p-6 space-y-4 text-left">
+              <form onSubmit={handleDemandSubmit} className="p-5 sm:p-6 space-y-4 text-left overflow-y-auto flex-1">
                 <div className="space-y-1.5">
                   <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest ml-1 block">Natureza da Demanda</label>
                   <input required type="text" value={demandForm.title} onChange={e => setDemandForm({...demandForm, title: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-sm p-4 font-black text-[11px] text-zinc-900 outline-none focus:border-blue-600 transition-all placeholder:text-zinc-300" placeholder="Ex: Saneamento, Saúde, Infraestrutura..." />
