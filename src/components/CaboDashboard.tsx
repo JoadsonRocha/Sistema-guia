@@ -1742,7 +1742,24 @@ export default function CaboDashboard({
                             </div>
                           </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-[var(--text-secondary)] opacity-40 group-hover:text-blue-600 group-hover:translate-x-0.5 group-hover:opacity-100 transition-all relative z-10 shrink-0" />
+                        <div className="flex items-center gap-2 relative z-10 shrink-0">
+                          {voter.phone && (
+                            <button
+                              type="button"
+                              title="Abrir WhatsApp"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const cleanPhone = voter.phone.replace(/\D/g, '');
+                                const message = `Olá, ${voter.name}! Passando para agradecer seu apoio à campanha de ${candidateInfo.name || 'nosso candidato'}!`;
+                                window.open(`https://api.whatsapp.com/send?phone=55${cleanPhone}&text=${encodeURIComponent(message)}`, '_blank');
+                              }}
+                              className="p-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-white rounded-lg transition-all border border-emerald-500/20 active:scale-90"
+                            >
+                              <MessageSquare className="w-4 h-4" />
+                            </button>
+                          )}
+                          <ChevronRight className="w-4 h-4 text-[var(--text-secondary)] opacity-40 group-hover:text-blue-600 group-hover:translate-x-0.5 group-hover:opacity-100 transition-all shrink-0" />
+                        </div>
                       </motion.div>
                     )) : (
                       <div className="p-12 border border-dashed border-[var(--border-color)] rounded-md text-center">
@@ -2915,6 +2932,26 @@ export default function CaboDashboard({
                       </span>
                       <p className="text-xs font-black text-zinc-900 truncate">{candidateInfo.name || 'Candidato Cadastrado'}</p>
                       <p className="text-[9px] font-bold text-zinc-500 truncate">{candidateInfo.title || 'Campanha Eleitoral'}</p>
+                    </div>
+                  </div>
+
+                  {/* QR Code de Autocadastro de Rua */}
+                  <div className="bg-white border border-zinc-200 rounded-xl p-4 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left shadow-xs">
+                    <div className="w-28 h-28 bg-zinc-50 border border-zinc-200 rounded-lg p-1.5 flex items-center justify-center shrink-0 shadow-inner">
+                      <img 
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=2&data=${encodeURIComponent(`${window.location.origin}/cadastro?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}${user?.teamId || teamData?.id ? `&teamId=${user?.teamId || teamData?.id}` : ''}&inviter=${encodeURIComponent(profileData?.name || user?.displayName || user?.name || 'Líder')}`)}`}
+                        alt="QR Code de Autocadastro" 
+                        className="w-full h-full object-contain rounded"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
+                        📱 QR Code para Rua
+                      </span>
+                      <h4 className="text-xs font-black text-zinc-900">Escanear com a Câmera</h4>
+                      <p className="text-[11px] text-zinc-500 font-medium leading-relaxed">
+                        Aponte a câmera do celular do eleitor para este código para abrir o cadastro oficial da sua equipe na hora.
+                      </p>
                     </div>
                   </div>
 
