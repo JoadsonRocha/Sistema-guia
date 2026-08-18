@@ -33,10 +33,13 @@ export const DEFAULT_CANDIDATE_INFO: CandidateInfo = {
 
 const CACHE_KEY_LIST = 'nexus_candidates_list_cache';
 
-function isRealCandidate(c?: Partial<CandidateInfo> | null): boolean {
+export function isRealCandidate(c?: Partial<CandidateInfo> | null): boolean {
   if (!c || !c.name) return false;
   const name = c.name.trim().toLowerCase();
-  return name !== '' && name !== 'seu candidato' && name !== 'candidato oficial' && name !== 'candidato cadastrado' && name !== 'nome do candidato';
+  const title = (c.title || '').trim().toLowerCase();
+  if (name === '' || name === 'seu candidato' || name === 'candidato oficial' || name === 'candidato cadastrado' || name === 'nome do candidato' || name === 'candidato pendente') return false;
+  if (title === '' || title === 'aguardando cadastro' || title === 'cargo do candidato') return false;
+  return true;
 }
 
 function getLocalCacheList(): CandidateInfo[] {
@@ -47,7 +50,6 @@ function getLocalCacheList(): CandidateInfo[] {
       if (Array.isArray(parsed) && parsed.length > 0) {
         const realCandidates = parsed.filter(c => isRealCandidate(c));
         if (realCandidates.length > 0) return realCandidates;
-        return parsed;
       }
     }
   } catch (e) {
@@ -58,7 +60,8 @@ function getLocalCacheList(): CandidateInfo[] {
 
 function setLocalCacheList(candidates: CandidateInfo[]) {
   try {
-    localStorage.setItem(CACHE_KEY_LIST, JSON.stringify(candidates));
+    const realCandidates = candidates.filter(c => isRealCandidate(c));
+    localStorage.setItem(CACHE_KEY_LIST, JSON.stringify(realCandidates.length > 0 ? realCandidates : [DEFAULT_CANDIDATE_INFO]));
   } catch (e) {
     // ignore
   }
@@ -80,8 +83,8 @@ export const candidateService = {
         if (docCoord && Array.isArray(docCoord.list) && docCoord.list.length > 0) {
           const valid = docCoord.list.filter((c: any) => isRealCandidate(c));
           if (valid.length > 0) {
-            setLocalCacheList(docCoord.list);
-            return docCoord.list;
+            setLocalCacheList(valid);
+            return valid;
           }
         }
         const singleCoord = await supabaseService.getDocument<any>('settings', `candidate_${coordinatorId}`);
@@ -89,7 +92,7 @@ export const candidateService = {
           setLocalCacheList([singleCoord]);
           return [singleCoord];
         }
-        // Isolar a busca: se coordinatorId foi passado e não achou nada, retornar fallback, NÃO buscar globais.
+        // Isolar a busca: se coordinatorId foi passado e não achou nada, retornar fallback
         return [DEFAULT_CANDIDATE_INFO];
       }
 
@@ -98,8 +101,8 @@ export const candidateService = {
       if (docGlobal && Array.isArray(docGlobal.list) && docGlobal.list.length > 0) {
         const valid = docGlobal.list.filter((c: any) => isRealCandidate(c));
         if (valid.length > 0) {
-          setLocalCacheList(docGlobal.list);
-          return docGlobal.list;
+          setLocalCacheList(valid);
+          return valid;
         }
       }
 
@@ -118,8 +121,8 @@ export const candidateService = {
           if (doc && Array.isArray(doc.list) && doc.list.length > 0) {
             const valid = doc.list.filter((c: any) => isRealCandidate(c));
             if (valid.length > 0) {
-              setLocalCacheList(doc.list);
-              return doc.list;
+              setLocalCacheList(valid);
+              return valid;
             }
           }
           if (isRealCandidate(doc)) {
@@ -135,7 +138,7 @@ export const candidateService = {
       const realCached = cached.filter(c => isRealCandidate(c));
       if (realCached.length > 0) return realCached;
 
-      // 6. Se nada encontrado no servidor ainda, retornar cache ou fallback
+      // 6. Se nada encontrado no servidor ainda, retornar fallback
       if (cached && cached.length > 0) return cached;
     } catch (error) {
       console.warn("Aviso ao buscar lista de candidatos:", error);
@@ -156,23 +159,27 @@ export const candidateService = {
    * Enforces uniqueness: cannot register 2 candidates for the exact same cargo!
    */
   async saveCandidate(candidate: CandidateInfo, userId?: string, coordinatorId?: string): Promise<CandidateInfo[]> {
-    const currentList = await this.getCandidatesList(coordinatorId);
+    const rawList = await this.getCandidatesList(coordinatorId);
+    const currentList = rawList.filter(c => isRealCandidate(c));
 
-    const normTitle = normalizeTitle(candidate.title);
-    if (!normTitle) {
-      throw new Error("O cargo / função do candidato é obrigatório.");
+    let titleToUse = (candidate.title || '').trim();
+    if (!titleToUse || titleToUse.toLowerCase() === 'aguardando cadastro' || titleToUse.toLowerCase() === 'cargo do candidato') {
+      titleToUse = 'Deputado Estadual';
     }
 
-    // Check if another candidate has the exact same cargo
+    const normTitle = normalizeTitle(titleToUse);
     const candidateId = candidate.id || `cand_${Date.now()}`;
-    const duplicate = currentList.find(c => c.id !== candidateId && normalizeTitle(c.title) === normTitle);
+
+    // Check if another REAL candidate already occupies this exact cargo
+    const duplicate = currentList.find(c => c.id !== candidateId && isRealCandidate(c) && normalizeTitle(c.title) === normTitle);
 
     if (duplicate) {
-      throw new Error(`Já existe um candidato cadastrado para o cargo '${candidate.title}'. Não é permitido cadastrar mais de um candidato para o mesmo cargo.`);
+      throw new Error(`Já existe um candidato cadastrado para o cargo '${titleToUse}'. Não é permitido cadastrar mais de um candidato para o mesmo cargo.`);
     }
 
     const updatedCandidate: CandidateInfo = {
       ...candidate,
+      title: titleToUse,
       id: candidateId,
       updatedAt: Date.now(),
       updatedBy: userId || 'coordenador_geral'

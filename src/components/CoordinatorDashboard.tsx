@@ -74,7 +74,7 @@ import { sugerirMetaInteligente, analisarRaioXEquipe } from '../services/groqSer
 import { reportService } from '../services/reportService';
 import { useAuth } from '../lib/SupabaseProvider';
 import { supabaseService } from '../lib/supabaseService';
-import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO } from '../lib/candidateService';
+import { candidateService, CandidateInfo, DEFAULT_CANDIDATE_INFO, isRealCandidate } from '../lib/candidateService';
 import { showToast } from './GlobalToastHost';
 import { getSubscriptionInfo, saveSubscriptionPlan, PlanType, PLAN_CONFIGS, validateLeaderRegistration, validateRegionalRegistration, triggerUpgradeRedirect } from '../lib/planService';
 import NoteCard from './NoteCard';
@@ -3091,8 +3091,21 @@ export default function CoordinatorDashboard({
                   </div>
                   <button
                     onClick={() => {
-                      setCandidateForm({ ...DEFAULT_CANDIDATE_INFO, id: undefined });
+                      setCandidateForm({
+                        id: undefined,
+                        name: '',
+                        title: 'Deputado Estadual',
+                        photoUrl: '',
+                        bannerUrl: '',
+                        bio: '',
+                        slogan: '',
+                        number: '',
+                        party: '',
+                        badgeTitle: 'FAÇA PARTE DO NOSSO TIME! 🗳️',
+                        subtitle: 'Preencha o formulário e apoie nossa caminhada.'
+                      });
                       setEditingCandidateId(undefined);
+                      setCandidateModalTab('identificacao');
                       setIsCandidateModalOpen(true);
                     }}
                     className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-md active:scale-95 transition-all cursor-pointer"
@@ -3102,7 +3115,7 @@ export default function CoordinatorDashboard({
                 </div>
 
                 {/* Lista de candidatos */}
-                {candidatesList.length === 0 ? (
+                {candidatesList.filter(c => isRealCandidate(c)).length === 0 ? (
                   <div className="text-center py-12 text-[var(--text-secondary)]">
                     <UserPlus className="w-12 h-12 mx-auto mb-3 opacity-30" />
                     <p className="text-sm font-semibold">Nenhum candidato cadastrado ainda.</p>
@@ -3110,7 +3123,7 @@ export default function CoordinatorDashboard({
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {candidatesList.map((cand) => (
+                    {candidatesList.filter(c => isRealCandidate(c)).map((cand) => (
                       <div key={cand.id || cand.name} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm flex items-start gap-4 group hover:border-blue-400 transition-all">
                         <img
                           src={cand.photoUrl || DEFAULT_CANDIDATE_INFO.photoUrl}
