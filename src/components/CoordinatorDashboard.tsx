@@ -6080,28 +6080,28 @@ export default function CoordinatorDashboard({
         {isVoterEditModalOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[140] bg-zinc-950/90 backdrop-blur-md p-4 flex items-center justify-center overflow-y-auto"
+            className="fixed inset-0 z-[140] bg-zinc-950/90 backdrop-blur-md p-3 sm:p-6 flex items-center justify-center overflow-hidden"
           >
             <motion.div 
-              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative"
+              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="bg-white w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] rounded-2xl overflow-hidden shadow-2xl relative flex flex-col text-left"
             >
               <button 
                 onClick={() => {
                    setIsVoterEditModalOpen(false);
                    setSelectedVoter(null);
                 }} 
-                className="absolute top-5 right-5 bg-zinc-100 p-2 rounded-xl text-zinc-500 hover:bg-zinc-200 transition-all"
+                className="absolute top-4 right-4 bg-zinc-100 p-2 rounded-xl text-zinc-500 hover:bg-zinc-200 transition-all z-10"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
-              <div className="bg-zinc-950 p-6 border-b-4 border-blue-600 text-left">
-                <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
+              <div className="bg-zinc-950 p-5 border-b-4 border-blue-600 text-left shrink-0">
+                <h2 className="text-lg font-black text-white tracking-tighter uppercase leading-none">
                   Editar Eleitor
                 </h2>
-                <p className="text-zinc-400 text-[10px] font-bold mt-2 uppercase tracking-widest">Base de dados da equipe {selectedManagingTeam?.name}</p>
+                <p className="text-zinc-400 text-[10px] font-bold mt-1.5 uppercase tracking-widest">Base de dados da equipe {selectedManagingTeam?.name}</p>
               </div>
-              <form onSubmit={handleVoterEditSubmit} className="p-6 space-y-4 text-left">
+              <form onSubmit={handleVoterEditSubmit} className="p-5 sm:p-6 space-y-4 text-left overflow-y-auto flex-1">
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
                   <input required type="text" value={voterEditForm.name} onChange={e => setVoterEditForm({...voterEditForm, name: e.target.value})} className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm" placeholder="Digite o nome..." />
@@ -7743,7 +7743,7 @@ export default function CoordinatorDashboard({
       <AnimatePresence>
         {isEditRegCoordModalOpen && editingRegCoord && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[250] bg-zinc-950/80 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto">
-            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] w-full max-w-lg rounded-xl overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]">
               <button onClick={() => setIsEditRegCoordModalOpen(false)} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-[var(--text-primary)]">
                 <X className="w-5 h-5" />
               </button>

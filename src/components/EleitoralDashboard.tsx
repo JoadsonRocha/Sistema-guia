@@ -1652,16 +1652,16 @@ export default function EleitoralDashboard({
 
       {/* MODAL: EXCEL IMPORT FOR COORDENADOR GERAL */}
       {isImportModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg shadow-2xl max-w-xl w-full p-6 text-[var(--text-primary)] relative animate-in fade-in zoom-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-hidden">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl shadow-2xl max-w-xl w-full max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden text-[var(--text-primary)] relative animate-in fade-in zoom-in duration-150 text-left">
             <button 
               onClick={() => setIsImportModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors z-10"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 p-5 border-b border-[var(--border-color)] shrink-0">
               <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded-lg">
                 <Database className="w-5 h-5" />
               </div>
@@ -1675,7 +1675,7 @@ export default function EleitoralDashboard({
               </div>
             </div>
 
-            <div className="my-4 border-t border-b border-[var(--border-color)] py-4 space-y-4">
+            <div className="p-5 overflow-y-auto flex-1 space-y-4 text-left">
               {/* Actions bar */}
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <button

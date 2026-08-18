@@ -48,19 +48,19 @@ export const CaboVoterForm: React.FC<CaboVoterFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
-        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+      <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md max-h-[90vh] sm:max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200 text-left">
+        <div className="flex items-center justify-between border-b border-zinc-800 p-5 shrink-0">
           <div className="flex items-center space-x-2">
             <UserPlus className="w-5 h-5 text-blue-500" />
             <h3 className="text-lg font-extrabold text-white">Cadastrar Eleitor</h3>
           </div>
-          <button onClick={onClose} className="text-zinc-400 hover:text-white p-1">
+          <button onClick={onClose} className="text-zinc-400 hover:text-white p-1 z-10">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 text-left">
           <div>
             <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1">Nome Completo *</label>
             <input
