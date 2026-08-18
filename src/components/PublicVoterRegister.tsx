@@ -27,8 +27,35 @@ import {
   Mail,
   Home,
   MessageSquare,
-  Check
+  Check,
+  Send,
+  Copy,
+  Share2
 } from 'lucide-react';
+
+const formatPhone = (val: string) => {
+  const digits = val.replace(/\D/g, '').slice(0, 11);
+  if (!digits.length) return '';
+  if (digits.length <= 2) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
+
+const formatCPF = (val: string) => {
+  const digits = val.replace(/\D/g, '').slice(0, 11);
+  if (!digits.length) return '';
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+};
+
+const formatCEP = (val: string) => {
+  const digits = val.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 5) return digits;
+  return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+};
 
 interface PublicVoterRegisterProps {
   leaderId?: string | null;
@@ -43,6 +70,8 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
   const [showFullBio, setShowFullBio] = useState(false);
+  const [cep, setCep] = useState('');
+  const [loadingCep, setLoadingCep] = useState(false);
 
   const [candidateInfo, setCandidateInfo] = useState<CandidateInfo>(DEFAULT_CANDIDATE_INFO);
 
@@ -73,6 +102,34 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
   const [acceptedLgpd, setAcceptedLgpd] = useState(false);
   const [isLocatingGPS, setIsLocatingGPS] = useState(false);
   const [honey, setHoney] = useState('');
+
+  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    const formatted = formatCEP(raw);
+    setCep(formatted);
+    const clean = raw.replace(/\D/g, '');
+    if (clean.length === 8) {
+      setLoadingCep(true);
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          const fullAddr = [data.logradouro, data.bairro, `${data.localidade} - ${data.uf}`].filter(Boolean).join(', ');
+          setVoterForm(prev => ({
+            ...prev,
+            address: fullAddr || prev.address
+          }));
+          showToast("📍 Endereço preenchido automaticamente pelo CEP!", "success");
+        } else {
+          showToast("CEP não encontrado.", "error");
+        }
+      } catch (err) {
+        console.warn("Erro ao consultar CEP:", err);
+      } finally {
+        setLoadingCep(false);
+      }
+    }
+  };
 
   const handleGetGPSLocation = async () => {
     setIsLocatingGPS(true);
@@ -537,27 +594,66 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-8 text-center shadow-xl relative overflow-hidden my-auto"
+                  className="bg-gradient-to-br from-emerald-50 via-white to-emerald-50 border-2 border-emerald-500 rounded-2xl p-6 sm:p-8 text-center shadow-xl relative overflow-hidden my-auto"
                 >
-                  <div className="w-16 h-16 bg-emerald-500 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                  <div className="w-16 h-16 bg-emerald-500 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/30">
                     <CheckCircle2 className="w-10 h-10" />
                   </div>
-                  <h2 className="text-2xl font-black text-zinc-950 uppercase tracking-tighter mb-3">Cadastro Confirmado!</h2>
-                  <p className="text-zinc-700 font-bold text-sm mb-8 max-w-md mx-auto leading-relaxed">
-                    Sua participação no projeto <strong className="text-zinc-950">{candidateInfo.name}</strong> foi registrada com sucesso sob a coordenação da equipe <strong className="text-zinc-950 uppercase">{leaderInfo?.teamName}</strong>!
+                  <h2 className="text-2xl font-black text-zinc-950 uppercase tracking-tighter mb-2">Apoio Confirmado com Sucesso! 🎉</h2>
+                  <p className="text-zinc-700 font-bold text-sm mb-6 max-w-md mx-auto leading-relaxed">
+                    Sua participação no projeto <strong className="text-emerald-700">{candidateInfo.name}</strong> foi registrada sob a coordenação da equipe <strong className="text-zinc-950 uppercase">{leaderInfo?.teamName}</strong>!
                   </p>
+
+                  {/* BLOCO DE COMPARTILHAMENTO VIRAL WHATSAPP */}
+                  <div className="bg-emerald-500/10 border border-emerald-300 rounded-2xl p-4 sm:p-5 mb-6 text-left space-y-3">
+                    <div className="flex items-center gap-2 text-emerald-900">
+                      <Sparkles className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <p className="text-xs font-black uppercase tracking-wider">Multiplique nossa força!</p>
+                    </div>
+                    <p className="text-xs text-zinc-700 font-semibold leading-relaxed">
+                      Convide seus amigos e familiares para apoiarem também a campanha de <strong>{candidateInfo.name}</strong>.
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const shareUrl = window.location.href;
+                          const candName = candidateInfo.name || 'nosso candidato';
+                          const text = `*FAÇA PARTE DO NOSSO TIME!* 🗳️\n\nAcabei de confirmar meu apoio à campanha de *${candName}*!\n\nJunte-se a nós também acessando o link oficial abaixo:\n${shareUrl}`;
+                          window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+                        }}
+                        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer"
+                      >
+                        <Send className="w-4 h-4" /> Compartilhar no WhatsApp
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(window.location.href);
+                          showToast("✅ Link da página copiado!", "success");
+                        }}
+                        className="w-full bg-white hover:bg-zinc-50 text-zinc-800 border border-zinc-300 py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
+                      >
+                        <Copy className="w-4 h-4" /> Copiar Link
+                      </button>
+                    </div>
+                  </div>
+
                   <button
                     onClick={() => {
                       setSuccess(false);
                       setAcceptedLgpd(false);
+                      setCep('');
                       setCurrentStep(1);
                       setVoterForm({
                         name: '', email: '', phone: '', address: '', observations: '', referredBy: '', tags: [], cpf: '', rg: '', titulo: '', zona: '', secao: '', localVotacao: ''
                       });
                     }}
-                    className="bg-zinc-950 text-white font-black text-xs uppercase tracking-widest py-4 px-8 rounded-xl hover:bg-zinc-800 transition-all shadow-lg active:scale-95"
+                    className="bg-zinc-950 text-white font-black text-xs uppercase tracking-widest py-3.5 px-8 rounded-xl hover:bg-zinc-800 transition-all shadow-md active:scale-95 cursor-pointer"
                   >
-                    Cadastrar Outra Pessoa
+                    Cadastrar Outro Apoiador
                   </button>
                 </motion.div>
               ) : (
@@ -597,7 +693,7 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <label className="text-xs font-semibold text-zinc-600 block">E-mail</label>
+                          <label className="text-xs font-semibold text-zinc-600 block">E-mail (Opcional)</label>
                           <div className="relative">
                             <Mail className="w-4 h-4 text-zinc-400 absolute left-3.5 top-3.5 pointer-events-none" />
                             <input 
@@ -616,10 +712,11 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
                             <Phone className="w-4 h-4 text-zinc-400 absolute left-3.5 top-3.5 pointer-events-none" />
                             <input 
                               required
-                              type="text" 
+                              type="tel"
+                              inputMode="tel"
                               value={voterForm.phone} 
-                              onChange={e => setVoterForm({...voterForm, phone: e.target.value})} 
-                              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 pl-11 font-medium text-xs text-zinc-900 outline-none focus:border-blue-600 focus:bg-white transition-all placeholder:italic" 
+                              onChange={e => setVoterForm({...voterForm, phone: formatPhone(e.target.value)})} 
+                              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 pl-11 font-bold text-xs text-zinc-900 outline-none focus:border-blue-600 focus:bg-white transition-all placeholder:text-zinc-300" 
                               placeholder="(95) 99000-0000" 
                             />
                           </div>
@@ -631,9 +728,10 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
                           <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">CPF *</label>
                           <input 
                             required
-                            type="text" 
+                            type="text"
+                            inputMode="numeric"
                             value={voterForm.cpf} 
-                            onChange={e => setVoterForm({...voterForm, cpf: e.target.value})} 
+                            onChange={e => setVoterForm({...voterForm, cpf: formatCPF(e.target.value)})} 
                             className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 font-bold text-xs text-zinc-900 outline-none focus:border-blue-600 focus:bg-white transition-all placeholder:text-zinc-300" 
                             placeholder="000.000.000-00" 
                           />
@@ -678,19 +776,40 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
                         <h3 className="font-black text-xs uppercase tracking-wider text-zinc-900">Endereço & Dados Eleitorais</h3>
                       </div>
 
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Endereço Completo *</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="space-y-1 sm:col-span-1">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">CEP (Opcional)</label>
+                          <div className="relative">
+                            <input 
+                              type="text"
+                              inputMode="numeric"
+                              value={cep} 
+                              onChange={handleCepChange}
+                              maxLength={9}
+                              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 font-bold text-xs text-zinc-900 outline-none focus:border-blue-600 focus:bg-white transition-all placeholder:text-zinc-300" 
+                              placeholder="69300-000" 
+                            />
+                            {loadingCep && (
+                              <Loader2 className="w-4 h-4 text-blue-600 animate-spin absolute right-3 top-3.5" />
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="space-y-1 sm:col-span-2 flex flex-col justify-end">
                           <button
                             type="button"
                             disabled={isLocatingGPS}
                             onClick={handleGetGPSLocation}
-                            className="text-xs text-blue-600 hover:text-blue-500 font-semibold flex items-center gap-1 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1 rounded-lg border border-blue-200/50 cursor-pointer active:scale-95 transition-all"
+                            className="w-full text-xs text-blue-600 hover:text-blue-500 font-bold flex items-center justify-center gap-1.5 bg-blue-50 hover:bg-blue-100/80 p-3 rounded-xl border border-blue-200/60 cursor-pointer active:scale-95 transition-all"
                           >
-                            <MapPin className="w-3.5 h-3.5" />
-                            {isLocatingGPS ? 'Capturando GPS...' : 'Usar Minha Localização Atual (GPS)'}
+                            <MapPin className="w-4 h-4" />
+                            {isLocatingGPS ? 'Capturando GPS...' : 'Preencher com GPS do Celular'}
                           </button>
                         </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Endereço Completo (Rua, Número, Bairro) *</label>
                         <input 
                           required
                           type="text" 
