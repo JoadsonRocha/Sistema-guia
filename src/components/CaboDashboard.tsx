@@ -983,16 +983,19 @@ export default function CaboDashboard({
     let errorCount = 0;
 
     try {
+      // Carrega eleitores existentes uma única vez para alta performance no lote
+      const existingVoters = await supabaseService.getCollectionFiltered<any>('voters', activeCoordId);
+      const existingPhones = new Set(existingVoters.map(v => (v.phone || '').replace(/\D/g, '')).filter(p => p.length > 5));
+      const existingCpfs = new Set(existingVoters.map(v => (v.cpf || '').replace(/\D/g, '')).filter(c => c.length > 5));
+
       for (const voter of parsedVoters) {
         try {
-          const activeCoordId = resolvedCoordinatorId || coordinatorId || teamData?.coordinatorId || '';
-          if (voter.phone && voter.phone.length > 5) {
-            const allVoters = await supabaseService.getCollectionFiltered<any>('voters', activeCoordId);
-            const exists = allVoters.some(v => v.phone === voter.phone);
-            if (exists) {
-              duplicateCount++;
-              continue;
-            }
+          const cleanPhone = (voter.phone || '').replace(/\D/g, '');
+          const cleanCpf = (voter.cpf || '').replace(/\D/g, '');
+
+          if ((cleanPhone && existingPhones.has(cleanPhone)) || (cleanCpf && existingCpfs.has(cleanCpf))) {
+            duplicateCount++;
+            continue;
           }
 
           const payload = {
@@ -1001,6 +1004,7 @@ export default function CaboDashboard({
             leaderName: profileData.name || user.displayName || "Líder",
             team: teamData?.name || profileData.zone || "Base",
             teamName: teamData?.name || profileData.zone || "Base",
+            teamId: user.teamId || teamData?.id || '',
             createdAt: Date.now(),
             registeredBy: user.email || user.uid,
             createdBy: user.uid,
@@ -1008,7 +1012,10 @@ export default function CaboDashboard({
             location: null
           };
 
-          await supabaseService.setDocument('voters', `voter_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, payload);
+          const docId = `voter_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+          await supabaseService.setDocument('voters', docId, payload);
+          if (cleanPhone) existingPhones.add(cleanPhone);
+          if (cleanCpf) existingCpfs.add(cleanCpf);
           successCount++;
         } catch (err) {
           console.error("Erro ao cadastrar eleitor em lote:", err);
