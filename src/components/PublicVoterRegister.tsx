@@ -31,11 +31,12 @@ import {
 } from 'lucide-react';
 
 interface PublicVoterRegisterProps {
-  leaderId: string | null;
-  teamId: string | null;
+  leaderId?: string | null;
+  teamId?: string | null;
+  coordinatorId?: string | null;
 }
 
-export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterRegisterProps) {
+export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }: PublicVoterRegisterProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -97,7 +98,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
   // Escutar dados do candidato cadastrados do Supabase
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const activeCoordId = leaderInfo?.coordinatorId || urlParams.get('coordinatorId') || undefined;
+    const activeCoordId = leaderInfo?.coordinatorId || coordinatorId || urlParams.get('coordinatorId') || undefined;
 
     // Busca inicial imediata
     candidateService.getCandidateInfo(activeCoordId).then((info) => {
@@ -112,7 +113,7 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
     }, activeCoordId);
 
     return () => unsub();
-  }, [leaderInfo?.coordinatorId]);
+  }, [leaderInfo?.coordinatorId, coordinatorId]);
 
   // Atualizar dinamicamente meta tags do Open Graph e título da página com a foto e dados do candidato
   useEffect(() => {
@@ -149,115 +150,103 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
       setLoading(true);
       setError(null);
       try {
-        let resolvedLeaderId = '';
-        let resolvedLeaderName = 'Líder';
-        let resolvedTeamName = 'Base';
-        let resolvedCoordinatorId = '';
-        let resolvedTeamId = '';
-
-        const activeLeaderId = leaderId;
-        const activeTeamId = teamId;
-
         const urlParams = new URLSearchParams(window.location.search);
-        const inviterParam = urlParams.get('inviter') || urlParams.get('name') || urlParams.get('leaderName') || urlParams.get('convidadoPor');
+        const inviterParam = urlParams.get('inviter') || urlParams.get('name') || urlParams.get('leaderName') || urlParams.get('convidadoPor') || '';
+        const urlLeaderId = leaderId || urlParams.get('leaderId') || urlParams.get('liderId') || undefined;
+        const urlTeamId = teamId || urlParams.get('teamId') || undefined;
+        const urlCoordId = coordinatorId || urlParams.get('coordinatorId') || undefined;
 
-        if (activeLeaderId) {
-          // 1. Tentar carregar de 'users'
-          const userDoc = await supabaseService.getDocument<any>('users', activeLeaderId);
-          if (userDoc) {
-            const uData = userDoc;
-            resolvedLeaderId = activeLeaderId;
-            resolvedLeaderName = uData.name || uData.displayName || inviterParam || 'Líder';
-            resolvedTeamName = uData.teamName || uData.zone || uData.team || 'Base';
-            resolvedCoordinatorId = uData.coordinatorId || uData.uid || activeLeaderId;
-            resolvedTeamId = uData.teamId || '';
-          } else {
-            // Se não encontrou em users, tentar carregar como se fosse teamId da coleção 'teams'
-            const teamDoc = await supabaseService.getDocument<any>('teams', activeLeaderId);
-            if (teamDoc) {
-              const tData = teamDoc;
-              resolvedTeamId = activeLeaderId;
-              resolvedLeaderName = tData.leaderName || tData.leader || inviterParam || 'Líder';
-              resolvedTeamName = tData.name || 'Base';
-              resolvedCoordinatorId = tData.coordinatorId || '';
-              
-              const users = await supabaseService.getCollection<any>('users');
-              const foundUser = users.find(u => u.teamId === activeLeaderId && u.role === 'lider');
-              if (foundUser) {
-                resolvedLeaderId = foundUser.id;
-                if (foundUser.name || foundUser.displayName) {
-                  resolvedLeaderName = foundUser.name || foundUser.displayName;
-                }
-              } else {
-                resolvedLeaderId = activeLeaderId;
-              }
-            } else {
-              throw new Error("Líder ou Equipe não encontrados no sistema.");
-            }
-          }
-        } else if (activeTeamId) {
-          // 2. Tentar carregar de 'teams'
-          const teamDoc = await supabaseService.getDocument<any>('teams', activeTeamId);
-          if (teamDoc) {
-            const tData = teamDoc;
-            resolvedTeamId = activeTeamId;
-            resolvedLeaderName = tData.leaderName || tData.leader || inviterParam || 'Líder';
-            resolvedTeamName = tData.name || 'Base';
-            resolvedCoordinatorId = tData.coordinatorId || '';
-            
-            const users = await supabaseService.getCollection<any>('users');
-            const foundUser = users.find(u => u.teamId === activeTeamId && u.role === 'lider');
-            if (foundUser) {
-              resolvedLeaderId = foundUser.id;
-              if (foundUser.name || foundUser.displayName) {
-                resolvedLeaderName = foundUser.name || foundUser.displayName;
-              }
-            } else {
-              resolvedLeaderId = activeTeamId;
-            }
-          } else {
-            throw new Error("Equipe não encontrada no sistema.");
-          }
-        } else {
-          // General coordinator link
-          const activeCoordId = urlParams.get('coordinatorId');
-          resolvedCoordinatorId = activeCoordId || '';
-          resolvedLeaderName = inviterParam || '';
-          resolvedTeamName = 'Nexus Política';
-          resolvedLeaderId = 'geral';
-        }
+        let resolvedLeaderId = '';
+        let resolvedLeaderName = inviterParam || '';
+        let resolvedTeamName = 'Base';
+        let resolvedCoordinatorId = urlCoordId || '';
+        let resolvedTeamId = urlTeamId || '';
 
-        if (!resolvedCoordinatorId) {
-          const users = await supabaseService.getCollection<any>('users');
-          const foundCoord = users.find(u => u.role === 'coordenador' || u.role === 'coordenador_geral');
-          if (foundCoord) {
-            resolvedCoordinatorId = foundCoord.id;
-            if (!resolvedLeaderName || resolvedLeaderName === 'Coordenação Geral' || resolvedLeaderName === 'Líder') {
-              resolvedLeaderName = foundCoord.name || foundCoord.displayName || inviterParam || '';
-            }
-          }
-        }
-
-        // Buscar nome real do coordenador se o nome atual for genérico ou vago
-        if ((!resolvedLeaderName || resolvedLeaderName === 'Coordenação Geral' || resolvedLeaderName === 'Líder' || resolvedLeaderName === 'geral') && resolvedCoordinatorId) {
+        if (urlLeaderId) {
           try {
-            const coordDoc = await supabaseService.getDocument<any>('users', resolvedCoordinatorId);
-            if (coordDoc) {
-              if (coordDoc.name || coordDoc.displayName) {
-                resolvedLeaderName = coordDoc.name || coordDoc.displayName;
+            // 1. Tentar carregar de 'users'
+            const userDoc = await supabaseService.getDocument<any>('users', urlLeaderId);
+            if (userDoc) {
+              const uData = userDoc;
+              resolvedLeaderId = urlLeaderId;
+              resolvedLeaderName = uData.name || uData.displayName || inviterParam || 'Líder';
+              resolvedTeamName = uData.teamName || uData.zone || uData.team || 'Base';
+              resolvedCoordinatorId = uData.coordinatorId || uData.uid || resolvedCoordinatorId;
+              resolvedTeamId = uData.teamId || resolvedTeamId;
+            } else {
+              // Se não encontrou em users, tentar carregar como teamId da coleção 'teams'
+              const teamDoc = await supabaseService.getDocument<any>('teams', urlLeaderId);
+              if (teamDoc) {
+                const tData = teamDoc;
+                resolvedTeamId = urlLeaderId;
+                resolvedLeaderName = tData.leaderName || tData.leader || inviterParam || 'Líder';
+                resolvedTeamName = tData.name || 'Base';
+                resolvedCoordinatorId = tData.coordinatorId || resolvedCoordinatorId;
+                resolvedLeaderId = urlLeaderId;
+              } else {
+                resolvedLeaderId = urlLeaderId;
+                resolvedLeaderName = inviterParam || 'Líder';
               }
             }
           } catch (e) {
-            console.warn("Aviso ao buscar nome do coordenador:", e);
+            resolvedLeaderId = urlLeaderId;
+            resolvedLeaderName = inviterParam || 'Líder';
           }
+        } else if (urlTeamId) {
+          try {
+            const teamDoc = await supabaseService.getDocument<any>('teams', urlTeamId);
+            if (teamDoc) {
+              const tData = teamDoc;
+              resolvedTeamId = urlTeamId;
+              resolvedLeaderName = tData.leaderName || tData.leader || inviterParam || 'Líder';
+              resolvedTeamName = tData.name || 'Base';
+              resolvedCoordinatorId = tData.coordinatorId || resolvedCoordinatorId;
+              resolvedLeaderId = tData.leaderId || urlTeamId;
+            } else {
+              resolvedTeamId = urlTeamId;
+              resolvedLeaderName = inviterParam || 'Líder';
+              resolvedLeaderId = urlTeamId;
+            }
+          } catch (e) {
+            resolvedTeamId = urlTeamId;
+            resolvedLeaderId = urlTeamId;
+          }
+        } else {
+          // Link Geral de Coordenação / Campanha
+          resolvedLeaderId = 'geral';
+          resolvedTeamName = 'Nexus Política';
         }
 
-        if (!resolvedLeaderName || resolvedLeaderName === 'Coordenação Geral' || resolvedLeaderName === 'Líder') {
-          resolvedLeaderName = inviterParam || 'Sérgio Bezerra';
+        // Buscar coordinatorId se não estiver preenchido ainda
+        if (!resolvedCoordinatorId) {
+          try {
+            const users = await supabaseService.getCollection<any>('users');
+            const foundCoord = users.find(u => u.role === 'coordenador' || u.role === 'coordenador_geral');
+            if (foundCoord) {
+              resolvedCoordinatorId = foundCoord.id;
+              if (!resolvedLeaderName || resolvedLeaderName === 'Coordenação Geral' || resolvedLeaderName === 'Líder') {
+                resolvedLeaderName = foundCoord.name || foundCoord.displayName || inviterParam || '';
+              }
+            }
+          } catch (e) {}
+        }
+
+        // Se ainda não temos nome do líder/convidante, buscar do coordenador ou fallback amigável
+        if ((!resolvedLeaderName || resolvedLeaderName === 'Líder' || resolvedLeaderName === 'geral') && resolvedCoordinatorId) {
+          try {
+            const coordDoc = await supabaseService.getDocument<any>('users', resolvedCoordinatorId);
+            if (coordDoc && (coordDoc.name || coordDoc.displayName)) {
+              resolvedLeaderName = coordDoc.name || coordDoc.displayName;
+            }
+          } catch (e) {}
+        }
+
+        if (!resolvedLeaderName) {
+          resolvedLeaderName = inviterParam || candidateInfo?.name || 'Coordenação Geral';
         }
 
         setLeaderInfo({
-          id: resolvedLeaderId,
+          id: resolvedLeaderId || 'geral',
           name: resolvedLeaderName,
           teamName: resolvedTeamName,
           coordinatorId: resolvedCoordinatorId,
@@ -265,14 +254,21 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
         });
       } catch (err: any) {
         console.error("Error loading external registration details:", err);
-        setError(err.message || "Não foi possível carregar os dados da equipe.");
+        // Fallback seguro em vez de travar a tela
+        setLeaderInfo({
+          id: leaderId || 'geral',
+          name: 'Coordenação Geral',
+          teamName: 'Base',
+          coordinatorId: coordinatorId || '',
+          teamId: teamId || ''
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchInfo();
-  }, [leaderId, teamId]);
+  }, [leaderId, teamId, coordinatorId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -289,15 +285,17 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
     }
 
     // Verificar se o plano do coordenador autoriza novos cadastros
-    const validation = await validateVoterRegistration(leaderInfo.coordinatorId);
-    if (!validation.allowed) {
-      triggerUpgradeRedirect(validation.reason!);
-      return;
+    if (leaderInfo.coordinatorId) {
+      const validation = await validateVoterRegistration(leaderInfo.coordinatorId);
+      if (!validation.allowed) {
+        triggerUpgradeRedirect(validation.reason!);
+        return;
+      }
     }
     
     setIsSubmitting(true);
     try {
-      if (voterForm.phone && voterForm.phone.length > 5) {
+      if (voterForm.phone && voterForm.phone.length > 5 && leaderInfo.coordinatorId) {
         const voters = await supabaseService.getCollectionFiltered<any>('voters', leaderInfo.coordinatorId);
         const existing = voters.find(v => v.phone === voterForm.phone);
         if (existing) {
@@ -309,14 +307,15 @@ export default function PublicVoterRegister({ leaderId, teamId }: PublicVoterReg
 
       const payload = {
         ...voterForm,
-        leaderId: leaderInfo.id,
-        leaderName: leaderInfo.name,
-        team: leaderInfo.teamName,
-        teamId: leaderInfo.teamId,
+        leaderId: leaderInfo.id || 'geral',
+        leaderName: leaderInfo.name || 'Coordenação Geral',
+        team: leaderInfo.teamName || 'Base',
+        teamName: leaderInfo.teamName || 'Base',
+        teamId: leaderInfo.teamId || '',
         createdAt: Date.now(),
         registeredBy: 'link_externo',
         createdBy: 'link_externo',
-        coordinatorId: leaderInfo.coordinatorId,
+        coordinatorId: leaderInfo.coordinatorId || '',
         location: null,
         lgpdConsent: acceptedLgpd,
         lgpdConsentDate: Date.now()

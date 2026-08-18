@@ -314,12 +314,21 @@ export default function CaboDashboard({
                 coordinatorId: resolvedCoordId
               }).catch(err => console.error("Error writing coordinatorId to user profile:", err));
             }
+
+            const isMyVoter = (v: any) => {
+              if (!v || !user?.uid) return false;
+              if (v.leaderId === user.uid) return true;
+              if (user.teamId && v.teamId === user.teamId) return true;
+              if (teamData?.id && (v.teamId === teamData.id || v.leaderId === teamData.id)) return true;
+              if (user.email && (v.registeredBy === user.email || v.leaderEmail === user.email)) return true;
+              return false;
+            };
             
             const healVotersAndRequests = async (rCoordId: string) => {
               try {
                 const targetTeamName = teamData?.name || profileData.zone || '';
                 const allVoters = await supabaseService.getCollection<any>('voters');
-                const myVoters = allVoters.filter(v => v.leaderId === user.uid);
+                const myVoters = allVoters.filter(isMyVoter);
                 
                 for (const v of myVoters) {
                   const needsCoord = !v.coordinatorId || v.coordinatorId === '';
@@ -336,7 +345,7 @@ export default function CaboDashboard({
                 }
 
                 const allRequests = await supabaseService.getCollection<any>('material_requests');
-                const myRequests = allRequests.filter(r => r.leaderId === user.uid && (!r.coordinatorId || r.coordinatorId === ''));
+                const myRequests = allRequests.filter(r => (r.leaderId === user.uid || (teamData?.id && r.teamId === teamData.id)) && (!r.coordinatorId || r.coordinatorId === ''));
                 for (const r of myRequests) {
                   await supabaseService.updateDocument('material_requests', r.id, { coordinatorId: rCoordId });
                 }
@@ -412,7 +421,15 @@ export default function CaboDashboard({
     if (!user?.uid) return;
     try {
       const allVoters = await supabaseService.getCollection<any>('voters');
-      const myVoters = allVoters.filter(v => v.leaderId === user.uid);
+      const isMyVoterItem = (v: any) => {
+        if (!v || !user?.uid) return false;
+        if (v.leaderId === user.uid) return true;
+        if (user.teamId && v.teamId === user.teamId) return true;
+        if (teamData?.id && (v.teamId === teamData.id || v.leaderId === teamData.id)) return true;
+        if (user.email && (v.registeredBy === user.email || v.leaderEmail === user.email)) return true;
+        return false;
+      };
+      const myVoters = allVoters.filter(isMyVoterItem);
       setTotalVotersCount(myVoters.length);
       setVotedVotersCount(myVoters.filter(v => v.voted).length);
     } catch (err) {
@@ -424,7 +441,7 @@ export default function CaboDashboard({
     if (user?.uid) {
       fetchServerCounts();
     }
-  }, [user?.uid, activeTab]);
+  }, [user?.uid, activeTab, teamData?.id]);
 
   // 2. Sincronização de eleitores do Líder
   useEffect(() => {
@@ -433,7 +450,15 @@ export default function CaboDashboard({
 
     setLoadingPaginatedVoters(true);
     const unsub = supabaseService.subscribeToCollection<any>('voters', (allVoters) => {
-      const docs = allVoters.filter(v => v.leaderId === user.uid);
+      const isMyVoterItem = (v: any) => {
+        if (!v || !user?.uid) return false;
+        if (v.leaderId === user.uid) return true;
+        if (user.teamId && v.teamId === user.teamId) return true;
+        if (teamData?.id && (v.teamId === teamData.id || v.leaderId === teamData.id)) return true;
+        if (user.email && (v.registeredBy === user.email || v.leaderEmail === user.email)) return true;
+        return false;
+      };
+      const docs = allVoters.filter(isMyVoterItem);
       const sorted = docs.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
       setVoters(sorted);
       setPaginatedVotersList(sorted);
@@ -443,7 +468,7 @@ export default function CaboDashboard({
     });
 
     return () => unsub();
-  }, [user?.uid, activeTab, voterPage]);
+  }, [user?.uid, activeTab, voterPage, teamData?.id]);
 
   // 3. Sincroniza campanha para autocomplete de forma sob demanda
   useEffect(() => {
@@ -2899,7 +2924,7 @@ export default function CaboDashboard({
                       <input 
                         readOnly 
                         type="text" 
-                        value={`${window.location.origin}/cadastro?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`} 
+                        value={`${window.location.origin}/cadastro?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}${user?.teamId || teamData?.id ? `&teamId=${user?.teamId || teamData?.id}` : ''}&inviter=${encodeURIComponent(profileData?.name || user?.displayName || user?.name || 'Líder')}`} 
                         className="flex-1 bg-zinc-100 border border-zinc-200 rounded-sm p-3 font-mono text-[11px] text-zinc-700 outline-none select-all"
                       />
                     </div>
@@ -2908,7 +2933,7 @@ export default function CaboDashboard({
                       <button 
                         type="button"
                         onClick={() => {
-                          const caboUrl = `${window.location.origin}/cadastro?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`;
+                          const caboUrl = `${window.location.origin}/cadastro?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}${user?.teamId || teamData?.id ? `&teamId=${user?.teamId || teamData?.id}` : ''}&inviter=${encodeURIComponent(profileData?.name || user?.displayName || user?.name || 'Líder')}`;
                           const candName = candidateInfo.name || 'nosso candidato';
                           const messageText = `*JUNTE-SE À NOSSA FORÇA-TAREFA!* 🗳️\n\nOlá! A campanha de *${candName}* está crescendo e precisamos de pessoas como você na nossa base de apoio.\n\nConfirme seu apoio oficial e entre para a nossa rede de mobilização acessando o link seguro abaixo:\n${caboUrl}`;
                           window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`, '_blank');
@@ -2921,7 +2946,7 @@ export default function CaboDashboard({
                       <button 
                         type="button"
                         onClick={() => {
-                          const caboUrl = `${window.location.origin}/cadastro?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}`;
+                          const caboUrl = `${window.location.origin}/cadastro?leaderId=${user?.uid}${user?.coordinatorId ? `&coordinatorId=${user.coordinatorId}` : ''}${user?.teamId || teamData?.id ? `&teamId=${user?.teamId || teamData?.id}` : ''}&inviter=${encodeURIComponent(profileData?.name || user?.displayName || user?.name || 'Líder')}`;
                           const candName = candidateInfo.name || 'nosso candidato';
                           const messageText = `*FAÇA PARTE DO NOSSO TIME!* 🗳️\n\nOlá! Gostaria de convidar você para fazer parte da nossa caminhada e apoiar a campanha de *${candName}*.\n\nRealize seu cadastro de forma simples e rápida no link abaixo:\n${caboUrl}`;
                           navigator.clipboard.writeText(messageText);

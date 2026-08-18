@@ -169,21 +169,24 @@ const AVAILABLE_COLUMNS_BY_TYPE: Record<string, { header: string; dataKey: strin
 
 export const isVoterInTeam = (voter: any, team: any) => {
   if (!voter || !team) return false;
+
+  // Checagem direta por IDs
+  if (team.id && (voter.teamId === team.id || voter.leaderId === team.id)) return true;
+  if (voter.teamId && (voter.teamId === team.id || voter.teamId === team.teamId)) return true;
+  if (voter.leaderId && (voter.leaderId === team.id || voter.leaderId === team.leaderId || voter.leaderId === team.createdBy)) return true;
+
   const teamName = (team.name || '').trim().toLowerCase();
-  
   const voterTeam = (voter.team || '').trim().toLowerCase();
   const voterTeamName = (voter.teamName || '').trim().toLowerCase();
   if (teamName && (voterTeam === teamName || voterTeamName === teamName)) return true;
 
-  const teamLeader = (team.leader || '').trim().toLowerCase();
+  const teamLeader = (team.leader || team.leaderName || '').trim().toLowerCase();
   const voterLeader = (voter.leaderName || '').trim().toLowerCase();
   if (teamLeader && voterLeader && teamLeader === voterLeader) return true;
 
-  const teamLeaderEmail = (team.leaderEmail || '').trim().toLowerCase();
+  const teamLeaderEmail = (team.leaderEmail || team.email || '').trim().toLowerCase();
   const voterLeaderEmail = (voter.leaderEmail || voter.registeredBy || voter.createdBy || '').trim().toLowerCase();
   if (teamLeaderEmail && voterLeaderEmail && teamLeaderEmail === voterLeaderEmail) return true;
-
-  if (voter.leaderId && (voter.leaderId === team.id || voter.leaderId === team.leaderId || voter.leaderId === team.createdBy)) return true;
 
   return false;
 };
@@ -7192,14 +7195,15 @@ export default function CoordinatorDashboard({
                 <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-3 rounded-xl">
                   <p className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">URL de Cadastro Público:</p>
                   <p className="font-mono text-xs text-blue-500 break-all select-all">
-                    {`${window.location.origin}/cadastro?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`}
+                    {`${window.location.origin}/cadastro?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || candidateForm?.name || 'Coordenação')}`}
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   <button 
                     onClick={() => {
-                      const finalUrl = `${window.location.origin}/cadastro?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`;
+                      const inviterName = user?.displayName || user?.name || candidateForm?.name || 'Coordenação';
+                      const finalUrl = `${window.location.origin}/cadastro?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(inviterName)}`;
                       const candName = candidateForm.name || 'nosso candidato';
                       const messageText = `*JUNTE-SE À NOSSA FORÇA-TAREFA!* 🗳️\n\nOlá! A campanha de *${candName}* está crescendo e precisamos de pessoas como você na nossa base de apoio.\n\nConfirme seu apoio oficial e entre para a nossa rede de mobilização acessando o link seguro abaixo:\n${finalUrl}`;
                       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`, '_blank');
@@ -7211,7 +7215,8 @@ export default function CoordinatorDashboard({
 
                   <button 
                     onClick={() => {
-                      const finalUrl = `${window.location.origin}/cadastro?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(user?.displayName || user?.name || 'Sérgio Bezerra')}`;
+                      const inviterName = user?.displayName || user?.name || candidateForm?.name || 'Coordenação';
+                      const finalUrl = `${window.location.origin}/cadastro?${selectedShareTeam ? `teamId=${selectedShareTeam}&` : ''}coordinatorId=${coordinatorId || user?.uid || ''}&inviter=${encodeURIComponent(inviterName)}`;
                       const candName = candidateForm.name || 'nosso candidato';
                       const messageText = `*FAÇA PARTE DO NOSSO TIME!* 🗳️\n\nOlá! Gostaria de convidar você para fazer parte da nossa caminhada e apoiar a campanha de *${candName}*.\n\nRealize seu cadastro de forma simples e rápida no link abaixo:\n${finalUrl}`;
                       navigator.clipboard.writeText(messageText);

@@ -32,7 +32,13 @@ function SalesLandingWrapper() {
   // Check URL search params
   const searchParams = new URLSearchParams(window.location.search);
   const hasAccessParams = searchParams.has('email') || searchParams.has('access_token') || searchParams.has('role');
-  const hasVoterRegisterParams = !hasAccessParams && (searchParams.has('leaderId') || searchParams.has('liderId') || searchParams.has('inviter'));
+  const hasVoterRegisterParams = !hasAccessParams && (
+    searchParams.has('leaderId') || 
+    searchParams.has('liderId') || 
+    searchParams.has('teamId') || 
+    searchParams.has('coordinatorId') || 
+    searchParams.has('inviter')
+  );
 
   // 1. Redirecionar links de acesso operacional (coordenadores / líderes) diretamente para /login
   if (hasAccessParams && !isLoggedIn) {
@@ -44,11 +50,9 @@ function SalesLandingWrapper() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // 3. Se for link exclusivo de cadastro de eleitor na raiz, renderizar cadastro público
+  // 3. Se for link exclusivo de cadastro de eleitor na raiz, redirecionar para a rota canônica /cadastro
   if (hasVoterRegisterParams) {
-    const leaderId = searchParams.get('leaderId') || searchParams.get('liderId') || searchParams.get('coordinatorId') || undefined;
-    const teamId = searchParams.get('teamId') || undefined;
-    return <PublicVoterRegister leaderId={leaderId} teamId={teamId} />;
+    return <Navigate to={`/cadastro?${searchParams.toString()}`} replace />;
   }
 
   const handleAccessSystem = () => {
@@ -72,10 +76,11 @@ function PublicRegisterWrapper() {
     return <Navigate to={`/login?${searchParams.toString()}`} replace />;
   }
 
-  const leaderId = searchParams.get('leaderId') || searchParams.get('liderId') || searchParams.get('coordinatorId') || undefined;
+  const leaderId = searchParams.get('leaderId') || searchParams.get('liderId') || undefined;
   const teamId = searchParams.get('teamId') || undefined;
+  const coordinatorId = searchParams.get('coordinatorId') || undefined;
   
-  return <PublicVoterRegister leaderId={leaderId} teamId={teamId} />;
+  return <PublicVoterRegister leaderId={leaderId} teamId={teamId} coordinatorId={coordinatorId} />;
 }
 
 export default function App() {
