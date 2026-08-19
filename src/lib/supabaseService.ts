@@ -35,7 +35,12 @@ function getLocalKey(path: string, id?: string) {
 function getLocalList<T>(path: string): T[] {
   try {
     const raw = localStorage.getItem(getLocalKey(path));
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item): item is T => item != null);
+      }
+    }
   } catch (e) {}
   return [];
 }
@@ -260,10 +265,12 @@ export const supabaseDataService = {
           .eq('record_type', path);
 
         if (!error && data) {
-          const items = data.map(row => ({
-            id: row.record_id,
-            ...(row.payload || {})
-          })) as T[];
+          const items = data
+            .filter(row => row && row.record_id)
+            .map(row => ({
+              id: row.record_id,
+              ...(row.payload || {})
+            })) as T[];
           setLocalList(path, items);
           return items;
         }
@@ -293,7 +300,7 @@ export const supabaseDataService = {
     // Fallback offline
     const all = getLocalList<any>(path);
     if (coordinatorId) {
-       return all.filter(item => item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId).length;
+       return all.filter(item => item && (item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId)).length;
     }
     return all.length;
   },
@@ -318,7 +325,7 @@ export const supabaseDataService = {
     }
 
     const localItems = getLocalList<any>(path);
-    const found = localItems.find(item => item.id === id);
+    const found = localItems.find(item => item && item.id === id);
     if (found) return found as T;
 
     try {
@@ -332,11 +339,11 @@ export const supabaseDataService = {
   async setDocument(path: string, id: string, data: any, merge: boolean = true) {
     const client = getSupabaseClient();
     const payload = { id, ...data };
-    const coordinatorId = data.coordinatorId || data.coordinator_id || data.userId || 'default';
+    const coordinatorId = data?.coordinatorId || data?.coordinator_id || data?.userId || 'default';
 
     // Local storage sync: keep a local copy for offline-first UX
     const items = getLocalList<any>(path);
-    const idx = items.findIndex(item => item.id === id);
+    const idx = items.findIndex(item => item && item.id === id);
     if (idx >= 0) {
       items[idx] = merge ? { ...items[idx], ...payload } : payload;
     } else {
@@ -370,7 +377,7 @@ export const supabaseDataService = {
   },
 
   async deleteDocument(path: string, id: string) {
-    const items = getLocalList<any>(path).filter(item => item.id !== id);
+    const items = getLocalList<any>(path).filter(item => item && item.id !== id);
     setLocalList(path, items);
     try {
       localStorage.removeItem(getLocalKey(path, id));
@@ -478,10 +485,12 @@ export const supabaseDataService = {
         const { data, error } = await query;
 
         if (!error && data) {
-          const items = data.map(row => ({
-            id: row.record_id,
-            ...(row.payload || {})
-          })) as T[];
+          const items = data
+            .filter(row => row && row.record_id)
+            .map(row => ({
+              id: row.record_id,
+              ...(row.payload || {})
+            })) as T[];
           return items;
         }
       } catch (e) {
@@ -491,9 +500,9 @@ export const supabaseDataService = {
 
     const all = getLocalList<any>(path);
     if (coordinatorId && coordinatorId.trim()) {
-      return all.filter(item => item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId) as T[];
+      return all.filter(item => item && (item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId)) as T[];
     }
-    return all as T[];
+    return all.filter(Boolean) as T[];
   },
 
   async getCollectionPaginated<T>(path: string, coordinatorId: string, options: { page: number; pageSize: number; filters?: any }): Promise<{ data: T[], total: number }> {
@@ -522,10 +531,12 @@ export const supabaseDataService = {
         const { data, error, count } = await query.range(from, to);
 
         if (!error && data) {
-          const items = data.map(row => ({
-            id: row.record_id,
-            ...(row.payload || {})
-          })) as T[];
+          const items = data
+            .filter(row => row && row.record_id)
+            .map(row => ({
+              id: row.record_id,
+              ...(row.payload || {})
+            })) as T[];
           return { data: items, total: count || 0 };
         }
       } catch (e) {

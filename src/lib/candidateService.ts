@@ -171,7 +171,7 @@ export const candidateService = {
     const candidateId = candidate.id || `cand_${Date.now()}`;
 
     // Check if another REAL candidate already occupies this exact cargo
-    const duplicate = currentList.find(c => c.id !== candidateId && isRealCandidate(c) && normalizeTitle(c.title) === normTitle);
+    const duplicate = currentList.find(c => c && isRealCandidate(c) && c.id !== candidateId && normalizeTitle(c.title) === normTitle);
 
     if (duplicate) {
       throw new Error(`Já existe um candidato cadastrado para o cargo '${titleToUse}'. Não é permitido cadastrar mais de um candidato para o mesmo cargo.`);
@@ -186,7 +186,7 @@ export const candidateService = {
     };
 
     let newList: CandidateInfo[];
-    const index = currentList.findIndex(c => c.id === candidateId);
+    const index = currentList.findIndex(c => c && c.id === candidateId);
     if (index >= 0) {
       newList = [...currentList];
       newList[index] = updatedCandidate;
@@ -229,7 +229,7 @@ export const candidateService = {
    */
   async deleteCandidate(candidateId: string, userId?: string, coordinatorId?: string): Promise<CandidateInfo[]> {
     const currentList = await this.getCandidatesList(coordinatorId);
-    const newList = currentList.filter(c => c.id !== candidateId);
+    const newList = currentList.filter(c => c && c.id !== candidateId);
     const final = newList.length > 0 ? newList : [DEFAULT_CANDIDATE_INFO];
 
     setLocalCacheList(final);

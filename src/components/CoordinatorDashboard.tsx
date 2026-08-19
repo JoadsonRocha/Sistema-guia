@@ -949,7 +949,8 @@ export default function CoordinatorDashboard({
       const cached = safeLocalStorage.getItem(`urna360_voters_cache_${coordinatorId}`);
       if (cached) {
         try {
-          setAllVoters(JSON.parse(cached));
+          const parsed = JSON.parse(cached);
+          setAllVoters(Array.isArray(parsed) ? parsed.filter(Boolean) : []);
         } catch (e) {
           console.warn("Erro ao carregar cache de eleitores:", e);
         }
@@ -1117,7 +1118,7 @@ export default function CoordinatorDashboard({
       }
       
       const activeCoordId = coordinatorId || user?.uid || '';
-      const existing = materials.find(m => m.name && m.name.toLowerCase() === name.toLowerCase());
+      const existing = materials.find(m => m && m.name && m.name.toLowerCase() === name.toLowerCase());
       
       if (existing) {
         const newTotal = (existing.total || 0) + qty;
@@ -1129,7 +1130,7 @@ export default function CoordinatorDashboard({
           qty: newTotal.toLocaleString('pt-BR')
         };
         await supabaseService.updateDocument('materials', existing.id, updatedDoc);
-        setMaterials(prev => prev.map(m => m.id === existing.id ? updatedDoc : m));
+        setMaterials(prev => prev.map(m => (m && m.id === existing.id) ? updatedDoc : m));
         showToast(`Quantidade adicionada ao material existente: ${name}`, "success");
       } else {
         const newMatData = {
@@ -1153,12 +1154,12 @@ export default function CoordinatorDashboard({
 
   const handleUpdateMaterial = async (id: string, amount: number) => {
     try {
-      const mat = materials.find(m => m.id === id);
+      const mat = materials.find(m => m && m.id === id);
       if (!mat) return;
       const updatedCurrent = Math.max(0, (mat.current || 0) + amount);
       const updatedMat = { ...mat, current: updatedCurrent };
       await supabaseService.updateDocument('materials', id, { current: updatedCurrent });
-      setMaterials(prev => prev.map(m => m.id === id ? updatedMat : m));
+      setMaterials(prev => prev.map(m => (m && m.id === id) ? updatedMat : m));
       showToast("Estoque atualizado!", "success");
     } catch (err: any) {
       showToast("Erro ao atualizar: " + err.message, "error");
@@ -1169,7 +1170,7 @@ export default function CoordinatorDashboard({
     if (confirm("Deseja realmente excluir este tipo de material e todo seu estoque?")) {
       try {
         await supabaseService.deleteDocument('materials', id);
-        setMaterials(prev => prev.filter(m => m.id !== id));
+        setMaterials(prev => prev.filter(m => m && m.id !== id));
         showToast("Material excluído!", "success");
       } catch (err: any) {
         showToast("Erro ao excluir: " + err.message, "error");
@@ -1198,7 +1199,7 @@ export default function CoordinatorDashboard({
         return;
       }
 
-      const old = materials.find(m => m.id === editingMaterialId);
+      const old = materials.find(m => m && m.id === editingMaterialId);
       if (!old) {
         showToast("Erro: Material original não encontrado.", "error");
         return;
@@ -1214,7 +1215,7 @@ export default function CoordinatorDashboard({
       };
 
       await supabaseService.updateDocument('materials', editingMaterialId, updatedMat);
-      setMaterials(prev => prev.map(m => m.id === editingMaterialId ? updatedMat : m));
+      setMaterials(prev => prev.map(m => (m && m.id === editingMaterialId) ? updatedMat : m));
 
       setIsEditingMaterial(false);
       setEditingMaterialId(null);
@@ -1227,7 +1228,7 @@ export default function CoordinatorDashboard({
   };
 
   const handleApproveMaterialRequest = (req: any) => {
-    const mat = materials.find(m => m.id === req.materialId);
+    const mat = materials.find(m => m && m.id === req.materialId);
     if (!mat) {
       alert("Material não encontrado no estoque!");
       return;
@@ -1252,7 +1253,7 @@ export default function CoordinatorDashboard({
 
     try {
       const req = signingRequest;
-      const mat = materials.find(m => m.id === req.materialId);
+      const mat = materials.find(m => m && m.id === req.materialId);
       if (!mat) {
         alert("Material não encontrado no estoque!");
         return;
@@ -1346,13 +1347,13 @@ export default function CoordinatorDashboard({
               return true;
             }).map(t => t.name);
             
-            data = allVoters.filter(v => activeTeams.includes(v.team) || activeTeams.includes(v.teamName))
+            data = allVoters.filter(v => v && (activeTeams.includes(v.team) || activeTeams.includes(v.teamName)))
               .map(v => ({
                 ...v,
                 teamDisplay: v.team || v.teamName || 'N/A',
                 votedStatus: v.voted ? 'SIM' : 'NÃO',
                 sentiment: v.sentiment === 'support' ? 'APOIO' : v.sentiment === 'neutral' ? 'NEUTRO' : 'OPOSIÇÃO',
-                referredByDisplay: v.articulatorId ? (allVoters.find(av => av.id === v.articulatorId)?.name || 'Articulador') : (v.referredBy || '---'),
+                referredByDisplay: v.articulatorId ? (allVoters.find(av => av && av.id === v.articulatorId)?.name || 'Articulador') : (v.referredBy || '---'),
                 tagsStr: v.tags?.join(', ') || ''
               }));
             subtitle = `Listagem detalhada de ${data.length} eleitores vinculados às equipes selecionadas.`;
@@ -1384,14 +1385,15 @@ export default function CoordinatorDashboard({
           case 'teams':
             title = 'Relatório de Equipes e Lideranças';
             data = teams.filter(t => {
+              if (!t) return false;
               if (filters.status && t.status !== filters.status) return false;
               if (filters.location && !t.location.includes(filters.location)) return false;
               if (filters.team && t.name !== filters.team) return false;
               return true;
             }).map(t => ({
               ...t,
-              realContacts: allVoters.filter(v => isVoterInTeam(v, t)).length,
-              demandCount: urgencies.filter(u => u.team === t.name).length,
+              realContacts: allVoters.filter(v => v && isVoterInTeam(v, t)).length,
+              demandCount: urgencies.filter(u => u && u.team === t.name).length,
               spentStr: `R$ ${t.spent?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`,
               status: t.status || 'OK'
             }));
@@ -1401,6 +1403,7 @@ export default function CoordinatorDashboard({
           case 'voters':
             title = 'Relatório Geral de Eleitores';
             data = allVoters.filter(v => {
+              if (!v) return false;
               if (filters.sentiment && v.sentiment !== filters.sentiment) return false;
               if (filters.voted !== undefined && v.voted !== filters.voted) return false;
               if (filters.team && v.team !== filters.team && v.teamName !== filters.team) return false;
@@ -1410,7 +1413,7 @@ export default function CoordinatorDashboard({
               teamDisplay: v.team || v.teamName || 'N/A',
               votedStatus: v.voted ? 'SIM' : 'NÃO',
               sentiment: v.sentiment === 'support' ? 'APOIO' : v.sentiment === 'neutral' ? 'NEUTRO' : 'OPOSIÇÃO',
-              referredByDisplay: v.articulatorId ? (allVoters.find(av => av.id === v.articulatorId)?.name || 'Articulador') : (v.referredBy || '---'),
+              referredByDisplay: v.articulatorId ? (allVoters.find(av => av && av.id === v.articulatorId)?.name || 'Articulador') : (v.referredBy || '---'),
               tagsStr: v.tags?.join(', ') || ''
             }));
             subtitle = `${data.length} eleitores filtrados na base estratégica.`;
@@ -1715,20 +1718,20 @@ export default function CoordinatorDashboard({
     const unsubUrgencies = supabaseService.subscribeToCollectionFiltered('urgencies', coordinatorId, (data) => setUrgencies(data));
 
     const unsubStats = supabaseService.subscribeToCollection<any>('stats', (data) => {
-      const found = data.find(item => item.id === `stats_${coordinatorId}`);
+      const found = (data || []).find(item => item && item.id === `stats_${coordinatorId}`);
       if (found) setStatsData(found);
     });
 
     const unsubAgendas = supabaseService.subscribeToCollectionFiltered('agenda', coordinatorId, (data) => setAgendas(data));
 
     const unsubNotesSnap = supabaseService.subscribeToCollectionFiltered<any>('notes', coordinatorId, (data) => {
-      setNotes(data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
+      setNotes((data || []).filter(Boolean).sort((a, b) => ((b && b.createdAt) || 0) - ((a && a.createdAt) || 0)));
     });
 
     let unsubProfile: (() => void) | null = null;
     if (user?.uid) {
       unsubProfile = supabaseService.subscribeToCollection<any>('users', (data) => {
-        const found = data.find(u => u.id === user.uid);
+        const found = (data || []).find(u => u && u.id === user.uid);
         if (found) {
           const userEmail = (user.email || found.email || '').toLowerCase();
           const userName = (found.name || '').toLowerCase();
@@ -1743,9 +1746,9 @@ export default function CoordinatorDashboard({
     }
 
     const unsubDailyOrder = supabaseService.subscribeToCollectionFiltered<any>('daily_orders', coordinatorId, (data) => {
-      const sorted = [...data].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      const sorted = [...(data || [])].filter(Boolean).sort((a, b) => ((b && b.createdAt) || 0) - ((a && a.createdAt) || 0));
       setDailyOrders(sorted);
-      const active = sorted.find(o => o.status === 'active');
+      const active = sorted.find(o => o && o.status === 'active');
       setDailyOrder(active || null);
     });
 
@@ -1794,9 +1797,9 @@ export default function CoordinatorDashboard({
       try {
         const counts: Record<string, number> = {};
         for (const team of teams) {
-          const teamName = team.name;
-          const matchedFromAll = allVoters.filter(v => isVoterInTeam(v, team)).length;
-          counts[teamName] = matchedFromAll;
+          if (!team || !team.name) continue;
+          const matchedFromAll = allVoters.filter(v => v && isVoterInTeam(v, team)).length;
+          counts[team.name] = matchedFromAll;
         }
         setTeamVotersCountMap(counts);
       } catch (err) {
@@ -1818,8 +1821,9 @@ export default function CoordinatorDashboard({
 
     const unsubVoters = supabaseService.subscribeToCollectionFiltered<any>('voters', coordinatorId, (rawData) => {
       const uniqueMap = new Map();
-      rawData.forEach((v: any) => {
+      (rawData || []).filter(Boolean).forEach((v: any) => {
         const key = (v.phone && v.phone.length > 5) ? v.phone : v.name;
+        if (!key) return;
         if (!uniqueMap.has(key)) {
           uniqueMap.set(key, v);
         } else {
@@ -1843,11 +1847,11 @@ export default function CoordinatorDashboard({
 
     setLoadingPaginatedVoters(true);
     supabaseService.getCollectionFiltered<any>('voters', coordinatorId).then((data) => {
-      let filtered = data;
+      let filtered = (data || []).filter(Boolean);
       if (articulatorFilter) {
-        filtered = filtered.filter(v => v.articulatorId === articulatorFilter);
+        filtered = filtered.filter(v => v && v.articulatorId === articulatorFilter);
       }
-      const sorted = filtered.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
+      const sorted = filtered.sort((a: any, b: any) => ((a && a.name) || '').localeCompare((b && b.name) || ''));
       setPaginatedVotersList(sorted);
       setHasMoreVoters(false);
       setLoadingPaginatedVoters(false);
@@ -1864,7 +1868,7 @@ export default function CoordinatorDashboard({
     const fetchArticulators = async () => {
       try {
         const voters = await supabaseService.getCollectionFiltered<any>('voters', coordinatorId);
-        setArticulators(voters.filter(v => v.isArticulator));
+        setArticulators((voters || []).filter(v => v && v.isArticulator));
       } catch (err) {
         console.warn("Error fetching articulators:", err);
       }
@@ -2032,13 +2036,13 @@ export default function CoordinatorDashboard({
       const fetchLeaderAndVoters = async () => {
         try {
           const voters = await supabaseService.getCollectionFiltered<any>('voters', coordinatorId);
-          let teamVoters = voters.filter(v => v.team === teamName);
+          let teamVoters = (voters || []).filter(v => v && v.team === teamName);
 
           if (teamVoters.length === 0 && leaderEmail) {
             const users = await supabaseService.getCollectionFiltered<any>('users', coordinatorId);
-            const leader = users.find(u => u.email?.toLowerCase() === leaderEmail);
+            const leader = (users || []).find(u => u && u.email?.toLowerCase() === leaderEmail);
             if (leader) {
-              teamVoters = voters.filter(v => v.leaderId === leader.id);
+              teamVoters = (voters || []).filter(v => v && v.leaderId === leader.id);
             }
           }
 
@@ -4131,7 +4135,7 @@ export default function CoordinatorDashboard({
                           <td className="p-4">
                             <div className="flex flex-col">
                               <span className="text-xs font-black text-zinc-900 uppercase leading-none">
-                                {voter.articulatorId ? (allVoters.find(v => v.id === voter.articulatorId)?.name || articulators.find(v => v.id === voter.articulatorId)?.name || 'Articulador') : (voter.referredBy || '---')}
+                                {voter.articulatorId ? ((allVoters || []).find(v => v && v.id === voter.articulatorId)?.name || (articulators || []).find(v => v && v.id === voter.articulatorId)?.name || 'Articulador') : (voter.referredBy || '---')}
                               </span>
                               {voter.familyCommunity && (
                                 <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Grupamento: {voter.familyCommunity}</span>
@@ -5540,7 +5544,7 @@ export default function CoordinatorDashboard({
                       <select
                         value={newTeam.regionalCoordId || ''}
                         onChange={(e) => {
-                          const selected = regionalCoordinators.find(r => r.id === e.target.value || r.email === e.target.value);
+                          const selected = (regionalCoordinators || []).find(r => r && (r.id === e.target.value || r.email === e.target.value));
                           setNewTeam({
                             ...newTeam,
                             regionalCoordId: e.target.value,
@@ -6275,7 +6279,7 @@ export default function CoordinatorDashboard({
                       className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm appearance-none outline-none"
                     >
                       <option value="">NENHUM ARTICULADOR</option>
-                      {(allVoters.length > 0 ? allVoters.filter(v => v.isArticulator && v.id !== selectedVoter?.id) : articulators.filter(v => v.id !== selectedVoter?.id)).map(art => (
+                      {((allVoters && allVoters.length > 0) ? allVoters.filter(v => v && v.isArticulator && v.id !== selectedVoter?.id) : (articulators || []).filter(v => v && v.id !== selectedVoter?.id)).map(art => (
                         <option key={art.id} value={art.id}>{art.name}</option>
                       ))}
                     </select>
@@ -6295,9 +6299,9 @@ export default function CoordinatorDashboard({
                     className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3.5 font-bold text-sm outline-none appearance-none"
                   >
                     <option value="">NENHUM INDICIADOR SELECIONADO</option>
-                    {[...sourceVoters]
-                      .filter(v => v.id !== selectedVoter?.id)
-                      .sort((a, b) => a.name.localeCompare(b.name))
+                    {[...(sourceVoters || [])]
+                      .filter(v => v && v.id !== selectedVoter?.id)
+                      .sort((a, b) => ((a && a.name) || '').localeCompare((b && b.name) || ''))
                       .map(v => (
                         <option key={v.id} value={v.name}>{v.name} {v.phone ? `(${v.phone})` : ''}</option>
                       ))

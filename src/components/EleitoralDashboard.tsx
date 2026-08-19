@@ -462,7 +462,7 @@ export default function EleitoralDashboard({
 
     const unsub = supabaseService.subscribeToCollectionFiltered<any>('eleitoral_data', activeCoordId, (dataList) => {
       if (isSavingRef.current) return;
-      const data = dataList.find(item => item.id === `coord_${activeCoordId}`);
+      const data = (dataList || []).find(item => item && item.id === `coord_${activeCoordId}`);
       if (!data) return;
 
       if (data?.cleared) {
@@ -2683,7 +2683,7 @@ export default function EleitoralDashboard({
                 <div className="lg:col-span-5 flex flex-col justify-between bg-zinc-950 text-white border border-zinc-800 p-5 rounded-sm shadow-lg">
                   {selectedStrategyMun ? (
                     (() => {
-                      const data = crossReferencedData.find(d => d.municipio === selectedStrategyMun);
+                      const data = (crossReferencedData || []).find(d => d && d.municipio === selectedStrategyMun);
                       if (!data) return <p className="text-xs text-zinc-400">Município não encontrado</p>;
                       return (
                         <div className="space-y-5 h-full flex flex-col justify-between">

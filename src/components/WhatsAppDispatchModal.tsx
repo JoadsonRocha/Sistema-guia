@@ -112,10 +112,10 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
   };
 
   const handleLaunchNextInQueue = () => {
-    const pendingItem = preparedBatch.find((_, idx) => idx >= activeQueueIndex && !sentMap[_.id]);
+    const pendingItem = (preparedBatch || []).find((_, idx) => _ && idx >= activeQueueIndex && !sentMap[_.id]);
     if (pendingItem) {
       handleOpenWaMe(pendingItem);
-      const nextIdx = preparedBatch.findIndex(i => i.id === pendingItem.id) + 1;
+      const nextIdx = (preparedBatch || []).findIndex(i => i && i.id === pendingItem.id) + 1;
       setActiveQueueIndex(nextIdx);
     } else {
       alert('Todas as mensagens da fila já foram disparadas!');
@@ -208,7 +208,7 @@ export const WhatsAppDispatchModal: React.FC<WhatsAppDispatchModalProps> = ({
     }
   };
 
-  const sentCount = Object.keys(sentMap).filter(k => preparedBatch.some(p => p.id === k)).length;
+  const sentCount = Object.keys(sentMap).filter(k => (preparedBatch || []).some(p => p && p.id === k)).length;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-3 md:p-4 animate-in fade-in duration-200">

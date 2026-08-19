@@ -428,7 +428,7 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
 
       // 5. Match using the articulator's details
       if (!location && voter.articulatorId) {
-        const articulator = allVoters.find(av => av.id === voter.articulatorId);
+        const articulator = (allVoters || []).find(av => av && av.id === voter.articulatorId);
         if (articulator) {
           if (articulator.team && teamNameToLocation.has(articulator.team.trim().toLowerCase())) {
             location = teamNameToLocation.get(articulator.team.trim().toLowerCase())!;
@@ -481,10 +481,12 @@ export default function RoraimaMapComponent({ teams = [], allVoters = [], demand
 
       // 7. Last resort: check if any team corresponds to the voter's coordinator/leader/email
       if (!location) {
-        const associatedTeam = teams.find(t => 
-          t.name?.toLowerCase() === voter.team?.toLowerCase() || 
-          t.leader?.toLowerCase() === voter.referredBy?.toLowerCase() || 
-          t.leaderEmail?.toLowerCase() === voter.registeredBy?.toLowerCase()
+        const associatedTeam = (teams || []).find(t => 
+          t && (
+            t.name?.toLowerCase() === voter.team?.toLowerCase() || 
+            t.leader?.toLowerCase() === voter.referredBy?.toLowerCase() || 
+            t.leaderEmail?.toLowerCase() === voter.registeredBy?.toLowerCase()
+          )
         );
         if (associatedTeam && associatedTeam.location) {
           location = associatedTeam.location;

@@ -247,7 +247,7 @@ export default function CaboDashboard({
       
       let unsubProfile: (() => void) | null = null;
       unsubProfile = supabaseService.subscribeToCollection<any>('users', (users) => {
-          const data = users.find(u => u.id === user.uid);
+          const data = (users || []).find(u => u && u.id === user.uid);
           if (data) {
             const teamName = data.teamName || data.zone || data.team || '';
             setProfileData({
@@ -286,7 +286,7 @@ export default function CaboDashboard({
           if (!resolvedCoordId && user.email) {
             const userEmailLower = user.email.toLowerCase();
             supabaseService.getCollection<any>('teams').then((allTeams) => {
-              const matchedTeam = allTeams.find(t => t.leaderEmail && t.leaderEmail.toLowerCase() === userEmailLower);
+              const matchedTeam = (allTeams || []).find(t => t && t.leaderEmail && t.leaderEmail.toLowerCase() === userEmailLower);
               if (matchedTeam) {
                 setTeamData(matchedTeam);
                 const foundCoordId = matchedTeam.coordinatorId || '';
@@ -299,7 +299,7 @@ export default function CaboDashboard({
                 }
               } else {
                 supabaseService.getCollection<any>('users').then((allUsers) => {
-                  const coordUser = allUsers.find(u => u.role === 'coordenador');
+                  const coordUser = (allUsers || []).find(u => u && u.role === 'coordenador');
                   if (coordUser) {
                     supabaseService.updateDocument('users', user.uid, {
                       coordinatorId: coordUser.id
@@ -379,8 +379,8 @@ export default function CaboDashboard({
 
             if (unsubDailyOrder) unsubDailyOrder();
             unsubDailyOrder = supabaseService.subscribeToCollectionFiltered<any>('daily_orders', resolvedCoordId, (data) => {
-              const sorted = [...data].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-              const active = sorted.find(o => o.status === 'active');
+              const sorted = [...(data || [])].filter(Boolean).sort((a, b) => ((b && b.createdAt) || 0) - ((a && a.createdAt) || 0));
+              const active = sorted.find(o => o && o.status === 'active');
               setDailyOrder(active || null);
             });
 
@@ -704,7 +704,7 @@ export default function CaboDashboard({
     }
 
     try {
-      const mat = materials.find((m: any) => m.id === materialId);
+      const mat = (materials || []).find((m: any) => m && m.id === materialId);
       const newReq = {
         leaderId: user.uid,
         leaderName: profileData.name || user?.displayName || 'Líder',

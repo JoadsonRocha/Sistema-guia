@@ -105,7 +105,7 @@ export function LoginPage() {
       if (!preRegDoc) {
         try {
           const allRegs = await supabaseService.getCollection<any>('regional_coordinators');
-          const foundReg = allRegs.find(rc => rc.email && rc.email.toLowerCase() === email.toLowerCase());
+          const foundReg = allRegs.find(rc => rc && rc.email && rc.email.toLowerCase() === email.toLowerCase());
           if (foundReg) {
             preRegDoc = {
               ...foundReg,
@@ -119,7 +119,7 @@ export function LoginPage() {
       if (!preRegDoc) {
         try {
           const allTeams = await supabaseService.getCollection<any>('teams');
-          const foundTeam = allTeams.find(t => (t.leaderEmail && t.leaderEmail.toLowerCase() === email.toLowerCase()) || (t.email && t.email.toLowerCase() === email.toLowerCase()));
+          const foundTeam = allTeams.find(t => t && ((t.leaderEmail && t.leaderEmail.toLowerCase() === email.toLowerCase()) || (t.email && t.email.toLowerCase() === email.toLowerCase())));
           if (foundTeam) {
             preRegDoc = {
               ...foundTeam,

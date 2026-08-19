@@ -106,7 +106,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     if (!preRegDoc && email) {
       try {
         const allPreRegs = await supabaseDataService.getCollection<any>('pre_registrations');
-        preRegDoc = allPreRegs.find(pr => pr.email && pr.email.toLowerCase() === email);
+        preRegDoc = allPreRegs.find(pr => pr && pr.email && pr.email.toLowerCase() === email);
       } catch (e) {}
     }
 
@@ -115,7 +115,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     if (email) {
       try {
         const allRegs = await supabaseDataService.getCollection<any>('regional_coordinators');
-        regionalCoordDoc = allRegs.find(rc => rc.email && rc.email.toLowerCase() === email);
+        regionalCoordDoc = allRegs.find(rc => rc && rc.email && rc.email.toLowerCase() === email);
       } catch (e) {}
     }
 
@@ -124,7 +124,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     if (email) {
       try {
         const allTeams = await supabaseDataService.getCollection<any>('teams');
-        teamDoc = allTeams.find(t => (t.leaderEmail && t.leaderEmail.toLowerCase() === email) || (t.email && t.email.toLowerCase() === email));
+        teamDoc = allTeams.find(t => t && ((t.leaderEmail && t.leaderEmail.toLowerCase() === email) || (t.email && t.email.toLowerCase() === email)));
       } catch (e) {}
     }
 

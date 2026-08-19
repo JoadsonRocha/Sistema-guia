@@ -278,7 +278,7 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
         if (!resolvedCoordinatorId) {
           try {
             const users = await supabaseService.getCollection<any>('users');
-            const foundCoord = users.find(u => u.role === 'coordenador' || u.role === 'coordenador_geral');
+            const foundCoord = (users || []).find(u => u && (u.role === 'coordenador' || u.role === 'coordenador_geral'));
             if (foundCoord) {
               resolvedCoordinatorId = foundCoord.id;
               if (!resolvedLeaderName || resolvedLeaderName === 'Coordenação Geral' || resolvedLeaderName === 'Líder') {
@@ -358,14 +358,14 @@ export default function PublicVoterRegister({ leaderId, teamId, coordinatorId }:
 
         if (cleanPhone.length > 5 || cleanCpf.length > 5) {
           const voters = await supabaseService.getCollectionFiltered<any>('voters', leaderInfo.coordinatorId);
-          const existingPhone = cleanPhone.length > 5 && voters.find(v => (v.phone || '').replace(/\D/g, '') === cleanPhone);
+          const existingPhone = cleanPhone.length > 5 && (voters || []).find(v => v && (v.phone || '').replace(/\D/g, '') === cleanPhone);
           if (existingPhone) {
             showToast('⚠️ Este número de WhatsApp já consta na nossa base de apoiadores mobilizados!', 'error');
             setIsSubmitting(false);
             return;
           }
 
-          const existingCpf = cleanCpf.length > 5 && voters.find(v => (v.cpf || '').replace(/\D/g, '') === cleanCpf);
+          const existingCpf = cleanCpf.length > 5 && (voters || []).find(v => v && (v.cpf || '').replace(/\D/g, '') === cleanCpf);
           if (existingCpf) {
             showToast('⚠️ Este CPF já foi cadastrado na campanha!', 'error');
             setIsSubmitting(false);
